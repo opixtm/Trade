@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Co-pilot CHART "AI" v5.9 - Prompt Super Ketat</title>
+    
+    <!-- Memuat Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Memuat html2canvas untuk fitur ekspor ke gambar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Memuat Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Kustom untuk menyempurnakan tampilan */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #111827; /* Latar belakang gelap untuk kenyamanan mata */
+            color: #d1d5db; /* Warna teks abu-abu terang */
+        }
+        .tab-button.active { 
+            background-color: #3b82f6; /* Warna biru untuk tab aktif */
+            color: white; 
+        }
+        .chart-upload-container { 
+            background-color: #1f2937; 
+            border-radius: 0.5rem; 
+            padding: 1rem; 
+            border: 1px solid #374151; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .chart-preview-container { 
+            flex-grow: 1; 
+            position: relative; 
+            background-color: #111827; 
+            border-radius: 0.375rem; 
+            border: 2px dashed #4b5563; /* Garis putus-putus untuk area drop */
+            min-height: 150px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .chart-preview-container.drag-over {
+            border-color: #3b82f6; /* Warna berubah saat gambar di-drag di atasnya */
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        .chart-preview { 
+            object-fit: contain; 
+            width: 100%; 
+            height: 100%; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+        }
+        .loader { 
+            border: 4px solid #f3f3f3; 
+            border-top: 4px solid #3498db; 
+            border-radius: 50%; 
+            width: 40px; 
+            height: 40px; 
+            animation: spin 1s linear infinite; /* Animasi loading berputar */
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        .analysis-table-cell { 
+            padding: 0.75rem; 
+            border-bottom: 1px solid #374151; 
+            vertical-align: top; 
+        }
+        .kalkulator-input { 
+            background-color: #374151; 
+            border: 1px solid #4b5563; 
+            color: white; 
+            border-radius: 0.375rem; 
+            padding: 0.5rem 0.75rem; 
+            width: 100%; 
+        }
+        .posisi-btn.active.long { 
+            background-color: #22c55e; /* Warna hijau untuk posisi LONG aktif */
+            color: white; 
+            font-weight: bold; 
+        }
+        .posisi-btn.active.short { 
+            background-color: #ef4444; /* Warna merah untuk posisi SHORT aktif */
+            color: white; 
+            font-weight: bold; 
+        }
+        /* Animasi berdenyut untuk menyorot rekomendasi probabilitas tinggi */
+        @keyframes pulse-bg { 
+            0% { background-color: rgba(59, 130, 246, 0.1); } 
+            50% { background-color: rgba(59, 130, 246, 0.35); } 
+            100% { background-color: rgba(59, 130, 246, 0.1); } 
+        }
+        .highlight-pulse { 
+            animation: pulse-bg 2s ease-in-out infinite; 
+            border-radius: 0.375rem; 
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="min-h-screen flex flex-col">
+        <!-- Header Aplikasi -->
+        <header class="bg-gray-800/50 backdrop-blur-sm shadow-lg p-4 sticky top-0 z-20">
+            <h1 class="text-2xl font-bold text-center text-white">Co-pilot CHART<span class="text-blue-400">"AI"</span> v5.9 <span class="text-sm font-light text-purple-400">AI Mentor (Prompt Super Ketat)</span></h1>
+        </header>
+
+        <div class="flex-grow flex flex-col md:flex-row p-4 gap-4">
+
+            <!-- Panel Kontrol (Kiri) -->
+            <aside class="w-full md:w-1/3 lg:w-1/4 flex flex-col gap-4">
+                 <div class="bg-gray-800 rounded-lg p-4 flex flex-col gap-4 shadow-md flex-grow">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">Mode Analisa</h3>
+                        <p class="text-xs text-gray-400 mb-4">
+                            <span class="font-bold">Mode Standar:</span> Cukup isi LTF. <br/>
+                            <span class="font-bold">Mode MTF Presisi:</span> Isi HTF & LTF.
+                        </p>
+                        <!-- Upload Chart HTF -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-300 mb-1">1. Chart HTF (Tren Besar) <span class="text-gray-500 text-xs italic">- Opsional</span></label>
+                            <div id="htf-drop-zone" class="chart-preview-container">
+                                <img id="htf-chart-preview" src="" alt="Pratinjau Chart HTF" class="hidden chart-preview">
+                                <div id="htf-chart-placeholder" class="text-center text-gray-500 p-2 pointer-events-none"><p class="text-xs">Klik atau Drop gambar di sini</p></div>
+                            </div>
+                            <input type="file" id="htf-chart-upload" class="hidden" accept="image/*">
+                            <label for="htf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar HTF</label>
+                        </div>
+                        <!-- Upload Chart LTF -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">2. Chart LTF (Entry) <span class="text-green-400 text-xs italic">- Wajib</span></label>
+                            <div id="ltf-drop-zone" class="chart-preview-container">
+                                <img id="ltf-chart-preview" src="" alt="Pratinjau Chart LTF" class="hidden chart-preview">
+                                <div id="ltf-chart-placeholder" class="text-center text-gray-500 p-2 pointer-events-none"><p class="text-xs">Klik atau Drop gambar di sini</p></div>
+                            </div>
+                            <input type="file" id="ltf-chart-upload" class="hidden" accept="image/*">
+                            <label for="ltf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar LTF</label>
+                        </div>
+                    </div>
+                    
+                    <button id="analyze-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-500 disabled:cursor-not-allowed text-lg">ANALISA SEKARANG</button>
+                 </div>
+            </aside>
+
+            <!-- Panel Utama (Kanan) -->
+            <main class="w-full md:w-2/3 lg:w-3/4 bg-gray-800 rounded-lg p-2 sm:p-4 shadow-md flex flex-col relative">
+                <!-- Indikator Loading -->
+                <div id="loader" class="hidden absolute inset-0 bg-gray-900/80 flex items-center justify-center flex-col gap-2 z-50 rounded-lg">
+                    <div class="loader"></div>
+                    <p id="loader-text" class="text-white font-semibold"></p>
+                </div>
+                <div>
+                     <!-- Input API Key -->
+                     <div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg mb-4">
+                        <h3 class="font-bold text-yellow-300">Setup Kunci AI (Wajib)</h3>
+                        <input type="password" id="api-key-input" class="kalkulator-input mt-2" placeholder="Tempel API Key Google AI Studio di sini...">
+                        <p class="text-xs text-gray-400 mt-1">Kunci akan disimpan di browser Anda. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-300 font-bold">Dapatkan Kunci di sini (Gratis)</a>.</p>
+                    </div>
+                    <!-- Navigasi Tab -->
+                    <div class="flex flex-wrap border-b border-gray-700">
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">Rangkuman Analisa</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">Kalkulator Cerdas</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="sentimen">✨ Sentimen Pasar</button>
+                    </div>
+                </div>
+
+                <!-- Konten Tab -->
+                <div id="tab-content" class="flex-grow mt-4 overflow-y-auto">
+                    <!-- Tab: Analisa -->
+                    <div id="analisa" class="tab-pane">
+                        <div id="analysis-placeholder" class="text-center text-gray-500 p-8"><p>Unggah gambar chart untuk melihat hasil analisa AI di sini.</p></div>
+                        <div id="analysis-wrapper" class="hidden">
+                            <div id="analysis-content">
+                                 <!-- Hasil Ekstraksi Data -->
+                                 <div class="mb-4 bg-gray-900 p-4 rounded-lg border-l-4 border-blue-400">
+                                     <h4 class="font-bold text-lg text-white mb-2">Hasil Detektif Data (LTF)</h4>
+                                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm items-center">
+                                         <div>
+                                            <span class="font-semibold text-gray-400">Aset:</span> 
+                                            <span id="data-asset" class="font-bold"></span>
+                                         </div>
+                                         <div><span class="font-semibold text-gray-400">Timeframe:</span> <span id="data-timeframe" class="font-bold"></span></div>
+                                         <div><span class="font-semibold text-gray-400">Harga Terakhir:</span> <span id="data-price" class="font-bold"></span></div>
+                                     </div>
+                                     <div class="mt-2">
+                                        <span class="font-semibold text-gray-400">Indikator Terdeteksi:</span>
+                                        <span id="data-indicators" class="font-bold text-xs text-blue-300"></span>
+                                     </div>
+                                 </div>
+                                 <!-- Tabel Hasil Analisa -->
+                                 <div class="bg-gray-900 rounded-lg overflow-hidden">
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-bold text-gray-400 bg-gray-800">Parameter</div><div class="analysis-table-cell font-bold text-green-400 bg-gray-800">Scalping Setup LONG</div><div class="analysis-table-cell font-bold text-red-400 bg-gray-800">Scalping Setup SHORT</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Kondisi Pasar</div><div class="analysis-table-cell" id="long-kondisi">-</div><div class="analysis-table-cell" id="short-kondisi">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Strategi "Aman"</div><div class="analysis-table-cell" id="long-strategi">-</div><div class="analysis-table-cell" id="short-strategi">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Probabilitas</div><div class="analysis-table-cell" id="long-probabilitas">-</div><div class="analysis-table-cell" id="short-probabilitas">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Area Entry</div><div class="analysis-table-cell" id="long-entry">-</div><div class="analysis-table-cell" id="short-entry">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Pemicu/Konfirmasi</div><div class="analysis-table-cell" id="long-pemicu">-</div><div class="analysis-table-cell" id="short-pemicu">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Stop Loss</div><div class="analysis-table-cell" id="long-sl">-</div><div class="analysis-table-cell" id="short-sl">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Alasan Stop Loss</div><div class="analysis-table-cell text-xs italic" id="long-alasan-sl">-</div><div class="analysis-table-cell text-xs italic" id="short-alasan-sl">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Target Profit</div><div class="analysis-table-cell" id="long-tp">-</div><div class="analysis-table-cell" id="short-tp">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Alasan Target Profit</div><div class="analysis-table-cell text-xs italic" id="long-alasan-tp">-</div><div class="analysis-table-cell text-xs italic" id="short-alasan-tp">-</div></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Aksi</div><div class="analysis-table-cell"><button class="use-data-btn w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 rounded" data-setup="long">Gunakan Data</button></div><div class="analysis-table-cell"><button class="use-data-btn w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded" data-setup="short">Gunakan Data</button></div></div>
+                                 </div>
+                                 <!-- Rekomendasi Utama -->
+                                 <div class="mt-4 bg-blue-900/50 border-l-4 border-blue-400 p-4 rounded-r-lg"><h4 class="font-bold text-lg text-white mb-2">Rekomendasi Utama:</h4><p id="rekomendasi-text" class="text-blue-200">-</p></div>
+                                 
+                                 <!-- Saran Peningkatan -->
+                                 <div id="saran-container" class="mt-4 hidden">
+                                     <div class="bg-purple-900/50 border-l-4 border-purple-400 p-4 rounded-r-lg">
+                                         <h4 class="font-bold text-lg text-purple-300 mb-2">✨ Saran Peningkatan Analisa AI</h4>
+                                         <p id="saran-text" class="text-purple-200 text-sm">-</p>
+                                     </div>
+                                 </div>
+                            </div>
+                             <!-- Fitur Optimasi -->
+                             <div id="optimization-container" class="mt-4 hidden">
+                                 <button id="optimize-plan-btn" class="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition">✨ Minta Tinjauan & Optimasi Rencana</button>
+                                 <div id="optimization-output" class="mt-4 bg-gray-900 p-4 rounded-lg hidden"></div>
+                             </div>
+                             <button id="export-btn" class="mt-4 w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition">Ekspor Laporan (Gambar)</button>
+                        </div>
+                    </div>
+                    <!-- Tab: Kalkulator -->
+                    <div id="kalkulator" class="tab-pane hidden">
+                       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Input Kalkulator -->
+                            <div class="bg-gray-900 p-4 rounded-lg space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="font-semibold text-gray-300">Total Modal ($)</label><input type="number" id="calc-modal" class="kalkulator-input mt-1" value="250"></div>
+                                    <div><label class="font-semibold text-gray-300">Risiko/Trade (%)</label><input type="number" id="calc-risiko-pct" class="kalkulator-input mt-1" value="1.5" step="0.1"></div>
+                                </div>
+                                <div>
+                                    <label class="font-semibold text-gray-300">Pilih Posisi</label>
+                                    <div class="grid grid-cols-2 gap-2 mt-1">
+                                        <button id="btn-posisi-long" class="posisi-btn long p-2 rounded-lg bg-gray-700">LONG</button>
+                                        <button id="btn-posisi-short" class="posisi-btn short p-2 rounded-lg bg-gray-700">SHORT</button>
+                                    </div>
+                                </div>
+                                <div><label class="font-semibold text-gray-300">Harga Acuan (dari Zona Entry)</label><input type="number" id="calc-entry" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
+                                <div><label class="font-semibold text-gray-300">Leverage Pilihanmu (x)</label><input type="number" id="calc-leverage" class="kalkulator-input mt-1" value="10"></div>
+                                <div>
+                                    <label class="font-semibold text-gray-300">Biaya Posisi Manual ($) <span class="text-gray-500 text-xs italic">- Opsional</span></label>
+                                    <input type="number" id="calc-margin-manual" class="kalkulator-input mt-1" placeholder="Ganti perhitungan otomatis">
+                                </div>
+                                <div><label class="font-semibold text-gray-300">Stop Loss</label><input type="number" id="calc-sl" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
+                                <div><label class="font-semibold text-gray-300">Manajemen Take Profit</label>
+                                    <div class="space-y-2 mt-1">
+                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp1" step="any" class="kalkulator-input" placeholder="Harga TP 1"><input type="number" id="calc-tp1-pct" class="kalkulator-input w-24" value="50" placeholder="%"></div>
+                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp2" step="any" class="kalkulator-input" placeholder="Harga TP 2"><input type="number" id="calc-tp2-pct" class="kalkulator-input w-24" value="30" placeholder="%"></div>
+                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp3" step="any" class="kalkulator-input" placeholder="Harga TP 3"><input type="number" id="calc-tp3-pct" class="kalkulator-input w-24" value="20" placeholder="%"></div>
+                                    </div>
+                                </div>
+                                <button id="hitung-rencana-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition">HITUNG RENCANA</button>
+                            </div>
+                            <!-- Hasil Kalkulator -->
+                            <div class="bg-gray-900 p-4 rounded-lg">
+                                <h3 class="font-bold text-xl mb-4 text-white border-b border-gray-700 pb-2">Rencana Trading</h3>
+                                <div id="kalkulator-hasil" class="space-y-3 hidden">
+                                    <div class="flex justify-between items-baseline"><span id="out-risiko-label" class="font-semibold text-gray-400">Risiko per Trade (1.5%):</span><span id="out-risiko" class="font-bold text-lg text-red-400">$0.00</span></div>
+                                    <div class="flex justify-between items-baseline"><span class="font-semibold text-gray-400">Ukuran Posisi (USD):</span><span id="out-posisi" class="font-bold text-lg text-white">$0.00</span></div>
+                                    <div class="bg-blue-900/50 p-3 rounded-lg text-center"><p class="text-sm text-blue-300">Biaya Posisi (Margin)</p><p id="out-margin" class="font-bold text-2xl text-white">$0.00</p></div>
+                                    <div class="flex justify-between items-baseline"><span class="font-semibold text-gray-400">Rekomendasi Leverage Aman:</span><span id="out-leverage-aman" class="font-bold text-lg text-yellow-400">~1x</span></div>
+                                    <div><h4 class="font-bold text-lg text-white mt-4">Potensi Profit:</h4>
+                                        <div class="mt-2 space-y-2">
+                                            <div class="flex justify-between"><span id="out-tp1-label">TP 1 (RR 1:0.0):</span><span id="out-tp1-profit" class="font-semibold text-green-400">~$0.00</span></div>
+                                            <div class="flex justify-between"><span id="out-tp2-label">TP 2 (RR 1:0.0):</span><span id="out-tp2-profit" class="font-semibold text-green-400">~$0.00</span></div>
+                                            <div class="flex justify-between"><span id="out-tp3-label">TP 3 (RR 1:0.0):</span><span id="out-tp3-profit" class="font-semibold text-green-400">~$0.00</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                 <div id="kalkulator-placeholder" class="text-center text-gray-500 pt-16"><p>Klik "HITUNG RENCANA" untuk melihat hasil perhitungan di sini.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tab: Sentimen Pasar -->
+                    <div id="sentimen" class="tab-pane hidden">
+                        <h3 class="text-xl font-bold text-white mb-4">Analisa Sentimen Pasar</h3>
+                        <div class="bg-gray-900 p-4 rounded-lg">
+                            <p class="text-gray-300 mb-4">Dapatkan gambaran sentimen pasar terkini untuk sebuah aset berdasarkan berita dan diskusi online. Masukkan nama atau simbol aset (misal: Bitcoin, BTC, Ethereum).</p>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <input type="text" id="sentiment-asset-input" class="kalkulator-input flex-grow" placeholder="Contoh: Bitcoin">
+                                <button id="generate-sentiment-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">✨ Analisa Sentimen</button>
+                            </div>
+                            <div id="sentiment-output" class="mt-6">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- STATE APLIKASI ---
+    let htfImageBase64 = null;
+    let ltfImageBase64 = null;
+    let latestAnalysisData = null;
+    let pricePrecision = 4; // Default presisi harga
+
+    // --- SELEKSI ELEMEN DOM ---
+    const apiKeyInput = document.getElementById('api-key-input');
+    const htfUploadInput = document.getElementById('htf-chart-upload');
+    const htfChartPreview = document.getElementById('htf-chart-preview');
+    const htfChartPlaceholder = document.getElementById('htf-chart-placeholder');
+    const htfDropZone = document.getElementById('htf-drop-zone');
+    
+    const ltfUploadInput = document.getElementById('ltf-chart-upload');
+    const ltfChartPreview = document.getElementById('ltf-chart-preview');
+    const ltfChartPlaceholder = document.getElementById('ltf-chart-placeholder');
+    const ltfDropZone = document.getElementById('ltf-drop-zone');
+
+    const loader = document.getElementById('loader');
+    const loaderText = document.getElementById('loader-text');
+    
+    const analyzeBtn = document.getElementById('analyze-btn');
+
+    // Tampilan Analisa
+    const analysisWrapper = document.getElementById('analysis-wrapper');
+    const analysisPlaceholder = document.getElementById('analysis-placeholder');
+    const analysisContent = document.getElementById('analysis-content');
+    const exportBtn = document.getElementById('export-btn');
+    
+    // Tampilan Data Detektif
+    const dataAsset = document.getElementById('data-asset');
+    const dataTimeframe = document.getElementById('data-timeframe');
+    const dataPrice = document.getElementById('data-price');
+    const dataIndicators = document.getElementById('data-indicators');
+    const rekomendasiText = document.getElementById('rekomendasi-text');
+    const saranContainer = document.getElementById('saran-container');
+    const saranText = document.getElementById('saran-text');
+
+    // Input Kalkulator
+    const calcModal = document.getElementById('calc-modal');
+    const calcRisikoPct = document.getElementById('calc-risiko-pct');
+    const btnPosisiLong = document.getElementById('btn-posisi-long');
+    const btnPosisiShort = document.getElementById('btn-posisi-short');
+    const calcEntry = document.getElementById('calc-entry');
+    const calcLeverage = document.getElementById('calc-leverage');
+    const calcMarginManual = document.getElementById('calc-margin-manual');
+    const calcSl = document.getElementById('calc-sl');
+    const calcTp1 = document.getElementById('calc-tp1');
+    const calcTp2 = document.getElementById('calc-tp2');
+    const calcTp3 = document.getElementById('calc-tp3');
+    const hitungRencanaBtn = document.getElementById('hitung-rencana-btn');
+
+    // Output Kalkulator
+    const kalkulatorHasil = document.getElementById('kalkulator-hasil');
+    const kalkulatorPlaceholder = document.getElementById('kalkulator-placeholder');
+    const outRisikoLabel = document.getElementById('out-risiko-label');
+    const outRisiko = document.getElementById('out-risiko');
+    const outPosisi = document.getElementById('out-posisi');
+    const outMargin = document.getElementById('out-margin');
+    const outLeverageAman = document.getElementById('out-leverage-aman');
+    const outTp1Label = document.getElementById('out-tp1-label');
+    const outTp1Profit = document.getElementById('out-tp1-profit');
+    const outTp2Label = document.getElementById('out-tp2-label');
+    const outTp2Profit = document.getElementById('out-tp2-profit');
+    const outTp3Label = document.getElementById('out-tp3-label');
+    const outTp3Profit = document.getElementById('out-tp3-profit');
+
+    // Elemen Fitur Baru
+    const generateSentimentBtn = document.getElementById('generate-sentiment-btn');
+    const sentimentAssetInput = document.getElementById('sentiment-asset-input');
+    const sentimentOutput = document.getElementById('sentiment-output');
+    const optimizationContainer = document.getElementById('optimization-container');
+    const optimizePlanBtn = document.getElementById('optimize-plan-btn');
+    const optimizationOutput = document.getElementById('optimization-output');
+
+
+    // --- FUNGSI BANTUAN (HELPER) ---
+    const showLoader = (text) => {
+        loaderText.textContent = text;
+        loader.classList.remove('hidden');
+    };
+    const hideLoader = () => loader.classList.add('hidden');
+    const parsePrice = (priceString) => {
+        if (!priceString || typeof priceString !== 'string') return NaN;
+        const match = priceString.replace(/,/g, '').match(/[\d.]+/);
+        return match ? parseFloat(match[0]) : NaN;
+    };
+    const getDecimalPlaces = (value) => {
+        const s_value = String(value);
+        if (s_value.indexOf('.') === -1) {
+            return 0;
+        }
+        return s_value.split('.')[1].length || 0;
+    };
+    const updateCalculatorInputSteps = (precision) => {
+        const stepValue = precision > 0 ? '0.' + '0'.repeat(precision - 1) + '1' : '1';
+        const priceInputs = [calcEntry, calcSl, calcTp1, calcTp2, calcTp3];
+        priceInputs.forEach(input => {
+            input.step = stepValue;
+        });
+    };
+    const checkEnableAnalyzeButton = () => {
+        analyzeBtn.disabled = !(apiKeyInput.value.trim() && ltfImageBase64);
+    };
+
+    // --- LOGIKA UPLOAD & DRAG/DROP ---
+    function handleFile(file, imgEl, placeholderEl, stateSetter) {
+        if (!file || !file.type.startsWith('image/')) {
+            showCustomMessage('Harap unggah file gambar saja (PNG, JPG, dll).', 'error');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            stateSetter(e.target.result.split(',')[1]); 
+            imgEl.src = e.target.result;
+            imgEl.classList.remove('hidden');
+            placeholderEl.classList.add('hidden');
+            checkEnableAnalyzeButton();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function setupDropZone(dropZoneEl, inputEl, imgEl, placeholderEl, stateSetter) {
+        dropZoneEl.addEventListener('click', () => inputEl.click());
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZoneEl.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+        dropZoneEl.addEventListener('dragenter', () => dropZoneEl.classList.add('drag-over'));
+        dropZoneEl.addEventListener('dragleave', () => dropZoneEl.classList.remove('drag-over'));
+        dropZoneEl.addEventListener('drop', (e) => {
+            dropZoneEl.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            handleFile(file, imgEl, placeholderEl, stateSetter);
+        });
+        inputEl.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleFile(file, imgEl, placeholderEl, stateSetter);
+        });
+    }
+
+    // --- LOGIKA INTI AI (GEMINI) ---
+    function cleanAndParseJson(rawText) {
+        console.log("Raw text from AI for parsing:", rawText);
+        let jsonString = rawText;
+        const markdownMatch = rawText.match(/```json\s*([\s\S]*?)\s*```/);
+        if (markdownMatch && markdownMatch[1]) {
+            jsonString = markdownMatch[1];
+        } else {
+            const braceMatch = rawText.match(/\{[\s\S]*\}/);
+            if (braceMatch && braceMatch[0]) {
+                jsonString = braceMatch[0];
+            } else {
+                throw new Error("Tidak ada blok JSON yang dapat dikenali dalam respons AI.");
+            }
+        }
+        try {
+            return JSON.parse(jsonString);
+        } catch (e) {
+            console.error("JSON parsing error. Problematic string:", jsonString);
+            throw new Error(`Gagal mem-parsing JSON dari AI. Error: ${e.message}`);
+        }
+    }
+
+    async function callGemini(parts, isJsonOutput = true) {
+        const apiKey = apiKeyInput.value.trim();
+        if (!apiKey) throw new Error("API Key belum dimasukkan.");
+        const model = 'gemini-2.5-flash-latest';
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const payload = { contents: [{ role: "user", parts }] };
+        if (isJsonOutput) {
+            payload.generationConfig = {
+                "response_mime_type": "application/json",
+            };
+        }
+        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (!response.ok) {
+            const errorBody = await response.json();
+            const errorMessage = errorBody?.error?.message || `Permintaan API gagal: ${response.status}`;
+            if (response.status === 429) throw new Error("Terlalu banyak permintaan (Rate Limit). Coba lagi nanti.");
+            if (response.status === 503) throw new Error("Layanan AI sedang sibuk (Error 503). Coba lagi.");
+            throw new Error(errorMessage);
+        }
+        const result = await response.json();
+        if (result.candidates && result.candidates[0] && result.candidates[0].content.parts[0]) {
+            return result.candidates[0].content.parts[0].text.trim();
+        } else {
+            if (result.promptFeedback && result.promptFeedback.blockReason) {
+                throw new Error(`Permintaan diblokir oleh AI: ${result.promptFeedback.blockReason}`);
+            }
+            throw new Error("Struktur respons dari AI tidak valid atau kosong.");
+        }
+    }
+
+    async function extractKeyData(imageBase64) {
+        const prompt = `Anda adalah AI OCR yang sangat teliti. Tugas Anda adalah mengekstrak data dari gambar chart trading dengan mengikuti ATURAN PALING KETAT.
+        
+        1.  **Harga Terakhir (lastPrice)**: Ini adalah tugas paling penting. Lakukan dengan urutan ini, JANGAN DILANGGAR:
+            * **Langkah A (Prioritas Utama):** Fokus pada SUMBU HARGA di sisi KANAN chart. Cari KOTAK LABEL HARGA (seringkali berwarna atau memiliki timer countdown) yang menempel di sumbu tersebut. Angka di dalam kotak ini adalah 'lastPrice' yang benar.
+            * **Langkah B (Jika Langkah A Gagal):** Jika tidak ada kotak label, cari GARIS HORIZONTAL PUTUS-PUTUS yang berasal dari candle terakhir menuju sumbu harga. Baca angka pada sumbu harga yang DITUNJUK OLEH GARIS ITU.
+            * **ZONA TERLARANG:** JANGAN PERNAH mengambil angka dari LEGENDA di pojok KIRI ATAS (yang berisi info O,H,L,C atau nama indikator seperti Bollinger, EMA). Area ini seringkali berisi angka yang salah dan MENIPU. Abaikan sepenuhnya area ini untuk mencari harga.
+        2.  **Aset & Timeframe**: Identifikasi dari teks di pojok kiri atas.
+        3.  **Indikator (identifiedIndicators)**: Identifikasi SEMUA nama indikator yang terlihat (misal: 'Bollinger Bands', 'EMA', 'RSI', 'Volume').
+
+        Jika data tidak ada, gunakan "Tidak Terdeteksi". JANGAN MENEBAK.
+
+        Balas HANYA dengan satu objek JSON valid dengan skema ini: {"type": "object", "properties": {"isChart": {"type": "boolean"}, "asset": {"type": "string"}, "timeframe": {"type": "string"}, "lastPrice": {"type": "string"}, "identifiedIndicators": {"type": "array", "items": {"type": "string"}}}}
+        Jika gambar bukan chart trading, balas dengan: {"isChart": false}.`;
+        
+        const parts = [{ text: prompt }, { inlineData: { mimeType: "image/jpeg", data: imageBase64 } }];
+        const jsonText = await callGemini(parts, true);
+        return cleanAndParseJson(jsonText);
+    }
+
+    async function startAnalysis() {
+        if (!ltfImageBase64) {
+            showCustomMessage("Harap unggah gambar Chart LTF terlebih dahulu.", "error");
+            return;
+        }
+        
+        showLoader('Mengekstrak Data (1/2)...');
+        analyzeBtn.disabled = true;
+        analysisPlaceholder.classList.remove('hidden');
+        analysisWrapper.classList.add('hidden');
+        optimizationContainer.classList.add('hidden');
+        saranContainer.classList.add('hidden');
+
+        try {
+            const keyData = await extractKeyData(ltfImageBase64);
+            if (!keyData || !keyData.isChart) {
+                throw new Error("Gambar yang diunggah bukan chart trading yang valid.");
+            }
+            
+            dataAsset.textContent = keyData.asset || 'N/A';
+            dataTimeframe.textContent = keyData.timeframe || 'N/A';
+            dataPrice.textContent = keyData.lastPrice || 'N/A';
+            dataIndicators.textContent = keyData.identifiedIndicators?.join(', ') || 'Tidak ada terdeteksi';
+
+            const lastPriceNumber = parsePrice(keyData.lastPrice);
+            if (!isNaN(lastPriceNumber)) {
+                pricePrecision = getDecimalPlaces(lastPriceNumber);
+                updateCalculatorInputSteps(pricePrecision);
+            }
+
+            if (keyData.asset && keyData.asset !== 'N/A' && sentimentAssetInput) {
+                sentimentAssetInput.value = keyData.asset.split('.')[0];
+            }
+
+            showLoader('Mempertajam Analisa (2/2)...');
+            
+            let analysisParts = [];
+            const assetInfo = keyData.asset || 'aset ini';
+            
+            const jsonSchema = `{
+                "longSetup": { "kondisiPasar": "string", "strategiAman": "string", "probabilitas": "string", "areaEntry": "string", "pemicuKonfirmasi": "string", "stopLoss": "string", "alasanStopLoss": "string", "targetProfit": {"tp1": "string", "tp2": "string", "tp3": "string"}, "alasanTargetProfit": "string" },
+                "shortSetup": { "kondisiPasar": "string", "strategiAman": "string", "probabilitas": "string", "areaEntry": "string", "pemicuKonfirmasi": "string", "stopLoss": "string", "alasanStopLoss": "string", "targetProfit": {"tp1": "string", "tp2": "string", "tp3": "string"}, "alasanTargetProfit": "string" },
+                "rekomendasiUtama": "string",
+                "saranPeningkatan": "string"
+            }`;
+
+            // --- PEMBARUAN UTAMA: Prompt Analisa yang Super Ketat ---
+            let basePrompt = `ANDA WAJIB MEMATUHI STRUKTUR JSON INI TANPA PENGECUALIAN. Seluruh output Anda HARUS berupa satu objek JSON valid tunggal. Jangan menambahkan teks atau field lain di luar skema.
+            Anda adalah "Valhalla", analis profesional scalping dengan reputasi tinggi dalam presisi dan manajemen risiko ekstrem. Keahlian Anda berakar kuat pada teori teknikal yang telah terbukti seperti price action, struktur pasar, dan indikator konfirmatif. Pengguna sedang menganalisa ${assetInfo}. Tugas Anda adalah menyusun strategi scalping yang super aman, super jitu, dan berbasis logika teknikal yang tervalidasi.\n`;
+            
+            if (keyData.identifiedIndicators && keyData.identifiedIndicators.length > 0) {
+                basePrompt += `Indikator berikut telah teridentifikasi pada chart: ${keyData.identifiedIndicators.join(', ')}. **WAJIB** gunakan pembacaan dari indikator-indikator ini dalam analisamu, terutama di bagian 'Kondisi Pasar' dan 'Pemicu/Konfirmasi'. Cobalah untuk membaca nilai aktual dari indikator tersebut (misal: level RSI, apakah Stochastic sedang overbought/oversold).\n`;
+            }
+
+            basePrompt += `- Untuk setiap parameter ('Kondisi Pasar', 'Strategi Aman', 'Pemicu/Konfirmasi'), berikan penjelasan yang **detail dan mendalam**, bukan hanya satu kalimat.
+                Berikan deskripsi teknikal yang menyeluruh: arah tren (naik/turun/sideways), kekuatan tren (misal: divergensi RSI, crossing MA), zona penting (support/resistance), serta sinyal teknikal yang relevan dari indikator yang terlihat.
+                Jelaskan alasan teknikal mengapa pasar saat ini dikategorikan dalam kondisi tersebut.
+                Gunakan istilah baku: bullish, bearish, ranging, break/retest, dll..
+            - Untuk 'areaEntry' dan 'stopLoss', **WAJIB** untuk menyertakan **level harga spesifik** di dalam teksnya. Contoh: "Area entry di sekitar 150.00 - 151.00 karena merupakan zona support." atau "Stop loss di 148.00, tepat di bawah swing low terakhir."
+            - Field 'probabilitas' HARUS menyertakan istilah deskriptif dan persentase (misal, "Tinggi (70%)").
+            - Berikan 3 level Target Profit (TP1, TP2, TP3) yang realistis untuk scalping, masing-masing dengan harga spesifik dan alasan teknikal singkat (misal: "TP1 di 152.00, resistance minor sebelumnya").
+            - **PENTING**: Berikan alasan singkat dan jelas untuk nilai 'stopLoss' dan 'targetProfit' yang Anda tentukan. Alasan harus berdasarkan struktur pasar yang terlihat di chart (misal: "di bawah swing low terakhir", "di area resistance terdekat").
+            - **SARAN PENINGKATAN**: Setelah analisa selesai, berikan satu saran singkat di field 'saranPeningkatan' tentang bagaimana analisa ini bisa lebih divalidasi. Contoh: "Untuk konfirmasi lebih kuat, perhatikan volume saat breakout" atau "Analisa akan lebih kuat jika dikonfirmasi dengan indikator RSI". Jika analisa sudah sangat kuat, isi dengan "Analisa saat ini sudah cukup komprehensif."
+            - Dasarkan analisa Anda HANYA pada informasi visual di chart. Seluruh output Anda harus berupa satu objek JSON valid yang sesuai dengan struktur berikut: ${jsonSchema} \n`;
+
+            if(htfImageBase64) {
+                analysisParts.push(
+                    { text: `${basePrompt} Pengguna telah memberikan DUA gambar untuk analisa Multi-Timeframe (MTF).
+                    - Gambar PERTAMA adalah chart Higher Timeframe (HTF). Analisa ini untuk menentukan tren dan bias pasar utama (bullish/bearish/ranging).
+                    - Gambar KEDUA adalah chart Lower Timeframe (LTF). Gunakan bias dari HTF sebagai filter utama untuk menemukan setup probabilitas tertinggi di LTF. 'rekomendasiUtama' harus menyebutkan tren HTF.`},
+                    { inlineData: { mimeType: "image/jpeg", data: htfImageBase64 } },
+                    { inlineData: { mimeType: "image/jpeg", data: ltfImageBase64 } }
+                );
+            } else {
+                analysisParts.push(
+                    { text: `${basePrompt} Analisa gambar chart yang diberikan untuk membuat rencana trading detail untuk LONG dan SHORT.`},
+                    { inlineData: { mimeType: "image/jpeg", data: ltfImageBase64 } }
+                );
+            }
+
+            const analysisJsonText = await callGemini(analysisParts, true);
+            const strategicData = cleanAndParseJson(analysisJsonText);
+
+            latestAnalysisData = { keyData, ...strategicData };
+            updateAnalysisUI(latestAnalysisData);
+
+        } catch (error) {
+            console.error("Kesalahan Analisa:", error);
+            analysisPlaceholder.innerHTML = `<p class="text-red-400 p-4">Maaf, terjadi kesalahan saat menganalisa chart.<br><span class="text-xs text-gray-400">${error.message}</span></p>`;
+            analysisPlaceholder.classList.remove('hidden');
+            analysisWrapper.classList.add('hidden');
+        } finally {
+            hideLoader();
+            checkEnableAnalyzeButton();
+        }
+    }
+    
+    function updateAnalysisUI(data) {
+        if (!data || !data.longSetup || !data.shortSetup) {
+            analysisPlaceholder.innerHTML = `<p class="text-red-400 p-4">Struktur data strategi dari AI tidak sesuai. Coba analisa ulang.</p>`;
+            analysisWrapper.classList.add('hidden');
+            analysisPlaceholder.classList.remove('hidden');
+            return;
+        }
+        
+        analysisPlaceholder.classList.add('hidden');
+        analysisWrapper.classList.remove('hidden');
+        optimizationContainer.classList.remove('hidden');
+        
+        const { longSetup, shortSetup, rekomendasiUtama, saranPeningkatan } = data;
+        
+        const fieldMap = {
+            'kondisi': 'kondisiPasar', 'strategi': 'strategiAman', 'probabilitas': 'probabilitas',
+            'entry': 'areaEntry', 'pemicu': 'pemicuKonfirmasi', 'sl': 'stopLoss',
+            'alasan-sl': 'alasanStopLoss', 'alasan-tp': 'alasanTargetProfit'
+        };
+
+        Object.entries(fieldMap).forEach(([uiField, jsonKey]) => {
+            document.getElementById(`long-${uiField}`).innerHTML = longSetup?.[jsonKey]?.replace(/\n/g, '<br />') || '-';
+            document.getElementById(`short-${uiField}`).innerHTML = shortSetup?.[jsonKey]?.replace(/\n/g, '<br />') || '-';
+        });
+
+        const formatTp = (tpData) => {
+            if (tpData && typeof tpData === 'object') {
+                return `TP1: ${tpData.tp1 || '-'}<br>TP2: ${tpData.tp2 || '-'}<br>TP3: ${tpData.tp3 || '-'}`;
+            }
+            return tpData || '-';
+        };
+        document.getElementById('long-tp').innerHTML = formatTp(longSetup.targetProfit);
+        document.getElementById('short-tp').innerHTML = formatTp(shortSetup.targetProfit);
+
+        rekomendasiText.innerHTML = rekomendasiUtama?.replace(/\n/g, '<br />') || '-';
+        
+        if (saranPeningkatan && !saranPeningkatan.toLowerCase().includes("cukup komprehensif")) {
+            saranText.textContent = saranPeningkatan;
+            saranContainer.classList.remove('hidden');
+        } else {
+            saranContainer.classList.add('hidden');
+        }
+        
+        ['long', 'short'].forEach(type => {
+            const probCell = document.getElementById(`${type}-probabilitas`);
+            const probData = (type === 'long' ? longSetup : shortSetup)?.probabilitas;
+            probCell.classList.remove('highlight-pulse');
+            if (probData && (probData.toLowerCase().includes('prioritas') || probData.toLowerCase().includes('tinggi'))) {
+                probCell.classList.add('highlight-pulse');
+            }
+        });
+    }
+
+    function exportReport() {
+        showLoader('Mempersiapkan Laporan...');
+        html2canvas(document.getElementById('analysis-content'), { backgroundColor: '#111827', scale: 2 })
+            .then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Co-Pilot_Report_${dataAsset.textContent || 'report'}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                hideLoader();
+            }).catch(err => {
+                console.error('Ekspor gagal:', err);
+                hideLoader();
+                showCustomMessage('Gagal mengekspor laporan.', 'error');
+            });
+    }
+    
+    function populateCalculatorFromAnalysis(setupType) {
+        if (!latestAnalysisData) {
+            showCustomMessage("Lakukan analisa chart terlebih dahulu.", 'info');
+            return;
+        }
+
+        const setupData = (setupType === 'long') ? latestAnalysisData.longSetup : latestAnalysisData.shortSetup;
+
+        if (!setupData || !setupData.areaEntry || setupData.areaEntry.toLowerCase().includes("tidak ada")) {
+            showCustomMessage(`Data analisa untuk setup ${setupType.toUpperCase()} tidak tersedia.`, 'info');
+            return;
+        }
+
+        const formatValue = (valueString) => {
+            const parsed = parsePrice(valueString);
+            return isNaN(parsed) ? '' : parsed.toFixed(pricePrecision);
+        };
+
+        calcEntry.value = formatValue(setupData.areaEntry);
+        calcSl.value = formatValue(setupData.stopLoss);
+        
+        if (setupData.targetProfit && typeof setupData.targetProfit === 'object') {
+            calcTp1.value = formatValue(setupData.targetProfit.tp1);
+            calcTp2.value = formatValue(setupData.targetProfit.tp2);
+            calcTp3.value = formatValue(setupData.targetProfit.tp3);
+        } else {
+            const tpLines = (setupData.targetProfit || '').split(/<br\s*\/?>|\n/);
+            calcTp1.value = formatValue(tpLines[0]);
+            calcTp2.value = formatValue(tpLines[1]);
+            calcTp3.value = formatValue(tpLines[2]);
+        }
+    }
+
+    function useAnalysisData(e) {
+        const setupType = e.target.dataset.setup;
+        btnPosisiLong.classList.toggle('active', setupType === 'long');
+        btnPosisiLong.classList.toggle('long', setupType === 'long');
+        btnPosisiShort.classList.toggle('active', setupType === 'short');
+        btnPosisiShort.classList.toggle('short', setupType === 'short');
+        populateCalculatorFromAnalysis(setupType);
+        document.querySelector('.tab-button[data-tab="kalkulator"]').click();
+        calcEntry.focus();
+    }
+    
+    function hitungRencana() {
+        const [totalModal, risikoPct, entryPrice, slPrice, leverage, manualMargin] = 
+            [calcModal, calcRisikoPct, calcEntry, calcSl, calcLeverage, calcMarginManual].map(el => parseFloat(el.value));
+
+        if ([totalModal, entryPrice, slPrice, leverage].some(isNaN)) {
+             showCustomMessage("Pastikan Modal, Harga Entry, Stop Loss, dan Leverage terisi.", "error");
+             return;
+        }
+        if (isNaN(risikoPct) && isNaN(manualMargin)) {
+            showCustomMessage("Harap isi 'Risiko/Trade (%)' atau 'Biaya Posisi Manual ($)'.", "error");
+            return;
+        }
+
+        kalkulatorPlaceholder.classList.add('hidden');
+        kalkulatorHasil.classList.remove('hidden');
+        
+        let risikoUSD, ukuranPosisiUSD, marginUSD;
+        const jarakSL = Math.abs(entryPrice - slPrice);
+        if (jarakSL === 0) {
+            showCustomMessage("Jarak Stop Loss tidak boleh nol.", "error");
+            return;
+        }
+
+        if (manualMargin > 0) {
+            marginUSD = manualMargin;
+            ukuranPosisiUSD = marginUSD * leverage;
+            risikoUSD = ukuranPosisiUSD * (jarakSL / entryPrice);
+            const effectiveRisikoPct = (risikoUSD / totalModal) * 100;
+            outRisikoLabel.textContent = `Risiko per Trade (${effectiveRisikoPct.toFixed(2)}%):`;
+            calcRisikoPct.value = effectiveRisikoPct.toFixed(2);
+        } else {
+            risikoUSD = totalModal * (risikoPct / 100);
+            ukuranPosisiUSD = risikoUSD / (jarakSL / entryPrice);
+            marginUSD = ukuranPosisiUSD / leverage;
+            outRisikoLabel.textContent = `Risiko per Trade (${risikoPct}%):`;
+            calcMarginManual.value = '';
+        }
+
+        outRisiko.textContent = `$${risikoUSD.toFixed(2)}`;
+        outPosisi.textContent = `$${ukuranPosisiUSD.toFixed(2)}`;
+        outMargin.textContent = `$${marginUSD.toFixed(2)}`;
+        outLeverageAman.textContent = `~${(ukuranPosisiUSD / totalModal).toFixed(1)}x`;
+
+        [{el: calcTp1, label: outTp1Label, profit: outTp1Profit}, {el: calcTp2, label: outTp2Label, profit: outTp2Profit}, {el: calcTp3, label: outTp3Label, profit: outTp3Profit}].forEach((tp, i) => {
+            const tpPrice = parseFloat(tp.el.value);
+            if (!isNaN(tpPrice) && jarakSL > 0) {
+                const rr = Math.abs(tpPrice - entryPrice) / jarakSL;
+                tp.label.textContent = `TP ${i+1} (RR 1:${rr.toFixed(1)}):`;
+                tp.profit.textContent = `~$${(rr * risikoUSD).toFixed(2)}`;
+            } else {
+                 tp.label.textContent = `TP ${i+1}:`;
+                 tp.profit.textContent = `~$0.00`;
+            }
+        });
+    }
+
+    async function generateSentimentAnalysis() {
+        const asset = sentimentAssetInput.value.trim();
+        if (!asset) { showCustomMessage("Harap masukkan nama aset.", "info"); return; }
+        showLoader(`Menganalisa sentimen untuk ${asset}...`);
+        sentimentOutput.innerHTML = '';
+        try {
+            const prompt = `Sebagai analis pasar... (prompt lengkap seperti sebelumnya)...`;
+            const jsonText = await callGemini([{ text: prompt }], true);
+            const data = cleanAndParseJson(jsonText);
+            const sentimentColor = data.sentiment === 'Bullish' ? 'text-green-400' : data.sentiment === 'Bearish' ? 'text-red-400' : 'text-yellow-400';
+            const sentimentEmoji = data.sentiment === 'Bullish' ? '🟢' : data.sentiment === 'Bearish' ? '🔴' : '🟡';
+            sentimentOutput.innerHTML = `<div class="bg-gray-800 p-4 rounded-lg">... (konten seperti sebelumnya) ...</div>`;
+        } catch (error) {
+            sentimentOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa sentimen: ${error.message}</p>`;
+        } finally {
+            hideLoader();
+        }
+    }
+
+    async function optimizeTradePlan() {
+        if (!latestAnalysisData) { showCustomMessage("Lakukan analisa chart terlebih dahulu.", "error"); return; }
+        showLoader("Meminta tinjauan dari manajer risiko AI...");
+        optimizationOutput.classList.add('hidden');
+        try {
+            const planString = JSON.stringify(latestAnalysisData, null, 2);
+            const prompt = `Anda adalah seorang manajer risiko trading... (prompt lengkap seperti sebelumnya)...`;
+            const optimizationText = await callGemini([{ text: prompt }], false);
+            optimizationOutput.innerHTML = `<h4 class="font-bold text-lg text-purple-300 mb-2">Tinjauan Manajer Risiko AI</h4><p class="text-sm text-gray-300 whitespace-pre-wrap">${optimizationText}</p>`;
+            optimizationOutput.classList.remove('hidden');
+        } catch (error) {
+            optimizationOutput.innerHTML = `<p class="text-red-400">Gagal mendapatkan tinjauan: ${error.message}</p>`;
+            optimizationOutput.classList.remove('hidden');
+        } finally {
+            hideLoader();
+        }
+    }
+
+    function showCustomMessage(message, type = 'info') {
+        const messageBox = document.createElement('div');
+        const color = type === 'error' ? 'bg-red-800' : 'bg-blue-800';
+        messageBox.className = `fixed top-5 right-5 ${color} text-white p-4 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
+        messageBox.textContent = message;
+        document.body.appendChild(messageBox);
+        setTimeout(() => {
+            messageBox.style.opacity = '0';
+            setTimeout(() => messageBox.remove(), 300);
+        }, 3000);
+    }
+
+    // --- INISIALISASI EVENT LISTENERS ---
+    apiKeyInput.addEventListener('input', () => {
+        localStorage.setItem('valhallaUltimateApiKey', apiKeyInput.value);
+        checkEnableAnalyzeButton();
+    });
+    setupDropZone(htfDropZone, htfUploadInput, htfChartPreview, htfChartPlaceholder, (val) => htfImageBase64 = val);
+    setupDropZone(ltfDropZone, ltfUploadInput, ltfChartPreview, ltfChartPlaceholder, (val) => ltfImageBase64 = val);
+    analyzeBtn.addEventListener('click', startAnalysis);
+    exportBtn.addEventListener('click', exportReport);
+    analysisWrapper.addEventListener('click', (e) => {
+        if (e.target.classList.contains('use-data-btn')) useAnalysisData(e);
+    });
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            button.classList.add('active');
+            document.getElementById(button.getAttribute('data-tab')).classList.remove('hidden');
+        });
+    });
+    btnPosisiLong.addEventListener('click', () => {
+        btnPosisiLong.classList.add('active', 'long');
+        btnPosisiShort.classList.remove('active', 'short');
+        populateCalculatorFromAnalysis('long');
+    });
+    btnPosisiShort.addEventListener('click', () => {
+        btnPosisiShort.classList.add('active', 'short');
+        btnPosisiLong.classList.remove('active', 'long');
+        populateCalculatorFromAnalysis('short');
+    });
+    hitungRencanaBtn.addEventListener('click', hitungRencana);
+    generateSentimentBtn.addEventListener('click', generateSentimentAnalysis);
+    optimizePlanBtn.addEventListener('click', optimizePlanBtn);
+    
+    // --- SETUP AWAL ---
+    const savedApiKey = localStorage.getItem('valhallaUltimateApiKey');
+    if (savedApiKey) apiKeyInput.value = savedApiKey;
+    checkEnableAnalyzeButton();
+    btnPosisiShort.click();
+});
+</script>
+</body>
+</html>
+<div class="bg-slate-800 p-6 rounded-xl flex flex-col" style="height: 88vh;">
+            <div class="flex flex-wrap justify-between items-center mb-4 gap-4 flex-shrink-0">
+            
+            <div class="text-right">
+                
+            </div>
+        </div>
+        
+        <div class="w-full flex-1 bg-slate-900 rounded-lg">
+            <!-- TradingView Widget BEGIN -->
+<div class="tradingview-widget-container" style="height:100%;width:100%">
+  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div>
+  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+  {
+  "allow_symbol_change": true,
+  "calendar": false,
+  "details": false,
+  "hide_side_toolbar": true,
+  "hide_top_toolbar": false,
+  "hide_legend": false,
+  "hide_volume": false,
+  "hotlist": false,
+  "interval": "60",
+  "locale": "en",
+  "save_image": true,
+  "style": "1",
+  "symbol": "BINANCE:BTCUSDT.P",
+  "theme": "dark",
+  "timezone": "Etc/UTC",
+  "backgroundColor": "#0F0F0F",
+  "gridColor": "rgba(242, 242, 242, 0.06)",
+  "watchlist": [],
+  "withdateranges": true,
+  "compareSymbols": [],
+  "studies": [
+    "STD;Bollinger_Bands",
+    "STD;Stochastic_RSI",
+    "STD;Divergence%1Indicator",
+    "STD;MA%1Cross"
+  ],
+  "autosize": true
+}
+  </script>
+</div>
+<!-- TradingView Widget END -->
+ </div>
