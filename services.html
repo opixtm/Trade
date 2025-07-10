@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passive Backtest Machine - Dynamic Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .select-input, .date-input { background-color: #1e293b; border: 1px solid #334155; color-scheme: dark; }
+        .select-input {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+        }
+        .metric-value.positive { color: #22c55e; }
+        .metric-value.negative { color: #ef4444; }
+        .metric-value.neutral { color: #e2e8f0; }
+        .btn-simulate { background: linear-gradient(to right, #0ea5e9, #2563eb); transition: all 0.3s ease; }
+        .btn-simulate:hover { box-shadow: 0 0 20px rgba(14, 165, 233, 0.5); }
+        .btn-simulate:disabled { background: #334155; cursor: not-allowed; opacity: 0.5; }
+        .loader { border: 5px solid rgba(255, 255, 255, 0.2); border-left-color: #0ea5e9; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="container mx-auto">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight">
+                <span class="text-sky-400">DYNAMIC</span> PASSIVE BACKTEST MACHINE
+            </h1>
+            <p class="text-slate-400 mt-2">Mesin Uji Historis Berbasis Logika Co-Pilot v.X.8.0</p>
+        </header>
+
+        <!-- Control Panel -->
+        <div class="bg-slate-900/70 backdrop-blur-sm p-6 rounded-xl mb-8 sticky top-4 z-20 shadow-lg border border-slate-700">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 items-end">
+                <div>
+                    <label for="asset-select" class="block text-sm font-medium text-slate-300 mb-1">Aset:</label>
+                    <select id="asset-select" class="select-input w-full rounded-lg p-2.5 text-white font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
+                </div>
+                 <div>
+                    <label for="mode-select" class="block text-sm font-medium text-slate-300 mb-1">Mode Analisa:</label>
+                    <select id="mode-select" class="select-input w-full rounded-lg p-2.5 text-white font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="matic_gt90">Matic (TOS &gt;= 90)</option>
+                        <option value="matic_75_89">Matic (TOS 75-89)</option>
+                        <option value="matic_50_74">Matic (TOS 50-74)</option>
+                        <option value="matic_20_49">Matic (TOS 20-49)</option>
+                        <option value="pro">Analis Pro (Alignment)</option>
+                        <option value="mixer">Mixer (Alignment + TOS)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="tf-select" class="block text-sm font-medium text-slate-300 mb-1">Kombinasi TF:</label>
+                    <select id="tf-select" class="select-input w-full rounded-lg p-2.5 text-white font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
+                </div>
+                <div>
+                    <label for="start-date" class="block text-sm font-medium text-slate-300 mb-1">Tanggal Mulai:</label>
+                    <input type="date" id="start-date" class="date-input w-full rounded-lg p-2.5 text-white font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="end-date" class="block text-sm font-medium text-slate-300 mb-1">Tanggal Akhir:</label>
+                    <input type="date" id="end-date" class="date-input w-full rounded-lg p-2.5 text-white font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="candle-count-display" class="block text-sm font-medium text-slate-300 mb-1">Estimasi Candle:</label>
+                    <div id="candle-count-display" class="w-full rounded-lg p-2.5 text-sky-400 font-bold text-center bg-slate-800 h-[46px] flex items-center justify-center">
+                        -
+                    </div>
+                </div>
+                <div class="lg:col-span-1">
+                    <button id="run-simulation-btn" class="btn-simulate w-full text-white font-bold p-3 rounded-lg flex items-center justify-center space-x-2 h-[46px]">
+                        <svg id="button-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
+                          <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+                        </svg>
+                        <span id="button-text">JALANKAN SIMULASI</span>
+                    </button>
+                </div>
+            </div>
+            <div id="notification-bar" class="mt-4 text-center text-sky-400 font-semibold h-6"></div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main id="dashboard-content">
+            <div id="initial-state" class="text-center text-slate-400 py-24">
+                <p>Atur parameter di atas dan tekan "JALANKAN SIMULASI" untuk memulai.</p>
+                <p class="text-xs mt-2">Simulasi akan mengambil data langsung dari API Binance dan mungkin memakan waktu.</p>
+            </div>
+            <div id="loading-state" class="hidden text-center py-24">
+                <div class="loader mx-auto"></div>
+                <p id="loading-text" class="mt-4 text-slate-300 font-semibold">Mempersiapkan simulasi...</p>
+            </div>
+            <div id="results-state" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-slate-800 p-4 rounded-xl shadow-2xl min-h-[500px]">
+                     <h2 id="chart-title" class="text-xl font-bold text-white mb-4 text-center"></h2>
+                     <div id="equity-chart-container" class="w-full h-full"></div>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-xl shadow-2xl">
+                    <h2 class="text-xl font-bold text-white mb-4">Metrik Kinerja</h2>
+                    <div id="metrics-table" class="space-y-3"></div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Methodology and Reminder Sections -->
+        <div class="mt-12 bg-slate-800 rounded-xl p-6">
+            <h3 class="font-bold text-sky-400 text-xl mb-4">Sumber Data & Metodologi</h3>
+            <p class="space-y-4 text-slate-300 text-sm md:text-base">
+                Setiap simulasi mengambil data OHLCV historis asli secara langsung dari <strong>API Publik Binance Futures</strong> berdasarkan rentang tanggal yang dipilih. Logika strategi yang diterapkan adalah replikasi dari sistem <strong>Co-Pilot v.X.8.0</strong>, termasuk metodologi BBMA, LWMA, dan sistem skoring TOS. Simulasi dijalankan secara ketat <i>candle-by-candle</i> untuk memastikan tidak ada <i>look-ahead bias</i>.
+            </p>
+        </div>
+        <div class="mt-8 bg-slate-800/50 border border-amber-500/30 rounded-xl p-6 text-center">
+            <h3 class="font-bold text-amber-400 text-xl mb-2">PENGINGAT UNTUK DIRI SENDIRI</h3>
+            <p class="text-slate-300 max-w-3xl mx-auto">
+                Gunakan hasil backtest ini untuk membangun keyakinan pada sistem. Tugas utama Anda adalah <strong>konsisten, tahan godaan, dan tidak emosi</strong>. Percayai sistem yang telah teruji ini.
+            </p>
+            <p class="font-black text-2xl tracking-wider text-sky-400 mt-4">SUPER AMAN. SUPER JITU. HATI TENANG.</p>
+        </div>
+
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- KONFIGURASI, STATE, & KONSTANTA ---
+    const BINANCE_API_URL = 'https://fapi.binance.com/fapi/v1/klines';
+    const ASSET_CONFIG = {
+        'BTCUSDT': { ticker: 'BTCUSDT', precision: 2 },
+        'ETHUSDT': { ticker: 'ETHUSDT', precision: 2 },
+        'SOLUSDT': { ticker: 'SOLUSDT', precision: 2 },
+        'XRPUSDT': { ticker: 'XRPUSDT', precision: 4 },
+        'BNBUSDT': { ticker: 'BNBUSDT', precision: 3 },
+        'PAXGUSDT': { ticker: 'PAXGUSDT', precision: 2 },
+        '1000PEPEUSDT': { ticker: '1000PEPEUSDT', precision: 7 }
+    };
+    const TF_CONFIGS = {
+        matic: {
+            '5m-1m': { kompas: '5m', eksekusi: '1m', label: '5M  >  1M', htf: '15m' },
+            '15m-1m': { kompas: '15m', eksekusi: '1m', label: '15M  >  1M', htf: '1h' },
+            '1h-5m': { kompas: '1h', eksekusi: '5m', label: '1H  >  5M', htf: '4h' },
+            '1h-15m': { kompas: '1h', eksekusi: '15m', label: '1H  >  15M', htf: '4h' },
+            '4h-15m': { kompas: '4h', eksekusi: '15m', label: '4H  >  15M', htf: '1d' }
+        },
+        pro: {
+           '15m-5m-1m': { tf1: '15m', tf2: '5m', tf3: '1m', label: '15M > 5M > 1M'}, 
+            '1h-15m-5m': { tf1: '1h', tf2: '15m', tf3: '5m', label: '1H > 15M > 5M'},
+           '4h-1h-15m': { tf1: '4h', tf2: '1h', tf3: '15m', label: '4H > 1H > 15M'},
+           '1d-4h-1h': { tf1: '1d', tf2: '4h', tf3: '1h', label: '1D > 4H > 1H'}
+        },
+        mixer: {
+            '15m-5m-1m': { tf1: '15m', tf2: '5m', tf3: '1m', label: '15M > 5M > 1M'}, 
+            '1h-15m-5m': { tf1: '1h', tf2: '15m', tf3: '5m', label: '1H > 15M > 5M'},
+            '4h-1h-15m': { tf1: '4h', tf2: '1h', tf3: '15m', label: '4H > 1H > 15M'},
+            '1d-4h-1h': { tf1: '1d', tf2: '4h', tf3: '1h', label: '1D > 4H > 1H'}
+        }
+    };
+    const FIXED_RR_RATIO = 1.5;
+
+    let cachedKlinesData = null;
+    let lastFetchParams = { asset: null, startTime: null, endTime: null, fetchedTFs: [] };
+
+    const ui = {
+        assetSelect: document.getElementById('asset-select'),
+        modeSelect: document.getElementById('mode-select'),
+        tfSelect: document.getElementById('tf-select'),
+        startDate: document.getElementById('start-date'),
+        endDate: document.getElementById('end-date'),
+        runBtn: document.getElementById('run-simulation-btn'),
+        btnText: document.getElementById('button-text'),
+        notificationBar: document.getElementById('notification-bar'),
+        initialState: document.getElementById('initial-state'),
+        loadingState: document.getElementById('loading-state'),
+        loadingText: document.getElementById('loading-text'),
+        resultsState: document.getElementById('results-state'),
+        chartTitle: document.getElementById('chart-title'),
+        chartContainer: document.getElementById('equity-chart-container'),
+        metricsTable: document.getElementById('metrics-table'),
+        candleCountDisplay: document.getElementById('candle-count-display'), // <-- BARU
+    };
+
+    // --- FUNGSI KALKULASI INDIKATOR (DIPORT DARI CO-PILOT) ---
+    const calculateSMA = (data, period) => { if (data.length < period) return []; return data.slice(period - 1).map((_, i) => data.slice(i, i + period).reduce((a, b) => a + b, 0) / period); }
+    const calculateEMA = (data, period) => { if (data.length < period) return []; const k = 2 / (period + 1); let emaArray = [data.slice(0, period).reduce((a, b) => a + b, 0) / period]; for (let i = period; i < data.length; i++) emaArray.push((data[i] * k) + (emaArray[emaArray.length - 1] * (1 - k))); return emaArray; }
+    const calculateLWMA = (data, period) => { if (data.length < period) return []; const weights = Array.from({ length: period }, (_, i) => i + 1); const sumOfWeights = weights.reduce((a, b) => a + b, 0); let lwmaArray = []; for (let i = period - 1; i < data.length; i++) { const slice = data.slice(i - period + 1, i + 1); const weightedSum = slice.reduce((sum, value, index) => sum + (value * weights[index]), 0); lwmaArray.push(weightedSum / sumOfWeights); } return lwmaArray; }
+    const calculateBollingerBands = (closes, period, stdDevMultiplier) => { if (closes.length < period) return { upper: [], middle: [], lower: [] }; const middle = calculateSMA(closes, period); if (!middle.length) return { upper: [], middle: [], lower: [] }; let upper = [], lower = []; for (let i = period - 1; i < closes.length; i++) { const slice = closes.slice(i - period + 1, i + 1); const stdDev = Math.sqrt(slice.map(p => Math.pow(p - middle[i - period + 1], 2)).reduce((a, b) => a + b, 0) / period); upper.push(middle[i - period + 1] + (stdDev * stdDevMultiplier)); lower.push(middle[i - period + 1] - (stdDev * stdDevMultiplier)); } return { upper, middle, lower }; }
+    const WilderSmoothing = (data, period) => { if (data.length < period) return []; let smoothed = [data.slice(0, period).reduce((a, b) => a + b, 0)]; for (let i = period; i < data.length; i++) { smoothed.push(smoothed[smoothed.length - 1] - (smoothed[smoothed.length - 1] / period) + data[i]); } return smoothed.map(val => val / period); }
+    const calculateADX = (klines, period) => { if (klines.length < period * 2) return null; let trs = [], plusDMs = [], minusDMs = []; for (let i = 1; i < klines.length; i++) { const high = parseFloat(klines[i][2]), low = parseFloat(klines[i][3]), close = parseFloat(klines[i][4]); const prevHigh = parseFloat(klines[i-1][2]), prevLow = parseFloat(klines[i-1][3]), prevClose = parseFloat(klines[i-1][4]); trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose))); const upMove = high - prevHigh, downMove = prevLow - low; plusDMs.push(upMove > downMove && upMove > 0 ? upMove : 0); minusDMs.push(downMove > upMove && downMove > 0 ? downMove : 0); } const smoothedTR = WilderSmoothing(trs, period); const smoothedPlusDM = WilderSmoothing(plusDMs, period); const smoothedMinusDM = WilderSmoothing(minusDMs, period); let plusDIs = [], minusDIs = [], dxs = []; for (let i = 0; i < smoothedTR.length; i++) { if(smoothedTR[i] === 0) { plusDIs.push(0); minusDIs.push(0); } else { const pDI = (smoothedPlusDM[i] / smoothedTR[i]) * 100; const mDI = (smoothedMinusDM[i] / smoothedTR[i]) * 100; plusDIs.push(pDI); minusDIs.push(mDI); } const diSum = plusDIs[i] + minusDIs[i]; dxs.push(diSum === 0 ? 0 : (Math.abs(plusDIs[i] - minusDIs[i]) / diSum) * 100); } const adx = WilderSmoothing(dxs.slice(period-1), period); return adx ? adx[adx.length-1] : null; }
+    
+    // --- FUNGSI LOGIKA INTI (DIPORT DARI CO-PILOT) ---
+    function calculateBaseSetup(klines) {
+        if (klines.length < 50) return { setupType: "Data Kurang", isUptrend: false, baseScore: 0 };
+        const closes = klines.map(k => parseFloat(k[4]));
+        const lastCandle = klines[klines.length - 1];
+        const prevCandle = klines[klines.length - 2];
+        const [open, high, low, close] = lastCandle.slice(1, 5).map(parseFloat);
+        const bb = calculateBollingerBands(closes, 20, 2);
+        if (bb.middle.length === 0) return { setupType: "Data Kurang", isUptrend: false, baseScore: 0 };
+        const midBB = bb.middle[bb.middle.length - 1];
+        const upperBB = bb.upper[bb.upper.length - 1];
+        const lowerBB = bb.lower[bb.lower.length - 1];
+        const ema50 = calculateEMA(closes, 50).pop();
+        const isUptrend = ema50 !== undefined && close > midBB && close > ema50;
+        let setupType = "Re-entry"; let baseScore = 35;
+        if ((isUptrend && close > upperBB) || (!isUptrend && close < lowerBB)) { setupType = "CSM"; baseScore = 40; }
+        if (prevCandle) { const prevCloses = klines.slice(0, -1).map(k => parseFloat(k[4])); const prevBB = calculateBollingerBands(prevCloses, 20, 2); if (prevBB.upper.length > 0 && ((parseFloat(prevCandle[4]) > prevBB.upper[prevBB.upper.length - 1] && !isUptrend) || (parseFloat(prevCandle[4]) < prevBB.lower[prevBB.lower.length - 1] && isUptrend))) { setupType = "Re-entry stlh CSM"; baseScore = 50; } }
+        const lwma5_high = calculateLWMA(klines.map(k => parseFloat(k[2])), 5).pop();
+        const lwma5_low = calculateLWMA(klines.map(k => parseFloat(k[3])), 5).pop();
+        if (lwma5_high > upperBB || lwma5_low < lowerBB) { setupType = "Extreme"; baseScore = 20; }
+        return { setupType, isUptrend, lastCandle, baseScore };
+    }
+    
+    // --- FUNGSI FILTER TOS ---
+    function calculateARF(htfKlines, setupType) { const adx = calculateADX(htfKlines, 14); let multiplier = 1.0; if (adx > 25) { if (["Re-entry", "CSM", "Re-entry stlh CSM"].includes(setupType)) { multiplier = 1.2; } else { multiplier = 0.5; } } else { if (["Re-entry", "CSM", "Re-entry stlh CSM"].includes(setupType)) { multiplier = 0.1; } else { multiplier = 1.1; } } return { multiplier }; }
+    function calculateLZW(lastCandle, setupType) { let modifier = 0; if (setupType !== "Re-entry" && setupType !== "Re-entry stlh CSM") return { modifier }; const [open, high, low, close] = lastCandle.map(parseFloat); const bodySize = Math.abs(open - close); const upperWick = high - Math.max(open, close); const lowerWick = Math.min(open, close) - low; if ((upperWick > bodySize * 1.5 && open < close) || (lowerWick > bodySize * 1.5 && open > close)) { modifier = -25; } return { modifier }; }
+    function calculateVCC(klines, setupType) { const closes = klines.map(k => parseFloat(k[4])); const bb = calculateBollingerBands(closes, 20, 2); if(bb.middle.length === 0) return { modifier: 0 }; const midBB = bb.middle[bb.middle.length - 1]; const upperBB = bb.upper[bb.upper.length - 1]; const lowerBB = bb.lower[bb.lower.length - 1]; const bbw = midBB > 0 ? ((upperBB - lowerBB) / midBB) * 100 : 0; const prevCloses = klines.slice(0, -20).map(k => parseFloat(k[4])); const prevBB = calculateBollingerBands(prevCloses, 20, 2); if(prevBB.middle.length === 0) return { modifier: 0 }; const prevMidBB = prevBB.middle[prevBB.middle.length - 1]; const prevUpperBB = prevBB.upper[prevBB.upper.length - 1]; const prevLowerBB = prevBB.lower[prevBB.lower.length - 1]; const prevBbw = prevMidBB > 0 ? ((prevUpperBB - prevLowerBB) / prevMidBB) * 100 : 0; let modifier = 0; if (setupType === "CSM" && bbw > prevBbw * 1.5 && prevBbw < 5) { modifier = 15; } else if (["Re-entry", "Re-entry stlh CSM"].includes(setupType)) { if (bbw < prevBbw) { modifier = 10; } else if (bbw > prevBbw * 2) { modifier = -15; } } return { modifier }; }
+    function calculateMTCS(klines, htfKlines, isUptrend) { const htfCloses = htfKlines.map(k => parseFloat(k[4])); const htfLastClose = htfCloses[htfCloses.length - 1]; const htfMidBB = calculateSMA(htfCloses, 20).pop(); const htfEma50 = calculateEMA(htfCloses, 50).pop(); if (htfMidBB === undefined || htfEma50 === undefined) return { modifier: -30 }; const htfLastCloseTrend = htfLastClose > htfMidBB && htfLastClose > htfEma50; return { modifier: isUptrend === htfLastCloseTrend ? 10 : -30 }; }
+
+    // --- FUNGSI PENGAMBILAN DATA ---
+    async function fetchAllKlines(symbol, interval, startTime, endTime) {
+        let allKlines = [];
+        let currentStartTime = startTime;
+        while (currentStartTime < endTime) {
+            try {
+                const response = await fetch(`${BINANCE_API_URL}?symbol=${symbol}&interval=${interval}&startTime=${currentStartTime}&limit=1500`);
+                if (!response.ok) throw new Error(`API Error ${response.status}`);
+                const klines = await response.json();
+                if (klines.length === 0) break;
+                allKlines = allKlines.concat(klines);
+                currentStartTime = klines[klines.length - 1][0] + 1;
+            } catch (error) {
+                showNotification(`Gagal mengambil data untuk ${interval}: ${error.message}`, true);
+                throw error;
+            }
+        }
+        return allKlines;
+    }
+
+    // --- FUNGSI BACKTESTING UTAMA ---
+    async function runBacktest() {
+        ui.initialState.classList.add('hidden');
+        ui.resultsState.classList.add('hidden');
+        ui.loadingState.classList.remove('hidden');
+        ui.runBtn.disabled = true;
+        ui.btnText.textContent = "LOADING...";
+        showNotification('');
+
+        const asset = ui.assetSelect.value;
+        const mode = ui.modeSelect.value;
+        const tfKey = ui.tfSelect.value;
+        const startTime = new Date(ui.startDate.value).getTime();
+        const endTime = new Date(ui.endDate.value).getTime();
+
+        if (isNaN(startTime) || isNaN(endTime)) {
+            showNotification("Tanggal mulai atau akhir tidak valid.", true);
+            resetUI();
+            return;
+        }
+
+        try {
+            const modeType = mode.split('_')[0];
+            const tfConfig = TF_CONFIGS[modeType][tfKey];
+            const requiredTFs = modeType === 'matic' 
+                ? [tfConfig.kompas, tfConfig.eksekusi, tfConfig.htf] 
+                : [tfConfig.tf1, tfConfig.tf2, tfConfig.tf3];
+            const uniqueTFs = [...new Set(requiredTFs)];
+            
+            let klinesData = {};
+            const paramsChanged = lastFetchParams.asset !== asset || lastFetchParams.startTime !== startTime || lastFetchParams.endTime !== endTime || !uniqueTFs.every(tf => lastFetchParams.fetchedTFs.includes(tf));
+
+            if (cachedKlinesData && !paramsChanged) {
+                ui.loadingText.textContent = `Menggunakan data dari cache...`;
+                klinesData = cachedKlinesData;
+                await new Promise(resolve => setTimeout(resolve, 200));
+            } else {
+                ui.loadingText.textContent = `Mengambil data untuk ${asset}...`;
+                const klinePromises = uniqueTFs.map(tf => fetchAllKlines(asset, tf, startTime, endTime));
+                const klineResults = await Promise.all(klinePromises);
+                uniqueTFs.forEach((tf, index) => { klinesData[tf] = klineResults[index]; });
+                cachedKlinesData = klinesData;
+                lastFetchParams = { asset, startTime, endTime, fetchedTFs: uniqueTFs };
+            }
+
+            ui.loadingText.textContent = `Menjalankan simulasi...`;
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            let trades = [];
+            let equity = 1;
+            let equityCurve = [1];
+            let openTrade = null;
+            let peakEquity = 1;
+            let maxDrawdown = 0;
+
+            const mainTimeframe = modeType === 'matic' ? tfConfig.eksekusi : tfConfig.tf3;
+            const mainKlines = klinesData[mainTimeframe];
+
+            for (let i = 50; i < mainKlines.length; i++) {
+                const currentCandle = mainKlines[i];
+                const currentPrice = parseFloat(currentCandle[4]);
+                const currentTimestamp = currentCandle[0];
+
+                if (openTrade) {
+                    let closed = false;
+                    if (openTrade.side === 'LONG' && (currentPrice <= openTrade.sl || currentPrice >= openTrade.tp)) closed = true;
+                    else if (openTrade.side === 'SHORT' && (currentPrice >= openTrade.sl || currentPrice <= openTrade.tp)) closed = true;
+                    
+                    if (closed) {
+                        const exitPrice = (openTrade.side === 'LONG' && currentPrice >= openTrade.tp) || (openTrade.side === 'SHORT' && currentPrice <= openTrade.tp) ? openTrade.tp : openTrade.sl;
+                        const pnl = openTrade.side === 'LONG' ? (exitPrice - openTrade.entry) / openTrade.entry : (openTrade.entry - exitPrice) / openTrade.entry;
+                        equity *= (1 + pnl);
+                        equityCurve.push(equity);
+                        trades.push({ ...openTrade, exit: exitPrice, pnl, exitDate: new Date(currentTimestamp).toISOString() });
+                        openTrade = null;
+                        if (equity > peakEquity) peakEquity = equity;
+                        const drawdown = (peakEquity - equity) / peakEquity;
+                        if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+                    }
+                }
+
+                if (!openTrade) {
+                    const findLastKlineBefore = (data, timestamp) => {
+                        if (!data || data.length === 0) return undefined;
+                        return data.slice().reverse().find(k => k[0] <= timestamp);
+                    };
+                    
+                    const tf1_data = klinesData[modeType === 'matic' ? tfConfig.htf : tfConfig.tf1];
+                    const tf2_data = klinesData[modeType === 'matic' ? tfConfig.kompas : tfConfig.tf2];
+
+                    const tf1_last_candle = findLastKlineBefore(tf1_data, currentTimestamp);
+                    const tf2_last_candle = findLastKlineBefore(tf2_data, currentTimestamp);
+
+                    if (!tf1_last_candle || !tf2_last_candle) continue;
+
+                    const tf1_slice = tf1_data.filter(k => k[0] <= tf1_last_candle[0]);
+                    const tf2_slice = tf2_data.filter(k => k[0] <= tf2_last_candle[0]);
+
+                    if (tf1_slice.length < 50 || tf2_slice.length < 50) continue;
+
+                    const trendInfo = calculateBaseSetup(tf1_slice);
+                    const setupInfo = calculateBaseSetup(tf2_slice);
+
+                    const isAligned = trendInfo.isUptrend === setupInfo.isUptrend;
+                    const isValidSetup = ['Re-entry', 'Re-entry stlh CSM'].includes(setupInfo.setupType);
+
+                    if (isAligned && isValidSetup) {
+                        const arf = calculateARF(tf1_slice, setupInfo.setupType);
+                        const lzw = calculateLZW(setupInfo.lastCandle, setupInfo.setupType);
+                        const vcc = calculateVCC(tf2_slice, setupInfo.setupType);
+                        const mtcs = calculateMTCS(tf2_slice, tf1_slice, setupInfo.isUptrend);
+                        const tos = (setupInfo.baseScore * arf.multiplier) + lzw.modifier + vcc.modifier + mtcs.modifier;
+                        const finalTOS = Math.max(0, Math.min(100, Math.round(tos)));
+                        
+                        let conditionMet = false;
+                        switch(mode) {
+                            case 'matic_gt90': conditionMet = finalTOS >= 90; break;
+                            case 'matic_75_89': conditionMet = finalTOS >= 75 && finalTOS < 90; break;
+                            case 'matic_50_74': conditionMet = finalTOS >= 50 && finalTOS < 75; break;
+                            case 'matic_20_49': conditionMet = finalTOS >= 20 && finalTOS < 49; break;
+                            case 'pro': conditionMet = true; break; // Already filtered by isAligned and isValidSetup
+                            case 'mixer': conditionMet = finalTOS >= 75; break; // Strictest filter
+                            default: conditionMet = false;
+                        }
+
+                        if (conditionMet) {
+                            const side = trendInfo.isUptrend ? 'LONG' : 'SHORT';
+                            const entryPrice = parseFloat(currentCandle[4]);
+                            const swingCandleForSL = setupInfo.lastCandle;
+                            const slPrice = parseFloat(swingCandleForSL[trendInfo.isUptrend ? 3 : 2]);
+                            const slDistance = Math.abs(entryPrice - slPrice);
+
+                            if (slDistance === 0) continue;
+
+                            const sl = slPrice;
+                            const tp = trendInfo.isUptrend ? entryPrice + (slDistance * FIXED_RR_RATIO) : entryPrice - (slDistance * FIXED_RR_RATIO);
+                            
+                            openTrade = { side, entry: entryPrice, sl, tp, entryDate: new Date(currentTimestamp).toISOString(), setup: setupInfo.setupType, tos: finalTOS };
+                        }
+                    }
+                }
+            }
+
+            const totalReturn = (equity - 1) * 100;
+            const winTrades = trades.filter(t => t.pnl > 0).length;
+            const winRate = trades.length > 0 ? (winTrades / trades.length) * 100 : 0;
+            const totalProfit = trades.filter(t => t.pnl > 0).reduce((sum, t) => sum + t.pnl, 0);
+            const totalLoss = Math.abs(trades.filter(t => t.pnl < 0).reduce((sum, t) => sum + t.pnl, 0));
+            const profitFactor = totalLoss > 0 ? totalProfit / totalLoss : Infinity;
+
+            const metrics = { totalReturn, maxDrawdown: maxDrawdown * 100, winRate, profitFactor, jumlahTrade: trades.length };
+            displayResults(metrics, equityCurve, asset, tfKey);
+
+        } catch (error) {
+            showNotification(`Simulasi Gagal: ${error.message}`, true);
+            resetUI();
+        }
+    }
+    
+    // --- FUNGSI UI & DISPLAY ---
+
+    // <-- FUNGSI BARU UNTUK MENGHITUNG CANDLE -->
+    function updateCandleCount() {
+        const getIntervalMs = (intervalStr) => {
+            const unit = intervalStr.slice(-1);
+            const value = parseInt(intervalStr.slice(0, -1));
+            switch (unit) {
+                case 'm': return value * 60 * 1000;
+                case 'h': return value * 60 * 60 * 1000;
+                case 'd': return value * 24 * 60 * 60 * 1000;
+                default: return 0;
+            }
+        };
+
+        try {
+            const startDate = new Date(ui.startDate.value);
+            const endDate = new Date(ui.endDate.value);
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate >= endDate) {
+                ui.candleCountDisplay.textContent = '-';
+                return;
+            }
+
+            const modeType = ui.modeSelect.value.split('_')[0];
+            const tfKey = ui.tfSelect.value;
+            const tfConfig = TF_CONFIGS[modeType][tfKey];
+            if (!tfConfig) {
+                 ui.candleCountDisplay.textContent = '-';
+                return;
+            }
+            
+            const mainTimeframe = modeType === 'matic' ? tfConfig.eksekusi : tfConfig.tf3;
+            const intervalMs = getIntervalMs(mainTimeframe);
+            if (intervalMs === 0) {
+                ui.candleCountDisplay.textContent = '-';
+                return;
+            }
+
+            const durationMs = endDate.getTime() - startDate.getTime();
+            const candleCount = Math.floor(durationMs / intervalMs);
+            
+            ui.candleCountDisplay.textContent = candleCount.toLocaleString('id-ID');
+
+        } catch (error) {
+            ui.candleCountDisplay.textContent = 'Error';
+        }
+    }
+
+    function initializeUI() {
+        Object.keys(ASSET_CONFIG).forEach(key => ui.assetSelect.add(new Option(key, key)));
+        
+        // <-- EVENT LISTENER BARU -->
+        ui.modeSelect.addEventListener('change', () => {
+            repopulateTimeframes();
+            updateCandleCount();
+        });
+        ui.tfSelect.addEventListener('change', updateCandleCount);
+        ui.startDate.addEventListener('change', updateCandleCount);
+        ui.endDate.addEventListener('change', updateCandleCount);
+
+        ui.runBtn.addEventListener('click', runBacktest);
+        
+        const today = new Date();
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(today.getFullYear() - 1);
+        ui.endDate.value = today.toISOString().split('T')[0];
+        ui.startDate.value = oneYearAgo.toISOString().split('T')[0];
+        
+        repopulateTimeframes();
+        updateCandleCount(); // <-- Panggil saat inisialisasi
+    }
+
+    function repopulateTimeframes() {
+        const mode = ui.modeSelect.value.split('_')[0]; // e.g., 'matic_gt90' -> 'matic'
+        const config = TF_CONFIGS[mode];
+        ui.tfSelect.innerHTML = '';
+        if (config) {
+            Object.keys(config).forEach(key => {
+                ui.tfSelect.add(new Option(config[key].label, key));
+            });
+        }
+    }
+
+    function showNotification(message, isError = false) {
+        ui.notificationBar.textContent = message;
+        ui.notificationBar.className = `mt-4 text-center font-semibold h-6 ${isError ? 'text-rose-400' : 'text-sky-400'}`;
+    }
+
+    function resetUI() {
+        ui.loadingState.classList.add('hidden');
+        ui.resultsState.classList.add('hidden');
+        ui.initialState.classList.remove('hidden');
+        ui.runBtn.disabled = false;
+        ui.btnText.textContent = "JALANKAN SIMULASI";
+    }
+
+    function displayResults(metrics, equityCurve, asset, tfKey) {
+        ui.loadingState.classList.add('hidden');
+        ui.initialState.classList.add('hidden');
+        ui.resultsState.classList.remove('hidden');
+        ui.runBtn.disabled = false;
+        ui.btnText.textContent = "JALANKAN SIMULASI";
+
+        const modeLabel = ui.modeSelect.options[ui.modeSelect.selectedIndex].text;
+        ui.chartTitle.textContent = `Kurva Ekuitas: ${asset} - ${tfKey} (${modeLabel})`;
+        renderEquityCurve(equityCurve);
+        renderMetricsTable(metrics);
+    }
+
+    function renderEquityCurve(equityData) {
+        const trace = {
+            x: Array.from({ length: equityData.length }, (_, i) => i),
+            y: equityData,
+            mode: 'lines',
+            line: { color: '#0ea5e9', width: 3 },
+            fill: 'tozeroy',
+            fillcolor: 'rgba(14, 165, 233, 0.1)',
+        };
+        const layout = {
+            title: false,
+            xaxis: { title: 'Jumlah Trade', color: '#94a3b8', gridcolor: '#334155', zeroline: false },
+            yaxis: { title: 'Pertumbuhan Modal', color: '#94a3b8', gridcolor: '#334155', zeroline: false },
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Inter', color: '#e2e8f0' },
+            margin: { l: 60, r: 20, b: 50, t: 20, pad: 4 }
+        };
+        Plotly.newPlot(ui.chartContainer, [trace], layout, {responsive: true, displaylogo: false});
+    }
+
+    function renderMetricsTable(metrics) {
+        const createMetricRow = (label, value, isPercentage, higherIsBetter) => {
+            let colorClass = 'neutral';
+            if (higherIsBetter !== undefined) {
+                if (higherIsBetter) {
+                    colorClass = parseFloat(value) > (label.includes('Factor') ? 1.2 : 15) ? 'positive' : 'negative';
+                } else {
+                    colorClass = parseFloat(value) < 20 ? 'positive' : 'negative';
+                }
+            }
+            return `<div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-md">
+                        <span class="text-slate-400 font-medium">${label}</span>
+                        <span class="font-bold text-lg metric-value ${colorClass}">${typeof value === 'number' ? value.toFixed(2) : value}${isPercentage ? '%' : ''}</span>
+                    </div>`;
+        };
+        ui.metricsTable.innerHTML = `
+            ${createMetricRow('Total Return', metrics.totalReturn, true, true)}
+            ${createMetricRow('Max Drawdown', metrics.maxDrawdown, true, false)}
+            ${createMetricRow('Win Rate', metrics.winRate, true, true)}
+            ${createMetricRow('Profit Factor', metrics.profitFactor, false, true)}
+            ${createMetricRow('Jumlah Trade', metrics.jumlahTrade, false, undefined)}
+        `;
+    }
+
+    // --- INISIALISASI APLIKASI ---
+    initializeUI();
+});
+</script>
+</body>
+</html>
