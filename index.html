@@ -18,7 +18,7 @@
     </header>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Co-Pilot V.X.8.0 FINAL (Mod)</title>
+    <title>Trading Co-Pilot V.X.8.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -419,29 +419,33 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     
     const COPILOT_TF_CONFIG = {
-        '5m-1m': { kompas: '5m', eksekusi: '1m', label: '5M  >  1M', htf: '15m' },
-        '15m-1m': { kompas: '15m', eksekusi: '1m', label: '15M  >  1M', htf: '1h' },
-        '1h-5m': { kompas: '1h', eksekusi: '5m', label: '1H  >  5M', htf: '4h' },
-        '1h-15m': { kompas: '1h', eksekusi: '15m', label: '1H  >  15M', htf: '4h' },
-        '4h-15m': { kompas: '4h', eksekusi: '15m', label: '4H  >  15M', htf: '1d' },
-        '4h-1h': { kompas: '4h', eksekusi: '1h', label: '4H  >  1H', htf: '1d' },
-        '1d-4h': { kompas: '1d', eksekusi: '4h', label: '1D   >>>   4H', htf: '1w' }
+        '5m-1m': { kompas: '5m', eksekusi: '1m', label: '5M-1M Super Scalp', htf: '15m' },
+        '15m-1m': { kompas: '15m', eksekusi: '1m', label: '15M-1M Scalp', htf: '1h' },
+        '1h-5m': { kompas: '1h', eksekusi: '5m', label: '1H-5M Scalp & Day', htf: '4h' },
+        '1h-15m': { kompas: '1h', eksekusi: '15m', label: '1H-15M Day', htf: '4h' },
+        '4h-15m': { kompas: '4h', eksekusi: '15m', label: '4H-15M Save Day', htf: '1d' },
+        '4h-1h': { kompas: '4h', eksekusi: '1h', label: '4H-1H Save Day', htf: 'd' },
+        '1d-4h': { kompas: '1d', eksekusi: '4h', label: '1D-4H Swing', htf: '1w' }
     };
 
     const PRO_TF_CONFIG = {
-       '15m-5m-1m': { tf1: '15m', tf2: '5m', tf3: '1m', label: '15M > 5M > 1M'}, 
-       '1h-15m-5m': { tf1: '1h', tf2: '15m', tf3: '5m', label: '1H > 15M > 5M'},
-       '4h-1h-15m': { tf1: '4h', tf2: '1h', tf3: '15m', label: '4H > 1H > 15M'},
-       '1d-4h-1h': { tf1: '1d', tf2: '4h', tf3: '1h', label: '1D   >>    H4    >>    1H'},
-       '1w-1d-4h': { tf1: '1w', tf2: '1d', tf3: '4h', label: '1W    >>    1D  >>    4H'}             
+       '15m-5m-1m': { tf1: '15m', tf2: '5m', tf3: '1m', label: '15M-5M-1M'},
+       '1h-15m-1m': { tf1: '1h', tf2: '15m', tf3: '1m', label: '1H-15M-1M'}, 
+       '1h-15m-5m': { tf1: '1h', tf2: '15m', tf3: '5m', label: '1H-15M-5M'},
+       '4h-1h-5m': { tf1: '4h', tf2: '1h', tf3: '5m', label: '4H-1H-5M'},
+       '4h-1h-15m': { tf1: '4h', tf2: '1h', tf3: '15m', label: '4H-1H-15M'},
+       '1d-4h-15m': { tf1: '1d', tf2: '4h', tf3: '15m', label: '1D-H4-15m'},
+       '1w-1d-4h': { tf1: '1w', tf2: '1d', tf3: '4h', label: '1W-1D-4H'}             
     };
 
     const MIXER_TF_CONFIG = {
-        '15m-5m-1m': { tf1: '15m', tf2: '5m', tf3: '1m', label: '15M > 5M > 1M'}, 
-       '1h-15m-5m': { tf1: '1h', tf2: '15m', tf3: '5m', label: '1H > 15M > 5M'},
-       '4h-1h-15m': { tf1: '4h', tf2: '1h', tf3: '15m', label: '4H > 1H > 15M'},
-       '1d-4h-1h': { tf1: '1d', tf2: '4h', tf3: '1h', label: '1D   >>    H4    >>    1H'},
-       '1w-1d-4h': { tf1: '1w', tf2: '1d', tf3: '4h', label: '1W    >>    1D  >>    4H'}
+       '15m-5m-1m': { tf1: '15m', tf2: '5m', tf3: '1m', label: '15M-5M-1M'},
+       '1h-15m-1m': { tf1: '1h', tf2: '15m', tf3: '1m', label: '1H-15M-1M'}, 
+       '1h-15m-5m': { tf1: '1h', tf2: '15m', tf3: '5m', label: '1H-15M-5M'},
+       '4h-1h-5m': { tf1: '4h', tf2: '1h', tf3: '5m', label: '4H-1H-5M'},
+       '4h-1h-15m': { tf1: '4h', tf2: '1h', tf3: '15m', label: '4H-1H-15M'},
+       '1d-4h-15m': { tf1: '1d', tf2: '4h', tf3: '15m', label: '1D-H4-15m'},
+       '1w-1d-4h': { tf1: '1w', tf2: '1d', tf3: '4h', label: '1W-1D-4H'}
     };
 
     const SCANNER_TF_CONFIG = {
