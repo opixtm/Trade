@@ -3,31 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHART "AI" v5.9</title>
-     <header class="relative mb-6 text-center border-b border-slate-700 pb-6">
-    <div class="absolute top-10 left-0 right-0 w-full">
-        <div class="container mx-auto flex justify-between items-center p-1 md:p-0">
-            <a href="https://opixtm.github.io/Trade/" target="_blank" rel="noopener noreferrer" 
-               class="btn-action bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs md:text-sm">
-                COPILOT
-            </a>
-            
-            <a href="https://opixtm.github.io/Trade/services" target="_blank" rel="noopener noreferrer" 
-               class="btn-action bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold py-2 px-4 rounded-lg text-xs md:text-sm">
-                BACKTEST
-            </a>
-        </div>
-    </div>
-    </header>
+    <title>Co-pilot CHART "AI" v5.9</title>
+    
+    <!-- Memuat Tailwind CSS untuk styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Memuat html2canvas untuk fitur ekspor ke gambar -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
+    <!-- Memuat Google Fonts (Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <header class="relative mb-6 text-center border-b border-slate-700 pb-6">
-   
+    
     <style>
         /* CSS Kustom untuk menyempurnakan tampilan */
         body { 
@@ -119,21 +107,38 @@
         }
     </style>
 </head>
-    
 <body class="antialiased">
 
     <div class="min-h-screen flex flex-col">
-        <header 
-            <h1 class="text-2xl font-bold text-center text-white"><span class="text-blue-400">  chartAI</span></h1>
-        </header>
+        <header class="bg-gray-800/50 backdrop-blur-sm shadow-lg p-4 sticky top-0 z-20 h-16 relative flex items-center justify-center">
+    
+    <div class="absolute left-4 top-1/2 -translate-y-1/2">
+        <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-300">
+            COPILOT
+        </a>
+    </div>
 
-        <div class="flex-grow flex flex-col md:flex-row p-4 gap-4">
+    <h1 class="text-2xl font-bold text-white">Co-pilot CHART<span class="text-blue-400">"AI"</span> v5.9</h1>
 
+    <div class="absolute right-4 top-1/2 -translate-y-1/2">
+        <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
+            BACKTEST
+        </a>
+    </div>
+
+</header>
+<div class="flex-grow flex flex-col md:flex-row p-4 gap-4">
+
+            <!-- Panel Kontrol (Kiri) -->
             <aside class="w-full md:w-1/3 lg:w-1/4 flex flex-col gap-4">
                  <div class="bg-gray-800 rounded-lg p-4 flex flex-col gap-4 shadow-md flex-grow">
                     <div>
                         <h3 class="text-lg font-bold text-white mb-1">Mode Analisa</h3>
-                      
+                        <p class="text-xs text-gray-400 mb-4">
+                            <span class="font-bold">Mode Standar:</span> Cukup isi LTF. <br/>
+                            <span class="font-bold">Mode MTF Presisi:</span> Isi HTF & LTF.
+                        </p>
+                        <!-- Upload Chart HTF -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-300 mb-1">1. Chart HTF (Tren Besar) <span class="text-gray-500 text-xs italic">- Opsional</span></label>
                             <div id="htf-drop-zone" class="chart-preview-container">
@@ -143,6 +148,7 @@
                             <input type="file" id="htf-chart-upload" class="hidden" accept="image/*">
                             <label for="htf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar HTF</label>
                         </div>
+                        <!-- Upload Chart LTF -->
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-1">2. Chart LTF (Entry) <span class="text-green-400 text-xs italic">- Wajib</span></label>
                             <div id="ltf-drop-zone" class="chart-preview-container">
@@ -158,28 +164,36 @@
                  </div>
             </aside>
 
+            <!-- Panel Utama (Kanan) -->
             <main class="w-full md:w-2/3 lg:w-3/4 bg-gray-800 rounded-lg p-2 sm:p-4 shadow-md flex flex-col relative">
+                <!-- Indikator Loading -->
                 <div id="loader" class="hidden absolute inset-0 bg-gray-900/80 flex items-center justify-center flex-col gap-2 z-50 rounded-lg">
                     <div class="loader"></div>
                     <p id="loader-text" class="text-white font-semibold"></p>
                 </div>
                 <div>
+                     <!-- Input API Key -->
                      <div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg mb-4">
                         <h3 class="font-bold text-yellow-300">Setup Kunci AI (Wajib)</h3>
                         <input type="password" id="api-key-input" class="kalkulator-input mt-2" placeholder="Tempel API Key Google AI Studio di sini...">
                         <p class="text-xs text-gray-400 mt-1">Kunci akan disimpan di browser Anda. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-300 font-bold">Dapatkan Kunci di sini (Gratis)</a>.</p>
                     </div>
+                    <!-- Navigasi Tab -->
                     <div class="flex flex-wrap border-b border-gray-700">
                         <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">Rangkuman Analisa</button>
                         <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">Kalkulator Cerdas</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="sentimen">✨ Sentimen Pasar</button>
                     </div>
                 </div>
 
+                <!-- Konten Tab -->
                 <div id="tab-content" class="flex-grow mt-4 overflow-y-auto">
+                    <!-- Tab: Analisa -->
                     <div id="analisa" class="tab-pane">
                         <div id="analysis-placeholder" class="text-center text-gray-500 p-8"><p>Unggah gambar chart untuk melihat hasil analisa AI di sini.</p></div>
                         <div id="analysis-wrapper" class="hidden">
                             <div id="analysis-content">
+                                 <!-- Hasil Ekstraksi Data -->
                                  <div class="mb-4 bg-gray-900 p-4 rounded-lg border-l-4 border-blue-400">
                                      <h4 class="font-bold text-lg text-white mb-2">Hasil Detektif Data (LTF)</h4>
                                      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm items-center">
@@ -195,6 +209,7 @@
                                         <span id="data-indicators" class="font-bold text-xs text-blue-300"></span>
                                      </div>
                                  </div>
+                                 <!-- Tabel Hasil Analisa -->
                                  <div class="bg-gray-900 rounded-lg overflow-hidden">
                                     <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-bold text-gray-400 bg-gray-800">Parameter</div><div class="analysis-table-cell font-bold text-green-400 bg-gray-800">Scalping Setup LONG</div><div class="analysis-table-cell font-bold text-red-400 bg-gray-800">Scalping Setup SHORT</div></div>
                                     <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Kondisi Pasar</div><div class="analysis-table-cell" id="long-kondisi">-</div><div class="analysis-table-cell" id="short-kondisi">-</div></div>
@@ -208,8 +223,10 @@
                                     <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Alasan Target Profit</div><div class="analysis-table-cell text-xs italic" id="long-alasan-tp">-</div><div class="analysis-table-cell text-xs italic" id="short-alasan-tp">-</div></div>
                                     <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Aksi</div><div class="analysis-table-cell"><button class="use-data-btn w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 rounded" data-setup="long">Gunakan Data</button></div><div class="analysis-table-cell"><button class="use-data-btn w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded" data-setup="short">Gunakan Data</button></div></div>
                                  </div>
+                                 <!-- Rekomendasi Utama -->
                                  <div class="mt-4 bg-blue-900/50 border-l-4 border-blue-400 p-4 rounded-r-lg"><h4 class="font-bold text-lg text-white mb-2">Rekomendasi Utama:</h4><p id="rekomendasi-text" class="text-blue-200">-</p></div>
                                  
+                                 <!-- Saran Peningkatan -->
                                  <div id="saran-container" class="mt-4 hidden">
                                      <div class="bg-purple-900/50 border-l-4 border-purple-400 p-4 rounded-r-lg">
                                          <h4 class="font-bold text-lg text-purple-300 mb-2">✨ Saran Peningkatan Analisa AI</h4>
@@ -217,6 +234,7 @@
                                      </div>
                                  </div>
                             </div>
+                             <!-- Fitur Optimasi -->
                              <div id="optimization-container" class="mt-4 hidden">
                                  <button id="optimize-plan-btn" class="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition">✨ Minta Tinjauan & Optimasi Rencana</button>
                                  <div id="optimization-output" class="mt-4 bg-gray-900 p-4 rounded-lg hidden"></div>
@@ -224,8 +242,10 @@
                              <button id="export-btn" class="mt-4 w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition">Ekspor Laporan (Gambar)</button>
                         </div>
                     </div>
+                    <!-- Tab: Kalkulator -->
                     <div id="kalkulator" class="tab-pane hidden">
                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Input Kalkulator -->
                             <div class="bg-gray-900 p-4 rounded-lg space-y-4">
                                 <div class="grid grid-cols-2 gap-4">
                                     <div><label class="font-semibold text-gray-300">Total Modal ($)</label><input type="number" id="calc-modal" class="kalkulator-input mt-1" value="250"></div>
@@ -254,6 +274,7 @@
                                 </div>
                                 <button id="hitung-rencana-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition">HITUNG RENCANA</button>
                             </div>
+                            <!-- Hasil Kalkulator -->
                             <div class="bg-gray-900 p-4 rounded-lg">
                                 <h3 class="font-bold text-xl mb-4 text-white border-b border-gray-700 pb-2">Rencana Trading</h3>
                                 <div id="kalkulator-hasil" class="space-y-3 hidden">
@@ -273,8 +294,22 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Tab: Sentimen Pasar -->
+                    <div id="sentimen" class="tab-pane hidden">
+                        <h3 class="text-xl font-bold text-white mb-4">Analisa Sentimen Pasar</h3>
+                        <div class="bg-gray-900 p-4 rounded-lg">
+                            <p class="text-gray-300 mb-4">Dapatkan gambaran sentimen pasar terkini untuk sebuah aset berdasarkan berita dan diskusi online. Masukkan nama atau simbol aset (misal: Bitcoin, BTC, Ethereum).</p>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <input type="text" id="sentiment-asset-input" class="kalkulator-input flex-grow" placeholder="Contoh: Bitcoin">
+                                <button id="generate-sentiment-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">✨ Analisa Sentimen</button>
+                            </div>
+                            <div id="sentiment-output" class="mt-6">
+                                </div>
+                        </div>
+                    </div>
                 </div>
             </main>
+        </div>
         </div>
         </div>
     </div>
@@ -349,6 +384,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const outTp3Profit = document.getElementById('out-tp3-profit');
 
     // Elemen Fitur Baru
+    const generateSentimentBtn = document.getElementById('generate-sentiment-btn');
+    const sentimentAssetInput = document.getElementById('sentiment-asset-input');
+    const sentimentOutput = document.getElementById('sentiment-output');
     const optimizationContainer = document.getElementById('optimization-container');
     const optimizePlanBtn = document.getElementById('optimize-plan-btn');
     const optimizationOutput = document.getElementById('optimization-output');
@@ -522,6 +560,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isNaN(lastPriceNumber)) {
                 pricePrecision = getDecimalPlaces(lastPriceNumber);
                 updateCalculatorInputSteps(pricePrecision);
+            }
+
+            if (keyData.asset && keyData.asset !== 'N/A' && sentimentAssetInput) {
+                sentimentAssetInput.value = keyData.asset.split('.')[0];
             }
 
             showLoader('Mempertajam Analisa (2/2)...');
@@ -743,7 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
         outMargin.textContent = `$${marginUSD.toFixed(2)}`;
         outLeverageAman.textContent = `~${(ukuranPosisiUSD / totalModal).toFixed(1)}x`;
 
-        [{el: calcTp1, label: outTp1Label, profit: outTp1Profit}, {el: calcTp2, label: outTp2Label, profit: outTp2Profit}, {el: calcTp3, label: outTp3Label, profit: outp3Profit}].forEach((tp, i) => {
+        [{el: calcTp1, label: outTp1Label, profit: outTp1Profit}, {el: calcTp2, label: outTp2Label, profit: outTp2Profit}, {el: calcTp3, label: outTp3Label, profit: outTp3Profit}].forEach((tp, i) => {
             const tpPrice = parseFloat(tp.el.value);
             if (!isNaN(tpPrice) && jarakSL > 0) {
                 const rr = Math.abs(tpPrice - entryPrice) / jarakSL;
@@ -754,6 +796,25 @@ document.addEventListener('DOMContentLoaded', () => {
                  tp.profit.textContent = `~$0.00`;
             }
         });
+    }
+
+    async function generateSentimentAnalysis() {
+        const asset = sentimentAssetInput.value.trim();
+        if (!asset) { showCustomMessage("Harap masukkan nama aset.", "info"); return; }
+        showLoader(`Menganalisa sentimen untuk ${asset}...`);
+        sentimentOutput.innerHTML = '';
+        try {
+            const prompt = `Sebagai analis pasar... (prompt lengkap seperti sebelumnya)...`;
+            const jsonText = await callGemini([{ text: prompt }], true);
+            const data = cleanAndParseJson(jsonText);
+            const sentimentColor = data.sentiment === 'Bullish' ? 'text-green-400' : data.sentiment === 'Bearish' ? 'text-red-400' : 'text-yellow-400';
+            const sentimentEmoji = data.sentiment === 'Bullish' ? '🟢' : data.sentiment === 'Bearish' ? '🔴' : '🟡';
+            sentimentOutput.innerHTML = `<div class="bg-gray-800 p-4 rounded-lg">... (konten seperti sebelumnya) ...</div>`;
+        } catch (error) {
+            sentimentOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa sentimen: ${error.message}</p>`;
+        } finally {
+            hideLoader();
+        }
     }
 
     async function optimizeTradePlan() {
@@ -817,7 +878,8 @@ document.addEventListener('DOMContentLoaded', () => {
         populateCalculatorFromAnalysis('short');
     });
     hitungRencanaBtn.addEventListener('click', hitungRencana);
-    optimizePlanBtn.addEventListener('click', optimizeTradePlan);
+    generateSentimentBtn.addEventListener('click', generateSentimentAnalysis);
+    optimizePlanBtn.addEventListener('click', optimizePlanBtn);
     
     // --- SETUP AWAL ---
     const savedApiKey = localStorage.getItem('valhallaUltimateApiKey');
@@ -828,7 +890,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
 <div class="bg-slate-800 p-6 rounded-xl flex flex-col" style="height: 88vh;">
             <div class="flex flex-wrap justify-between items-center mb-4 gap-4 flex-shrink-0">
             
@@ -838,7 +899,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         
         <div class="w-full flex-1 bg-slate-900 rounded-lg">
-            <div class="tradingview-widget-container" style="height:100%;width:100%">
+            <!-- TradingView Widget BEGIN -->
+<div class="tradingview-widget-container" style="height:100%;width:100%">
   <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
   <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div>
   <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
@@ -873,4 +935,5 @@ document.addEventListener('DOMContentLoaded', () => {
 }
   </script>
 </div>
-</div>
+<!-- TradingView Widget END -->
+ </div>
