@@ -592,8 +592,8 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
         const tfConfig = COPILOT_TF_CONFIG[currentState.timeframeKey];
         const [klines, htfKlines, executionKlines, volumeData, lsRatioData] = await Promise.all([
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.kompas, limit: 100 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.htf, limit: 100 }),
+            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.kompas, limit: 300 }),
+            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.htf, limit: 300 }),
             fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.eksekusi, limit: 50 }),
             fetchPublicAPI('fapi/v1/ticker/24hr', { symbol: currentState.asset.ticker }).catch(e => null),
             fetchPublicAPI('futures/data/globalLongShortAccountRatio', { symbol: currentState.asset.ticker, period: '5m' }).catch(e => null)
@@ -639,9 +639,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const tfConfig = PRO_TF_CONFIG[currentState.timeframeKey];
 
         const [tf1Klines, tf2Klines, tf3Klines] = await Promise.all([
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf1, limit: 100 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf2, limit: 100 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf3, limit: 100 }),
+            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf1, limit: 300 }),
+            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf2, limit: 300 }),
+            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf3, limit: 300 }),
         ]);
 
         const tf1Closes = tf1Klines.map(k => parseFloat(k[4]));
@@ -704,9 +704,9 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
         const tfConfig = MIXER_TF_CONFIG[currentState.timeframeKey];
         const [tf1Klines, tf2Klines, tf3Klines] = await Promise.all([
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf1, limit: 100 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf2, limit: 100 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf3, limit: 100 }),
+            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf1, limit: 300 }),
+            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf2, limit: 300 }),
+            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf3, limit: 300 }),
         ]);
 
         const tf1Closes = tf1Klines.map(k => parseFloat(k[4]));
@@ -1283,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!analysis) { showNotification('Jalankan dulu Analisa!', true); return; } 
         showNotification(`Mencari zona Re-entry di ${timeframe}...`); 
         try { 
-            const klines = await fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: timeframe, limit: 50 }); 
+            const klines = await fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: timeframe, limit: 200 }); 
             const highs = klines.map(k => parseFloat(k[2])); 
             const lows = klines.map(k => parseFloat(k[3])); 
             const { isUptrend } = analysis; 
@@ -1308,7 +1308,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         showNotification('Menghitung Saran SL/TP...', false); 
         try { 
-            const klines = klinesData || await fetchPublicAPI('fapi/v1/klines', {symbol: currentState.asset.ticker, interval: timeframe, limit: 100});
+            const klines = klinesData || await fetchPublicAPI('fapi/v1/klines', {symbol: currentState.asset.ticker, interval: timeframe, limit: 200});
             const { precision } = currentState.asset; 
             const { swingHigh, swingLow } = findSignificantSwings(klines, 100); 
             const slPrice = (isUptrend ? swingLow : swingHigh).toFixed(precision); 
@@ -1356,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
 // --- UTILITIES, ZZL, ETC. ---
-    function findSignificantSwings(klines, lookback = 50) { const relevantKlines = klines.slice(-lookback); let swingLow = Infinity, swingHigh = -Infinity; let swingLowIndex = -1, swingHighIndex = -1; relevantKlines.forEach((k, index) => { const high = parseFloat(k[2]); const low = parseFloat(k[3]); if (high > swingHigh) { swingHigh = high; swingHighIndex = klines.length - lookback + index; } if (low < swingLow) { swingLow = low; swingLowIndex = klines.length - lookback + index; } }); return { swingHigh, swingLow, swingHighIndex, swingLowIndex }; }
+    function findSignificantSwings(klines, lookback = 200) { const relevantKlines = klines.slice(-lookback); let swingLow = Infinity, swingHigh = -Infinity; let swingLowIndex = -1, swingHighIndex = -1; relevantKlines.forEach((k, index) => { const high = parseFloat(k[2]); const low = parseFloat(k[3]); if (high > swingHigh) { swingHigh = high; swingHighIndex = klines.length - lookback + index; } if (low < swingLow) { swingLow = low; swingLowIndex = klines.length - lookback + index; } }); return { swingHigh, swingLow, swingHighIndex, swingLowIndex }; }
     function showNotification(message, isError = false) { ui.notification.textContent = message; ui.notification.style.opacity = 1; ui.notification.className = `h-6 text-center text-xs font-semibold ${isError ? 'text-rose-400' : 'text-sky-400'}`; setTimeout(() => { ui.notification.style.opacity = 0; }, 4000); }
     async function startLivePrice() { if (currentState.livePriceInterval) return; async function updatePrice() { try { const data = await fetchPublicAPI('fapi/v1/ticker/price', {symbol: currentState.asset.ticker}); ui.livePriceDisplay.textContent = parseFloat(data.price).toFixed(currentState.asset.precision); } catch (e) { ui.livePriceDisplay.textContent = 'Error'; stopLivePrice(); } } await updatePrice(); currentState.livePriceInterval = setInterval(updatePrice, 2500); }
     function stopLivePrice() { if(currentState.livePriceInterval) { clearInterval(currentState.livePriceInterval); currentState.livePriceInterval = null; } }
