@@ -110,7 +110,7 @@
 <body class="antialiased">
 
     <div class="min-h-screen flex flex-col">
-        <header class="bg-gray-800/50 backdrop-blur-sm shadow-lg p-4 sticky top-0 z-20 h-16 relative flex items-center justify-center">
+        <header>
     
     <div class="absolute left-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-300">
@@ -118,7 +118,7 @@
         </a>
     </div>
 
-    <h1 class="text-2xl font-bold text-white">Co-pilot CHART<span class="text-blue-400">"AI"</span> v5.9</h1>
+    <h1 class="text-2xl font-bold text-white"><span class="text-blue-400">"AI CHART"</span></h1>
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
@@ -513,14 +513,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function extractKeyData(imageBase64) {
-        const prompt = `Anda adalah AI OCR yang sangat teliti. Tugas Anda adalah mengekstrak data dari gambar chart trading dengan mengikuti ATURAN PALING KETAT.
+        const prompt = `Anda adalah AI OCR yang memiliki akurasi tinggi. Tugas Anda adalah mengekstrak data dari gambar chart trading dengan mengikuti ATURAN PALING KETAT.
         
         1.  **Harga Terakhir (lastPrice)**: Ini adalah tugas paling penting. Lakukan dengan urutan ini, JANGAN DILANGGAR:
             * **Langkah A (Prioritas Utama):** Fokus pada SUMBU HARGA di sisi KANAN chart. Cari KOTAK LABEL HARGA (seringkali berwarna atau memiliki timer countdown) yang menempel di sumbu tersebut. Angka di dalam kotak ini adalah 'lastPrice' yang benar.
             * **Langkah B (Jika Langkah A Gagal):** Jika tidak ada kotak label, cari GARIS HORIZONTAL PUTUS-PUTUS yang berasal dari candle terakhir menuju sumbu harga. Baca angka pada sumbu harga yang DITUNJUK OLEH GARIS ITU.
             * **ZONA TERLARANG:** JANGAN PERNAH mengambil angka dari LEGENDA di pojok KIRI ATAS (yang berisi info O,H,L,C atau nama indikator seperti Bollinger, EMA). Area ini seringkali berisi angka yang salah dan MENIPU. Abaikan sepenuhnya area ini untuk mencari harga.
         2.  **Aset & Timeframe**: Identifikasi dari teks di pojok kiri atas.
-        3.  **Indikator (identifiedIndicators)**: Identifikasi SEMUA nama indikator yang terlihat (misal: 'Bollinger Bands', 'EMA', 'RSI', 'Volume').
+        3.  **Indikator (identifiedIndicators)**: Identifikasi SEMUA nama indikator yang terlihat (misal: 'Bollinger Bands', 'EMA', 'RSI', 'MACD', 'Volume').
+        4. Identifikasi pola candle potennsial pada 3 candle terakhir pada lower time frame chart
 
         Jika data tidak ada, gunakan "Tidak Terdeteksi". JANGAN MENEBAK.
 
@@ -566,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sentimentAssetInput.value = keyData.asset.split('.')[0];
             }
 
-            showLoader('Mempertajam Analisa (2/2)...');
+            showLoader('Sabar Bro Sedang Mempertajam Analisa (2/2)...');
             
             let analysisParts = [];
             const assetInfo = keyData.asset || 'aset ini';
@@ -586,10 +587,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 basePrompt += `Indikator berikut telah teridentifikasi pada chart: ${keyData.identifiedIndicators.join(', ')}. **WAJIB** gunakan pembacaan dari indikator-indikator ini dalam analisamu, terutama di bagian 'Kondisi Pasar' dan 'Pemicu/Konfirmasi'. Cobalah untuk membaca nilai aktual dari indikator tersebut (misal: level RSI, apakah Stochastic sedang overbought/oversold).\n`;
             }
 
-            basePrompt += `- Untuk setiap parameter ('Kondisi Pasar', 'Strategi Aman', 'Pemicu/Konfirmasi'), berikan penjelasan yang **detail dan mendalam**, bukan hanya satu kalimat.
+            basePrompt += `- Untuk setiap parameter ('Kondisi Pasar', 'Strategi Aman', 'Pemicu/Konfirmasi'), berikan penjelasan yang **detail dan mendalam**, bukan hanya satu kalimat tapi tetap fokus.
                 Berikan deskripsi teknikal yang menyeluruh: arah tren (naik/turun/sideways), kekuatan tren (misal: divergensi RSI, crossing MA), zona penting (support/resistance), serta sinyal teknikal yang relevan dari indikator yang terlihat.
                 Jelaskan alasan teknikal mengapa pasar saat ini dikategorikan dalam kondisi tersebut.
-                Gunakan istilah baku: bullish, bearish, ranging, break/retest, dll..
+                Gunakan istilah baku (tebalkan kata): bullish, bearish, ranging, break/retest, dll..
             - Untuk 'areaEntry' dan 'stopLoss', **WAJIB** untuk menyertakan **level harga spesifik** di dalam teksnya. Contoh: "Area entry di sekitar 150.00 - 151.00 karena merupakan zona support." atau "Stop loss di 148.00, tepat di bawah swing low terakhir."
             - Field 'probabilitas' HARUS menyertakan istilah deskriptif dan persentase (misal, "Tinggi (70%)").
             - Berikan 3 level Target Profit (TP1, TP2, TP3) yang realistis untuk scalping, masing-masing dengan harga spesifik dan alasan teknikal singkat (misal: "TP1 di 152.00, resistance minor sebelumnya").
@@ -823,10 +824,22 @@ document.addEventListener('DOMContentLoaded', () => {
         optimizationOutput.classList.add('hidden');
         try {
             const planString = JSON.stringify(latestAnalysisData, null, 2);
-            const prompt = `Anda adalah seorang manajer risiko trading... (prompt lengkap seperti sebelumnya)...`;
+            const prompt = `Anda adalah seorang manajer risiko trading yang sangat berpengalaman. Diberikan sebuah rencana trading dalam format JSON berikut untuk aset ${latestAnalysisData.keyData.asset}.
+            Rencana Trading:
+            ${planString}
+
+            Tugas Anda adalah meninjau rencana ini secara kritis. Berikan umpan balik yang membangun dalam Bahasa Indonesia. Fokus pada:
+            1.  **Validasi Setup**: Apakah ada kelemahan dalam logika setup yang diusulkan?
+            2.  **Manajemen Risiko**: Apakah Stop Loss sudah optimal? Apakah ada cara untuk memperketatnya?
+            3.  **Skenario Alternatif**: Apa skenario lain yang mungkin terjadi yang tidak dipertimbangkan?
+            4.  **Peringatan**: Apa risiko eksternal terbesar (misal, berita terbaru yang up to date) yang harus diwaspadai?
+            
+            Format jawaban Anda dengan jelas menggunakan poin-poin. Jangan gunakan format Markdown. Cukup teks biasa dengan baris baru.`;
+
             const optimizationText = await callGemini([{ text: prompt }], false);
             optimizationOutput.innerHTML = `<h4 class="font-bold text-lg text-purple-300 mb-2">Tinjauan Manajer Risiko AI</h4><p class="text-sm text-gray-300 whitespace-pre-wrap">${optimizationText}</p>`;
             optimizationOutput.classList.remove('hidden');
+
         } catch (error) {
             optimizationOutput.innerHTML = `<p class="text-red-400">Gagal mendapatkan tinjauan: ${error.message}</p>`;
             optimizationOutput.classList.remove('hidden');
@@ -879,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     hitungRencanaBtn.addEventListener('click', hitungRencana);
     generateSentimentBtn.addEventListener('click', generateSentimentAnalysis);
-    optimizePlanBtn.addEventListener('click', optimizePlanBtn);
+    optimizePlanBtn.addEventListener('click', optimizeTradePlan);
     
     // --- SETUP AWAL ---
     const savedApiKey = localStorage.getItem('valhallaUltimateApiKey');
