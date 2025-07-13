@@ -807,7 +807,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoader(`Menganalisa sentimen untuk ${asset}...`);
         sentimentOutput.innerHTML = '';
         try {
-            const prompt = `Sebagai analis pasar keuangan, berikan analisa sentimen untuk aset "${asset}" berdasarkan berita terkini (up to date), data sosial, dan diskusi pasar. Berikan output dalam format JSON yang valid dengan skema ini: {"type": "object", "properties": {"sentiment": {"type": "string"}, "score": {"type": "number"}, "summary": {"type": "string"}, "positivePoints": {"type": "array", "items": {"type": "string"}}, "negativePoints": {"type": "array", "items": {"type": "string", "priceactionSMC": {"type": "array", "items": {"type": "string"}}}}
+            const prompt = `Sebagai analis pasar keuangan, berikan analisa sentimen untuk aset "${asset}" berdasarkan berita terkini (up to date), data sosial, diskusi pasar dan price action yang menampilkan informasi market structure berdasarkan startegi smart money concept (dapatkan data terkini misal dari coinmarketcap.com atau tradingview, jika tidak dapat sebutkan tidak ada data). Berikan output dalam format JSON yang valid dengan skema ini: {"type": "object", "properties": {"sentiment": {"type": "string"}, "score": {"type": "number"}, "summary": {"type": "string"}, "positivePoints": {"type": "array", "items": {"type": "string"}}, "negativePoints": {"type": "array", "items": {"type": "string", "priceactionSMC": {"type": "array", "items": {"type": "string"}}}}
             - 'sentiment' harus berupa "Bullish", "Bearish", atau "Neutral".
             - 'score' harus antara -1 (sangat bearish) dan 1 (sangat bullish).
             - 'summary' adalah ringkasan singkat dari sentimen keseluruhan.
