@@ -807,7 +807,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoader(`Menganalisa sentimen untuk ${asset}...`);
         sentimentOutput.innerHTML = '';
         try {
-            const prompt = `Sebagai analis pasar... (prompt lengkap seperti sebelumnya)...`;
+            const prompt = `Sebagai analis pasar keuangan, berikan analisa sentimen untuk aset "${asset}" berdasarkan berita terkini (up to date), data sosial, dan diskusi pasar. Berikan output dalam format JSON yang valid dengan skema ini: {"type": "object", "properties": {"sentiment": {"type": "string"}, "score": {"type": "number"}, "summary": {"type": "string"}, "positivePoints": {"type": "array", "items": {"type": "string"}}, "negativePoints": {"type": "array", "items": {"type": "string", "priceactionSMC": {"type": "array", "items": {"type": "string"}}}}
+            - 'sentiment' harus berupa "Bullish", "Bearish", atau "Neutral".
+            - 'score' harus antara -1 (sangat bearish) dan 1 (sangat bullish).
+            - 'summary' adalah ringkasan singkat dari sentimen keseluruhan.
+            - 'positivePoints' dan 'negativePoints' adalah daftar poin-poin kunci dari berita atau diskusi.
+            - 'priceactionSMC' adalah kondisi harga (price action) based on Smart Money Concept (SMC) method which is a price action strategy that focuses on understanding how institutional investors (often referred to as "smart money") move the market. It involves identifying order blocks, liquidity pools, and market structure shifts to anticipate price movements. Delves deeper into the underlying dynamics of supply and demand, as influenced by institutional traders
+            Seluruh respons harus dalam Bahasa Indonesia.`;
             const jsonText = await callGemini([{ text: prompt }], true);
             const data = cleanAndParseJson(jsonText);
             const sentimentColor = data.sentiment === 'Bullish' ? 'text-green-400' : data.sentiment === 'Bearish' ? 'text-red-400' : 'text-yellow-400';
