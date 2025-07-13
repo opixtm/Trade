@@ -818,7 +818,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = cleanAndParseJson(jsonText);
             const sentimentColor = data.sentiment === 'Bullish' ? 'text-green-400' : data.sentiment === 'Bearish' ? 'text-red-400' : 'text-yellow-400';
             const sentimentEmoji = data.sentiment === 'Bullish' ? '🟢' : data.sentiment === 'Bearish' ? '🔴' : '🟡';
-            sentimentOutput.innerHTML = `<div class="bg-gray-800 p-4 rounded-lg">... (konten seperti sebelumnya) ...</div>`;
+            sentimentOutput.innerHTML = `<div class="bg-gray-800 p-4 rounded-lg">
+                    <h4 class="font-bold text-lg ${sentimentColor}">${sentimentEmoji} Sentimen: ${data.sentiment} (${data.score.toFixed(2)})</h4>
+                    <p class="mt-2 text-sm text-gray-300">${data.summary}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <h5 class="font-semibold text-green-400">Poin Positif</h5>
+                            <ul class="list-disc list-inside text-sm mt-2 space-y-1">${data.positivePoints.map(p => `<li>${p}</li>`).join('')}</ul>
+                        </div>
+                        <div>
+                            <h5 class="font-semibold text-red-400">Poin Negatif</h5>
+                            <ul class="list-disc list-inside text-sm mt-2 space-y-1">${data.negativePoints.map(p => `<li>${p}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                </div>
+            `;
         } catch (error) {
             sentimentOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa sentimen: ${error.message}</p>`;
         } finally {
