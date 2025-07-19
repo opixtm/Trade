@@ -31,6 +31,13 @@
         /* Animations & Indicators */
         .spinner, .loader { border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: #0ea5e9; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes blinking-red {
+            0%, 100% { opacity: 1; color: #f87171; } /* rose-400 */
+            50% { opacity: 0.3; color: #f87171; }
+        }
+        .blinking-red-animation {
+            animation: blinking-red 1.5s infinite;
+        }
         @keyframes blinking-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .blinking-dot-animation { animation: blinking-dot 1.5s infinite; }
         @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
@@ -130,10 +137,10 @@
             <aside class="md:col-span-3">
                 <div class="sticky top-6 space-y-4">
                     <nav id="main-nav" class="bg-slate-800 rounded-xl p-3 space-y-2">
-                        <button data-target="kompas" class="nav-item active-nav w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🧭</span><div><p class="font-semibold">Dasbor Analisa</p><p class="text-xs opacity-70">Co-Pilot & Analis Pro</p></div></button>
-                        <button data-target="konfluensi" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🤝</span><div><p class="font-semibold">Dasbor Konfluensi</p><p class="text-xs opacity-70">Analisa VPVR & MA</p></div></button>
+                        <button data-target="kompas" class="nav-item active-nav w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🧭</span><div><p class="font-semibold">Analysis Dashboard</p><p class="text-xs opacity-70">Matic - Analis Pro - Mixer</p></div></button>
+                        <button data-target="konfluensi" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🤝</span><div><p class="font-semibold">Confluence Dashboard</p><p class="text-xs opacity-70">Analisa VPVR & MA</p></div></button>
                         <!-- [MODIFIED] Tombol Chart Live dihapus -->
-                        <button data-target="eksekusi" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🔬</span><div><p class="font-semibold">Eksekusi & ZZL</p><p class="text-xs opacity-70">Kalkulator & Monitor</p></div></button>
+                        <button data-target="eksekusi" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🔬</span><div><p class="font-semibold">HITUNG P/L</p><p class="text-xs opacity-70">Kalkulator & Simulasi</p></div></button>
                         <button data-target="report" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">📄</span><div><p class="font-semibold">Passive Backtest</p><p class="text-xs opacity-70">Scan & Buat Laporan</p></div></button>
                         <button data-target="playbook" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">📖</span><div><p class="font-semibold">Playbook v.X</p><p class="text-xs opacity-70">Aturan & Bantuan</p></div></button>
                     </nav>
@@ -260,6 +267,24 @@
                     </div>
 
                     <div id="mixer-dashboard" class="space-y-6 hidden">
+                        <div id="mixer-analysis-cockpit" class="grid grid-cols-1 sm:grid-cols-2 gap-4 hidden">
+                            <div id="mixer-panel-1" class="pro-panel border-l-sky-400">
+                                <p id="mixer-panel-1-title" class="pro-panel-title">SILINDER 1: ARAH TREN</p>
+                                <p id="mixer-panel-1-value" class="text-slate-500">-</p>
+                            </div>
+                            <div id="mixer-panel-2" class="pro-panel border-l-amber-400">
+                                <p id="mixer-panel-2-title" class="pro-panel-title">SILINDER 2: SETUP</p>
+                                <p id="mixer-panel-2-value" class="text-slate-500">-</p>
+                            </div>
+                            <div id="mixer-panel-3" class="pro-panel border-l-emerald-400">
+                                <p id="mixer-panel-3-title" class="pro-panel-title">KONFIRMASI AMAN (CCA)</p>
+                                <div id="mixer-panel-3-value" class="text-slate-500 italic text-sm">Menunggu analisa...</div>
+                            </div>
+                            <div id="mixer-panel-4" class="pro-panel border-l-purple-400">
+                                <p id="mixer-panel-4-title" class="pro-panel-title">KONFIRMASI KLASIK (BBMA)</p>
+                                <p id="mixer-panel-4-value" class="text-slate-500">-</p>
+                            </div>
+                        </div>
                         <div id="mixer-stage-1" class="mixer-stage border-l-sky-400 hidden">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="mixer-stage-title !mb-0">TAHAP 1: SINKRONISASI PASAR (3-TF)</h3>
@@ -545,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '1h-5m': { kompas: '1h', eksekusi: '5m', label: '1H-5M Scalp & Day', htf: '4h' },
         '1h-15m': { kompas: '1h', eksekusi: '15m', label: '1H-15M Day', htf: '4h' },
         '4h-15m': { kompas: '4h', eksekusi: '15m', label: '4H-15M Save Day', htf: '1d' },
-        '4h-1h': { kompas: '4h', eksekusi: '1h', label: '4H-1H Save Day', htf: 'd' },
+        '4h-1h': { kompas: '4h', eksekusi: '1h', label: '4H-1H Save Day', htf: '1d' },
         '1d-4h': { kompas: '1d', eksekusi: '4h', label: '1D-4H Swing', htf: '1w' }
         
     };
@@ -657,7 +682,18 @@ document.addEventListener('DOMContentLoaded', function () {
         verdictContainer: document.getElementById('mixer-verdict-container'),
         verdictText: document.getElementById('mixer-verdict-text'),
         verdictReason: document.getElementById('mixer-verdict-reason'),
-        lanjutBtn: document.getElementById('mixer-lanjut-eksekusi-btn')
+        lanjutBtn: document.getElementById('mixer-lanjut-eksekusi-btn'),
+        cockpit: document.getElementById('mixer-analysis-cockpit'),
+        panel1_title: document.getElementById('mixer-panel-1-title'),
+        panel1_value: document.getElementById('mixer-panel-1-value'),
+        panel2_title: document.getElementById('mixer-panel-2-title'),
+        panel2_value: document.getElementById('mixer-panel-2-value'),
+        panel3_title: document.getElementById('mixer-panel-3-title'),
+        panel3_value: document.getElementById('mixer-panel-3-value'),
+        panel4_title: document.getElementById('mixer-panel-4-title'),
+        panel4_value: document.getElementById('mixer-panel-4-value'),
+        trendDirection: document.getElementById('mixer-trend-direction') // Pastikan ini juga ada di sini
+
     });
 
     // --- INDICATOR CALCULATION HELPERS ---
@@ -852,9 +888,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const tf1Ema50 = calculateEMA(tf1Closes, 50).pop();
         const trendResult = {
             isUptrend: tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50,
-            text: (tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50) ? 'NAIK' : 'TURUN'
+            text: (tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50) ? 'NAIK' : 'TURUN',
+            colorClass: (tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50) ? 'text-emerald-400' : 'text-rose-400'
         };
         const setupResult = calculateBaseSetup(tf2Klines);
+        const confirmationBBMA = calculateBaseSetup(tf3Klines);
         const confirmationCCA = runCCA(tf3Klines.slice(-5), trendResult.isUptrend);
 
         const arfResult = calculateARF(tf1Klines, setupResult.setupType);
@@ -880,32 +918,32 @@ document.addEventListener('DOMContentLoaded', function () {
             isAligned = false;
             alasanKonflik.push(`Tidak ada candle konfirmasi yang valid di ${tfConfig.tf3}. Status CCA: ${confirmationCCA.status}.`);
         }
-
         if (isAligned) {
             ui.mixer.stage1Result.innerHTML = `<p class="text-2xl font-bold text-emerald-400">✅ SINKRONISASI BERHASIL</p><p class="text-slate-400">Arah tren, setup, dan konfirmasi selaras. Melanjutkan ke Tahap 2...</p>`;
-            const analysisData = {
-                tf1Klines: tf1Klines,
-                tf2Klines: tf2Klines,
-                setupResult: setupResult,
-                isUptrend: trendResult.isUptrend,
-                confirmationPrice: parseFloat(tf3Klines[tf3Klines.length - 1][4])
-            };
-            await runMixerAnalysis_Part2(analysisData, cappedTOS, level, colorClass);
         } else {
             ui.mixer.stage1Result.innerHTML = `
                 <p class="text-2xl font-bold text-rose-400">⚠️ KONFLIK TERDETEKSI</p>
-                <p class="text-slate-400 mt-2 mb-3">Analisa dihentikan karena komponen tidak selaras. Disarankan untuk TAHAN DIRI dan menunggu sinyal yang lebih aman.</p>
+                <p class="text-slate-400 mt-2 mb-3">Analisa dihentikan di Tahap 1 karena komponen tidak selaras.</p>
                 <ul class="text-sm text-left text-rose-300/80 bg-rose-900/30 p-3 rounded-lg space-y-1">
                     ${alasanKonflik.map(alasan => `<li>- ${alasan}</li>`).join('')}
-                </ul>
-                <div class="mt-4 pt-4 border-t border-slate-700">
-                    <p class="text-sm font-semibold text-slate-400">Skor Peluang (TOS) Aktual:</p>
-                    <p class="text-5xl font-black ${colorClass}">${cappedTOS}</p>
-                    <p class="text-lg font-bold mt-1 ${colorClass}">${level}</p>
-                </div>`;
-            ui.spinner.classList.add('hidden');
-            ui.runAnalysisBtn.disabled = false;
+                </ul>`;
         }
+        const analysisData = {
+            tf1Klines: tf1Klines, // Tetap ada
+            tf2Klines: tf2Klines, // Tetap ada
+            setupResult: setupResult, // Tetap ada
+            isUptrend: trendResult.isUptrend, // Tetap ada
+            confirmationPrice: parseFloat(tf3Klines[tf3Klines.length - 1][4]), // Tetap ada
+            isAligned: isAligned, // Tetap ada
+            alasanKonflik: alasanKonflik, // Tetap ada
+            // [BARU DITAMBAHKAN] Detail hasil analisis individual
+            trendResult: trendResult,
+            mixerSetupResult: setupResult, // Diubah nama agar tidak konflik dengan parameter setupResult
+            confirmationCCA: confirmationCCA,
+            confirmationBBMA: confirmationBBMA
+        };
+        await runMixerAnalysis_Part2(analysisData, cappedTOS, level, colorClass);
+        
     } catch (error) {
         console.error("Error di Mixer Analysis Tahap 1:", error);
         ui.mixer.stage1Result.innerHTML = `<p class="text-rose-400">Gagal menjalankan analisa Tahap 1: ${error.message}</p>`;
@@ -915,9 +953,9 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
     async function runMixerAnalysis_Part2(analysisData, cappedTOS, level, colorClass) {
-        showNotification('Tahap 1 Lolos! Memulai Tahap 2: Skoring Peluang (TOS).');
-        ui.mixer.stage2.classList.remove('hidden');
-        ui.mixer.stage2Result.innerHTML = `<div class="spinner mx-auto"></div><p class="mt-2 text-slate-400">Menampilkan kualitas setup dengan TOS...</p>`;
+    // Dapatkan isAligned dan alasanKonflik dari analysisData
+    const isAligned = analysisData.isAligned;
+    const alasanKonflik = analysisData.alasanKonflik;
         
         try {
             ui.mixer.stage2Result.innerHTML = `
@@ -925,31 +963,77 @@ document.addEventListener('DOMContentLoaded', function () {
                 <p class="text-7xl font-black ${colorClass}">${cappedTOS}</p>
                 <p class="text-xl font-bold mt-1 ${colorClass}">${level}</p>`;
 
-            let verdictText = "TAHAN DIRI.";
-            let reasonText = "Meskipun selaras, skor peluang (TOS) tidak cukup tinggi untuk eksekusi risiko rendah.";
-            let showExecuteButton = false;
+            // [BARU] Tampilkan detail silinder Mixer
+            ui.mixer.cockpit.classList.remove('hidden'); // Tampilkan kokpit panel
 
-            if (level === "SUPER JITU") {
+            // Silinder 1: Arah Tren (TF1)
+            ui.mixer.panel1_title.textContent = `SILINDER 1: ARAH TREN (${MIXER_TF_CONFIG[currentState.timeframeKey].tf1.toUpperCase()})`;
+            ui.mixer.panel1_value.textContent = analysisData.trendResult.text;
+            ui.mixer.panel1_value.className = `pro-panel-value ${analysisData.trendResult.colorClass}`;
+
+            // Silinder 2: Setup (TF2)
+            ui.mixer.panel2_title.textContent = `SILINDER 2: SETUP (${MIXER_TF_CONFIG[currentState.timeframeKey].tf2.toUpperCase()})`;
+            const mixerSetupText = `${analysisData.mixerSetupResult.setupType} ${analysisData.mixerSetupResult.isUptrend ? 'BUY' : 'SELL'}`;
+            ui.mixer.panel2_value.textContent = mixerSetupText;
+            ui.mixer.panel2_value.className = `pro-panel-value ${analysisData.mixerSetupResult.isUptrend ? 'text-sky-400' : 'text-rose-400'}`; // Perbaiki warna berdasarkan isUptrend
+
+            // Silinder 3: Konfirmasi Aman (CCA) (TF3)
+            ui.mixer.panel3_title.textContent = `KONFIRMASI AMAN (CCA) (${MIXER_TF_CONFIG[currentState.timeframeKey].tf3.toUpperCase()})`;
+            displayCCAResult(analysisData.confirmationCCA, ui.mixer.panel3_value);
+
+            // Silinder 4: Konfirmasi Klasik (BBMA) (TF3)
+            ui.mixer.panel4_title.textContent = `KONFIRMASI KLASIK (BBMA) (${MIXER_TF_CONFIG[currentState.timeframeKey].tf3.toUpperCase()})`;
+            ui.mixer.panel4_value.textContent = analysisData.confirmationBBMA.setupType;
+            ui.mixer.panel4_value.className = `pro-panel-value ${analysisData.confirmationBBMA.isUptrend ? 'text-emerald-400' : 'text-rose-400'}`; // Perbaiki warna berdasarkan isUptrend
+                
+            let verdictText = "";
+            let reasonText = "";
+            let showExecuteButton = false;
+            let verdictClass = ""; // [BARU] untuk warna dan kedip
+
+            if (!isAligned) { // [BARU] Kondisi jika Tahap 1 tidak selaras
+                verdictText = "JANGAN EKSEKUSI!";
+                reasonText = "Konflik di Tahap 1: " + alasanKonflik.join('; ') + ". Disarankan untuk TAHAN DIRI.";
+                verdictClass = "text-rose-400 blinking-red-animation"; // Merah kedip
+                showExecuteButton = false;
+            } else if (level === "SUPER JITU") {
                 verdictText = "EKSEKUSI SEGERA (KEYAKINAN TERTINGGI)";
                 reasonText = "Pasar terkonfirmasi selaras di 3-TF dan memiliki Skor Peluang (TOS) Super Jitu.";
+                verdictClass = "text-emerald-400"; // Hijau
                 showExecuteButton = true;
             } else if (level === "TINGGI") {
                 verdictText = "REKOMENDASI EKSEKUSI";
                 reasonText = "Pasar selaras dan memiliki Skor Peluang (TOS) Tinggi. Kelola risiko dengan baik.";
+                verdictClass = "text-sky-400"; // Biru
                 showExecuteButton = true;
             } else if (level === "MENENGAH") {
                 verdictText = "PERTIMBANGKAN (RISIKO SEDANG)";
                 reasonText = "Pasar selaras namun Skor Peluang (TOS) hanya Menengah. Kurangi ukuran posisi jika ingin masuk.";
+                verdictClass = "text-amber-400"; // Kuning
                 showExecuteButton = true;
+            } else { // Ini akan menangani TOS RENDAH dan SANGAT RENDAH meskipun isAligned true
+                verdictText = "TAHAN DIRI.";
+                reasonText = "Meskipun selaras, skor peluang (TOS) tidak cukup tinggi untuk eksekusi risiko rendah.";
+                verdictClass = "text-slate-500"; // Abu-abu
+                showExecuteButton = false;
             }
             
             ui.mixer.verdictContainer.classList.remove('hidden');
             ui.mixer.verdictText.textContent = verdictText;
+            ui.mixer.verdictText.className = `text-lg font-semibold text-white ${verdictClass}`; // Terapkan kelas CSS
             ui.mixer.verdictReason.textContent = reasonText;
-
+            
+            // [BARU] Sesuaikan teks dan warna tombol berdasarkan putusan
             if (showExecuteButton) {
-                ui.mixer.lanjutBtn.classList.remove('hidden');
+                ui.mixer.lanjutBtn.className = 'btn-action w-full md:w-auto mx-auto mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2';
+                ui.mixer.lanjutBtn.innerHTML = 'Lanjutkan ke Rencana Eksekusi <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"/></svg>';
+            } else {
+                ui.mixer.lanjutBtn.className = 'btn-action w-full md:w-auto mx-auto mt-4 bg-slate-600 hover:bg-slate-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2'; // Warna abu-abu
+                ui.mixer.lanjutBtn.innerHTML = 'eksekusi (JANGAN NEKAT)';
             }
+
+            ui.mixer.lanjutBtn.classList.remove('hidden'); // Selalu tampilkan tombol
+            
             currentState.latestMixerAnalysis = { ...analysisData, tos: cappedTOS, level: level };
 
         } catch (error) {
@@ -1430,6 +1514,11 @@ document.addEventListener('DOMContentLoaded', function () {
         ui.mixer.stage1.classList.add('hidden');
         ui.mixer.stage2.classList.add('hidden');
         ui.mixer.verdictContainer.classList.add('hidden');
+        ui.mixer.cockpit.classList.add('hidden'); // Sembunyikan panel detail Mixer
+        if(ui.mixer.panel1_value) ui.mixer.panel1_value.textContent = '-';
+        if(ui.mixer.panel2_value) ui.mixer.panel2_value.textContent = '-';
+        if(ui.mixer.panel3_value) ui.mixer.panel3_value.innerHTML = 'Menunggu analisa...'; // CCA panel uses innerHTML
+        if(ui.mixer.panel4_value) ui.mixer.panel4_value.textContent = '-';
         ui.mixer.lanjutBtn.classList.add('hidden');
         currentState.latestMixerAnalysis = null;
     }
