@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Co-pilot CHART "AI" v5.9</title>
+    <title>Co-pilot CHART "AI" v6.0 (Enhanced)</title>
     
-    <!-- Memuat Tailwind CSS untuk styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Memuat html2canvas untuk fitur ekspor ke gambar -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
-    <!-- Memuat Google Fonts (Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -105,6 +102,19 @@
             animation: pulse-bg 2s ease-in-out infinite; 
             border-radius: 0.375rem; 
         }
+        /* [IMPROVEMENT] Style untuk tombol 'Gunakan Data' di proyeksi */
+        .use-projection-btn {
+            background-color: #1e40af;
+            color: white;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+        .use-projection-btn:hover {
+            background-color: #1d4ed8;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -118,7 +128,7 @@
         </a>
     </div>
 
-    <h1 class="text-2xl font-bold text-white">Co-pilot CHART<span class="text-blue-400">"AI"</span> v5.9</h1>
+    <h1 class="text-2xl font-bold text-white">🛞<span class="text-blue-400">"AI"</span> enhanced</h1>
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
@@ -129,7 +139,6 @@
 </header>
 <div class="flex-grow flex flex-col md:flex-row p-4 gap-4">
 
-            <!-- Panel Kontrol (Kiri) -->
             <aside class="w-full md:w-1/3 lg:w-1/4 flex flex-col gap-4">
                  <div class="bg-gray-800 rounded-lg p-4 flex flex-col gap-4 shadow-md flex-grow">
                     <div>
@@ -138,7 +147,6 @@
                             <span class="font-bold">Mode Standar:</span> Cukup isi LTF. <br/>
                             <span class="font-bold">Mode MTF Presisi:</span> Isi HTF & LTF.
                         </p>
-                        <!-- Upload Chart HTF -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-300 mb-1">1. Chart HTF (Tren Besar) <span class="text-gray-500 text-xs italic">- Opsional</span></label>
                             <div id="htf-drop-zone" class="chart-preview-container">
@@ -148,7 +156,6 @@
                             <input type="file" id="htf-chart-upload" class="hidden" accept="image/*">
                             <label for="htf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar HTF</label>
                         </div>
-                        <!-- Upload Chart LTF -->
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-1">2. Chart LTF (Entry) <span class="text-green-400 text-xs italic">- Wajib</span></label>
                             <div id="ltf-drop-zone" class="chart-preview-container">
@@ -164,40 +171,30 @@
                  </div>
             </aside>
 
-            <!-- Panel Utama (Kanan) -->
             <main class="w-full md:w-2/3 lg:w-3/4 bg-gray-800 rounded-lg p-2 sm:p-4 shadow-md flex flex-col relative">
-                <!-- Indikator Loading -->
                 <div id="loader" class="hidden absolute inset-0 bg-gray-900/80 flex items-center justify-center flex-col gap-2 z-50 rounded-lg">
                     <div class="loader"></div>
                     <p id="loader-text" class="text-white font-semibold"></p>
                 </div>
                 <div>
-                     <!-- Input API Key -->
                      <div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg mb-4">
                         <h3 class="font-bold text-yellow-300">Setup Kunci AI (Wajib)</h3>
                         <input type="password" id="api-key-input" class="kalkulator-input mt-2" placeholder="Tempel API Key Google AI Studio di sini...">
-                        <p class="text-xs text-gray-400 mt-1">Kunci akan disimpan di browser Anda. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-300 font-bold">Dapatkan Kunci di sini (Gratis)</a>.</p>
+                        <p class="text-xs text-gray-400 mt-1">Kunci akan disimpan di sesi browser Anda (terhapus saat tab ditutup). <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-300 font-bold">Dapatkan Kunci di sini (Gratis)</a>.</p>
                     </div>
-                    <!-- Navigasi Tab -->
                     <div class="flex flex-wrap border-b border-gray-700">
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">Rangkuman Analisa</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">Kalkulator Cerdas</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="sentimen">✨ Sentimen Pasar</button>
-                        <!-- Tombol Tab Baru untuk Proyeksi Harga -->
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="proyeksi">📈 Proyeksi Harga</button>
-                        <!-- Tombol Tab Baru untuk Backtesting -->
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="backtest">⚙️ Backtesting Strategi</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">ANALYSIS</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">CALC</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="proyeksi">📈 Proyeksi</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="backtest">⚙️ Backtesting</button>
                     </div>
                 </div>
 
-                <!-- Konten Tab -->
                 <div id="tab-content" class="flex-grow mt-4 overflow-y-auto">
-                    <!-- Tab: Analisa -->
                     <div id="analisa" class="tab-pane">
                         <div id="analysis-placeholder" class="text-center text-gray-500 p-8"><p>Unggah gambar chart untuk melihat hasil analisa AI di sini.</p></div>
                         <div id="analysis-wrapper" class="hidden">
                             <div id="analysis-content">
-                                 <!-- Hasil Ekstraksi Data -->
                                  <div class="mb-4 bg-gray-900 p-4 rounded-lg border-l-4 border-blue-400">
                                      <h4 class="font-bold text-lg text-white mb-2">Hasil Detektif Data (LTF)</h4>
                                      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm items-center">
@@ -213,8 +210,7 @@
                                         <span id="data-indicators" class="font-bold text-xs text-blue-300"></span>
                                      </div>
                                  </div>
-                                 <!-- Tabel Hasil Analisa -->
-<div class="bg-gray-900 rounded-lg overflow-hidden hidden md:block">
+                                 <div class="bg-gray-900 rounded-lg overflow-hidden hidden md:block">
     <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-bold text-gray-400 bg-gray-800">Parameter</div><div class="analysis-table-cell font-bold text-green-400 bg-gray-800">Setup LONG</div><div class="analysis-table-cell font-bold text-red-400 bg-gray-800">Setup SHORT</div></div>
     <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Kondisi Pasar</div><div class="analysis-table-cell" id="long-kondisi">-</div><div class="analysis-table-cell" id="short-kondisi">-</div></div>
     <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Strategi "Aman"</div><div class="analysis-table-cell" id="long-strategi">-</div><div class="analysis-table-cell" id="short-strategi">-</div></div>
@@ -260,10 +256,8 @@
         </div>
      </div>
  </div>
-                                 <!-- Rekomendasi Utama -->
                                  <div class="mt-4 bg-blue-900/50 border-l-4 border-blue-400 p-4 rounded-r-lg"><h4 class="font-bold text-lg text-white mb-2">Rekomendasi Utama:</h4><p id="rekomendasi-text" class="text-blue-200">-</p></div>
                                  
-                                 <!-- Saran Peningkatan -->
                                  <div id="saran-container" class="mt-4 hidden">
                                      <div class="bg-purple-900/50 border-l-4 border-purple-400 p-4 rounded-r-lg">
                                          <h4 class="font-bold text-lg text-purple-300 mb-2">✨ Saran Peningkatan Analisa AI</h4>
@@ -271,7 +265,6 @@
                                      </div>
                                  </div>
                             </div>
-                             <!-- Fitur Optimasi -->
                              <div id="optimization-container" class="mt-4 hidden">
                                  <button id="optimize-plan-btn" class="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition">✨ Minta Tinjauan & Optimasi Rencana</button>
                                  <div id="optimization-output" class="mt-4 bg-gray-900 p-4 rounded-lg hidden"></div>
@@ -279,10 +272,8 @@
                              <button id="export-btn" class="mt-4 w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition">Ekspor Laporan (Gambar)</button>
                         </div>
                     </div>
-                    <!-- Tab: Kalkulator -->
                     <div id="kalkulator" class="tab-pane hidden">
                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Input Kalkulator -->
                             <div class="bg-gray-900 p-4 rounded-lg space-y-4">
                                 <div class="grid grid-cols-2 gap-4">
                                     <div><label class="font-semibold text-gray-300">Total Modal ($)</label><input type="number" id="calc-modal" class="kalkulator-input mt-1" value="250"></div>
@@ -311,7 +302,6 @@
                                 </div>
                                 <button id="hitung-rencana-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition">HITUNG RENCANA</button>
                             </div>
-                            <!-- Hasil Kalkulator -->
                             <div class="bg-gray-900 p-4 rounded-lg">
                                 <h3 class="font-bold text-xl mb-4 text-white border-b border-gray-700 pb-2">Rencana Trading</h3>
                                 <div id="kalkulator-hasil" class="space-y-3 hidden">
@@ -331,28 +321,22 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Tab: Sentimen Pasar -->
-                    <div id="sentimen" class="tab-pane hidden">
-                        <h3 class="text-xl font-bold text-white mb-4">Analisa Sentimen Pasar</h3>
-                        <div class="bg-gray-900 p-4 rounded-lg">
-                            <p class="text-gray-300 mb-4">Dapatkan gambaran sentimen pasar terkini untuk sebuah aset berdasarkan berita dan diskusi online. Masukkan nama atau simbol aset (misal: Bitcoin, BTC, Ethereum).</p>
-                            <div class="flex flex-col sm:flex-row gap-4">
-                                <input type="text" id="sentiment-asset-input" class="kalkulator-input flex-grow" placeholder="Contoh: Bitcoin">
-                                <button id="generate-sentiment-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">✨ Analisa Sentimen</button>
-                            </div>
-                            <div id="sentiment-output" class="mt-6">
-                                </div>
-                        </div>
-                    </div>
-
-                    <!-- Tab: Proyeksi Harga (BARU) -->
+                    
                     <div id="proyeksi" class="tab-pane hidden">
                         <h3 class="text-xl font-bold text-white mb-4">Analisa Proyeksi Harga Kripto</h3>
                         <div class="bg-gray-900 p-4 rounded-lg">
                             <p class="text-gray-300 mb-4">Dapatkan proyeksi harga untuk aset kripto berdasarkan analisis AI komprehensif. AI akan berusaha mencari data *real-time*.</p>
                             <div class="flex flex-col sm:flex-row gap-4">
-                                <input type="text" id="proyeksi-asset-input" class="kalkulator-input flex-grow" placeholder="Contoh: BTCUSDT, ETHUSDT">
-                                <button id="generate-proyeksi-btn" class="w-full sm:w-auto bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 transition">📊 Analisa Proyeksi</button>
+                                <input type="text" id="proyeksi-asset-input" list="asset-list" class="kalkulator-input flex-grow" placeholder="Ketik atau pilih aset: BTCUSDT, ETHUSDT...">
+                                <datalist id="asset-list">
+                                    <option value="BTCUSDT">
+                                    <option value="ETHUSDT">
+                                    <option value="SOLUSDT">
+                                    <option value="BNBUSDT">
+                                    <option value="XRPUSDT">
+                                    <option value="1000PEPEUSDT">
+                                </datalist>
+                                <button id="generate-proyeksi-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition">📊 GO 🏁</button>
                             </div>
                             <div id="proyeksi-output" class="mt-6">
                                 <div id="proyeksi-placeholder" class="text-center text-gray-500 p-8"><p>Masukkan simbol aset dan klik "Analisa Proyeksi" untuk melihat hasil.</p></div>
@@ -364,12 +348,10 @@
                         </div>
                     </div>
 
-                    <!-- Tab: Backtesting Strategi (BARU) -->
                     <div id="backtest" class="tab-pane hidden">
                         <h3 class="text-xl font-bold text-white mb-4">⚙️ Backtesting Strategi</h3>
                         <div class="bg-gray-900 p-4 rounded-lg">
                             <p class="text-gray-300 mb-4">Unggah gambar chart historis Anda dan deskripsikan strategi trading yang ingin Anda backtest. AI akan mensimulasikan hasilnya.</p>
-                            <!-- Upload Chart Historis untuk Backtest -->
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Gambar Chart Historis <span class="text-green-400 text-xs italic">- Wajib</span></label>
                                 <div id="backtest-drop-zone" class="chart-preview-container">
@@ -379,12 +361,11 @@
                                 <input type="file" id="backtest-chart-upload" class="hidden" accept="image/*">
                                 <label for="backtest-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar Chart Historis</label>
                             </div>
-                            <!-- Deskripsi Strategi -->
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">Deskripsi Strategi Trading <span class="text-green-400 text-xs italic">- Wajib</span></label>
                                 <textarea id="backtest-strategy-input" rows="5" class="kalkulator-input mt-1" placeholder="Contoh: Entry LONG jika harga menyentuh support kuat dan RSI di bawah 30. SL 1% di bawah support. TP di resistance terdekat."></textarea>
                             </div>
-                            <button id="run-backtest-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-500 disabled:cursor-not-allowed text-lg">JALANKAN BACKTEST</button>
+                            <button id="run-backtest-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-500 disabled:cursor-not-allowed text-lg">BACKTEST ▶️</button>
                             <div id="backtest-output" class="mt-6">
                                 <div id="backtest-placeholder" class="text-center text-gray-500 p-8"><p>Unggah gambar dan deskripsikan strategi untuk melihat hasil backtest AI di sini.</p></div>
                             </div>
@@ -397,6 +378,47 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+
+    const calculateSMA = (data, period) => {
+    if (!data || data.length < period) return [];
+    const sma = [];
+    for (let i = period - 1; i < data.length; i++) {
+        const slice = data.slice(i - period + 1, i + 1);
+        const sum = slice.reduce((a, b) => a + b, 0);
+        sma.push(sum / period);
+    }
+    return sma;
+};
+
+const calculateRSI = (closes, period = 14) => {
+    if (!closes || closes.length <= period) return 'N/A';
+    
+    let gains = [];
+    let losses = [];
+    for (let i = 1; i < closes.length; i++) {
+        const diff = closes[i] - closes[i-1];
+        if (diff >= 0) {
+            gains.push(diff);
+            losses.push(0);
+        } else {
+            gains.push(0);
+            losses.push(Math.abs(diff));
+        }
+    }
+
+    let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+    let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+
+    for (let i = period; i < gains.length; i++) {
+        avgGain = (avgGain * (period - 1) + gains[i]) / period;
+        avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+    }
+
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return (100 - (100 / (1 + rs))).toFixed(2);
+};
+
     // --- STATE APLIKASI ---
     let htfImageBase64 = null;
     let ltfImageBase64 = null;
@@ -405,8 +427,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let binanceWebSocket = null; // Untuk menyimpan instance WebSocket
     let currentLivePrice = null; // Untuk menyimpan harga live terkini
     let lastFetchedSymbol = null; // Untuk melacak simbol yang sedang di-fetch
-    let backtestImageBase64 = null; // BARU: Untuk gambar backtest
-    let orderBookData = {};
+    let backtestImageBase64 = null;
+    // [IMPROVEMENT] State untuk auto-reconnect WebSocket
+    let reconnectAttempts = 0;
     
     // --- SELEKSI ELEMEN DOM ---
     const apiKeyInput = document.getElementById('api-key-input');
@@ -467,21 +490,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const outTp3Profit = document.getElementById('out-tp3-profit');
 
     // Elemen Fitur Baru
-    const generateSentimentBtn = document.getElementById('generate-sentiment-btn');
-    const sentimentAssetInput = document.getElementById('sentiment-asset-input');
-    const sentimentOutput = document.getElementById('sentiment-output');
     const optimizationContainer = document.getElementById('optimization-container');
     const optimizePlanBtn = document.getElementById('optimize-plan-btn');
     const optimizationOutput = document.getElementById('optimization-output');
 
-    // Elemen Proyeksi Harga (BARU)
+    // Elemen Proyeksi Harga
     const proyeksiAssetInput = document.getElementById('proyeksi-asset-input');
     const generateProyeksiBtn = document.getElementById('generate-proyeksi-btn');
     const proyeksiOutput = document.getElementById('proyeksi-output');
     const proyeksiPlaceholder = document.getElementById('proyeksi-placeholder');
     const proyeksiLivePriceOutput = document.getElementById('proyeksi-live-price-output'); 
 
-    // Elemen Backtesting Strategi (BARU)
+    // Elemen Backtesting Strategi
     const backtestUploadInput = document.getElementById('backtest-chart-upload');
     const backtestChartPreview = document.getElementById('backtest-chart-preview');
     const backtestChartPlaceholder = document.getElementById('backtest-chart-placeholder');
@@ -500,7 +520,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const hideLoader = () => loader.classList.add('hidden');
     const parsePrice = (priceString) => {
         if (!priceString || typeof priceString !== 'string') return NaN;
-        // Mengganti koma dengan titik jika ada, lalu mem-parse float
         const match = priceString.replace(/,/g, '.').match(/[\d.]+/); 
         return match ? parseFloat(match[0]) : NaN;
     };
@@ -521,12 +540,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkEnableAnalyzeButton = () => {
         analyzeBtn.disabled = !(apiKeyInput.value.trim() && ltfImageBase64);
     };
-    const checkEnableBacktestButton = () => { // BARU: Untuk tombol backtest
+    const checkEnableBacktestButton = () => {
         runBacktestBtn.disabled = !(apiKeyInput.value.trim() && backtestImageBase64 && backtestStrategyInput.value.trim());
     };
 
     // --- LOGIKA UPLOAD & DRAG/DROP ---
-    function handleFile(file, imgEl, placeholderEl, stateSetter, enableCheckFunc) { // Tambah enableCheckFunc
+    function handleFile(file, imgEl, placeholderEl, stateSetter, enableCheckFunc) {
         if (!file || !file.type.startsWith('image/')) {
             showCustomMessage('Harap unggah file gambar saja (PNG, JPG, dll).', 'error');
             return;
@@ -537,12 +556,12 @@ document.addEventListener('DOMContentLoaded', () => {
             imgEl.src = e.target.result;
             imgEl.classList.remove('hidden');
             placeholderEl.classList.add('hidden');
-            enableCheckFunc(); // Panggil fungsi check enable button
+            enableCheckFunc();
         };
         reader.readAsDataURL(file);
     }
 
-    function setupDropZone(dropZoneEl, inputEl, imgEl, placeholderEl, stateSetter, enableCheckFunc) { // Tambah enableCheckFunc
+    function setupDropZone(dropZoneEl, inputEl, imgEl, placeholderEl, stateSetter, enableCheckFunc) {
         dropZoneEl.addEventListener('click', () => inputEl.click());
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZoneEl.addEventListener(eventName, (e) => {
@@ -589,8 +608,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function callGemini(parts, isJsonOutput = true) {
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) throw new Error("API Key belum dimasukkan.");
-        const model = 'gemini-2.5-flash-latest';
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const model = 'gemini-1.5-flash-latest'; // Menggunakan model flash terbaru
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const payload = { contents: [{ role: "user", parts }] };
         if (isJsonOutput) {
             payload.generationConfig = {
@@ -613,6 +632,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`Permintaan diblokir oleh AI: ${result.promptFeedback.blockReason}`);
             }
             throw new Error("Struktur respons dari AI tidak valid atau kosong.");
+        }
+    }
+    
+    // [IMPROVEMENT] Function to fetch additional market data from Binance
+    async function fetchBinanceAPIData(endpoint, params = {}) {
+        const query = new URLSearchParams(params).toString();
+        const url = `https://fapi.binance.com/fapi/v1/${endpoint}?${query}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.error(`Binance API Error ${response.status}: ${await response.text()}`);
+                return null;
+            }
+            return response.json();
+        } catch (error) {
+            console.error(`Kesalahan Jaringan saat fetch ke Binance: ${error.message}`);
+            return null;
         }
     }
 
@@ -667,10 +703,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateCalculatorInputSteps(pricePrecision);
             }
 
-            if (keyData.asset && keyData.asset !== 'N/A' && sentimentAssetInput) {
-                sentimentAssetInput.value = keyData.asset.split('.')[0];
-            }
-
             showLoader('Sabar Bro Sedang Mempertajam Analisa (2/2)...');
             
             let analysisParts = [];
@@ -683,7 +715,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 "saranPeningkatan": "string"
             }`;
 
-            // --- PEMBARUAN UTAMA: Prompt Analisa yang Super Ketat ---
             let basePrompt = `ANDA WAJIB MEMATUHI STRUKTUR JSON INI TANPA PENGECUALIAN. Seluruh output Anda HARUS berupa satu objek JSON valid tunggal. Jangan menambahkan teks atau field lain di luar skema.
             Anda adalah "Valhalla", analis profesional scalping dengan reputasi tinggi dalam presisi dan manajemen risiko ekstrem. Keahlian Anda berakar kuat pada teori teknikal yang telah terbukti seperti price action, struktur pasar, dan indikator konfirmatif. Pengguna sedang menganalisa ${assetInfo}. Tugas Anda adalah menyusun strategi scalping yang super aman, super jitu, dan berbasis logika teknikal yang tervalidasi.\n`;
             
@@ -736,7 +767,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Perubahan: Fungsi updateAnalysisUI dimodifikasi untuk mengisi data ke layout mobile juga
     function updateAnalysisUI(data) {
         if (!data || !data.longSetup || !data.shortSetup) {
             analysisPlaceholder.innerHTML = `<p class="text-red-400 p-4">Struktur data strategi dari AI tidak sesuai. Coba analisa ulang.</p>`;
@@ -757,16 +787,13 @@ document.addEventListener('DOMContentLoaded', () => {
             'alasan-sl': 'alasanStopLoss', 'alasan-tp': 'alasanTargetProfit'
         };
 
-        // Mengisi data untuk Desktop & Mobile
         Object.entries(fieldMap).forEach(([uiField, jsonKey]) => {
             const longValue = longSetup?.[jsonKey]?.replace(/\n/g, '<br />') || '-';
             const shortValue = shortSetup?.[jsonKey]?.replace(/\n/g, '<br />') || '-';
 
-            // Desktop
             document.getElementById(`long-${uiField}`).innerHTML = longValue;
             document.getElementById(`short-${uiField}`).innerHTML = shortValue;
             
-            // Mobile (jika elemen ada)
             const mobileLongEl = document.getElementById(`mobile-long-${uiField}`);
             if(mobileLongEl) mobileLongEl.innerHTML = longValue;
             
@@ -784,11 +811,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const longTpFormatted = formatTp(longSetup.targetProfit);
         const shortTpFormatted = formatTp(shortSetup.targetProfit);
 
-        // Desktop
         document.getElementById('long-tp').innerHTML = longTpFormatted;
         document.getElementById('short-tp').innerHTML = shortTpFormatted;
-
-        // Mobile
         document.getElementById('mobile-long-tp').innerHTML = longTpFormatted;
         document.getElementById('mobile-short-tp').innerHTML = shortTpFormatted;
 
@@ -933,142 +957,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function generateSentimentAnalysis() {
-        const asset = sentimentAssetInput.value.trim();
-        if (!asset) {
-            showCustomMessage("Harap masukkan nama aset.", "info");
-            return;
-        }
-
-        showLoader(`Menganalisa sentimen untuk ${asset}...`);
-        sentimentOutput.innerHTML = ''; // Kosongkan output sebelumnya
-
-        // Pastikan WebSocket terkoneksi. Jika belum atau simbol berbeda, inisialisasi.
-        if (lastFetchedSymbol !== asset.toLowerCase() || !binanceWebSocket || binanceWebSocket.readyState !== WebSocket.OPEN) {
-            showLoader(`Menghubungkan ke data live Binance untuk ${asset}...`);
-            initBinanceWebSocket(asset);
-        }
-
-        // --- BARU: LOGIKA MENUNGGU DATA ORDER BOOK ---
-        let attempts = 0;
-        const maxAttempts = 20; // Coba hingga 20 kali (20 * 500ms = 10 detik)
-        const checkInterval = 500; // Cek setiap 500ms
-
-        while (!orderBookData[asset.toLowerCase()] || orderBookData[asset.toLowerCase()].bids.length === 0 || orderBookData[asset.toLowerCase()].asks.length === 0) {
-            if (attempts >= maxAttempts) {
-                console.warn(`Gagal mendapatkan data order book untuk ${asset} setelah ${maxAttempts} percobaan.`);
-                break; // Keluar dari loop jika terlalu lama
-            }
-            showLoader(`Menunggu data order book untuk ${asset} (${attempts + 1}/${maxAttempts})...`);
-            await new Promise(resolve => setTimeout(resolve, checkInterval));
-            attempts++;
-        }
-        // --- AKHIR LOGIKA MENUNGGU DATA ORDER BOOK ---
-
-
-        // Ambil data order book yang sudah disimpan dari WebSocket
-        const currentOrderBook = orderBookData[asset.toLowerCase()];
-        let orderBookInfoForAI = ""; // String yang akan ditambahkan ke prompt AI
-
-        // Cek apakah currentOrderBook benar-benar terisi setelah menunggu
-        if (currentOrderBook && currentOrderBook.bids && currentOrderBook.asks && currentOrderBook.bids.length > 0 && currentOrderBook.asks.length > 0) {
-            orderBookInfoForAI = `
-            Berikut data Order Book (5 level teratas) langsung dari Binance Spot Market untuk ${asset} saat ini:
-            Bids (harga, kuantitas): ${JSON.stringify(currentOrderBook.bids)}
-            Asks (harga, kuantitas): ${JSON.stringify(currentOrderBook.asks)}
-
-            Gunakan data order book ini secara KRITIS untuk mengidentifikasi indikasi Smart Money Concept.
-            Fokus pada:
-            - **Order Blocks/Liquidity Pools**: Adakah konsentrasi bid/ask di level harga tertentu yang bisa menjadi order block atau liquidity?
-            - **Imbalance/Dominasi**: Apakah ada dominasi bid atau ask yang signifikan?
-            - **Potensi Pergeseran Struktur Pasar**: Bagaimana data order book saat ini mungkin mengindikasikan pergeseran tren atau kelanjutan?
-            `;
-        } else {
-            orderBookInfoForAI = "Data Order Book dari Binance Spot Market tidak tersedia atau masih dalam proses pengambilan setelah menunggu. Analisis SMC akan didasarkan pada informasi lain yang relevan yang Anda miliki.";
-        }
-
-
-        try {
-            const prompt = `Sebagai analis pasar keuangan yang sangat akurat dan terpercaya, Anda HANYA BOLEH menggunakan data yang DIBERIKAN atau informasi yang SECARA INTERNAL Anda miliki dan terverifikasi. JANGAN berhalusinasi atau mengarang informasi.
-
-            Lakukan analisa sentimen untuk aset "${asset}".
-            ${orderBookInfoForAI}
-
-            Selain data order book, jika Anda memiliki akses internal ke berita publik terbaru atau diskusi sosial yang relevan mengenai ${asset} dalam basis pengetahuan Anda, sertakan dalam poin-poin positif/negatif. Jika tidak ada, nyatakan 'Tidak ada data berita/sosial yang tersedia secara internal.'
-
-            **ATURAN OUTPUT DAN ANALISIS:**
-            - **Fokus utama adalah analisis Price Action Smart Money Concept (SMC)**. Lakukan analisis SMC mendalam menggunakan data order book Binance yang diberikan (jika ada).
-            - Identifikasi dan jelaskan secara detail potensi **order blocks**, **liquidity pools**, **imbalance**, dan **market structure shifts** berdasarkan analisis bid/ask.
-            - Bagaimana data order book ini mendukung atau menolak bias bullish/bearish terkini?
-            - Jika data order book tidak mencukupi untuk analisis SMC mendalam, nyatakan demikian di 'priceactionSMC' dan gunakan informasi sentimen lain yang relevan yang Anda miliki.
-            - Berikan output dalam format JSON yang valid dengan skema ini:
-            \`\`\`json
-            {
-              "sentiment": {"type": "string"},
-              "score": {"type": "number"},
-              "summary": {"type": "string"},
-              "positivePoints": {"type": "array", "items": {"type": "string"}},
-              "negativePoints": {"type": "array", "items": {"type": "string"}},
-              "priceactionSMC": {"type": "array", "items": {"type": "string"}}
-            }
-            \`\`\`
-            - 'sentiment' harus berupa "Bullish", "Bearish", atau "Neutral".
-            - 'score' harus antara -1 (sangat bearish) dan 1 (sangat bullish).
-            - 'summary' adalah ringkasan singkat dari sentimen keseluruhan.
-            - 'positivePoints' dan 'negativePoints' adalah daftar poin-poin kunci dari berita atau diskusi yang Anda miliki secara internal dan terverifikasi.
-            - 'priceactionSMC' adalah hasil analisis SMC berdasarkan data Binance (jika ada) dan interpretasi Anda tentang struktur pasar dan aliran order.
-            - Seluruh respons harus dalam Bahasa Indonesia.`;
-
-            const jsonText = await callGemini(
-                [{ text: prompt }],
-                true // Meminta output JSON
-            );
-            const data = cleanAndParseJson(jsonText);
-
-            const sentimentColor = data.sentiment === 'Bullish' ? 'text-green-400' : data.sentiment === 'Bearish' ? 'text-red-400' : 'text-yellow-400';
-            const sentimentEmoji = data.sentiment === 'Bullish' ? '🟢' : data.sentiment === 'Bearish' ? '🔴' : '🟡';
-
-            let smcHtml = '';
-            if (data.priceactionSMC && data.priceactionSMC.length > 0) {
-                smcHtml = `
-                    <div class="mt-4">
-                        <h5 class="font-semibold text-blue-400">Analisa Price Action (SMC) dari Binance Spot Market</h5>
-                        <ul class="list-disc list-inside text-sm mt-2 space-y-1">${data.priceactionSMC.map(p => `<li>${p}</li>`).join('')}</ul>
-                    </div>
-                `;
-            } else {
-                smcHtml = `
-                    <div class="mt-4">
-                        <h5 class="font-semibold text-gray-400">Analisa Price Action (SMC)</h5>
-                        <p class="text-sm text-gray-300">Tidak ada analisis SMC mendalam yang dapat dibuat dari data order book yang tersedia, atau data tidak mencukupi.</p>
-                    </div>
-                `;
-            }
-
-            sentimentOutput.innerHTML = `<div class="bg-gray-800 p-4 rounded-lg">
-                    <h4 class="font-bold text-lg ${sentimentColor}">${sentimentEmoji} Sentimen: ${data.sentiment} (${data.score.toFixed(2)})</h4>
-                    <p class="mt-2 text-sm text-gray-300">${data.summary}</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div>
-                            <h5 class="font-semibold text-green-400">Poin Positif</h5>
-                            <ul class="list-disc list-inside text-sm mt-2 space-y-1">${data.positivePoints.map(p => `<li>${p}</li>`).join('')}</ul>
-                        </div>
-                        <div>
-                            <h5 class="font-semibold text-red-400">Poin Negatif</h5>
-                            <ul class="list-disc list-inside text-sm mt-2 space-y-1">${data.negativePoints.map(p => `<li>${p}</li>`).join('')}</ul>
-                        </div>
-                    </div>
-                    ${smcHtml}
-                </div>
-            `;
-        } catch (error) {
-            console.error("Kesalahan Analisa Sentimen:", error);
-            sentimentOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa sentimen: ${error.message}</p>`;
-        } finally {
-            hideLoader();
-        }
-    }
-
     async function optimizeTradePlan() {
         if (!latestAnalysisData) { showCustomMessage("Lakukan analisa chart terlebih dahulu.", "error"); return; }
         showLoader("Meminta tinjauan dari manajer risiko AI...");
@@ -1099,121 +987,189 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Fungsi untuk Analisa Proyeksi Harga
+    // [IMPROVEMENT] Fungsi untuk Analisa Proyeksi Harga (DITINGKATKAN)
     async function startPriceProjection() {
-        const assetSymbol = proyeksiAssetInput.value.trim();
-        if (!assetSymbol) {
-            showCustomMessage("Harap masukkan simbol aset kripto (contoh: BTCUSDT).", "error");
-            return;
-        }
+    const assetSymbol = proyeksiAssetInput.value.trim().toUpperCase();
+    if (!assetSymbol) {
+        showCustomMessage("Harap masukkan simbol aset kripto (contoh: BTCUSDT).", "error");
+        return;
+    }
 
-        currentLivePrice = null; 
-        if (lastFetchedSymbol !== assetSymbol.toLowerCase() || !binanceWebSocket || binanceWebSocket.readyState !== WebSocket.OPEN) {
-            initBinanceWebSocket(assetSymbol);
-        }
+    currentLivePrice = null;
+    if (lastFetchedSymbol !== assetSymbol.toLowerCase() || !binanceWebSocket || binanceWebSocket.readyState !== WebSocket.OPEN) {
+        initBinanceWebSocket(assetSymbol);
+    }
 
-        showLoader(`Mencari data live dan menganalisa proyeksi harga untuk ${assetSymbol}...`);
-        proyeksiOutput.innerHTML = ''; 
-        proyeksiPlaceholder.classList.add('hidden');
+    showLoader(`Menghubungkan ke data live untuk ${assetSymbol}...`);
+    proyeksiOutput.innerHTML = '';
+    proyeksiPlaceholder.classList.add('hidden');
 
-        let attempts = 0;
-        const maxAttempts = 10; 
-        console.log('Memulai menunggu harga live. currentLivePrice awal:', currentLivePrice); 
-        while (currentLivePrice === null && attempts < maxAttempts) {
-            console.log(`Percobaan ${attempts + 1}/${maxAttempts} untuk mendapatkan harga live. currentLivePrice:`, currentLivePrice); 
-            await new Promise(resolve => setTimeout(resolve, 500));
-            attempts++;
-        }
-        console.log('Selesai menunggu harga live. currentLivePrice akhir:', currentLivePrice); 
+    let attempts = 0;
+    const maxAttempts = 20;
+    while (currentLivePrice === null && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
+    }
 
-        if (currentLivePrice === null) {
-            proyeksiOutput.innerHTML = `<div class="bg-red-900/50 border border-red-700 p-4 rounded-lg text-red-200">
-                <h4 class="font-bold text-lg mb-2">Analisis Tidak Dapat Dilanjutkan</h4>
-                <p>Maaf, tidak dapat mengambil data harga live untuk aset ${assetSymbol} dalam waktu yang ditentukan. Pastikan simbol benar dan koneksi internet Anda stabil.</p>
-                <p class="text-xs italic mt-2">Pasar kripto sangat volatil dan proyeksi tidak menjamin hasil di masa depan. Investor harus selalu melakukan riset mandiri dan mempertimbangkan risiko yang terkait.</p>
-            </div>`;
-            hideLoader();
-            return;
-        }
+    if (currentLivePrice === null) {
+        proyeksiOutput.innerHTML = `<div class="bg-red-900/50 border border-red-700 p-4 rounded-lg text-red-200"><h4 class="font-bold text-lg mb-2">Analisis Gagal</h4><p>Gagal mengambil data harga live untuk ${assetSymbol}. Pastikan simbol benar dan koneksi internet stabil.</p></div>`;
+        hideLoader();
+        return;
+    }
+    
+    // ================================================================
+    // BLOK KODE BARU DIMULAI DI SINI
+    // ================================================================
+    try {
+        showLoader(`Mengumpulkan data pasar lengkap untuk ${assetSymbol}...`);
 
-        try {
-            let priceScaleHint = "";
-            if (currentLivePrice >= 1000) {
-                priceScaleHint = "Ini adalah aset dengan harga tinggi (ribuan USD atau lebih), biasanya memiliki 2-4 digit desimal.";
-                pricePrecision = 4;
-            } else if (currentLivePrice >= 1 && currentLivePrice < 1000) {
-                priceScaleHint = "Ini adalah aset dengan harga menengah (puluhan hingga ratusan USD), biasanya memiliki 2-6 digit desimal.";
-                pricePrecision = 6;
-            } else if (currentLivePrice < 1 && currentLivePrice >= 0.0001) {
-                priceScaleHint = "Ini adalah aset dengan harga rendah (di bawah 1 USD), biasanya memiliki 4-8 digit desimal.";
-                pricePrecision = 8;
-            } else if (currentLivePrice < 0.0001) {
-                priceScaleHint = "Ini adalah aset dengan harga sangat rendah (di bawah 0.0001 USD), seringkali memiliki 8 digit desimal atau lebih.";
-                pricePrecision = 10;
+        const [
+            tickerData, fundingData, openInterestData, lsRatioUmumData,
+            lsRatioTopTraderData, klines30d, klines15m, klines1h, klines4h, klines1d
+        ] = await Promise.all([
+            fetchBinanceAPIData('ticker/24hr', { symbol: assetSymbol }),
+            fetchBinanceAPIData('premiumIndex', { symbol: assetSymbol }),
+            fetchBinanceAPIData('openInterest', { symbol: assetSymbol }),
+            fetchBinanceAPIData('globalLongShortAccountRatio', { symbol: assetSymbol, period: '5m', limit: 1 }),
+            fetchBinanceAPIData('topLongShortAccountRatio', { symbol: assetSymbol, period: '5m', limit: 1 }),
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 30 }),
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '15m', limit: 100 }),
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1h', limit: 100 }),
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '4h', limit: 100 }),
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 100 })
+        ]);
+
+        const volume24h = tickerData ? parseFloat(tickerData.quoteVolume).toLocaleString('id-ID') : 'N/A';
+        
+        let volumePercentage = 'N/A';
+        if (klines30d && tickerData) {
+            const last7dVolumes = klines30d.slice(-7).map(k => parseFloat(k[7]));
+            const avgVolume7d = last7dVolumes.reduce((a, b) => a + b, 0) / 7;
+            const currentVolume = parseFloat(tickerData.quoteVolume);
+            if (avgVolume7d > 0) {
+                volumePercentage = ((currentVolume / avgVolume7d - 1) * 100).toFixed(2);
             }
-            proyeksiLivePriceOutput.textContent = `$${currentLivePrice.toFixed(pricePrecision).replace('.', ',')}`;
+        }
+        
+        const openInterest = openInterestData ? parseFloat(openInterestData.openInterest).toLocaleString('id-ID') : 'N/A';
+        const lsRatioUmum = lsRatioUmumData?.[0]?.longShortRatio ? parseFloat(lsRatioUmumData[0].longShortRatio).toFixed(2) : 'N/A';
+        const lsRatioTopTrader = lsRatioTopTraderData?.[0]?.longShortRatio ? parseFloat(lsRatioTopTraderData[0].longShortRatio).toFixed(2) : 'N/A';
+        const fundingRate = fundingData ? (parseFloat(fundingData.lastFundingRate) * 100).toFixed(4) + '%' : 'N/A';
+        
+        let countdownFunding = 'N/A';
+        if (fundingData && fundingData.nextFundingTime) {
+            const timeLeftMs = parseInt(fundingData.nextFundingTime) - Date.now();
+            if (timeLeftMs > 0) {
+                const hours = Math.floor(timeLeftMs / 3600000);
+                const minutes = Math.floor((timeLeftMs % 3600000) / 60000);
+                countdownFunding = `${hours} jam ${minutes} menit`;
+            }
+        }
 
+        const rsi15m = calculateRSI(klines15m.map(k => parseFloat(k[4])));
+        const rsi1h = calculateRSI(klines1h.map(k => parseFloat(k[4])));
+        const rsi4h = calculateRSI(klines4h.map(k => parseFloat(k[4])));
+        const rsi1d = calculateRSI(klines1d.map(k => parseFloat(k[4])));
+        
+        const posisiBb15m = 'N/A', posisiEma5015m = 'N/A';
+        const posisiBb1h = 'N/A', posisiEma501h = 'N/A';
+        const posisiBb4h = 'N/A', posisiEma504h = 'N/A';
+        const posisiBb1d = 'N/A', posisiEma501d = 'N/A';
 
-            const prompt = `Anda adalah seorang analis pasar kripto yang sangat akurat, komprehensif, dan terpercaya. Lakukan analisis proyeksi harga untuk aset kripto dengan simbol "${assetSymbol}".
             
-            **Data Real-time yang Disediakan:** Harga terkini untuk ${assetSymbol} adalah **${currentLivePrice.toFixed(pricePrecision)} USD**. ${priceScaleHint}
+            showLoader(`Menganalisa proyeksi untuk ${assetSymbol}...`);
 
-            **ATURAN PENTING:**
-            1.  **Penggunaan Data Real-time:** Anda WAJIB menggunakan harga terkini yang saya berikan sebagai dasar analisis Anda.
-            2.  **Validasi Harga (KOREKSI TEGAS):** Anda DILARANG KERAS menolak analisis hanya karena harga yang diberikan (misal: ${currentLivePrice.toFixed(pricePrecision)}) melebihi atau di luar rentang harga historis yang Anda ketahui. **Anda WAJIB menganggap harga ini sebagai harga valid yang diberikan oleh pengguna dan melanjutkan analisis proyeksi.** Anda hanya boleh menolak analisis jika harga yang diberikan benar-benar **absurd dan tidak mungkin secara matematis** (misalnya, harga nol, negatif, atau angka yang secara astronomis tidak masuk akal seperti triliunan untuk aset yang seharusnya puluhan ribu). Tujuan Anda adalah memberikan analisis yang AKURAT dan TERPERCAYA berdasarkan data yang *diberikan*, bukan memvalidasi kebenaran data eksternal secara historis.
-            3.  **Model Analisis:** Gunakan model analisis yang komprehensif, mencakup analisis teknikal (struktur pasar, support/resistance, pola chart, indikator utama), analisis fundamental (berita proyek, adopsi, perkembangan ekosistem), dan sentimen pasar global.
-            4.  **Proyeksi:** Berikan proyeksi harga untuk periode:
-                * Jangka Pendek (1-7 hari)
-                * Jangka Menengah (1-4 minggu)
-                * Jangka Panjang (1-6 bulan)
-            5.  **Rasional:** Untuk setiap proyeksi, berikan alasan yang jelas dan ringkas berdasarkan analisis Anda.
-            6.  **Tidak Ada Analisis Jika Kurang Data (meskipun harga live ada):** Meskipun harga live disediakan, jika Anda merasa tidak memiliki informasi yang cukup komprehensif dari basis pengetahuan Anda (misalnya, tidak ada berita relevan terbaru, atau data historis yang memadai untuk pola), Anda HARUS menyatakan hal tersebut dengan jelas dan TIDAK melanjutkan proyeksi harga. Tujuan Anda adalah memberikan analisis yang AKURAT dan KOMPREHENSIF.
+            pricePrecision = getDecimalPlaces(currentLivePrice);
+            proyeksiLivePriceOutput.textContent = `$${currentLivePrice.toFixed(pricePrecision)}`;
 
-            Balas HANYA dengan satu objek JSON valid dengan skema berikut:
-            \`\`\`json
-            {
-              "hasRealTimeData": {"type": "boolean"},
-              "message": {"type": "string", "description": "Pesan singkat tentang status analisis"},
-              "projections": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "period": {"type": "string"},
-                    "targetPrice": {"type": "string"},
-                    "rationale": {"type": "string"}
-                  },
-                  "required": ["period", "targetPrice", "rationale"]
+            // [IMPROVEMENT] Prompt diperkaya dengan data tambahan
+            const prompt = `Anda adalah seorang Analis Kuantitatif & Ahli Sentimen Pasar untuk aset kripto. Anda sangat mahir dalam mensintesis berbagai data menjadi saran trading yang logis dan bisa dieksekusi. Seluruh respons Anda WAJIB dalam Bahasa Indonesia.
+
+                Tugas Anda adalah memberikan analisa holistik untuk aset \`${assetSymbol}\`.
+
+                Berikut adalah DATA PASAR TERKINI yang telah divalidasi dan WAJIB Anda gunakan sebagai dasar utama analisa:
+
+                **1. Kondisi Umum & Volume:**
+                * **Harga Saat Ini:** ${currentLivePrice} USD
+                * **Volume 24 Jam:** ${volume24h} USD (Ini adalah ${volumePercentage}% dari rata-rata volume 7 hari terakhir).
+
+                **2. Analisa Sentimen & Kekuatan Tren:**
+                * **Open Interest:** ${openInterest} USD (Menunjukkan total uang di pasar saat ini).
+                * **Rasio Long/Short (Umum):** ${lsRatioUmum} (Menunjukkan sentimen trader ritel/umum).
+                * **Rasio Long/Short (Top Trader):** ${lsRatioTopTrader} (Menunjukkan sentimen 'smart money').
+                * **Funding Rate:** ${fundingRate} (Menunjukkan biaya untuk menahan posisi dan sentimen jangka pendek).
+                * **Countdown Funding Berikutnya:** ${countdownFunding} (Potensi volatilitas di sekitar waktu ini).
+
+                **3. Data Indikator Teknis Multi-Timeframe:**
+* **Timeframe 15 Menit:** RSI=${rsi15m}, Posisi BB='${posisiBb15m}', Posisi vs EMA50='${posisiEma5015m}'.
+* **Timeframe 1 Jam:** RSI=${rsi1h}, Posisi BB='${posisiBb1h}', Posisi vs EMA50='${posisiEma501h}'.
+* **Timeframe 4 Jam:** RSI=${rsi4h}, Posisi BB='${posisiBb4h}', Posisi vs EMA50='${posisiEma504h}'.
+* **Timeframe 1 Hari:** RSI=${rsi1d}, Posisi BB='${posisiBb1d}', Posisi vs EMA50='${posisiEma501d}'.
+
+                **INSTRUKSI UTAMA:**
+                Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dalam format JSON yang valid dan terstruktur di bawah ini. Jangan menambahkan teks atau penjelasan lain di luar format JSON.
+
+                {
+                "saran_bagi_pemilik_aset": "string (Pilih salah satu: TAHAN, JUAL, TAMBAH, KURANGI SEBAGIAN)",
+                "alasan_saran_pemilik": "string (Berikan alasan singkat dan logis berdasarkan data)",
+                "saran_bagi_non_pemilik": "string (Contoh: BELI di area xxxx-yyyy USD atau TUNGGU KONFIRMASI)",
+                "alasan_saran_non_pemilik": "string (Jelaskan mengapa area tersebut ideal atau mengapa harus menunggu)",
+                "analisa_kondisi_saat_ini": {
+                    "volatilitas": "string (Gambarkan tingkat fluktuasi saat ini: Rendah, Sedang, atau Tinggi)",
+                    "rentang_harga_terdekat": "string (Perkirakan rentang harga untuk beberapa jam ke depan)",
+                    "ringkasan_indikator": "string (Simpulkan arti dari gabungan semua data indikator, sentimen, dan kekuatan tren)"
+                },
+                "proyeksi_lengkap": [
+                    {
+                    "periode": "Jangka Pendek (1-7 hari)",
+                    "target_harga": "string",
+                    "alasan": "string"
+                    },
+                    {
+                    "periode": "Jangka Menengah (1-4 minggu)",
+                    "target_harga": "string",
+                    "alasan": "string"
+                    },
+                    {
+                    "periode": "Jangka Panjang (1-6 bulan)",
+                    "target_harga": "string",
+                    "alasan": "string"
+                    }
+                ]
                 }
-              },
-              "disclaimer": {"type": "string"}
-            }
-            \`\`\`
-
-            Jika \`projections\` kosong atau tidak ada karena Anda tidak bisa membuat analisis komprehensif, maka \`hasRealTimeData\` harus \`true\` (karena harga live disediakan), tetapi \`message\` harus menjelaskan mengapa analisis tidak dapat dilanjutkan. Contoh: \`{"hasRealTimeData": true, "message": "Harga live ${assetSymbol} terdeteksi, namun data komprehensif lainnya tidak cukup untuk membuat proyeksi yang akurat saat ini.", "projections": [], "disclaimer": "Pasar kripto sangat volatil..."}\`
-            `;
+                `;
 
             const jsonText = await callGemini([{ text: prompt }], true);
             const data = cleanAndParseJson(jsonText);
 
             if (!data.projections || data.projections.length === 0) { 
-                proyeksiOutput.innerHTML = `<div class="bg-red-900/50 border border-red-700 p-4 rounded-lg text-red-200">
-                    <h4 class="font-bold text-lg mb-2">Analisis Tidak Dapat Dilanjutkan</h4>
-                    <p>${data.message || "AI tidak dapat menghasilkan proyeksi harga yang komprehensif meskipun harga live tersedia."}</p>
-                    <p class="text-xs italic mt-2">${data.disclaimer || "Pasar kripto sangat volatil dan proyeksi tidak menjamin hasil di masa depan."}</p>
+                proyeksiOutput.innerHTML = `<div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg text-yellow-200">
+                    <h4 class="font-bold text-lg mb-2">Analisis Tidak Dilanjutkan</h4>
+                    <p>${data.message || "AI tidak dapat menghasilkan proyeksi harga yang komprehensif saat ini."}</p>
                 </div>`;
             } else {
-                let projectionsHtml = data.projections.map(p => `
+                // [IMPROVEMENT] Menambahkan tombol 'Gunakan Data' dan 'Sanity Check'
+                let projectionsHtml = data.projections.map(p => {
+                    const targetPriceNum = parsePrice(p.targetPrice);
+                    let sanityCheckWarning = '';
+                    if (!isNaN(targetPriceNum) && Math.abs(targetPriceNum - currentLivePrice) / currentLivePrice > 5) { // Cek jika > 500%
+                        sanityCheckWarning = `<span class="text-xs text-yellow-400 block mt-1">(⚠️ Perkiraan tampak sangat jauh dari harga saat ini)</span>`;
+                    }
+
+                    return `
                     <div class="bg-gray-800 p-4 rounded-lg">
                         <h5 class="font-semibold text-blue-400">${p.period}</h5>
-                        <p class="text-lg font-bold text-white">${p.targetPrice}</p>
+                        <p class="text-lg font-bold text-white">${p.targetPrice} ${sanityCheckWarning}</p>
                         <p class="text-sm text-gray-300 mt-1">${p.rationale}</p>
+                        <button class="use-projection-btn" data-price="${targetPriceNum}">Gunakan di Kalkulator</button>
                     </div>
-                `).join('');
-
+                `;
+                }).join('');
+                
+                const messageText = (typeof data.message === 'string' && data.message) ? data.message : `Analisis proyeksi harga untuk ${assetSymbol} berhasil.`;
                 proyeksiOutput.innerHTML = `
                     <div class="bg-gray-800 p-4 rounded-lg mb-4">
-                        <p class="text-gray-300">${data.message || `Analisis proyeksi harga untuk ${assetSymbol} berhasil.`}</p>
+                        <p class="text-gray-300">${messageText}</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         ${projectionsHtml}
@@ -1225,106 +1181,85 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            console.error("Kesalahan Proyeksi Harga:", error);
-            proyeksiOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa proyeksi harga: ${error.message}</p>`;
-        } finally {
-            hideLoader();
-        }
+        console.error("Kesalahan saat mengambil atau memproses data pasar:", error);
+        proyeksiOutput.innerHTML = `<p class="text-red-400">Gagal mengambil data pasar lengkap: ${error.message}</p>`;
+        hideLoader();
+        return;
+    }
     }
 
-    // Fungsi untuk Inisialisasi WebSocket Binance (Diperbarui untuk SMC)
+    // [IMPROVEMENT] Fungsi untuk Inisialisasi WebSocket Binance (DITINGKATKAN)
     function initBinanceWebSocket(symbol) {
-        // Tutup koneksi sebelumnya jika ada
-        if (binanceWebSocket) {
+        if (binanceWebSocket && binanceWebSocket.readyState === WebSocket.OPEN) {
             binanceWebSocket.close();
-            binanceWebSocket = null;
         }
 
-        // Pastikan simbol dalam huruf kecil sesuai dokumentasi Binance
         const lowerCaseSymbol = symbol.toLowerCase();
         lastFetchedSymbol = lowerCaseSymbol;
-
-        // Gunakan endpoint umum untuk JSON streams
         const wsUrl = `wss://stream.binance.com/ws`;
-
         binanceWebSocket = new WebSocket(wsUrl);
 
         binanceWebSocket.onopen = () => {
-            console.log(`WebSocket Binance untuk ${lowerCaseSymbol} terhubung.`);
-            showCustomMessage(`Terhubung ke data live ${symbol}.`, 'info');
+            console.log(`WebSocket Binance terhubung.`);
+            showLoader(`Berhasil terhubung. Melakukan subscribe ke ${symbol}...`);
+            reconnectAttempts = 0; // Reset reconnect counter on successful open
             document.getElementById('proyeksi-live-price-container').classList.remove('hidden');
-            // Reset currentLivePrice ke null saat koneksi baru terbuka
             currentLivePrice = null;
-            orderBookData = {}; // Kosongkan data order book saat koneksi baru
 
-            // Kirim pesan SUBSCRIBE setelah koneksi terbuka
-            const subscribeMessages = [
-                { // Untuk harga live (bookTicker) - bid/ask terbaik
-                    "method": "SUBSCRIBE",
-                    "params": [`${lowerCaseSymbol}@bookTicker`],
-                    "id": 1
-                },
-                { // BARU: Untuk data order book (depth 5 levels) - cocok untuk analisis SMC dasar
-                    "method": "SUBSCRIBE",
-                    "params": [`${lowerCaseSymbol}@depth5@100ms`], // @depth5 untuk 5 level bid/ask, @100ms untuk update setiap 100ms
-                    "id": 2
-                }
-            ];
-            subscribeMessages.forEach(msg => binanceWebSocket.send(JSON.stringify(msg)));
-            console.log('Mengirim pesan SUBSCRIBE:', subscribeMessages);
+            const subscribeMessage = {
+                "method": "SUBSCRIBE",
+                "params": [`${lowerCaseSymbol}@bookTicker`],
+                "id": 1
+            };
+            binanceWebSocket.send(JSON.stringify(subscribeMessage));
         };
 
         binanceWebSocket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            // console.log('Raw WebSocket Data:', data); // Uncomment ini untuk debugging data mentah
+            
+            if (data.error) {
+                // [IMPROVEMENT] Penanganan error spesifik jika simbol tidak valid
+                console.error('WebSocket Error:', data.error.msg);
+                showCustomMessage(`Error: ${data.error.msg}. Pastikan simbol benar.`, 'error');
+                hideLoader();
+                binanceWebSocket.close();
+                return;
+            }
 
-            // Hanya proses pesan jika itu adalah data ticker atau depth dan untuk simbol yang benar
-            if (data.s && data.s.toLowerCase() === lastFetchedSymbol) { // 's' adalah symbol
-                // Handle bookTicker (harga live)
-                if (data.e === 'bookTicker') { // 'e' for eventType
-                    const livePrice = parseFloat(data.a); // Menggunakan harga ask
-                    if (!isNaN(livePrice)) {
-                        currentLivePrice = livePrice;
-                        // Pastikan pricePrecision sudah terupdate dari ekstrakKeyData
-                        proyeksiLivePriceOutput.textContent = `$${livePrice.toFixed(pricePrecision).replace('.', ',')}`;
+            if (data.s && data.s.toLowerCase() === lastFetchedSymbol && data.a) { 
+                const livePrice = parseFloat(data.a);
+                if (!isNaN(livePrice)) {
+                    if (currentLivePrice === null) {
+                       showLoader('Harga diterima. Mengirim data ke AI...');
+                    }
+                    currentLivePrice = livePrice;
+                    if(proyeksiLivePriceOutput) {
+                         proyeksiLivePriceOutput.textContent = `$${livePrice.toFixed(getDecimalPlaces(livePrice))}`;
                     }
                 }
-                // BARU: Handle depth data (order book)
-                else if (data.e === 'depthUpdate') { // 'e' for eventType
-                    orderBookData[data.s] = { // Simpan berdasarkan simbol
-                        bids: data.b.map(b => [parseFloat(b[0]), parseFloat(b[1])]), // Bids [price, quantity]
-                        asks: data.a.map(a => [parseFloat(a[0]), parseFloat(a[1])])  // Asks [price, quantity]
-                    };
-                    // console.log('Order Book Data Updated for SMC:', orderBookData[data.s]); // Uncomment untuk melihat update order book
-                }
-            } else if (data.result !== undefined && data.id !== undefined) {
-                // Ini adalah respons dari pesan SUBSCRIBE/UNSUBSCRIBE
-                console.log('Respons WebSocket:', data);
             }
         };
 
         binanceWebSocket.onerror = (error) => {
-            console.error(`WebSocket Binance error untuk ${lowerCaseSymbol}:`, error);
-            showCustomMessage(`Kesalahan koneksi data live ${symbol}.`, 'error');
+            console.error(`WebSocket Binance error:`, error);
+            showCustomMessage(`Kesalahan koneksi data live.`, 'error');
             document.getElementById('proyeksi-live-price-container').classList.add('hidden');
         };
 
         binanceWebSocket.onclose = (event) => {
-            console.log(`WebSocket Binance untuk ${lowerCaseSymbol} ditutup. Kode: ${event.code}, Alasan: ${event.reason}`);
-            showCustomMessage(`Koneksi data live ${symbol} ditutup.`, 'info');
-            currentLivePrice = null;
-            orderBookData = {}; // Clear order book data when connection closes
-            if (proyeksiLivePriceOutput) proyeksiLivePriceOutput.textContent = '-';
-            document.getElementById('proyeksi-live-price-container').classList.add('hidden');
-            // Coba reconnect jika ditutup tidak normal (misal bukan karena switch symbol)
-            if (event.code !== 1000 && lastFetchedSymbol === lowerCaseSymbol) { // 1000 = Normal Closure
-                console.log('Mencoba menyambung kembali WebSocket...');
-                setTimeout(() => initBinanceWebSocket(lowerCaseSymbol), 5000); // Coba lagi setelah 5 detik
+            console.log(`WebSocket ditutup. Kode: ${event.code}`);
+            if (event.code !== 1000 && reconnectAttempts < 3) {
+                reconnectAttempts++;
+                console.log(`Mencoba menyambung kembali... (Percobaan ${reconnectAttempts}/3)`);
+                showCustomMessage(`Koneksi data live terputus. Mencoba menyambung kembali...`, 'info');
+                setTimeout(() => initBinanceWebSocket(lastFetchedSymbol), 5000); // Coba lagi setelah 5 detik
+            } else if (reconnectAttempts >= 3) {
+                 showCustomMessage(`Gagal menyambung kembali ke data live.`, 'error');
+                 hideLoader();
             }
         };
     }
 
-    // Fungsi BARU untuk Backtesting Strategi
     async function startBacktest() {
         if (!backtestImageBase64) {
             showCustomMessage("Harap unggah gambar Chart Historis terlebih dahulu.", "error");
@@ -1362,16 +1297,10 @@ document.addEventListener('DOMContentLoaded', () => {
               "winningTrades": {"type": "number"},
               "losingTrades": {"type": "number"},
               "winRatePercentage": {"type": "number"},
-              "estimatedProfitLoss": {"type": "string", "description": "Estimasi profit/loss kumulatif, misal: '+5R' atau '-2R' atau '$100 profit'"},
-              "keyObservations": {
-                "type": "array",
-                "items": {"type": "string", "description": "Poin-poin penting dari simulasi, misal: 'Strategi bekerja baik di tren naik'"}
-              },
-              "recommendationsForStrategy": {
-                "type": "array",
-                "items": {"type": "string", "description": "Saran untuk meningkatkan strategi"}
-              },
-              "disclaimer": {"type": "string"}
+              "estimatedProfitLoss": {"type": "string"},
+              "keyObservations": ["string"],
+              "recommendationsForStrategy": ["string"],
+              "disclaimer": "string"
             }
             \`\`\`
             
@@ -1433,9 +1362,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INISIALISASI EVENT LISTENERS ---
     apiKeyInput.addEventListener('input', () => {
-        localStorage.setItem('valhallaUltimateApiKey', apiKeyInput.value);
+        // [IMPROVEMENT] Menggunakan sessionStorage
+        sessionStorage.setItem('valhallaUltimateApiKey', apiKeyInput.value);
         checkEnableAnalyzeButton();
-        checkEnableBacktestButton(); // BARU: Panggil juga untuk backtest
+        checkEnableBacktestButton();
     });
     setupDropZone(htfDropZone, htfUploadInput, htfChartPreview, htfChartPlaceholder, (val) => htfImageBase64 = val, checkEnableAnalyzeButton);
     setupDropZone(ltfDropZone, ltfUploadInput, ltfChartPreview, ltfChartPlaceholder, (val) => ltfImageBase64 = val, checkEnableAnalyzeButton);
@@ -1446,34 +1376,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
-            // Hapus kelas 'active' dari semua tombol tab
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            // Sembunyikan semua panel tab
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
-            
-            // Tambahkan kelas 'active' ke tombol yang diklik
             button.classList.add('active');
-            // Tampilkan panel tab yang sesuai
             document.getElementById(button.getAttribute('data-tab')).classList.remove('hidden');
 
-            // Tutup WebSocket jika berpindah dari tab Proyeksi Harga
-            if (button.getAttribute('data-tab') !== 'proyeksi') {
-                if (binanceWebSocket) {
-                    binanceWebSocket.close();
-                    binanceWebSocket = null;
-                }
-                currentLivePrice = null;
-                if (proyeksiLivePriceOutput) proyeksiLivePriceOutput.textContent = '-'; 
-                document.getElementById('proyeksi-live-price-container').classList.add('hidden');
-                lastFetchedSymbol = null; // Reset simbol yang di-fetch
-            } else {
-                // Jika kembali ke tab proyeksi, coba inisialisasi ulang jika ada simbol terakhir
-                if (lastFetchedSymbol) {
-                    initBinanceWebSocket(lastFetchedSymbol);
-                }
+            if (button.getAttribute('data-tab') !== 'proyeksi' && binanceWebSocket) {
+                binanceWebSocket.close();
             }
-            // BARU: Reset status tombol backtest saat tab berubah
-            checkEnableBacktestButton(); 
         });
     });
     btnPosisiLong.addEventListener('click', () => {
@@ -1487,23 +1397,33 @@ document.addEventListener('DOMContentLoaded', () => {
         populateCalculatorFromAnalysis('short');
     });
     hitungRencanaBtn.addEventListener('click', hitungRencana);
-    generateSentimentBtn.addEventListener('click', generateSentimentAnalysis);
     optimizePlanBtn.addEventListener('click', optimizeTradePlan);
     
-    // Event listener untuk Proyeksi Harga
     generateProyeksiBtn.addEventListener('click', startPriceProjection);
+    
+    // [IMPROVEMENT] Event listener untuk tombol "Gunakan di Kalkulator" pada proyeksi
+    proyeksiOutput.addEventListener('click', (e) => {
+        if (e.target.classList.contains('use-projection-btn')) {
+            const price = e.target.dataset.price;
+            if (price) {
+                document.querySelector('.tab-button[data-tab="kalkulator"]').click();
+                // Mengisi harga ke TP1, asumsi paling umum
+                document.getElementById('calc-tp1').value = parseFloat(price).toFixed(pricePrecision);
+                showCustomMessage(`Harga Proyeksi ${price} dimasukkan ke TP1.`, 'info');
+            }
+        }
+    });
 
-    // BARU: Event listeners untuk Backtesting Strategi
     setupDropZone(backtestDropZone, backtestUploadInput, backtestChartPreview, backtestChartPlaceholder, (val) => backtestImageBase64 = val, checkEnableBacktestButton);
     backtestStrategyInput.addEventListener('input', checkEnableBacktestButton);
     runBacktestBtn.addEventListener('click', startBacktest);
 
     // --- SETUP AWAL ---
-    const savedApiKey = localStorage.getItem('valhallaUltimateApiKey');
+    // [IMPROVEMENT] Menggunakan sessionStorage
+    const savedApiKey = sessionStorage.getItem('valhallaUltimateApiKey');
     if (savedApiKey) apiKeyInput.value = savedApiKey;
     checkEnableAnalyzeButton();
-    checkEnableBacktestButton(); // BARU: Panggil saat setup awal
-    // Mengatur tab default ke Analisa saat dimuat, jika tidak ada tab yang aktif
+    checkEnableBacktestButton();
     const activeTab = document.querySelector('.tab-button.active');
     if (!activeTab) {
         document.querySelector('.tab-button[data-tab="analisa"]').click();
@@ -1512,49 +1432,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-<div class="bg-slate-800 p-6 rounded-xl flex flex-col" style="height: 88vh;">
-            <div class="flex flex-wrap justify-between items-center mb-4 gap-4 flex-shrink-0">
-            
-            <div class="text-right">
-                
-            </div>
-        </div>
-        
-        <div class="w-full flex-1 bg-slate-900 rounded-lg">
-            <!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "60",
-  "locale": "en",
-  "save_image": true,
-  "style": "1",
-  "symbol": "BINANCE:BTCUSDT.P",
-  "theme": "dark",
-  "timezone": "Asia/Jakarta",
-  "backgroundColor": "#0F0F0F",
-  "gridColor": "rgba(242, 242, 242, 0.06)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "studies": [
-    "STD;Bollinger_Bands",
-    "STD;Stochastic_RSI",
-    "STD;Divergence%1Indicator",
-    "STD;EMA"
-  ],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
