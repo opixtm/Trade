@@ -379,6 +379,33 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Tambahkan DUA fungsi ini di dekat fungsi bantuan lainnya
+
+const calculateEMA = (data, period) => {
+    if (!data || data.length < period) return [];
+    const k = 2 / (period + 1);
+    let emaArray = [data.slice(0, period).reduce((a, b) => a + b, 0) / period];
+    for (let i = period; i < data.length; i++) {
+        emaArray.push((data[i] * k) + (emaArray[emaArray.length - 1] * (1 - k)));
+    }
+    return emaArray;
+};
+
+const calculateBollingerBands = (closes, period = 20, stdDevMultiplier = 2) => {
+    if (!closes || closes.length < period) return { upper: 0, middle: 0, lower: 0 };
+    const middleBand = calculateSMA(closes.slice(-period), period)[0];
+    if (middleBand === undefined) return { upper: 0, middle: 0, lower: 0 };
+    
+    const slice = closes.slice(-period);
+    const stdDev = Math.sqrt(slice.map(p => Math.pow(p - middleBand, 2)).reduce((a, b) => a + b, 0) / period);
+    
+    return {
+        upper: middleBand + (stdDev * stdDevMultiplier),
+        middle: middleBand,
+        lower: middleBand - (stdDev * stdDevMultiplier)
+    };
+};
+    
     const calculateSMA = (data, period) => {
     if (!data || data.length < period) return [];
     const sma = [];
@@ -988,7 +1015,8 @@ const calculateRSI = (closes, period = 14) => {
     }
 
     // [IMPROVEMENT] Fungsi untuk Analisa Proyeksi Harga (DITINGKATKAN)
-    async function startPriceProjection() {
+    // Ganti seluruh fungsi startPriceProjection lama Anda dengan yang ini
+async function startPriceProjection() {
     const assetSymbol = proyeksiAssetInput.value.trim().toUpperCase();
     if (!assetSymbol) {
         showCustomMessage("Harap masukkan simbol aset kripto (contoh: BTCUSDT).", "error");
@@ -1004,23 +1032,18 @@ const calculateRSI = (closes, period = 14) => {
     proyeksiOutput.innerHTML = '';
     proyeksiPlaceholder.classList.add('hidden');
 
-    let attempts = 0;
-    const maxAttempts = 20;
-    while (currentLivePrice === null && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        attempts++;
-    }
-
-    if (currentLivePrice === null) {
-        proyeksiOutput.innerHTML = `<div class="bg-red-900/50 border border-red-700 p-4 rounded-lg text-red-200"><h4 class="font-bold text-lg mb-2">Analisis Gagal</h4><p>Gagal mengambil data harga live untuk ${assetSymbol}. Pastikan simbol benar dan koneksi internet stabil.</p></div>`;
-        hideLoader();
-        return;
-    }
-    
-    // ================================================================
-    // BLOK KODE BARU DIMULAI DI SINI
-    // ================================================================
     try {
+        let attempts = 0;
+        const maxAttempts = 20;
+        while (currentLivePrice === null && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
+        }
+
+        if (currentLivePrice === null) {
+            throw new Error(`Gagal mengambil data harga live untuk ${assetSymbol}.`);
+        }
+        
         showLoader(`Mengumpulkan data pasar lengkap untuk ${assetSymbol}...`);
 
         const [
@@ -1030,8 +1053,8 @@ const calculateRSI = (closes, period = 14) => {
             fetchBinanceAPIData('ticker/24hr', { symbol: assetSymbol }),
             fetchBinanceAPIData('premiumIndex', { symbol: assetSymbol }),
             fetchBinanceAPIData('openInterest', { symbol: assetSymbol }),
-            fetchBinanceAPIData('globalLongShortAccountRatio', { symbol: assetSymbol, period: '5m', limit: 1 }),
-            fetchBinanceAPIData('topLongShortAccountRatio', { symbol: assetSymbol, period: '5m', limit: 1 }),
+            fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()),
+            fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()),
             fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 30 }),
             fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '15m', limit: 100 }),
             fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1h', limit: 100 }),
@@ -1040,15 +1063,12 @@ const calculateRSI = (closes, period = 14) => {
         ]);
 
         const volume24h = tickerData ? parseFloat(tickerData.quoteVolume).toLocaleString('id-ID') : 'N/A';
-        
         let volumePercentage = 'N/A';
         if (klines30d && tickerData) {
             const last7dVolumes = klines30d.slice(-7).map(k => parseFloat(k[7]));
             const avgVolume7d = last7dVolumes.reduce((a, b) => a + b, 0) / 7;
             const currentVolume = parseFloat(tickerData.quoteVolume);
-            if (avgVolume7d > 0) {
-                volumePercentage = ((currentVolume / avgVolume7d - 1) * 100).toFixed(2);
-            }
+            if (avgVolume7d > 0) volumePercentage = ((currentVolume / avgVolume7d - 1) * 100).toFixed(2);
         }
         
         const openInterest = openInterestData ? parseFloat(openInterestData.openInterest).toLocaleString('id-ID') : 'N/A';
@@ -1071,122 +1091,188 @@ const calculateRSI = (closes, period = 14) => {
         const rsi4h = calculateRSI(klines4h.map(k => parseFloat(k[4])));
         const rsi1d = calculateRSI(klines1d.map(k => parseFloat(k[4])));
         
-        const posisiBb15m = 'N/A', posisiEma5015m = 'N/A';
-        const posisiBb1h = 'N/A', posisiEma501h = 'N/A';
-        const posisiBb4h = 'N/A', posisiEma504h = 'N/A';
-        const posisiBb1d = 'N/A', posisiEma501d = 'N/A';
+        // BLOK BARU (DENGAN KALKULASI)
+const timeframes = {
+    '15m': klines15m.map(k => parseFloat(k[4])),
+    '1h': klines1h.map(k => parseFloat(k[4])),
+    '4h': klines4h.map(k => parseFloat(k[4])),
+    '1d': klines1d.map(k => parseFloat(k[4])),
+};
 
-            
-            showLoader(`Menganalisa proyeksi untuk ${assetSymbol}...`);
+const getIndicatorPositions = (closes) => {
+    if (closes.length < 50) return { bb: 'Data Kurang', ema: 'Data Kurang' };
+    const lastClose = closes[closes.length - 1];
 
-            pricePrecision = getDecimalPlaces(currentLivePrice);
-            proyeksiLivePriceOutput.textContent = `$${currentLivePrice.toFixed(pricePrecision)}`;
+    // Kalkulasi EMA50
+    const ema50 = calculateEMA(closes, 50).pop();
+    const posisiEma = lastClose > ema50 ? 'Di atas EMA50' : 'Di bawah EMA50';
 
-            // [IMPROVEMENT] Prompt diperkaya dengan data tambahan
-            const prompt = `Anda adalah seorang Analis Kuantitatif & Ahli Sentimen Pasar untuk aset kripto. Anda sangat mahir dalam mensintesis berbagai data menjadi saran trading yang logis dan bisa dieksekusi. Seluruh respons Anda WAJIB dalam Bahasa Indonesia.
+    // Kalkulasi Bollinger Bands
+    const bb = calculateBollingerBands(closes, 20, 2);
+    let posisiBb = 'Di dalam Band';
+    if (lastClose > bb.upper) posisiBb = 'Di atas Upper Band';
+    if (lastClose < bb.lower) posisiBb = 'Di bawah Lower Band';
+    
+    return { bb: posisiBb, ema: posisiEma };
+};
 
-                Tugas Anda adalah memberikan analisa holistik untuk aset \`${assetSymbol}\`.
+const indicatorPositions15m = getIndicatorPositions(timeframes['15m']);
+const indicatorPositions1h = getIndicatorPositions(timeframes['1h']);
+const indicatorPositions4h = getIndicatorPositions(timeframes['4h']);
+const indicatorPositions1d = getIndicatorPositions(timeframes['1d']);
 
-                Berikut adalah DATA PASAR TERKINI yang telah divalidasi dan WAJIB Anda gunakan sebagai dasar utama analisa:
+const posisiBb15m = indicatorPositions15m.bb, posisiEma5015m = indicatorPositions15m.ema;
+const posisiBb1h = indicatorPositions1h.bb, posisiEma501h = indicatorPositions1h.ema;
+const posisiBb4h = indicatorPositions4h.bb, posisiEma504h = indicatorPositions4h.ema;
+const posisiBb1d = indicatorPositions1d.bb, posisiEma501d = indicatorPositions1d.ema;
 
-                **1. Kondisi Umum & Volume:**
-                * **Harga Saat Ini:** ${currentLivePrice} USD
-                * **Volume 24 Jam:** ${volume24h} USD (Ini adalah ${volumePercentage}% dari rata-rata volume 7 hari terakhir).
+        showLoader(`Menganalisa proyeksi untuk ${assetSymbol}...`);
+        
+        const prompt = `Anda adalah seorang Analis Kuantitatif & Ahli Sentimen Pasar untuk aset kripto. Anda sangat mahir dalam mensintesis berbagai data menjadi saran trading yang logis dan bisa dieksekusi. Seluruh respons Anda WAJIB dalam Bahasa Indonesia.
 
-                **2. Analisa Sentimen & Kekuatan Tren:**
-                * **Open Interest:** ${openInterest} USD (Menunjukkan total uang di pasar saat ini).
-                * **Rasio Long/Short (Umum):** ${lsRatioUmum} (Menunjukkan sentimen trader ritel/umum).
-                * **Rasio Long/Short (Top Trader):** ${lsRatioTopTrader} (Menunjukkan sentimen 'smart money').
-                * **Funding Rate:** ${fundingRate} (Menunjukkan biaya untuk menahan posisi dan sentimen jangka pendek).
-                * **Countdown Funding Berikutnya:** ${countdownFunding} (Potensi volatilitas di sekitar waktu ini).
+Tugas Anda adalah memberikan analisa holistik untuk aset \`${assetSymbol}\`.
 
-                **3. Data Indikator Teknis Multi-Timeframe:**
+Berikut adalah DATA PASAR TERKINI yang telah divalidasi dan WAJIB Anda gunakan sebagai dasar utama analisa:
+
+**1. Kondisi Umum & Volume:**
+* **Harga Saat Ini:** ${currentLivePrice} USD
+* **Volume 24 Jam:** ${volume24h} USD (Ini adalah ${volumePercentage}% dari rata-rata volume 7 hari terakhir).
+
+**2. Analisa Sentimen & Kekuatan Tren:**
+* **Open Interest:** ${openInterest} USD (Menunjukkan total uang di pasar saat ini).
+* **Rasio Long/Short (Umum):** ${lsRatioUmum} (Menunjukkan sentimen trader ritel/umum).
+* **Rasio Long/Short (Top Trader):** ${lsRatioTopTrader} (Menunjukkan sentimen 'smart money').
+* **Funding Rate:** ${fundingRate} (Menunjukkan biaya untuk menahan posisi dan sentimen jangka pendek).
+* **Countdown Funding Berikutnya:** ${countdownFunding} (Potensi volatilitas di sekitar waktu ini).
+
+**3. Data Indikator Teknis Multi-Timeframe:**
 * **Timeframe 15 Menit:** RSI=${rsi15m}, Posisi BB='${posisiBb15m}', Posisi vs EMA50='${posisiEma5015m}'.
 * **Timeframe 1 Jam:** RSI=${rsi1h}, Posisi BB='${posisiBb1h}', Posisi vs EMA50='${posisiEma501h}'.
 * **Timeframe 4 Jam:** RSI=${rsi4h}, Posisi BB='${posisiBb4h}', Posisi vs EMA50='${posisiEma504h}'.
 * **Timeframe 1 Hari:** RSI=${rsi1d}, Posisi BB='${posisiBb1d}', Posisi vs EMA50='${posisiEma501d}'.
 
-                **INSTRUKSI UTAMA:**
-                Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dalam format JSON yang valid dan terstruktur di bawah ini. Jangan menambahkan teks atau penjelasan lain di luar format JSON.
+**INSTRUKSI UTAMA:**
+Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dalam format JSON yang valid dan terstruktur di bawah ini. Jangan menambahkan teks atau penjelasan lain di luar format JSON.
 
-                {
-                "saran_bagi_pemilik_aset": "string (Pilih salah satu: TAHAN, JUAL, TAMBAH, KURANGI SEBAGIAN)",
-                "alasan_saran_pemilik": "string (Berikan alasan singkat dan logis berdasarkan data)",
-                "saran_bagi_non_pemilik": "string (Contoh: BELI di area xxxx-yyyy USD atau TUNGGU KONFIRMASI)",
-                "alasan_saran_non_pemilik": "string (Jelaskan mengapa area tersebut ideal atau mengapa harus menunggu)",
-                "analisa_kondisi_saat_ini": {
-                    "volatilitas": "string (Gambarkan tingkat fluktuasi saat ini: Rendah, Sedang, atau Tinggi)",
-                    "rentang_harga_terdekat": "string (Perkirakan rentang harga untuk beberapa jam ke depan)",
-                    "ringkasan_indikator": "string (Simpulkan arti dari gabungan semua data indikator, sentimen, dan kekuatan tren)"
-                },
-                "proyeksi_lengkap": [
-                    {
-                    "periode": "Jangka Pendek (1-7 hari)",
-                    "target_harga": "string",
-                    "alasan": "string"
-                    },
-                    {
-                    "periode": "Jangka Menengah (1-4 minggu)",
-                    "target_harga": "string",
-                    "alasan": "string"
-                    },
-                    {
-                    "periode": "Jangka Panjang (1-6 bulan)",
-                    "target_harga": "string",
-                    "alasan": "string"
-                    }
-                ]
-                }
-                `;
+{
+  "saran_bagi_pemilik_aset": "string (Pilih salah satu: TAHAN, JUAL, TAMBAH, KURANGI SEBAGIAN)",
+  "alasan_saran_pemilik": "string (Berikan alasan singkat dan logis berdasarkan data)",
+  "saran_bagi_non_pemilik": "string (Contoh: BELI di area xxxx-yyyy USD atau TUNGGU KONFIRMASI)",
+  "alasan_saran_non_pemilik": "string (Jelaskan mengapa area tersebut ideal atau mengapa harus menunggu)",
+  // STRUKTUR BARU
+  "analisa_kondisi_saat_ini": {
+    "volatilitas": "string (Gambarkan tingkat fluktuasi saat ini: Rendah, Sedang, atau Tinggi)",
+    "rentang_harga_terdekat": "string (Perkirakan rentang harga untuk beberapa jam ke depan)",
+    "detail_indikator_per_timeframe": [
+      {
+        "timeframe": "15 Menit",
+        "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 15 Menit)"
+      },
+      {
+        "timeframe": "1 Jam",
+        "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 1 Jam)"
+      },
+      {
+        "timeframe": "4 Jam",
+        "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 4 Jam)"
+      },
+      {
+        "timeframe": "1 Hari",
+        "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 1 Hari)"
+      }
+    ],
+    "kesimpulan_indikator": "string (Setelah merinci per timeframe, baru berikan kesimpulan gabungannya di sini)"
+  },
+  "proyeksi_lengkap": [
+    {
+      "periode": "Jangka Pendek (1-7 hari)",
+      "target_harga": "string",
+      "alasan": "string"
+    },
+    {
+      "periode": "Jangka Menengah (1-4 minggu)",
+      "target_harga": "string",
+      "alasan": "string"
+    },
+    {
+      "periode": "Jangka Panjang (1-6 bulan)",
+      "target_harga": "string",
+      "alasan": "string"
+    }
+  ]
+}
+`;
+        const jsonText = await callGemini([{ text: prompt }], true);
+        const data = cleanAndParseJson(jsonText);
+        
+        if (!data.proyeksi_lengkap || data.proyeksi_lengkap.length === 0) {
+             proyeksiOutput.innerHTML = `<div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg text-yellow-200"><h4 class="font-bold text-lg mb-2">Analisis Tidak Dilanjutkan</h4><p>AI tidak dapat menghasilkan proyeksi harga yang komprehensif saat ini.</p></div>`;
+        } else {
+             const getSaranColor = (saran) => {
+                if (saran.includes('JUAL') || saran.includes('KURANGI')) return 'text-red-400';
+                if (saran.includes('BELI') || saran.includes('TAMBAH')) return 'text-green-400';
+                return 'text-yellow-400';
+             };
 
-            const jsonText = await callGemini([{ text: prompt }], true);
-            const data = cleanAndParseJson(jsonText);
-
-            if (!data.projections || data.projections.length === 0) { 
-                proyeksiOutput.innerHTML = `<div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg text-yellow-200">
-                    <h4 class="font-bold text-lg mb-2">Analisis Tidak Dilanjutkan</h4>
-                    <p>${data.message || "AI tidak dapat menghasilkan proyeksi harga yang komprehensif saat ini."}</p>
-                </div>`;
-            } else {
-                // [IMPROVEMENT] Menambahkan tombol 'Gunakan Data' dan 'Sanity Check'
-                let projectionsHtml = data.projections.map(p => {
-                    const targetPriceNum = parsePrice(p.targetPrice);
-                    let sanityCheckWarning = '';
-                    if (!isNaN(targetPriceNum) && Math.abs(targetPriceNum - currentLivePrice) / currentLivePrice > 5) { // Cek jika > 500%
-                        sanityCheckWarning = `<span class="text-xs text-yellow-400 block mt-1">(⚠️ Perkiraan tampak sangat jauh dari harga saat ini)</span>`;
-                    }
-
-                    return `
+             let resultsHtml = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div class="bg-gray-800 p-4 rounded-lg">
-                        <h5 class="font-semibold text-blue-400">${p.period}</h5>
-                        <p class="text-lg font-bold text-white">${p.targetPrice} ${sanityCheckWarning}</p>
-                        <p class="text-sm text-gray-300 mt-1">${p.rationale}</p>
-                        <button class="use-projection-btn" data-price="${targetPriceNum}">Gunakan di Kalkulator</button>
+                        <h4 class="font-bold text-lg text-white mb-2">Untuk Pemilik Aset</h4>
+                        <p class="font-bold text-xl ${getSaranColor(data.saran_bagi_pemilik_aset || '')}">${data.saran_bagi_pemilik_aset || '-'}</p>
+                        <p class="text-sm text-gray-400 mt-1">${data.alasan_saran_pemilik || '-'}</p>
                     </div>
-                `;
-                }).join('');
-                
-                const messageText = (typeof data.message === 'string' && data.message) ? data.message : `Analisis proyeksi harga untuk ${assetSymbol} berhasil.`;
-                proyeksiOutput.innerHTML = `
-                    <div class="bg-gray-800 p-4 rounded-lg mb-4">
-                        <p class="text-gray-300">${messageText}</p>
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <h4 class="font-bold text-lg text-white mb-2">Untuk Non-Pemilik Aset</h4>
+                        <p class="font-bold text-xl ${getSaranColor(data.saran_bagi_non_pemilik || '')}">${data.saran_bagi_non_pemilik || '-'}</p>
+                        <p class="text-sm text-gray-400 mt-1">${data.alasan_saran_non_pemilik || '-'}</p>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        ${projectionsHtml}
-                    </div>
-                    <div class="mt-4 bg-yellow-900/50 border border-yellow-700 p-3 rounded-lg text-yellow-200 text-sm italic">
-                        <p>${data.disclaimer || "Pasar kripto sangat volatil dan proyeksi tidak menjamin hasil di masa depan."}</p>
-                    </div>
-                `;
-            }
+                </div>
 
-        } catch (error) {
-        console.error("Kesalahan saat mengambil atau memproses data pasar:", error);
-        proyeksiOutput.innerHTML = `<p class="text-red-400">Gagal mengambil data pasar lengkap: ${error.message}</p>`;
+                <div class="bg-gray-800 p-4 rounded-lg mb-4">
+    <h4 class="font-bold text-lg text-white mb-2">Analisa Kondisi Saat Ini</h4>
+    <div class="space-y-2 text-sm">
+        <p><strong class="text-gray-400">Volatilitas:</strong> ${data.analisa_kondisi_saat_ini?.volatilitas || '-'}</p>
+        <p><strong class="text-gray-400">Rentang Harga Terdekat:</strong> ${data.analisa_kondisi_saat_ini?.rentang_harga_terdekat || '-'}</p>
+        
+        <div class="mt-3 pt-3 border-t border-gray-700">
+            <strong class="text-gray-400 block mb-2">Detail Indikator per Timeframe:</strong>
+            ${(data.analisa_kondisi_saat_ini?.detail_indikator_per_timeframe || []).map(tf => `
+                <p class="mb-1"><strong class="text-blue-400">${tf.timeframe}:</strong> ${tf.analisa}</p>
+            `).join('')}
+        </div>
+
+        <div class="mt-3 pt-3 border-t border-gray-700">
+             <strong class="text-gray-400 block mb-1">Kesimpulan Indikator:</strong>
+             <p>${data.analisa_kondisi_saat_ini?.kesimpulan_indikator || '-'}</p>
+        </div>
+    </div>
+</div
+
+                <h4 class="font-bold text-lg text-white mb-2">Proyeksi Lengkap</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${data.proyeksi_lengkap.map(p => `
+                        <div class="bg-gray-800 p-4 rounded-lg flex flex-col justify-between">
+                            <div>
+                                <h5 class="font-semibold text-blue-400">${p.periode}</h5>
+                                <p class="text-lg font-bold text-white">${p.target_harga}</p>
+                                <p class="text-sm text-gray-300 mt-1">${p.alasan}</p>
+                            </div>
+                            <button class="use-projection-btn mt-3" data-price="${(p.target_harga || '0').match(/[\d.]+/)[0]}">Gunakan di Kalkulator</button>
+                        </div>
+                    `).join('')}
+                </div>
+             `;
+             proyeksiOutput.innerHTML = resultsHtml;
+        }
+
+    } catch (error) {
+        console.error("Kesalahan Proyeksi Harga:", error);
+        proyeksiOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa proyeksi harga: ${error.message}</p>`;
+    
+    } finally {
         hideLoader();
-        return;
     }
-    }
+}
 
     // [IMPROVEMENT] Fungsi untuk Inisialisasi WebSocket Binance (DITINGKATKAN)
     function initBinanceWebSocket(symbol) {
