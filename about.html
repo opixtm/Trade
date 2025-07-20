@@ -342,7 +342,10 @@
                                 <div id="proyeksi-placeholder" class="text-center text-gray-500 p-8"><p>Masukkan simbol aset dan klik "Analisa Proyeksi" untuk melihat hasil.</p></div>
                             </div>
                             <div class="mt-4 p-3 bg-gray-800 rounded-lg hidden" id="proyeksi-live-price-container">
-                                <p class="text-sm text-gray-400">Harga Live Terkini:</p>
+                                <div class="flex items-center">
+                                    <p class="text-sm text-gray-400 mr-2">Harga Live Terkini:</p>
+                                    <span id="ws-status-indicator" class="h-3 w-3 rounded-full bg-gray-500" title="Status Koneksi Data"></span>
+                                </div>
                                 <p class="text-xl font-bold text-green-400" id="proyeksi-live-price-output">-</p>
                             </div>
                         </div>
@@ -1276,56 +1279,84 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
 
     // [IMPROVEMENT] Fungsi untuk Inisialisasi WebSocket Binance (DITINGKATKAN)
     function initBinanceWebSocket(symbol) {
-        if (binanceWebSocket && binanceWebSocket.readyState === WebSocket.OPEN) {
+    if (binanceWebSocket && binanceWebSocket.readyState === WebSocket.OPEN) {
+        binanceWebSocket.close();
+    }
+
+    const lowerCaseSymbol = symbol.toLowerCase();
+    lastFetchedSymbol = lowerCaseSymbol;
+    const wsUrl = `wss://stream.binance.com/ws`;
+    binanceWebSocket = new WebSocket(wsUrl);
+    const statusIndicator = document.getElementById('ws-status-indicator');
+
+    binanceWebSocket.onopen = () => {
+        console.log(`WebSocket Binance terhubung.`);
+        if (statusIndicator) {
+            statusIndicator.className = 'h-3 w-3 rounded-full bg-green-500 animate-pulse';
+            statusIndicator.title = 'Terhubung ke data live';
+        }
+        reconnectAttempts = 0;
+        const subscribeMessage = { "method": "SUBSCRIBE", "params": [`${lowerCaseSymbol}@bookTicker`], "id": 1 };
+        binanceWebSocket.send(JSON.stringify(subscribeMessage));
+    };
+
+    binanceWebSocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        // Menangani pesan error spesifik dari Binance (misal: simbol tidak valid)
+        if (data.error) {
+            console.error('WebSocket Error:', data.error.msg);
+            if (statusIndicator) {
+                statusIndicator.className = 'h-3 w-3 rounded-full bg-red-500';
+                statusIndicator.title = `Error: ${data.error.msg}`;
+            }
             binanceWebSocket.close();
+            // Tampilkan pesan error di UI utama juga
+            proyeksiOutput.innerHTML = `<p class="text-red-400">Gagal terhubung ke data live: ${data.error.msg}</p>`;
+            hideLoader();
+            return;
         }
 
-        const lowerCaseSymbol = symbol.toLowerCase();
-        lastFetchedSymbol = lowerCaseSymbol;
-        const wsUrl = `wss://stream.binance.com/ws`;
-        binanceWebSocket = new WebSocket(wsUrl);
-
-        binanceWebSocket.onopen = () => {
-            console.log(`WebSocket Binance terhubung.`);
-            showLoader(`Berhasil terhubung. Melakukan subscribe ke ${symbol}...`);
-            reconnectAttempts = 0; // Reset reconnect counter on successful open
-            document.getElementById('proyeksi-live-price-container').classList.remove('hidden');
-            currentLivePrice = null;
-
-            const subscribeMessage = {
-                "method": "SUBSCRIBE",
-                "params": [`${lowerCaseSymbol}@bookTicker`],
-                "id": 1
-            };
-            binanceWebSocket.send(JSON.stringify(subscribeMessage));
-        };
-
-        binanceWebSocket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            
-            if (data.error) {
-                // [IMPROVEMENT] Penanganan error spesifik jika simbol tidak valid
-                console.error('WebSocket Error:', data.error.msg);
-                showCustomMessage(`Error: ${data.error.msg}. Pastikan simbol benar.`, 'error');
-                hideLoader();
-                binanceWebSocket.close();
-                return;
-            }
-
-            if (data.s && data.s.toLowerCase() === lastFetchedSymbol && data.a) { 
-                const livePrice = parseFloat(data.a);
-                if (!isNaN(livePrice)) {
-                    if (currentLivePrice === null) {
-                       showLoader('Harga diterima. Mengirim data ke AI...');
-                    }
-                    currentLivePrice = livePrice;
-                    if(proyeksiLivePriceOutput) {
-                         proyeksiLivePriceOutput.textContent = `$${livePrice.toFixed(getDecimalPlaces(livePrice))}`;
-                    }
+        // Memproses data harga yang masuk
+        if (data.s && data.s.toLowerCase() === lastFetchedSymbol && data.a) { 
+            const livePrice = parseFloat(data.a);
+            if (!isNaN(livePrice)) {
+                if (currentLivePrice === null) { 
+                    showLoader('Harga diterima. Mengirim data ke AI...'); 
+                }
+                currentLivePrice = livePrice;
+                if (proyeksiLivePriceOutput) { 
+                    proyeksiLivePriceOutput.textContent = `$${livePrice.toFixed(getDecimalPlaces(livePrice))}`; 
                 }
             }
-        };
+        }
+    };
 
+    binanceWebSocket.onerror = (error) => {
+        console.error(`WebSocket Binance error:`, error);
+        if (statusIndicator) {
+            statusIndicator.className = 'h-3 w-3 rounded-full bg-red-500';
+            statusIndicator.title = 'Koneksi data error';
+        }
+    };
+
+    binanceWebSocket.onclose = (event) => {
+        console.log(`WebSocket ditutup. Kode: ${event.code}`);
+        if (event.code !== 1000 && reconnectAttempts < 3) {
+            reconnectAttempts++;
+            if (statusIndicator) {
+                statusIndicator.className = 'h-3 w-3 rounded-full bg-yellow-500 animate-pulse';
+                statusIndicator.title = `Koneksi terputus, mencoba menyambung kembali... (${reconnectAttempts}/3)`;
+            }
+            setTimeout(() => initBinanceWebSocket(lastFetchedSymbol), 5000);
+        } else if (reconnectAttempts >= 3) {
+            if (statusIndicator) {
+                statusIndicator.className = 'h-3 w-3 rounded-full bg-red-500';
+                statusIndicator.title = 'Gagal menyambung kembali ke data live';
+            }
+        }
+    };
+}
         binanceWebSocket.onerror = (error) => {
             console.error(`WebSocket Binance error:`, error);
             showCustomMessage(`Kesalahan koneksi data live.`, 'error');
