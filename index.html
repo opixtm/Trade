@@ -113,7 +113,7 @@
     <div class="container mx-auto p-4 md:p-6">
         
         <header class="relative mb-6 text-center">
-            <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">TRADING <span class="text-sky-400">CO-PILOT</span></h1>
+            <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">🎢<span class="text-sky-400">CO-PILOT</span></h1>
             <p class="text-slate-400 mt-1">v.X.8.0 - MIXER</p>
         </header>
             <header class="relative mb-6 text-center border-b border-slate-700 pb-6">
@@ -137,7 +137,7 @@
             <aside class="md:col-span-3">
                 <div class="sticky top-6 space-y-4">
                     <nav id="main-nav" class="bg-slate-800 rounded-xl p-3 space-y-2">
-                        <button data-target="kompas" class="nav-item active-nav w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🧭</span><div><p class="font-semibold">Analysis Dashboard</p><p class="text-xs opacity-70">Matic - Analis Pro - Mixer</p></div></button>
+                        <button data-target="kompas" class="nav-item active-nav w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🎛️</span><div><p class="font-semibold">Analysis Dashboard</p><p class="text-xs opacity-70">Matic - Analis Pro - Mixer</p></div></button>
                         <button data-target="konfluensi" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🤝</span><div><p class="font-semibold">Confluence Dashboard</p><p class="text-xs opacity-70">Analisa VPVR & MA</p></div></button>
                         <!-- [MODIFIED] Tombol Chart Live dihapus -->
                         <button data-target="eksekusi" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🔬</span><div><p class="font-semibold">HITUNG P/L</p><p class="text-xs opacity-70">Kalkulator & Simulasi</p></div></button>
@@ -198,9 +198,13 @@
                     </div>
                     <!-- [MODIFIED] Elemen Harga Live dipindahkan ke sini -->
                     <div class="text-right lg:col-span-1">
-                        <span class="text-sm text-slate-400">Harga Saat Ini:</span>
-                        <p id="live-price-display" class="text-2xl font-bold text-sky-400">Loading...</p>
+                    <div> <span class="text-sm text-slate-400">Harga Saat Ini:</span>
+                        <p id="live-price-display" class="text-xl font-bold text-sky-400">Loading...</p>
                     </div>
+                    <div class="mt-2"> <span class="text-sm text-slate-400">Funding / Countdown:</span>
+                        <p id="funding-info-display" class="text-lg font-bold text-amber-400">Loading...</p>
+                    </div>
+                </div>
                 </div>
 
                 <div id="kompas" class="section active space-y-6">
@@ -565,13 +569,13 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     
     const COPILOT_TF_CONFIG = {
-        '5m-1m': { kompas: '5m', eksekusi: '1m', label: '5M-1M Super Scalp', htf: '15m' },
-        '15m-1m': { kompas: '15m', eksekusi: '1m', label: '15M-1M Scalp', htf: '1h' },
-        '1h-5m': { kompas: '1h', eksekusi: '5m', label: '1H-5M Scalp & Day', htf: '4h' },
-        '1h-15m': { kompas: '1h', eksekusi: '15m', label: '1H-15M Day', htf: '4h' },
-        '4h-15m': { kompas: '4h', eksekusi: '15m', label: '4H-15M Save Day', htf: '1d' },
-        '4h-1h': { kompas: '4h', eksekusi: '1h', label: '4H-1H Save Day', htf: '1d' },
-        '1d-4h': { kompas: '1d', eksekusi: '4h', label: '1D-4H Swing', htf: '1w' }
+        '5m-1m': { kompas: '5m', eksekusi: '1m', label: '15M-5M-1M', htf: '15m' },
+        '15m-1m': { kompas: '15m', eksekusi: '1m', label: '1H-15M-1M', htf: '1h' },
+        '1h-5m': { kompas: '1h', eksekusi: '5m', label: '1H-5M', htf: '4h' },
+        '1h-15m': { kompas: '1h', eksekusi: '15m', label: '4H-1H-15M', htf: '4h' },
+        '4h-15m': { kompas: '4h', eksekusi: '15m', label: '1D-4H-15M', htf: '1d' },
+        '4h-1h': { kompas: '4h', eksekusi: '1h', label: '1D-4H-1H', htf: '1d' },
+        '1d-4h': { kompas: '1d', eksekusi: '4h', label: '1W-4H', htf: '1w' }
         
     };
 
@@ -631,6 +635,7 @@ document.addEventListener('DOMContentLoaded', function () {
         runAnalysisBtnText: document.getElementById('runAnalysisBtn-text'),
         spinner: document.getElementById('loading-spinner'),
         livePriceDisplay: document.getElementById('live-price-display'),
+        fundingInfoDisplay: document.getElementById('funding-info-display'),
         kompas: { 
             title: document.getElementById('kompas-title'),
             description: document.getElementById('kompas-description')
@@ -1272,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', function () {
         repopulateTimeframeSelect();
         updateUI();
         startLivePrice(); // [MODIFIED] Memulai update harga saat halaman dimuat
+        startFundingInfoUpdate();
     }
 
     function addEventListeners() {
@@ -1342,11 +1348,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function handleStateChange() { 
         if(currentState.isTradeActive) { showNotification('Tidak bisa ganti setelan saat trade aktif!', true); ui.assetSelect.value = currentState.activeTrade.asset.ticker; return; } 
         stopLivePrice(); 
+        stopFundingInfoUpdate();
         currentState.asset = ASSET_CONFIG[ui.assetSelect.value]; 
         currentState.timeframeKey = ui.tfSelect.value;
         resetAll(); 
         updateUI(); 
         startLivePrice(); // [MODIFIED] Memulai kembali update harga untuk aset baru
+        startFundingInfoUpdate();
     }
 
     function handleModeChange(e) {
@@ -1446,7 +1454,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (analysisMode === 'copilot') {
             tfConfig = COPILOT_TF_CONFIG[timeframeKey];
-            title = `🧭 Dasbor Co-Pilot (Matic)`;
+            title = `🧭 Matic Panel 🎚️`;
             description = `Jalankan analisa untuk menghitung Trade Opportunity Score (TOS) berdasarkan kombinasi TF ${tfConfig.label}.`;
             btnText = `Hitung TOS untuk ${tfConfig.label}`;
             if(ui.eksekusi.findEntryBtn) ui.eksekusi.findEntryBtn.style.display = 'flex';
@@ -1454,13 +1462,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else if (analysisMode === 'pro') {
             tfConfig = PRO_TF_CONFIG[timeframeKey];
-            title = `🏎️ Dasbor Analis Pro (F1)`;
+            title = `🎯 Pro Panel 🎯`;
             description = `Jalankan analisa 3-TF untuk mendapatkan sintesis keselarasan pasar pada kombinasi ${tfConfig.label}.`;
             btnText = `Mulai Analisa 3-TF`;
             if(ui.eksekusi.findEntryBtn) ui.eksekusi.findEntryBtn.style.display = 'none';
         } else if (analysisMode === 'mixer') {
             tfConfig = MIXER_TF_CONFIG[timeframeKey];
-            title = `⚛️ Dasbor Analyzer Mixer`;
+            title = `🏹 Mixer Panel 🏹`;
             description = `Analisa pamungkas yang menggabungkan sinkronisasi 3-TF & skoring TOS untuk sinyal super jitu pada kombinasi ${tfConfig.label}.`;
             btnText = `Jalankan Analisa Mixer`;
             ui.runAnalysisBtn.className = 'btn-action w-full bg-purple-600 hover:bg-purple-700 text-white font-bold p-4 rounded-lg flex items-center justify-center space-x-2';
@@ -1641,7 +1649,60 @@ document.addEventListener('DOMContentLoaded', function () {
         konfluensi_ui.assetSelect.addEventListener('change', konfluensi_updateDashboard);
         konfluensi_updateDashboard();
     }
-    
+    async function startFundingInfoUpdate() {
+    if (currentState.fundingInfoInterval) return; // Mencegah interval ganda
+
+    async function updateFundingData() {
+        try {
+            // Fetch funding info. Premium Index provides real-time funding rate and next funding time.
+            const data = await fetchPublicAPI('fapi/v1/premiumIndex', { symbol: currentState.asset.ticker });
+
+            const fundingRate = parseFloat(data.lastFundingRate);
+            const nextFundingTime = parseInt(data.nextFundingTime); // Timestamp dalam milidetik
+
+            // Hitung countdown
+            const now = Date.now();
+            const timeLeftMs = nextFundingTime - now;
+
+            if (timeLeftMs < 0) { // Jika waktu sudah lewat, mungkin API belum update untuk periode berikutnya
+                ui.fundingInfoDisplay.textContent = 'Menghitung ulang...';
+                // Mungkin perlu fetch ulang atau menunggu update dari API
+                return;
+            }
+
+            const hours = Math.floor(timeLeftMs / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeftMs % (1000 * 60)) / 1000);
+
+            const countdownText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            let fundingRateColorClass = 'text-slate-400';
+            if (fundingRate > 0.0001) { // Positive funding rate, long pays short
+                fundingRateColorClass = 'text-rose-400';
+            } else if (fundingRate < -0.0001) { // Negative funding rate, short pays long
+                fundingRateColorClass = 'text-emerald-400';
+            }
+
+            ui.fundingInfoDisplay.innerHTML = `<span class="${fundingRateColorClass}">${(fundingRate * 100).toFixed(4)}%</span> / ${countdownText}`;
+
+        } catch (e) {
+            console.error("Gagal update Funding Info:", e);
+            ui.fundingInfoDisplay.textContent = 'Error';
+            stopFundingInfoUpdate(); // Hentikan update jika ada error
+        }
+    }
+
+    // Jalankan update pertama kali dan set interval
+    await updateFundingData();
+    currentState.fundingInfoInterval = setInterval(updateFundingData, 1000); // Update setiap 1 detik untuk countdown
+}
+
+function stopFundingInfoUpdate() {
+    if (currentState.fundingInfoInterval) {
+        clearInterval(currentState.fundingInfoInterval);
+        currentState.fundingInfoInterval = null;
+    }
+}
     // Initial global startup
     initialize();
 });
