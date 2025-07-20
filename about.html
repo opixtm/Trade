@@ -1302,8 +1302,6 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
 
     binanceWebSocket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-
-        // Menangani pesan error spesifik dari Binance (misal: simbol tidak valid)
         if (data.error) {
             console.error('WebSocket Error:', data.error.msg);
             if (statusIndicator) {
@@ -1311,13 +1309,10 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
                 statusIndicator.title = `Error: ${data.error.msg}`;
             }
             binanceWebSocket.close();
-            // Tampilkan pesan error di UI utama juga
             proyeksiOutput.innerHTML = `<p class="text-red-400">Gagal terhubung ke data live: ${data.error.msg}</p>`;
             hideLoader();
             return;
         }
-
-        // Memproses data harga yang masuk
         if (data.s && data.s.toLowerCase() === lastFetchedSymbol && data.a) { 
             const livePrice = parseFloat(data.a);
             if (!isNaN(livePrice)) {
@@ -1356,26 +1351,7 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
             }
         }
     };
-}
-        binanceWebSocket.onerror = (error) => {
-            console.error(`WebSocket Binance error:`, error);
-            showCustomMessage(`Kesalahan koneksi data live.`, 'error');
-            document.getElementById('proyeksi-live-price-container').classList.add('hidden');
-        };
-
-        binanceWebSocket.onclose = (event) => {
-            console.log(`WebSocket ditutup. Kode: ${event.code}`);
-            if (event.code !== 1000 && reconnectAttempts < 3) {
-                reconnectAttempts++;
-                console.log(`Mencoba menyambung kembali... (Percobaan ${reconnectAttempts}/3)`);
-                showCustomMessage(`Koneksi data live terputus. Mencoba menyambung kembali...`, 'info');
-                setTimeout(() => initBinanceWebSocket(lastFetchedSymbol), 5000); // Coba lagi setelah 5 detik
-            } else if (reconnectAttempts >= 3) {
-                 showCustomMessage(`Gagal menyambung kembali ke data live.`, 'error');
-                 hideLoader();
-            }
-        };
-    }
+} // <-- PASTIKAN KURUNG KURAWAL PENUTUP INI ADA
 
     async function startBacktest() {
         if (!backtestImageBase64) {
