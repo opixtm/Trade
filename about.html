@@ -134,7 +134,7 @@
         </a>
     </div>
 
-    <h1 class="text-2xl font-bold text-white">🚬<span class="text-blue-400">"AI"</span>PROJECTOR ☕️</h1>
+    <h1 class="text-2xl font-bold text-white">🚬<span class="text-blue-400">AI</span>📽️ ☕️</h1>
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
@@ -151,8 +151,8 @@
                     <div>
                         <!-- [FIX] Judul yang bisa diklik untuk toggle -->
                         <button id="toggle-upload-panel-btn" class="w-full flex justify-between items-center text-left mb-2">
-                            <h3 class="text-lg font-bold text-white">Mode Analisa</h3>
-                            <span id="toggle-upload-icon" class="transform transition-transform">▼</span>
+                            <h3 class="text-lg font-bold text-white">Mode Analisa Chart</h3>
+                            <span id="toggle-upload-icon" class="transform transition-transform">🔽</span>
                         </button>
                         
                         <!-- [FIX] Konten yang bisa disembunyikan -->
@@ -339,9 +339,9 @@
                     </div>
                     
                     <div id="proyeksi" class="tab-pane hidden">
-                        <h3 class="text-xl font-bold text-white mb-4">Analisa Proyeksi Harga Kripto</h3>
+                        <h3 class="text-xl font-bold text-white mb-4">Analisa Proyeksi dan Kondisi Aktual </h3>
                         <div class="bg-gray-900 p-4 rounded-lg">
-                            <p class="text-gray-300 mb-4">Dapatkan proyeksi harga untuk aset kripto berdasarkan analisis AI komprehensif. AI akan berusaha mencari data *real-time*.</p>
+                            <p class="text-gray-300 mb-4">Gue analisa aset apa saja...😎</p>
                             <div class="flex flex-col sm:flex-row gap-4">
                                 <input type="text" id="proyeksi-asset-input" list="asset-list" class="kalkulator-input flex-grow" placeholder="Ketik atau pilih aset: BTCUSDT, ETHUSDT...">
                                 <datalist id="asset-list">
@@ -363,6 +363,8 @@
                             </div>
                         </div>
                     </div>
+
+                
 
                     <div id="konfluensi" class="tab-pane hidden">
                         <div class="bg-gray-900 p-4 rounded-lg mb-6">
@@ -1133,87 +1135,104 @@ async function startPriceProjection() {
         const posisiBb1d = indicatorPositions1d.bb, posisiEma501d = indicatorPositions1d.ema;
 
         showLoader(`Menganalisa proyeksi untuk ${assetSymbol}...`);
+
+        const formatKlinesForPrompt = (klines, name) => {
+            if (!klines || klines.length === 0) return `Data K-line ${name}: Tidak tersedia.\n`;
+            const recentKlines = klines.slice(-100);
+            const header = `Data K-line ${name} (Timestamp, Open, High, Low, Close):\n`;
+            const dataString = recentKlines.map(k => 
+                `${k[0]}, ${k[1]}, ${k[2]}, ${k[3]}, ${k[4]}`
+            ).join('\n');
+            return header + dataString + '\n';
+        };
+
+        const klines1hForPrompt = formatKlinesForPrompt(klines1h, '1 Jam');
+        const klines4hForPrompt = formatKlinesForPrompt(klines4h, '4 Jam');
         
         const prompt = `Anda adalah seorang Analis Kuantitatif & Ahli Sentimen Pasar untuk aset kripto. Anda sangat mahir dalam mensintesis berbagai data menjadi saran trading yang logis, aman, dan jitu. Seluruh respons Anda WAJIB dalam Bahasa Indonesia.
 
-Tugas Anda adalah memberikan analisa holistik untuk aset \`${assetSymbol}\`.
+            Tugas Anda adalah memberikan analisa holistik untuk aset \`${assetSymbol}\`.
 
-Berikut adalah DATA PASAR TERKINI yang telah divalidasi dan WAJIB Anda gunakan sebagai dasar utama analisa:
+            Berikut adalah DATA PASAR TERKINI yang telah divalidasi dan WAJIB Anda gunakan sebagai dasar utama analisa:
 
-**1. Data Harga & Volume:**
-* **Harga Saat Ini:** ${hargaSaatAnalisa} USD
-* **Volume 24 Jam:** ${volume24h} USD (Ini adalah ${volumePercentage}% dari rata-rata volume 7 hari terakhir).
+            **1. Data Harga & Volume:**
+            * **Harga Saat Ini:** ${hargaSaatAnalisa} USD
+            * **Volume 24 Jam:** ${volume24h} USD (Ini adalah ${volumePercentage}% dari rata-rata volume 7 hari terakhir).
 
-**2. Data Sentimen Pasar:**
-* **Open Interest:** ${openInterest} USD (Total uang di pasar).
-* **Rasio Long/Short (Umum):** ${lsRatioUmum} (Sentimen trader ritel).
-* **Rasio Long/Short (Top Trader):** ${lsRatioTopTrader} (Sentimen 'smart money').
-* **Funding Rate:** ${fundingRate} (Biaya posisi & sentimen jangka pendek).
-* **Countdown Funding Berikutnya:** ${countdownFunding}.
+            **2. Data Sentimen Pasar:**
+            * **Open Interest:** ${openInterest} USD (Total uang di pasar).
+            * **Rasio Long/Short (Umum):** ${lsRatioUmum} (Sentimen trader ritel).
+            * **Rasio Long/Short (Top Trader):** ${lsRatioTopTrader} (Sentimen 'smart money').
+            * **Funding Rate:** ${fundingRate} (Biaya posisi & sentimen jangka pendek).
+            * **Countdown Funding Berikutnya:** ${countdownFunding}.
 
-**3. Data Indikator Teknis Multi-Timeframe:**
-* **15 Menit:** RSI=${rsi15m}, Posisi BB='${posisiBb15m}', Posisi vs EMA50='${posisiEma5015m}'.
-* **1 Jam:** RSI=${rsi1h}, Posisi BB='${posisiBb1h}', Posisi vs EMA50='${posisiEma501h}'.
-* **4 Jam:** RSI=${rsi4h}, Posisi BB='${posisiBb4h}', Posisi vs EMA50='${posisiEma504h}'.
-* **1 Hari:** RSI=${rsi1d}, Posisi BB='${posisiBb1d}', Posisi vs EMA50='${posisiEma501d}'.
+            **3. Data Indikator Teknis Multi-Timeframe:**
+            * **15 Menit:** RSI=${rsi15m}, Posisi BB='${posisiBb15m}', Posisi vs EMA50='${posisiEma5015m}'.
+            * **1 Jam:** RSI=${rsi1h}, Posisi BB='${posisiBb1h}', Posisi vs EMA50='${posisiEma501h}'.
+            * **4 Jam:** RSI=${rsi4h}, Posisi BB='${posisiBb4h}', Posisi vs EMA50='${posisiEma504h}'.
+            * **1 Hari:** RSI=${rsi1d}, Posisi BB='${posisiBb1d}', Posisi vs EMA50='${posisiEma501d}'.
 
-**INSTRUKSI UTAMA:**
-Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dalam format JSON yang valid dan terstruktur di bawah ini. Jangan menambahkan teks atau penjelasan lain di luar format JSON.
+            **4. Data K-Line Mentah untuk Analisa Struktur Pasar:**
+            ${klines4hForPrompt}
+            ${klines1hForPrompt}
 
-{
-  "saran_bagi_pemilik_aset": "string (Pilih salah satu: TAHAN, JUAL, TAMBAH, KURANGI SEBAGIAN)",
-  "alasan_saran_pemilik": "string (Alasan singkat dan logis berdasarkan data)",
-  "saran_bagi_non_pemilik": "string (Contoh: BELI di area xxxx-yyyy USD atau TUNGGU KONFIRMASI)",
-  "alasan_saran_non_pemilik": "string (Jelaskan mengapa area tersebut ideal atau mengapa harus menunggu)",
-  "analisa_kondisi_saat_ini": {
-    "volatilitas": "string (Rendah, Sedang, atau Tinggi)",
-    "sentimen_keseluruhan": "string (Jelaskan kesimpulan dari data Volume, Long/Short Ratio, dan Funding Rate)",
-    "detail_indikator_per_timeframe": [
-      {
-        "timeframe": "15 Menit",
-        "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 15 Menit)"
-      },
-      {
-        "timeframe": "1 Jam",
-        "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 1 Jam)"
-      },
-      {
-        "timeframe": "4 Jam",
-        "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 4 Jam)"
-      },
-      {
-        "timeframe": "1 Hari",
-        "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 1 Hari)"
-      }
-    ],
-    "kesimpulan_indikator": "string (Setelah merinci per timeframe, baru berikan kesimpulan gabungannya di sini)"
-  },
-  "analisa_smc": {
-    "order_block_bullish": "string (WAJIB ANALISA. Berdasarkan data k-line yang ada, berikan estimasi terbaikmu untuk rentang harga OB Bullish terdekat. Jika sulit, jelaskan mengapa, contoh: 'Tidak ada OB jelas karena pasar ranging, namun area support terdekat di $XXXX bisa menjadi acuan')",
-    "order_block_bearish": "string (WAJIB ANALISA. Berdasarkan data k-line yang ada, berikan estimasi terbaikmu untuk rentang harga OB Bearish terdekat. Jika sulit, jelaskan mengapa)",
-    "fair_value_gap": "string (WAJIB ANALISA. Berdasarkan data k-line yang ada, berikan estimasi terbaikmu untuk rentang harga FVG terdekat yang berpotensi diisi. Jika sulit, jelaskan mengapa)",
-    "liquidity_pools": "string (WAJIB ANALISA. Berdasarkan data k-line yang ada, berikan estimasi terbaikmu untuk level harga liquidity pool terdekat, misal 'Equal Highs di $XXXX'. Jika sulit, jelaskan mengapa)",
-    "kesimpulan_smc": "string (Simpulkan narasi pasar berdasarkan temuan SMC di atas. Ke mana harga kemungkinan besar akan bergerak untuk mengambil likuiditas atau memitigasi zona?)"
-  },
-  "proyeksi_lengkap": [
-    {
-      "periode": "Jangka Pendek (1-7 hari)",
-      "target_harga": "string",
-      "alasan": "string"
-    },
-    {
-      "periode": "Jangka Menengah (1-4 minggu)",
-      "target_harga": "string",
-      "alasan": "string"
-    },
-    {
-      "periode": "Jangka Panjang (1-6 bulan)",
-      "target_harga": "string",
-      "alasan": "string"
-    }
-  ]
-}
-`;
+            **INSTRUKSI UTAMA:**
+            Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dalam format JSON yang valid dan terstruktur di bawah ini. Jangan menambahkan teks atau penjelasan lain di luar format JSON.
+
+            {
+            "saran_bagi_pemilik_aset": "string (Pilih salah satu: TAHAN, JUAL, TAMBAH, KURANGI SEBAGIAN)",
+            "alasan_saran_pemilik": "string (Alasan singkat dan logis berdasarkan data)",
+            "saran_bagi_non_pemilik": "string (Contoh: BELI di area xxxx-yyyy USD atau TUNGGU KONFIRMASI)",
+            "alasan_saran_non_pemilik": "string (Jelaskan mengapa area tersebut ideal atau mengapa harus menunggu)",
+            "analisa_kondisi_saat_ini": {
+                "volatilitas": "string (Rendah, Sedang, atau Tinggi)",
+                "sentimen_keseluruhan": "string (Jelaskan kesimpulan dari data Volume, Long/Short Ratio, dan Funding Rate)",
+                "detail_indikator_per_timeframe": [
+                {
+                    "timeframe": "15 Menit",
+                    "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 15 Menit)"
+                },
+                {
+                    "timeframe": "1 Jam",
+                    "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 1 Jam)"
+                },
+                {
+                    "timeframe": "4 Jam",
+                    "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 4 Jam)"
+                },
+                {
+                    "timeframe": "1 Hari",
+                    "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 1 Hari)"
+                }
+                ],
+                "kesimpulan_indikator": "string (Setelah merinci per timeframe, baru berikan kesimpulan gabungannya di sini)"
+            },
+            "analisa_smc": {
+                "order_block_bullish": "string (WAJIB ANALISA. Gunakan data k-line mentah yang disediakan di atas untuk menemukan rentang harga OB Bullish terdekat. Jangan menjawab 'tidak ada data' atau 'tidak dapat ditentukan'.)",
+                "order_block_bearish": "string (WAJIB ANALISA. Gunakan data k-line mentah yang disediakan di atas untuk menemukan rentang harga OB Bearish terdekat. Jangan menjawab 'tidak ada data' atau 'tidak dapat ditentukan'.)",
+                "fair_value_gap": "string (WAJIB ANALISA. Gunakan data k-line mentah yang disediakan di atas untuk menemukan rentang harga FVG terdekat yang berpotensi diisi. Jangan menjawab 'tidak ada data' atau 'tidak dapat ditentukan'.)",
+                "liquidity_pools": "string (WAJIB ANALISA. Gunakan data k-line mentah yang disediakan di atas untuk menemukan level harga liquidity pool terdekat. Jangan menjawab 'tidak ada data' atau 'tidak dapat ditentukan'.)",
+                "kesimpulan_smc": "string (Simpulkan narasi pasar berdasarkan temuan SMC di atas. Ke mana harga kemungkinan besar akan bergerak untuk mengambil likuiditas atau memitigasi zona?)"
+            },
+            "proyeksi_lengkap": [
+                {
+                "periode": "Jangka Pendek (1-7 hari)",
+                "target_harga": "string",
+                "alasan": "string"
+                },
+                {
+                "periode": "Jangka Menengah (1-4 minggu)",
+                "target_harga": "string",
+                "alasan": "string"
+                },
+                {
+                "periode": "Jangka Panjang (1-6 bulan)",
+                "target_harga": "string",
+                "alasan": "string"
+                }
+            ]
+            }
+            `;
         const jsonText = await callGemini([{ text: prompt }], true);
         const data = cleanAndParseJson(jsonText);
         
@@ -1228,24 +1247,48 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
 
              let resultsHtml = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <h4 class="font-bold text-lg text-white mb-2">Untuk Pemilik Aset</h4>
+                    <div class="bg-black-800 p-4 rounded-lg">
+                        <h4 class="font-bold text-lg text-white mb-2">Pemilik Aset</h4>
                         <p class="font-bold text-xl ${getSaranColor(data.saran_bagi_pemilik_aset || '')}">${data.saran_bagi_pemilik_aset || '-'}</p>
                         <p class="text-sm text-gray-400 mt-1">${data.alasan_saran_pemilik || '-'}</p>
                     </div>
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <h4 class="font-bold text-lg text-white mb-2">Untuk Non-Pemilik Aset (Cek ke 🤝 KONFLUENSI)</h4>
+                    <div class="bg-black-800 p-4 rounded-lg">
+                        <h4 class="font-bold text-lg text-white mb-2">Calon Pembeli Aset (Cek ke 🤝 KONFLUENSI)</h4>
                         <p class="font-bold text-xl ${getSaranColor(data.saran_bagi_non_pemilik || '')}">${data.saran_bagi_non_pemilik || '-'}</p>
                         <p class="text-sm text-gray-400 mt-1">${data.alasan_saran_non_pemilik || '-'}</p>
                     </div>
                 </div>
 
                 <div class="bg-gray-800 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-lg text-white mb-3">Analisa Kondisi Pasar</h4>
+                    <h4 class="font-bold text-lg text-white mb-3">Analisa Kondisi Pasar Saat Ini</h4>
                     <div class="space-y-3 text-sm">
-                        <p><strong class="text-gray-400 w-32 inline-block">Volatilitas:</strong> ${data.analisa_kondisi_saat_ini?.volatilitas || '-'}</p>
-                        <p><strong class="text-gray-400 w-32 inline-block">Sentimen Pasar:</strong> ${data.analisa_kondisi_saat_ini?.sentimen_keseluruhan || '-'}</p>
+                        <p><strong class="text-white-900 w-32 inline-block">Volatilitas:</strong> ${data.analisa_kondisi_saat_ini?.volatilitas || '-'}</p>
+                        <p><strong class="text-white-900 w-32 inline-block">Sentimen Pasar:</strong> ${data.analisa_kondisi_saat_ini?.sentimen_keseluruhan || '-'}</p>
                     </div>
+                    <div class="mt-4 pt-4 border-t border-gray-700 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-5 text-sm">
+                        <div>
+                            <span class="text-gray-400 block">Volume 24j</span>
+                            <strong class="text-white">${volume24h} USD</strong>
+                            <span class="text-xs ${parseFloat(volumePercentage) < 0 ? 'text-red-400' : 'text-green-400'}">(${volumePercentage}%)</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block">Open Interest</span>
+                            <strong class="text-white">${openInterest} USD</strong>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block">Funding Rate</span>
+                            <strong class="text-white">${fundingRate}</strong>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block">L/S Ratio (Umum)</span>
+                            <strong class="text-white">${lsRatioUmum}</strong>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block">L/S Ratio (Top)</span>
+                            <strong class="text-white">${lsRatioTopTrader}</strong>
+                        </div>
+                    </div>
+
                     <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
                         <strong class="text-gray-400 block mb-2">Detail Indikator per Timeframe:</strong>
                         ${(data.analisa_kondisi_saat_ini?.detail_indikator_per_timeframe || []).map(tf => `
