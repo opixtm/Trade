@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Co-pilot CHART "AI" v6.0 (Reverted)</title>
+    <title>PROJECTOR</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -113,6 +114,13 @@
         .use-projection-btn:hover {
             background-color: #1d4ed8;
         }
+
+        /* Dasbor Konfluensi Styles */
+        .status-uptrend { color: #34d399; }
+        .status-downtrend { color: #f43f5e; }
+        .status-chop { color: #fbbf24; }
+        .blinking-text-animation { animation: blinking-text 1.8s infinite; }
+        @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     </style>
 </head>
 <body class="antialiased">
@@ -126,7 +134,7 @@
         </a>
     </div>
 
-    <h1 class="text-2xl font-bold text-white">🛞<span class="text-blue-400">"AI"</span> enhanced</h1>
+    <h1 class="text-2xl font-bold text-white">🚬<span class="text-blue-400">"AI"</span>PROJECTOR ☕️</h1>
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
@@ -181,9 +189,10 @@
                         <p class="text-xs text-gray-400 mt-1">Kunci akan disimpan secara lokal di browser Anda. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-300 font-bold">Dapatkan Kunci di sini (Gratis)</a>.</p>
                     </div>
                     <div class="flex flex-wrap border-b border-gray-700">
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">ANALYSIS</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">CALC</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="proyeksi">📈 Proyeksi</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">ANALISIS</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">KALKULATOR</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="proyeksi">📈 PROYEKSI</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="konfluensi">🤝 KONFLUENSI</button>
                     </div>
                 </div>
 
@@ -333,7 +342,7 @@
                                     <option value="XRPUSDT">
                                     <option value="1000PEPEUSDT">
                                 </datalist>
-                                <button id="generate-proyeksi-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition">📊 GO 🏁</button>
+                                <button id="generate-proyeksi-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition">⏩️</button>
                             </div>
                             <div id="proyeksi-output" class="mt-6">
                                 <div id="proyeksi-placeholder" class="text-center text-gray-500 p-8"><p>Masukkan simbol aset dan klik "Analisa Proyeksi" untuk melihat hasil.</p></div>
@@ -344,6 +353,53 @@
                             </div>
                         </div>
                     </div>
+
+                    <div id="konfluensi" class="tab-pane hidden">
+                        <div class="bg-gray-900 p-4 rounded-lg mb-6">
+                            <div class="flex flex-wrap justify-between items-center gap-4">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-white">🤝 Dasbor Konfluensi</h2>
+                                    <p class="text-yellow-500">Analisa berdasarkan VPVR, MA, RSI, Stochastic RSI, MACD & Pola Candlestick.</p>
+                                </div>
+                                <div class="flex items-center gap-4 flex-wrap">
+                                    <div class="flex items-center gap-2">
+                                        <label for="konfluensi_asset" class="text-sm font-medium text-gray-400">Aset:</label>
+                                        <input type="text" id="konfluensi_asset" list="asset-list" class="kalkulator-input !w-auto" placeholder="Pilih aset...">
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <label for="konfluensi_timeframe" class="text-sm font-medium text-gray-400">Timeframe:</label>
+                                        <select id="konfluensi_timeframe" class="kalkulator-input !w-auto">
+                                            <option value="1m">1 Menit</option><option value="3m">3 Menit</option><option value="15m">15 Menit</option><option value="1h" selected>1 Jam</option><option value="4h">4 Jam</option><option value="1d">1 Hari</option>
+                                        </select>
+                                    </div>
+                                    <button id="konfluensi_run_btn" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg">Analisa</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            <section class="lg:col-span-3 bg-gray-900 p-2 md:p-4 rounded-lg min-h-[500px] flex items-center justify-center">
+                                <div id="konfluensi_chartLoader" class="text-center"><p class="text-gray-500">Pilih aset dan timeframe, lalu klik "Analisa".</p></div>
+                                <div id="konfluensi_chartDiv" class="w-full h-full" style="visibility: hidden;"></div>
+                            </section>
+                            <aside class="flex flex-col gap-6">
+                                <div class="bg-gray-900 p-4 rounded-lg"><h2 class="text-lg font-bold text-blue-400 mb-2">PUTUSAN (KONFLUENSI)</h2><div id="konfluensi_verdictLoader" class="text-gray-400 hidden">Menganalisis...</div><p id="konfluensi_verdictText" class="text-gray-300">Hasil akan muncul di sini.</p></div>
+                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-semibold text-white mb-3">Volume Profile (VPVR)</h3><div class="space-y-2 text-sm"><div class="flex justify-between items-center"><span class="text-gray-400">Value Area High (VAH)</span><span id="konfluensi_vahValue" class="font-mono font-medium text-red-400">-</span></div><div class="flex justify-between items-center"><span class="text-gray-400">Point of Control (POC)</span><span id="konfluensi_pocValue" class="font-mono font-bold text-blue-400">-</span></div><div class="flex justify-between items-center"><span class="text-gray-400">Value Area Low (VAL)</span><span id="konfluensi_valValue" class="font-mono font-medium text-green-400">-</span></div></div></div>
+                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-semibold text-white mb-3">Validasi Tren (SMA 20/50)</h3><div id="konfluensi_maStatusContainer" class="space-y-2 text-sm"><p class="text-gray-500">Menunggu...</p></div></div>
+                                <!-- [MODIFIKASI] Card baru untuk Oscillator -->
+                                <div class="bg-gray-900 p-4 rounded-lg">
+                                    <h3 class="font-semibold text-white mb-3">Analisa Momentum (Oscillator)</h3>
+                                    <div id="konfluensi_oscillator_container" class="space-y-2 text-sm">
+                                        <div class="flex justify-between items-center"><span class="text-gray-400">RSI (14)</span><div><span id="konfluensi_rsi_value" class="font-mono font-medium">-</span><span id="konfluensi_rsi_status" class="text-xs font-bold ml-2">-</span></div></div>
+                                        <div class="flex justify-between items-center"><span class="text-gray-400">Stoch RSI (%K/%D)</span><div><span id="konfluensi_stoch_value" class="font-mono font-medium">-</span><span id="konfluensi_stoch_status" class="text-xs font-bold ml-2">-</span></div></div>
+                                        <div class="flex justify-between items-center"><span class="text-gray-400">MACD Cross</span><span id="konfluensi_macd_cross" class="font-mono font-bold">-</span></div>
+                                        <div class="flex justify-between items-center"><span class="text-gray-400">MACD Histogram</span><span id="konfluensi_macd_hist" class="font-mono font-medium">-</span></div>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-semibold text-white mb-3">Pemicu Sinyal Candlestick</h3><div id="konfluensi_patternDisplay" class="text-center p-2 rounded-md bg-gray-800"><p class="text-gray-500 font-medium">BELUM ADA</p></div></div>
+                            </aside>
+                        </div>
+                    </div>
+
 
                 </div>
             </main>
@@ -425,6 +481,7 @@ const calculateRSI = (closes, period = 14) => {
     let ltfImageBase64 = null;
     let latestAnalysisData = null;
     let pricePrecision = 4; // Default presisi harga
+    let isKonfluensiInitialized = false;
     
     // --- SELEKSI ELEMEN DOM ---
     const apiKeyInput = document.getElementById('api-key-input');
@@ -1167,7 +1224,7 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
                         <p class="text-sm text-gray-400 mt-1">${data.alasan_saran_pemilik || '-'}</p>
                     </div>
                     <div class="bg-gray-800 p-4 rounded-lg">
-                        <h4 class="font-bold text-lg text-white mb-2">Untuk Non-Pemilik Aset</h4>
+                        <h4 class="font-bold text-lg text-white mb-2">Untuk Non-Pemilik Aset (Cek ke 🤝 KONFLUENSI)</h4>
                         <p class="font-bold text-xl ${getSaranColor(data.saran_bagi_non_pemilik || '')}">${data.saran_bagi_non_pemilik || '-'}</p>
                         <p class="text-sm text-gray-400 mt-1">${data.alasan_saran_non_pemilik || '-'}</p>
                     </div>
@@ -1242,6 +1299,191 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
         }, 3000);
     }
 
+    // --- KONFLUENSI DASHBOARD LOGIC ---
+    function initializeKonfluensiDashboard() {
+        const konfluensi_ui = { 
+            assetInput: document.getElementById('konfluensi_asset'), 
+            timeframeSelect: document.getElementById('konfluensi_timeframe'), 
+            runBtn: document.getElementById('konfluensi_run_btn'),
+            chartDiv: document.getElementById('konfluensi_chartDiv'), 
+            chartLoader: document.getElementById('konfluensi_chartLoader'), 
+            verdictText: document.getElementById('konfluensi_verdictText'), 
+            verdictLoader: document.getElementById('konfluensi_verdictLoader'), 
+            vahValue: document.getElementById('konfluensi_vahValue'), 
+            pocValue: document.getElementById('konfluensi_pocValue'), 
+            valValue: document.getElementById('konfluensi_valValue'), 
+            maStatusContainer: document.getElementById('konfluensi_maStatusContainer'), 
+            patternDisplay: document.getElementById('konfluensi_patternDisplay'),
+            // [MODIFIKASI] Tambah UI untuk oscillator
+            rsiValue: document.getElementById('konfluensi_rsi_value'),
+            rsiStatus: document.getElementById('konfluensi_rsi_status'),
+            stochValue: document.getElementById('konfluensi_stoch_value'),
+            stochStatus: document.getElementById('konfluensi_stoch_status'),
+            macdCross: document.getElementById('konfluensi_macd_cross'),
+            macdHist: document.getElementById('konfluensi_macd_hist'),
+        };
+        // [MODIFIKASI] Tambah state untuk oscillator
+        let konfluensi_state = { klines: [], vpvr: {}, trendStatus: {}, pattern: {}, lastClose: 0, rsi: {}, stoch: {}, macd: {} };
+
+        // --- [BARU] Fungsi Kalkulasi Oscillator ---
+        const calculateStochasticRSI = (closes, rsiPeriod = 14, stochPeriod = 14, kPeriod = 3, dPeriod = 3) => {
+            if (closes.length < rsiPeriod + stochPeriod) return { k: 0, d: 0 };
+            let rsiValues = [];
+            let gains = [], losses = [];
+            for (let i = 1; i < closes.length; i++) {
+                const diff = closes[i] - closes[i-1];
+                if (diff >= 0) { gains.push(diff); losses.push(0); } else { gains.push(0); losses.push(Math.abs(diff)); }
+            }
+            let avgGain = gains.slice(0, rsiPeriod).reduce((a, b) => a + b, 0) / rsiPeriod;
+            let avgLoss = losses.slice(0, rsiPeriod).reduce((a, b) => a + b, 0) / rsiPeriod;
+            rsiValues.push(100 - (100 / (1 + (avgGain / avgLoss))));
+            for (let i = rsiPeriod; i < gains.length; i++) {
+                avgGain = (avgGain * (rsiPeriod - 1) + gains[i]) / rsiPeriod;
+                avgLoss = (avgLoss * (rsiPeriod - 1) + losses[i]) / rsiPeriod;
+                if (avgLoss === 0) rsiValues.push(100);
+                else rsiValues.push(100 - (100 / (1 + (avgGain / avgLoss))));
+            }
+            if (rsiValues.length < stochPeriod) return { k: 0, d: 0 };
+            let kValues = [];
+            for (let i = stochPeriod - 1; i < rsiValues.length; i++) {
+                const slice = rsiValues.slice(i - stochPeriod + 1, i + 1);
+                const lowestRSI = Math.min(...slice);
+                const highestRSI = Math.max(...slice);
+                const currentRSI = rsiValues[i];
+                const k = highestRSI === lowestRSI ? 100 : ((currentRSI - lowestRSI) / (highestRSI - lowestRSI)) * 100;
+                kValues.push(k);
+            }
+            if (kValues.length < dPeriod) return { k: kValues.pop() || 0, d: 0 };
+            const lastK = kValues.pop() || 0;
+            const dSlice = kValues.slice(-dPeriod + 1);
+            dSlice.push(lastK);
+            const lastD = dSlice.reduce((a, b) => a + b, 0) / dPeriod;
+            return { k: lastK, d: lastD };
+        };
+        const calculateMACD = (closes, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) => {
+            if (closes.length < slowPeriod + signalPeriod) return { macdLine: 0, signalLine: 0, histogram: 0 };
+            const emaFast = calculateEMA(closes, fastPeriod);
+            const emaSlow = calculateEMA(closes, slowPeriod);
+            const macdLineValues = emaFast.slice(slowPeriod - fastPeriod).map((val, i) => val - emaSlow[i]);
+            if (macdLineValues.length < signalPeriod) return { macdLine: 0, signalLine: 0, histogram: 0 };
+            const signalLineValues = calculateEMA(macdLineValues, signalPeriod);
+            const macdLine = macdLineValues.pop() || 0;
+            const signalLine = signalLineValues.pop() || 0;
+            const histogram = macdLine - signalLine;
+            return { macdLine, signalLine, histogram };
+        };
+
+        async function konfluensi_fetchRealData(symbol, interval) { try { return await fetchBinanceAPIData('klines', { symbol, interval, limit: 1000 }); } catch (error) { console.error("Fetch Error:", error); konfluensi_ui.chartLoader.innerHTML = `<p class="text-red-400">Error: ${error.message}.</p>`; return null; } }
+        function getPrecisionForAsset(price) { if (price > 1000) return 2; if (price > 1) return 4; if (price > 0.001) return 7; return 8; }
+        function konfluensi_calculateVPVR(klines) { if (!klines || klines.length === 0) return { poc: 0, vah: 0, val: 0 }; let volumeProfile = {}; let minPrice = Infinity, maxPrice = -Infinity; klines.forEach(kline => { minPrice = Math.min(minPrice, parseFloat(kline[3])); maxPrice = Math.max(maxPrice, parseFloat(kline[2])); }); const priceRange = maxPrice - minPrice; const tickSize = 0.01; const numLevels = Math.min(50, Math.floor(priceRange / tickSize)); const levelSize = priceRange / numLevels; if (levelSize <= 0) return { poc: parseFloat(klines[klines.length-1][4]), vah: parseFloat(klines[klines.length-1][4])*1.01, val: parseFloat(klines[klines.length-1][4])*0.99 }; for (let i = 0; i <= numLevels; i++) { const levelPrice = minPrice + i * levelSize; volumeProfile[levelPrice] = 0; } klines.forEach(kline => { const closePrice = parseFloat(kline[4]); const volume = parseFloat(kline[5]); const priceLevel = minPrice + Math.floor((closePrice - minPrice) / levelSize) * levelSize; if(volumeProfile[priceLevel] !== undefined) { volumeProfile[priceLevel] += volume; } }); let totalVolume = 0; let pocPrice = 0, maxVolume = 0; for (const price in volumeProfile) { totalVolume += volumeProfile[price]; if (volumeProfile[price] > maxVolume) { maxVolume = volumeProfile[price]; pocPrice = parseFloat(price); } } const targetVolume = totalVolume * 0.70; let currentVolume = 0; let sortedLevels = Object.entries(volumeProfile).sort((a,b) => b[1] - a[1]); let valueAreaLevels = []; for (const [price, volume] of sortedLevels) { currentVolume += volume; valueAreaLevels.push(parseFloat(price)); if(currentVolume >= targetVolume) break; } const vah = Math.max(...valueAreaLevels); const val = Math.min(...valueAreaLevels); return { poc: pocPrice, vah, val }; }
+        function konfluensi_calculateSMA(closes, period) { if (closes.length < period) return 0; const slice = closes.slice(-period); return slice.reduce((a, b) => a + b, 0) / period; }
+        function konfluensi_calculateTrendStatus(klines) { if (klines.length < 50) return { status: 'CHOP', sma20: 0, sma50: 0 }; const closes = klines.map(k => parseFloat(k[4])); const sma20 = konfluensi_calculateSMA(closes, 20); const sma50 = konfluensi_calculateSMA(closes, 50); const status = sma20 > sma50 ? 'UPTREND' : (sma20 < sma50 ? 'DOWNTREND' : 'CHOP'); return { status, sma20, sma50 }; }
+        function konfluensi_findEngulfingPattern(klines) { if (!klines || klines.length < 2) return { pattern: 'BELUM DITEMUKAN' }; const last = klines[klines.length - 1].map(parseFloat); const prev = klines[klines.length - 2].map(parseFloat); const [lastOpen, lastClose] = [last[1], last[4]]; const [prevOpen, prevClose] = [prev[1], prev[4]]; const isLastBullish = lastClose > lastOpen; const isPrevBullish = prevClose > prevOpen; const lastBody = Math.abs(lastClose - lastOpen); const prevBody = Math.abs(prevClose - prevOpen); if (isPrevBullish && !isLastBullish && lastBody > prevBody && lastClose < prevOpen && lastOpen > prevClose) { return { pattern: 'BEARISH ENGULFING' }; } if (!isPrevBullish && isLastBullish && lastBody > prevBody && lastClose > prevOpen && lastOpen < prevClose) { return { pattern: 'BULLISH ENGULFING' }; } return { pattern: 'BELUM DITEMUKAN' }; }
+        function konfluensi_renderChart(symbol, interval) { const trace = { x: konfluensi_state.klines.map(k => new Date(parseInt(k[0]))), open: konfluensi_state.klines.map(k => parseFloat(k[1])), high: konfluensi_state.klines.map(k => parseFloat(k[2])), low: konfluensi_state.klines.map(k => parseFloat(k[3])), close: konfluensi_state.klines.map(k => parseFloat(k[4])), type: 'candlestick', name: symbol, increasing: { line: { color: '#34d399' } }, decreasing: { line: { color: '#ef4444' } } }; const layout = { title: { text: `${symbol} - ${interval.toUpperCase()}`, font: { color: '#d1d5db' } }, xaxis: { rangeslider: { visible: false }, gridcolor: '#374151' }, yaxis: { title: 'Harga', gridcolor: '#374151' }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: '#1f2937', font: { color: '#d1d5db', family: 'Inter' }, shapes: [ { type: 'line', x0: new Date(parseInt(konfluensi_state.klines[0][0])), y0: konfluensi_state.vpvr.vah, x1: new Date(parseInt(konfluensi_state.klines[konfluensi_state.klines.length - 1][0])), y1: konfluensi_state.vpvr.vah, line: { color: '#ef4444', width: 2, dash: 'dash' } }, { type: 'line', x0: new Date(parseInt(konfluensi_state.klines[0][0])), y0: konfluensi_state.vpvr.poc, x1: new Date(parseInt(konfluensi_state.klines[konfluensi_state.klines.length - 1][0])), y1: konfluensi_state.vpvr.poc, line: { color: '#3b82f6', width: 3 } }, { type: 'line', x0: new Date(parseInt(konfluensi_state.klines[0][0])), y0: konfluensi_state.vpvr.val, x1: new Date(parseInt(konfluensi_state.klines[konfluensi_state.klines.length - 1][0])), y1: konfluensi_state.vpvr.val, line: { color: '#22c55e', width: 2, dash: 'dash' } }, ] }; Plotly.react(konfluensi_ui.chartDiv, [trace], layout, { responsive: true, displaylogo: false }); }
+        function konfluensi_renderVPVR() { const precision = getPrecisionForAsset(konfluensi_state.lastClose); konfluensi_ui.vahValue.textContent = konfluensi_state.vpvr.vah.toFixed(precision); konfluensi_ui.pocValue.textContent = konfluensi_state.vpvr.poc.toFixed(precision); konfluensi_ui.valValue.textContent = konfluensi_state.vpvr.val.toFixed(precision); }
+        function konfluensi_renderMATable() { konfluensi_ui.maStatusContainer.innerHTML = ''; const { status } = konfluensi_state.trendStatus; const colorClass = status === 'UPTREND' ? 'status-uptrend' : (status === 'DOWNTREND' ? 'status-downtrend' : 'status-chop'); const icon = status === 'UPTREND' ? '▲' : (status === 'DOWNTREND' ? '▼' : '▬'); const row = document.createElement('div'); row.className = 'flex justify-between items-center'; row.innerHTML = `<span class="text-gray-400">Tren</span><span class="font-mono font-bold ${colorClass}">${icon} ${status}</span>`; konfluensi_ui.maStatusContainer.appendChild(row); }
+        function konfluensi_renderPattern() { const { pattern } = konfluensi_state.pattern; konfluensi_ui.patternDisplay.innerHTML = ''; const p = document.createElement('p'); p.className = 'font-bold'; if (pattern !== 'BELUM DITEMUKAN') { p.textContent = pattern; p.classList.add('blinking-text-animation'); if (pattern === 'BULLISH ENGULFING') p.classList.add('text-green-400'); if (pattern === 'BEARISH ENGULFING') p.classList.add('text-red-400'); } else { p.textContent = 'TIDAK ADA'; p.classList.add('text-gray-500'); } konfluensi_ui.patternDisplay.appendChild(p); }
+        
+        // [MODIFIKASI] Render function baru untuk oscillator
+        function konfluensi_renderOscillators() {
+            const { rsi, stoch, macd } = konfluensi_state;
+            konfluensi_ui.rsiValue.textContent = rsi.value.toFixed(2);
+            konfluensi_ui.rsiStatus.textContent = rsi.status;
+            konfluensi_ui.rsiStatus.className = `text-xs font-bold ml-2 ${rsi.class}`;
+            konfluensi_ui.stochValue.textContent = `${stoch.k.toFixed(1)}/${stoch.d.toFixed(1)}`;
+            konfluensi_ui.stochStatus.textContent = stoch.status;
+            konfluensi_ui.stochStatus.className = `text-xs font-bold ml-2 ${stoch.class}`;
+            konfluensi_ui.macdCross.textContent = macd.cross;
+            konfluensi_ui.macdCross.className = `font-mono font-bold ${macd.crossClass}`;
+            konfluensi_ui.macdHist.textContent = macd.histStatus;
+            konfluensi_ui.macdHist.className = `font-mono font-medium ${macd.histClass}`;
+        }
+        
+        // [MODIFIKASI] Logika verdict diperbarui
+        function konfluensi_renderVerdict() {
+            const { vpvr, pattern, trendStatus, lastClose, rsi, stoch, macd } = konfluensi_state;
+            let bullishScore = 0, bearishScore = 0;
+            if (lastClose < vpvr.val * 1.005) bullishScore += 2;
+            if (lastClose > vpvr.vah * 0.995) bearishScore += 2;
+            if (Math.abs(lastClose - vpvr.poc) / vpvr.poc < 0.005) { bullishScore++; bearishScore++; }
+            if (trendStatus.status === 'UPTREND') bullishScore += 2;
+            if (trendStatus.status === 'DOWNTREND') bearishScore += 2;
+            if (pattern.pattern === 'BULLISH ENGULFING') bullishScore += 3;
+            if (pattern.pattern === 'BEARISH ENGULFING') bearishScore += 3;
+            if (rsi.status === 'Oversold') bullishScore += 2;
+            if (rsi.status === 'Overbought') bearishScore += 2;
+            if (stoch.status === 'Oversold') bullishScore++;
+            if (stoch.status === 'Overbought') bearishScore++;
+            if (macd.cross === 'BULLISH') bullishScore += 2;
+            if (macd.cross === 'BEARISH') bearishScore += 2;
+            if (macd.histStatus === 'NAIK') bullishScore++;
+            if (macd.histStatus === 'TURUN') bearishScore++;
+            let verdict = '';
+            if (bullishScore >= 8 && bullishScore > bearishScore * 2) {
+                verdict = `<strong class="text-green-400">SINYAL BELI KUAT.</strong> Konfluensi dari ${bullishScore} poin bullish terdeteksi.`;
+            } else if (bearishScore >= 8 && bearishScore > bullishScore * 2) {
+                verdict = `<strong class="text-red-400">SINYAL JUAL KUAT.</strong> Konfluensi dari ${bearishScore} poin bearish terdeteksi.`;
+            } else if (bullishScore > bearishScore + 2) {
+                verdict = `<strong class="text-blue-400">SIAGA BELI.</strong> Ada bias bullish (${bullishScore} vs ${bearishScore}), tapi tunggu konfirmasi lebih lanjut.`;
+            } else if (bearishScore > bullishScore + 2) {
+                verdict = `<strong class="text-yellow-400">SIAGA JUAL.</strong> Ada bias bearish (${bearishScore} vs ${bullishScore}), tapi tunggu konfirmasi lebih lanjut.`;
+            } else {
+                verdict = `<strong>STANDBY.</strong> Pasar netral atau sinyal bercampur. Jangan paksakan trading.`;
+            }
+            konfluensi_ui.verdictText.innerHTML = verdict;
+            konfluensi_ui.verdictText.style.display = 'block';
+            konfluensi_ui.verdictLoader.style.display = 'none';
+        }
+
+        async function konfluensi_updateDashboard() { 
+            const symbol = konfluensi_ui.assetInput.value.trim().toUpperCase();
+            if (!symbol) { showCustomMessage("Harap pilih atau ketik simbol aset.", "error"); return; }
+            konfluensi_ui.chartDiv.style.visibility = 'hidden'; 
+            konfluensi_ui.chartLoader.style.display = 'flex'; 
+            konfluensi_ui.chartLoader.innerHTML = `<div class="loader mx-auto"></div><p class="mt-4 text-gray-400">Memuat data pasar...</p>`;
+            konfluensi_ui.verdictLoader.style.display = 'block'; 
+            konfluensi_ui.verdictText.style.display = 'none'; 
+            const interval = konfluensi_ui.timeframeSelect.value; 
+            konfluensi_state.klines = await konfluensi_fetchRealData(symbol, interval); 
+            if (!konfluensi_state.klines) { konfluensi_ui.verdictText.textContent = "Gagal memuat data."; konfluensi_ui.verdictText.style.display = 'block'; konfluensi_ui.verdictLoader.style.display = 'none'; return; } 
+            
+            const closes = konfluensi_state.klines.map(k => parseFloat(k[4]));
+            konfluensi_state.lastClose = closes[closes.length - 1];
+            
+            // Calculate all indicators
+            konfluensi_state.vpvr = konfluensi_calculateVPVR(konfluensi_state.klines); 
+            konfluensi_state.trendStatus = konfluensi_calculateTrendStatus(konfluensi_state.klines); 
+            konfluensi_state.pattern = konfluensi_findEngulfingPattern(konfluensi_state.klines); 
+            
+            const rsiValue = parseFloat(calculateRSI(closes));
+            konfluensi_state.rsi = { value: rsiValue, status: rsiValue > 70 ? 'Overbought' : (rsiValue < 30 ? 'Oversold' : 'Netral'), class: rsiValue > 70 ? 'text-red-400' : (rsiValue < 30 ? 'text-green-400' : 'text-gray-400') };
+            
+            const stochValues = calculateStochasticRSI(closes);
+            konfluensi_state.stoch = { k: stochValues.k, d: stochValues.d, status: stochValues.k > 80 ? 'Overbought' : (stochValues.k < 20 ? 'Oversold' : 'Netral'), class: stochValues.k > 80 ? 'text-red-400' : (stochValues.k < 20 ? 'text-green-400' : 'text-gray-400') };
+
+            const macdValues = calculateMACD(closes);
+            const prevMacd = calculateMACD(closes.slice(0, -1));
+            let crossStatus = "TIDAK ADA";
+            let crossClass = "text-gray-400";
+            if(prevMacd.macdLine < prevMacd.signalLine && macdValues.macdLine > macdValues.signalLine) { crossStatus = "BULLISH"; crossClass = "text-green-400"; }
+            if(prevMacd.macdLine > prevMacd.signalLine && macdValues.macdLine < macdValues.signalLine) { crossStatus = "BEARISH"; crossClass = "text-red-400"; }
+            konfluensi_state.macd = { ...macdValues, cross: crossStatus, crossClass, histStatus: macdValues.histogram > 0 ? 'NAIK' : 'TURUN', histClass: macdValues.histogram > 0 ? 'text-green-400' : 'text-red-400' };
+
+            // Render everything
+            konfluensi_renderChart(symbol, interval); 
+            konfluensi_renderVPVR(); 
+            konfluensi_renderMATable(); 
+            konfluensi_renderPattern(); 
+            konfluensi_renderOscillators();
+            konfluensi_renderVerdict(); 
+            
+            konfluensi_ui.chartLoader.style.display = 'none'; 
+            konfluensi_ui.chartDiv.style.visibility = 'visible'; 
+        }
+        
+        konfluensi_ui.runBtn.addEventListener('click', konfluensi_updateDashboard);
+    }
+
     // --- INISIALISASI EVENT LISTENERS ---
     apiKeyInput.addEventListener('input', () => {
         localStorage.setItem('valhallaUltimateApiKey', apiKeyInput.value);
@@ -1259,10 +1501,13 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
             button.classList.add('active');
-            document.getElementById(button.getAttribute('data-tab')).classList.remove('hidden');
+            const tabId = button.getAttribute('data-tab');
+            document.getElementById(tabId).classList.remove('hidden');
 
-            if (button.getAttribute('data-tab') !== 'proyeksi' && binanceWebSocket) {
-                binanceWebSocket.close();
+            // [MODIFIKASI] Panggil fungsi konfluensi saat tab diklik pertama kali
+            if (tabId === 'konfluensi' && !isKonfluensiInitialized) {
+                initializeKonfluensiDashboard();
+                isKonfluensiInitialized = true;
             }
         });
     });
