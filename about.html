@@ -146,15 +146,9 @@
 <div class="flex-grow flex flex-col md:flex-row p-4 gap-4">
 
             <aside class="w-full md:w-1/3 lg:w-1/4 flex flex-col gap-4">
-                <div>
-                    <!-- [MODIFIKASI] Judul diubah menjadi tombol -->
-                    <button id="toggle-upload-panel-btn" class="w-full flex justify-between items-center text-left mb-2">
-                        <h3 class="text-lg font-bold text-white">Mode Analisa Chart</h3>
-                        <span id="toggle-upload-icon" class="transform transition-transform">▼</span>
-                    </button>
-                    
-                    <!-- [MODIFIKASI] Konten dibungkus dalam div baru -->
-                    <div id="upload-panel-content" class="transition-all duration-300 ease-in-out overflow-hidden">
+                 <div class="bg-gray-800 rounded-lg p-4 flex flex-col gap-4 shadow-md flex-grow">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">Mode Analisa</h3>
                         <p class="text-xs text-gray-400 mb-4">
                             <span class="font-bold">Mode Standar:</span> Cukup isi LTF. <br/>
                             <span class="font-bold">Mode MTF Presisi:</span> Isi HTF & LTF.
@@ -178,7 +172,9 @@
                             <label for="ltf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar LTF</label>
                         </div>
                     </div>
-                </div>
+                    
+                    <button id="analyze-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-500 disabled:cursor-not-allowed text-lg">ANALISA SEKARANG</button>
+                 </div>
             </aside>
 
             <main class="w-full md:w-2/3 lg:w-3/4 bg-gray-800 rounded-lg p-2 sm:p-4 shadow-md flex flex-col relative">
@@ -1489,27 +1485,6 @@ Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dal
     }
 
     // --- INISIALISASI EVENT LISTENERS ---
-    // [BARU] Logika untuk toggle panel upload
-    const toggleUploadBtn = document.getElementById('toggle-upload-panel-btn');
-    const uploadPanelContent = document.getElementById('upload-panel-content');
-    const toggleUploadIcon = document.getElementById('toggle-upload-icon');
-
-    // Atur panel agar tertutup saat pertama kali dimuat
-    uploadPanelContent.style.maxHeight = '0';
-    toggleUploadIcon.style.transform = 'rotate(-90deg)';
-
-    toggleUploadBtn.addEventListener('click', () => {
-        const isPanelOpen = uploadPanelContent.style.maxHeight !== '0px';
-        if (isPanelOpen) {
-            uploadPanelContent.style.maxHeight = '0';
-            toggleUploadIcon.style.transform = 'rotate(-90deg)';
-        } else {
-            uploadPanelContent.style.maxHeight = uploadPanelContent.scrollHeight + 'px';
-            toggleUploadIcon.style.transform = 'rotate(0deg)';
-        }
-    });
-
-    
     apiKeyInput.addEventListener('input', () => {
         localStorage.setItem('valhallaUltimateApiKey', apiKeyInput.value);
         checkEnableAnalyzeButton();
