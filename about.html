@@ -495,7 +495,16 @@
                                     <div class="flex items-center gap-2">
                                         <label for="konfluensi_timeframe" class="text-sm font-medium text-gray-400">Timeframe:</label>
                                         <select id="konfluensi_timeframe" class="kalkulator-input !w-auto">
-                                            <option value="1m">1 Menit</option><option value="3m">3 Menit</option><option value="15m">15 Menit</option><option value="1h" selected>1 Jam</option><option value="4h">4 Jam</option><option value="1d">1 Hari</option>
+                                            <option value="1m">1 Menit</option>
+                                            <option value="3m">3 Menit</option>
+                                            <option value="5m">5 Menit</option>
+                                            <option value="15m">15 Menit</option>
+                                            <option value="1h" selected>1 Jam</option>
+                                            <option value="2h">2 Jam</option>
+                                            <option value="4h">4 Jam</option>
+                                            <option value="6h">6 Jam</option>
+                                            <option value="12h">12 Jam</option>
+                                            <option value="1d">1 Hari</option>
                                         </select>
                                     </div>
                                     <button id="konfluensi_run_btn" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg">Analisa</button>
@@ -1563,27 +1572,27 @@ async function startPriceProjection() {
     }
 
     // --- KONFLUENSI DASHBOARD LOGIC ---
-    function initializeKonfluensiDashboard() {
-        const konfluensi_ui = { 
-            assetInput: document.getElementById('konfluensi_asset'), 
-            timeframeSelect: document.getElementById('konfluensi_timeframe'), 
-            runBtn: document.getElementById('konfluensi_run_btn'),
-            chartDiv: document.getElementById('konfluensi_chartDiv'), 
-            chartLoader: document.getElementById('konfluensi_chartLoader'), 
-            verdictText: document.getElementById('konfluensi_verdictText'), 
-            verdictLoader: document.getElementById('konfluensi_verdictLoader'), 
-            vahValue: document.getElementById('konfluensi_vahValue'), 
-            pocValue: document.getElementById('konfluensi_pocValue'), 
-            valValue: document.getElementById('konfluensi_valValue'), 
-            maStatusContainer: document.getElementById('konfluensi_maStatusContainer'), 
-            patternDisplay: document.getElementById('konfluensi_patternDisplay'),
-            // [MODIFIKASI] Tambah UI untuk oscillator
-            rsiValue: document.getElementById('konfluensi_rsi_value'),
-            rsiStatus: document.getElementById('konfluensi_rsi_status'),
-            stochValue: document.getElementById('konfluensi_stoch_value'),
-            stochStatus: document.getElementById('konfluensi_stoch_status'),
-            macdCross: document.getElementById('konfluensi_macd_cross'),
-            macdHist: document.getElementById('konfluensi_macd_hist'),
+        function initializeKonfluensiDashboard() {
+            const konfluensi_ui = { 
+                assetInput: document.getElementById('konfluensi_asset'), 
+                timeframeSelect: document.getElementById('konfluensi_timeframe'), 
+                runBtn: document.getElementById('konfluensi_run_btn'),
+                chartDiv: document.getElementById('konfluensi_chartDiv'), 
+                chartLoader: document.getElementById('konfluensi_chartLoader'), 
+                verdictText: document.getElementById('konfluensi_verdictText'), 
+                verdictLoader: document.getElementById('konfluensi_verdictLoader'), 
+                vahValue: document.getElementById('konfluensi_vahValue'), 
+                pocValue: document.getElementById('konfluensi_pocValue'), 
+                valValue: document.getElementById('konfluensi_valValue'), 
+                maStatusContainer: document.getElementById('konfluensi_maStatusContainer'), 
+                patternDisplay: document.getElementById('konfluensi_patternDisplay'),
+                // [MODIFIKASI] Tambah UI untuk oscillator
+                rsiValue: document.getElementById('konfluensi_rsi_value'),
+                rsiStatus: document.getElementById('konfluensi_rsi_status'),
+                stochValue: document.getElementById('konfluensi_stoch_value'),
+                stochStatus: document.getElementById('konfluensi_stoch_status'),
+                macdCross: document.getElementById('konfluensi_macd_cross'),
+                macdHist: document.getElementById('konfluensi_macd_hist'),
         };
         // [MODIFIKASI] Tambah state untuk oscillator
         let konfluensi_state = { klines: [], vpvr: {}, trendStatus: {}, pattern: {}, lastClose: 0, rsi: {}, stoch: {}, macd: {} };
@@ -1743,7 +1752,7 @@ async function startPriceProjection() {
             konfluensi_ui.chartLoader.style.display = 'none'; 
             konfluensi_ui.chartDiv.style.visibility = 'visible'; 
         }
-        
+        konfluensi_ui.timeframeSelect.addEventListener('change', konfluensi_updateDashboard);
         konfluensi_ui.runBtn.addEventListener('click', konfluensi_updateDashboard);
     }
 
