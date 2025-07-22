@@ -416,6 +416,37 @@
                                          <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
                                             <p><strong class="text-gray-400">Kesimpulan Indikator:</strong> <span id="proj-kesimpulan-indikator">-</span></p>
                                         </div>
+                                        <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
+                                            <strong class="text-gray-400 block mb-2">Analisa Tambahan (Volume & Fundamental):</strong>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                                                
+                                                <div>
+                                                    <span class="text-blue-400 font-semibold">VWAP Status:</span>
+                                                    <span id="proj-vwap-status">-</span>
+                                                </div>
+                                                
+                                                <div>
+                                                    <span class="text-blue-400 font-semibold">OBV Trend:</span>
+                                                    <span id="proj-obv-trend">-</span>
+                                                </div>
+
+                                                <div class="md:col-span-2">
+                                                    <span class="text-blue-400 font-semibold">Kategori Proyek:</span>
+                                                    <span id="proj-kategori">-</span>
+                                                </div>
+
+                                                <div class="md:col-span-2">
+                                                    <span class="text-blue-400 font-semibold">Aktivitas Dev:</span>
+                                                    <span id="proj-dev-activity">-</span>
+                                                </div>
+
+                                                <div class="md:col-span-2">
+                                                    <span class="text-blue-400 font-semibold">Tokenomics:</span>
+                                                    <span id="proj-tokenomics">-</span>
+                                                </div>
+
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -461,12 +492,12 @@
                                     <div id="keputusan-akhir-content" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-700">
                                             <div class="bg-black-800 p-4 rounded-lg">
-                                                <h4 class="font-bold text-lg text-white mb-2">Pemilik Aset</h4>
+                                                <h4 class="font-bold text-lg text-white mb-2">HOLDER</h4>
                                                 <p class="font-bold text-xl" id="proj-saran-pemilik"></p>
                                                 <p class="text-sm text-gray-400 mt-1" id="proj-alasan-pemilik"></p>
                                             </div>
                                             <div class="bg-black-800 p-4 rounded-lg">
-                                                <h4 class="font-bold text-lg text-white mb-2">Calon Pembeli Aset (Cek ke 🤝 KONFLUENSI)</h4>
+                                                <h4 class="font-bold text-lg text-white mb-2">CALON PEMBELI</h4>
                                                 <p class="font-bold text-xl" id="proj-saran-non-pemilik"></p>
                                                 <p class="text-sm text-gray-400 mt-1" id="proj-alasan-non-pemilik"></p>
                                             </div>
@@ -617,7 +648,44 @@ const calculateBollingerBands = (closes, period = 20, stdDevMultiplier = 2) => {
     };
 };
     
-    const calculateSMA = (data, period) => {
+// Fungsi untuk menghitung On-Balance Volume (OBV)
+const calculateOBV = (klines) => {
+    if (!klines || klines.length < 2) return [];
+    let obv = [0]; // Mulai OBV dari 0
+    for (let i = 1; i < klines.length; i++) {
+        const close = parseFloat(klines[i][4]);
+        const prevClose = parseFloat(klines[i - 1][4]);
+        const volume = parseFloat(klines[i][5]);
+        if (close > prevClose) {
+            obv.push(obv[i - 1] + volume);
+        } else if (close < prevClose) {
+            obv.push(obv[i - 1] - volume);
+        } else {
+            obv.push(obv[i - 1]);
+        }
+    }
+    return obv;
+};
+
+// Fungsi untuk menghitung Volume-Weighted Average Price (VWAP) untuk periode tertentu
+const calculateVWAP = (klines, period = 20) => {
+    if (!klines || klines.length < period) return 0;
+    const recentKlines = klines.slice(-period);
+    let totalTypicalPriceVolume = 0;
+    let totalVolume = 0;
+    recentKlines.forEach(k => {
+        const high = parseFloat(k[2]);
+        const low = parseFloat(k[3]);
+        const close = parseFloat(k[4]);
+        const volume = parseFloat(k[5]);
+        const typicalPrice = (high + low + close) / 3;
+        totalTypicalPriceVolume += typicalPrice * volume;
+        totalVolume += volume;
+    });
+    return totalVolume > 0 ? totalTypicalPriceVolume / totalVolume : 0;
+};
+
+const calculateSMA = (data, period) => {
     if (!data || data.length < period) return [];
     const sma = [];
     for (let i = period - 1; i < data.length; i++) {
@@ -643,6 +711,46 @@ const calculateRSI = (closes, period = 14) => {
             losses.push(Math.abs(diff));
         }
     }
+
+    // Fungsi untuk menghitung On-Balance Volume (OBV)
+const calculateOBV = (klines) => {
+    if (!klines || klines.length < 2) return [];
+    let obv = [0]; // Mulai OBV dari 0
+    for (let i = 1; i < klines.length; i++) {
+        const close = parseFloat(klines[i][4]);
+        const prevClose = parseFloat(klines[i - 1][4]);
+        const volume = parseFloat(klines[i][5]);
+        if (close > prevClose) {
+            obv.push(obv[i - 1] + volume);
+        } else if (close < prevClose) {
+            obv.push(obv[i - 1] - volume);
+        } else {
+            obv.push(obv[i - 1]);
+        }
+    }
+    return obv;
+};
+
+// Fungsi untuk menghitung Volume-Weighted Average Price (VWAP) untuk periode tertentu
+const calculateVWAP = (klines, period = 20) => {
+    if (!klines || klines.length < period) return 0;
+    const recentKlines = klines.slice(-period);
+    let totalTypicalPriceVolume = 0;
+    let totalVolume = 0;
+    recentKlines.forEach(k => {
+        const high = parseFloat(k[2]);
+        const low = parseFloat(k[3]);
+        const close = parseFloat(k[4]);
+        const volume = parseFloat(k[5]);
+        const typicalPrice = (high + low + close) / 3;
+        totalTypicalPriceVolume += typicalPrice * volume;
+        totalVolume += volume;
+    });
+    return totalVolume > 0 ? totalTypicalPriceVolume / totalVolume : 0;
+};
+
+// (Fungsi ADX lebih kompleks, namun logikanya dapat ditambahkan di sini)
+// Untuk saat ini, kita fokus pada OBV dan VWAP yang lebih mudah diimplementasikan.
 
     let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
     let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
@@ -1369,6 +1477,59 @@ async function startPriceProjection() {
             }
         }
 
+        const obvValues = calculateOBV(klines1d);
+        const lastObvValue = obvValues[obvValues.length-1];
+        const prevObvValue = obvValues[obvValues.length-2];
+        const obvTrend = lastObvValue > prevObvValue ? 'Naik' : 'Turun';
+
+        const vwap20d = calculateVWAP(klines1d, 20);
+        const vwapStatus = hargaSaatAnalisa > vwap20d ? 'Di Atas VWAP' : 'Di Bawah VWAP';
+
+        showLoader(`Mengambil data fundamental untuk ${assetSymbol}...`, proyeksiLoader, proyeksiLoaderText);
+        let fundamentalData = {
+            kategori: 'Tidak terdeteksi',
+            dev_activity: 'Tidak terdeteksi',
+            tokenomics: 'Tidak terdeteksi'
+        };
+
+        try {
+            // Peta untuk koin utama untuk menghindari kesalahan pencarian
+            const majorCoinMapping = {
+                'btc': 'bitcoin',
+                'eth': 'ethereum',
+                'sol': 'solana',
+                'bnb': 'binancecoin',
+                'xrp': 'ripple',
+                'doge': 'dogecoin',
+                'ada': 'cardano'
+            };
+
+            const assetSymbolOnly = assetSymbol.replace('USDT', '').toLowerCase();
+            let coinId = majorCoinMapping[assetSymbolOnly]; // Cek peta dulu
+
+            // Jika tidak ada di peta, baru cari di daftar lengkap
+            if (!coinId) {
+                const coinListResponse = await fetch('https://api.coingecko.com/api/v3/coins/list');
+                const coinList = await coinListResponse.json();
+                const coin = coinList.find(c => c.symbol === assetSymbolOnly);
+                if (coin) {
+                    coinId = coin.id;
+                }
+            }
+
+            if (coinId) {
+                const coinDataResponse = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=true`);
+                const coinData = await coinDataResponse.json();
+                
+                fundamentalData.kategori = coinData.categories?.join(', ') || 'N/A';
+                fundamentalData.dev_activity = `Commit 4 minggu: ${coinData.developer_data?.commit_count_4_weeks || 'N/A'}`;
+                fundamentalData.tokenomics = `Pasokan Beredar: ${coinData.market_data?.circulating_supply?.toLocaleString() || 'N/A'}, Total Pasokan: ${coinData.market_data?.total_supply?.toLocaleString() || 'N/A'}`;
+            }
+
+        } catch (e) {
+            console.error("Gagal mengambil data fundamental dari CoinGecko:", e);
+        }
+        
         showLoader(`Menganalisa proyeksi untuk ${assetSymbol}...`, proyeksiLoader, proyeksiLoaderText);
 
         const formatKlinesForPrompt = (klines, name) => {
@@ -1409,11 +1570,20 @@ async function startPriceProjection() {
             * **1 Jam:** RSI=${rsi1h}, Posisi BB='${posisiBb1h}', Posisi vs EMA50='${posisiEma501h}'.
             * **4 Jam:** RSI=${rsi4h}, Posisi BB='${posisiBb4h}', Posisi vs EMA50='${posisiEma504h}'.
             * **1 Hari:** RSI=${rsi1d}, Posisi BB='${posisiBb1d}', Posisi vs EMA50='${posisiEma501d}'.
-
-            **4. Data K-Line untuk Analisa Struktur Pasar & Pola:**
+            
+             **4. Analisis Indikator Berbasis Volume:**
+            * **VWAP (20-Day):** ${vwap20d.toFixed(getDecimalPlaces(hargaSaatAnalisa))} (Harga saat ini ${vwapStatus}).
+            * **Tren On-Balance Volume (OBV):** ${obvTrend}.
+            
+            **5. Data K-Line untuk Analisa Struktur Pasar & Pola:**
             ${klines1hForPrompt}
             ${klines4hForPrompt}
             ${klines1dForPrompt}
+
+            **6. Data Fundamental Proyek (dari CoinGecko):**
+            * **Kategori Proyek:** ${fundamentalData.kategori}
+            * **Aktivitas Pengembang:** ${fundamentalData.dev_activity}
+            * **Tokenomics:** ${fundamentalData.tokenomics}
 
             **INSTRUKSI UTAMA & STRUKTUR JSON (WAJIB DIPATUHI):**
             Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dalam format JSON yang valid dan terstruktur di bawah ini. Jangan menambahkan teks atau penjelasan lain di luar format JSON.
@@ -1541,6 +1711,13 @@ async function startPriceProjection() {
             projAlasanNonPemilik.textContent = data.alasan_saran_non_pemilik || '-';
 
             proyeksiDetailsOutput.classList.remove('hidden');
+
+            document.getElementById('proj-vwap-status').textContent = `${vwapStatus} (${vwap20d.toFixed(getDecimalPlaces(hargaSaatAnalisa))})`;
+            document.getElementById('proj-obv-trend').textContent = obvTrend;
+            document.getElementById('proj-kategori').textContent = fundamentalData.kategori;
+            document.getElementById('proj-dev-activity').textContent = fundamentalData.dev_activity;
+            document.getElementById('proj-tokenomics').textContent = fundamentalData.tokenomics;
+
             expandFirstProyeksiSection();
         }
 
