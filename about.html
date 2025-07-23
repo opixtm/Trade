@@ -125,6 +125,16 @@
         #api-key-input {
             width: 350px; /* Atur lebar yang diinginkan di sini */
         }
+        /* Rainbow Chart Colors */
+        .rainbow-fire-sale { background-color: #00008B; } /* Dark Blue */
+        .rainbow-buy { background-color: #1E90FF; } /* Dodger Blue */
+        .rainbow-accumulate { background-color: #3CB371; } /* Medium Sea Green */
+        .rainbow-still-cheap { background-color: #FFA500; } /* Orange */
+        .rainbow-hodl { background-color: #FFD700; } /* Gold */
+        .rainbow-is-bubble { background-color: #FF8C00; } /* Dark Orange */
+        .rainbow-fomo { background-color: #FF4500; } /* Orange Red */
+        .rainbow-sell { background-color: #DC143C; } /* Crimson */
+        .rainbow-max-bubble { background-color: #8B0000; } /* Dark Red */
     </style>
 </head>
 <body class="antialiased">
@@ -134,7 +144,7 @@
     
     <div class="absolute left-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-regular py-2 px-4 rounded transition-colors duration-300">
-            ANALYZER
+            COPILOT
         </a>
     </div>
 
@@ -142,7 +152,7 @@
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-regular py-2 px-4 rounded transition-colors duration-300">
-            BTC HISTORY
+            BACKTEST
         </a>
     </div>
 
@@ -524,6 +534,10 @@
                                             <p class="text-indigo-200 mt-2 text-sm">AI sedang menganalisa pertanyaan Anda...</p>
                                         </div>
                                         <div id="btc-special-output" class="mt-4 bg-gray-900 p-4 rounded-lg hidden whitespace-pre-wrap text-gray-300"></div>
+                                        
+                                        <div id="rainbow-chart-display" class="mt-4 p-4 rounded-lg text-center font-bold text-lg hidden">
+                                            <p>Rainbow Chart: <span id="rainbow-chart-zone"></span></p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -560,6 +574,9 @@
                                             <option value="1d">1 Hari</option>
                                         </select>
                                     </div>
+                                    
+                                    
+                                    
                                     <button id="konfluensi_run_btn" class="bg-sky-600 hover:bg-sky-700 text-white font-regular py-2 px-4 rounded-lg">Analisa</button>
                                 </div>
                             </div>
@@ -641,6 +658,94 @@
     </div>
 
 <script>
+/**
+ * =======================================================================
+ * BITCOIN RAINBOW CHART MODEL - SIAP DIGUNAKAN
+ * =======================================================================
+ * Objek ini berisi semua logika perhitungan Bitcoin Rainbow Chart.
+ * Cukup panggil metode `getBandForPrice` untuk mendapatkan hasilnya.
+ */
+const RainbowChartModel = {
+    // Parameter aktual yang diekstrak dari skrip Python Anda.
+    modelParams: {
+        startDate: '2010-08-16',
+        regression_A: 5.105700950832026,
+        regression_B: 403.7345058711526,
+        regression_C: -32.9118059328461,
+        bands: {
+            'Fire sale!':                 { offset: -0.45, label: 'Fire sale!' },
+            'BUY!':                       { offset: -0.15, label: 'BUY!' },
+            'Accumulate':                 { offset: 0.15,  label: 'Accumulate' },
+            'Still cheap':                { offset: 0.45,  label: 'Still cheap' },
+            'HODL!':                      { offset: 0.75,  label: 'HODL!' },
+            'Is this a bubble?':          { offset: 1.05,  label: 'Is this a bubble?' },
+            'FOMO Intensifies':           { offset: 1.35,  label: 'FOMO Intensifies' },
+            'Sell. Seriously, SELL!':     { offset: 1.65,  label: 'Sell. Seriously, SELL!' },
+            'Maximum bubble territory':   { offset: 1.95,  label: 'Maximum bubble territory' },
+        }
+    },
+
+    /**
+     * Menghitung jumlah hari dari tanggal mulai model hingga tanggal yang diberikan.
+     * @param {Date} targetDate - Tanggal target.
+     * @returns {number} - Jumlah hari.
+     */
+    _calculateDaysSinceStart(targetDate) {
+        const start = new Date(this.modelParams.startDate);
+        const diffTime = Math.abs(targetDate - start);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    },
+    
+    /**
+     * Menghitung nilai harga untuk semua pita warna pada hari tertentu.
+     * @param {number} days - Jumlah hari sejak awal model.
+     * @returns {Object} - Objek yang berisi harga untuk setiap pita.
+     */
+    _getBandPricesForDay(days) {
+        if (days <= 0) return {};
+        const { regression_A, regression_B, regression_C, bands } = this.modelParams;
+        
+        // Menggunakan formula yang benar: a * log(b + x) + c
+        const basePriceLog = regression_A * Math.log(regression_B + days) + regression_C;
+        
+        let bandPrices = {};
+        for (const bandName in bands) {
+            const bandOffset = bands[bandName].offset;
+            bandPrices[bandName] = Math.exp(basePriceLog + bandOffset);
+        }
+        return bandPrices;
+    },
+
+    /**
+     * Fungsi utama untuk mendapatkan pita warna Rainbow Chart berdasarkan harga saat ini.
+     * @param {number} currentPrice - Harga Bitcoin saat ini.
+     * @param {Date} [currentDate=new Date()] - Tanggal saat ini (opsional).
+     * @returns {Object} - Objek berisi nama dan label pita.
+     */
+    getBandForPrice(currentPrice, currentDate = new Date()) {
+        const days = this._calculateDaysSinceStart(currentDate);
+        const bandPrices = this._getBandPricesForDay(days);
+        
+        let determinedBand = 'Fire sale!'; // Default band terendah
+        
+        const sortedBands = Object.entries(this.modelParams.bands).sort((a, b) => a[1].offset - b[1].offset);
+
+        for (const [bandName] of sortedBands) {
+            if (currentPrice > bandPrices[bandName]) {
+                determinedBand = bandName;
+            } else {
+                break;
+            }
+        }
+        
+        const resultBand = this.modelParams.bands[determinedBand];
+        return {
+            name: determinedBand,
+            label: resultBand.label,
+        };
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // Tambahkan DUA fungsi ini di dekat fungsi bantuan lainnya
@@ -1373,50 +1478,130 @@ const calculateVWAP = (klines, period = 20) => {
             hideLoader();
         }
     }
+// =======================================================================
+// FUNGSI INI MENGGANTIKAN FUNGSI analyzeSpecialBTC YANG LAMA
+// =======================================================================
 async function analyzeSpecialBTC() {
     const questionInput = document.getElementById('btc-special-question');
     const question = questionInput.value.trim();
+    const outputDiv = document.getElementById('btc-special-output');
+    const loader = document.getElementById('btc-special-loader');
+    const askBtn = document.getElementById('ask-btc-btn');
+
+    // Define a mapping for rainbow band labels to CSS classes
+    const rainbowBandColors = {
+        'Fire sale!': 'rainbow-fire-sale',
+        'BUY!': 'rainbow-buy',
+        'Accumulate': 'rainbow-accumulate',
+        'Still cheap': 'rainbow-still-cheap',
+        'HODL!': 'rainbow-hodl',
+        'Is this a bubble?': 'rainbow-is-bubble',
+        'FOMO Intensifies': 'rainbow-fomo',
+        'Sell. Seriously, SELL!': 'rainbow-sell',
+        'Maximum bubble territory': 'rainbow-max-bubble',
+        'Basically a Fire-Sale': 'rainbow-fire-sale' // Tambahkan ini jika ada label berbeda
+    };
+
     if (!question) {
         showCustomMessage("Harap masukkan pertanyaan Anda terlebih dahulu.", "error");
         return;
     }
 
-    const loader = document.getElementById('btc-special-loader');
-    const outputDiv = document.getElementById('btc-special-output');
-    const askBtn = document.getElementById('ask-btc-btn');
-
-    loader.classList.remove('hidden');
+    // Sembunyikan semua output sebelumnya dan reset warna
+    // Sembunyikan output teks default (btc-special-output)
     outputDiv.classList.add('hidden');
+    
+    // Dapatkan elemen untuk menampilkan hasil Rainbow Chart dengan kotak
+    const rainbowDisplayDiv = document.getElementById('rainbow-chart-display');
+    const rainbowZoneSpan = document.getElementById('rainbow-chart-zone');
+    
+    // Sembunyikan elemen rainbow chart display secara default
+    rainbowDisplayDiv.classList.add('hidden'); 
+    
+    // Hapus semua kelas warna yang mungkin ada dari tampilan rainbow chart
+    Object.values(rainbowBandColors).forEach(cls => {
+        rainbowDisplayDiv.classList.remove(cls);
+    });
+    
+    // Hapus kelas warna teks
+    rainbowDisplayDiv.classList.remove('text-white'); // Bersihkan teks putih juga
+
+    // Tampilkan loader dan nonaktifkan tombol
+    loader.classList.remove('hidden');
     askBtn.disabled = true;
 
-    // Mengambil tanggal dan waktu saat ini untuk konteks AI
-    const now = new Date();
-    const currentTime = now.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'long', timeZone: 'Asia/Jakarta' });
+    // Cek jika pertanyaan mengandung kata kunci 'rainbow'
+    if (question.toLowerCase().includes('rainbow')) {
+        // --- BAGIAN LOGIKA RAINBOW CHART ---
+        try {
+            // Ambil harga BTC terkini
+            const priceTickerData = await fetchBinanceAPIData('ticker/price', { symbol: 'BTCUSDT' });
+            const btcPriceNow = parseFloat(priceTickerData.price);
 
-    const prompt = `
-        Anda adalah seorang analis makro-ekonomi khusus Bitcoin yang sangat berpengalaman. 
-        Konteks waktu saat ini adalah ${currentTime}.
+            // Panggil model Rainbow Chart kita
+            const result = RainbowChartModel.getBandForPrice(btcPriceNow);
+            
+            // Tampilkan hasilnya di elemen baru dengan kotak berwarna
+            rainbowZoneSpan.textContent = result.label;
+            const colorClass = rainbowBandColors[result.label];
+            if (colorClass) {
+                rainbowDisplayDiv.classList.add(colorClass); // Terapkan warna background
+                rainbowDisplayDiv.classList.remove('hidden'); // Tampilkan kotak
+                rainbowDisplayDiv.classList.add('text-white'); // Pastikan teks terlihat
+            } else {
+                // Fallback jika warna tidak ditemukan (misal: label baru ditambahkan ke model tapi belum di rainbowBandColors)
+                rainbowDisplayDiv.classList.add('bg-gray-700'); // Warna default jika tidak ada kecocokan
+                rainbowDisplayDiv.classList.remove('hidden');
+                rainbowDisplayDiv.classList.add('text-white'); 
+            }
 
-        Tugas Anda adalah menjawab pertanyaan pengguna tentang siklus Bitcoin. Gunakan seluruh pengetahuan Anda tentang data historis, siklus halving, model Stock-to-Flow, dan model Bitcoin Rainbow Chart untuk memberikan jawaban yang mendalam dan berbobot.
+        } catch (error) {
+            // Jika ada error di logika rainbow, tampilkan di outputDiv default
+            outputDiv.textContent = `Gagal menjalankan model Rainbow: ${error.message}`;
+            outputDiv.classList.remove('hidden'); // Tampilkan output default untuk error
+            outputDiv.classList.add('bg-gray-900'); // Pastikan background default untuk error
+            rainbowDisplayDiv.classList.add('hidden'); // Pastikan kotak rainbow disembunyikan jika ada error
+        } finally {
+            loader.classList.add('hidden');
+            askBtn.disabled = false;
+        }
 
-        PENTING: Anda tidak memiliki akses data real-time ke model seperti Rainbow Chart. Jadi, dalam jawaban Anda:
-        1. Beri disclaimer singkat bahwa analisa Anda berdasarkan prinsip model tersebut dan data pasar historis yang Anda ketahui hingga pembaruan terakhir.
-        2. Berikan jawaban terbaik berdasarkan prinsip tersebut. Misalnya, jika harga BTC saat ini (yang bisa Anda perkirakan berdasarkan pengetahuan umum) berada di level tertentu, jelaskan kira-kira itu masuk ke zona warna apa di Rainbow Chart dan apa artinya.
-        3. Jawab dengan format paragraf yang jelas dan mudah dibaca dalam Bahasa Indonesia.
+    } else {
+        // --- BAGIAN LOGIKA AI GEMINI (KODE LAMA ANDA) ---
+        try {
+            // Mengambil tanggal dan waktu saat ini untuk Konteks AI
+            const now = new Date();
+            const currentTime = now.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'long', timeZone: 'Asia/Jakarta' });
 
-        Pertanyaan dari pengguna adalah: "${question}"
-    `;
+            const prompt = `
+                Anda adalah seorang analis makro-ekonomi khusus Bitcoin yang sangat berpengalaman. 
+                Konteks waktu saat ini adalah ${currentTime}.
 
-    try {
-        const responseText = await callGemini([{ text: prompt }], false);
-        outputDiv.textContent = responseText;
-        outputDiv.classList.remove('hidden');
-    } catch (error) {
-        outputDiv.textContent = `Terjadi kesalahan saat meminta analisa AI: ${error.message}`;
-        outputDiv.classList.remove('hidden');
-    } finally {
-        loader.classList.add('hidden');
-        askBtn.disabled = false;
+                Tugas Anda adalah menjawab pertanyaan pengguna tentang siklus Bitcoin. Gunakan seluruh pengetahuan Anda tentang data historis, siklus halving, model Stock-to-Flow, dan prinsip Bitcoin Rainbow Chart untuk memberikan jawaban yang mendalam dan berbobot.
+                
+                PENTING: Anda tidak memiliki akses data real-time ke model seperti Rainbow Chart. Jadi, dalam jawaban Anda:
+                1. Beri disclaimer singkat bahwa analisa Anda berdasarkan prinsip model tersebut dan data pasar historis yang Anda ketahui hingga pembaruan terakhir.
+                2. Berikan jawaban terbaik berdasarkan prinsip tersebut. Misalnya, jika harga BTC saat ini (yang bisa Anda perkirakan berdasarkan pengetahuan umum) berada di level tertentu, jelaskan kira-kira itu masuk ke zona warna apa di Rainbow Chart dan apa artinya.
+                3. Jawab dengan format paragraf yang jelas dan mudah dibaca dalam Bahasa Indonesia.
+
+                Pertanyaan dari pengguna adalah: "${question}"
+            `;
+
+            const responseText = await callGemini([{ text: prompt }], false);
+            outputDiv.textContent = responseText;
+            outputDiv.classList.remove('hidden'); // Tampilkan output teks default
+            outputDiv.classList.add('bg-gray-900'); // Pastikan background default
+            rainbowDisplayDiv.classList.add('hidden'); // Pastikan kotak rainbow disembunyikan jika AI generatif yang tampil
+
+        } catch (error) {
+            outputDiv.textContent = `Terjadi kesalahan saat meminta analisa AI: ${error.message}`;
+            outputDiv.classList.remove('hidden');
+            outputDiv.classList.add('bg-gray-900');
+            rainbowDisplayDiv.classList.add('hidden'); // Pastikan kotak rainbow disembunyikan jika ada error
+        } finally {
+            loader.classList.add('hidden');
+            askBtn.disabled = false;
+        }
     }
 }
 // START: NEW/MODIFIED startPriceProjection function
