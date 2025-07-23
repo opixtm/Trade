@@ -121,6 +121,10 @@
         .status-chop { color: #fbbf24; }
         .blinking-text-animation { animation: blinking-text 1.8s infinite; }
         @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        #api-key-input {
+            width: 350px; /* Atur lebar yang diinginkan di sini */
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -129,15 +133,15 @@
         <header class="bg-gray-800/50 backdrop-blur-sm shadow-lg p-4 top-0 z-20 h-16 relative flex items-center justify-center">
     
     <div class="absolute left-4 top-1/2 -translate-y-1/2">
-        <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-300">
+        <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-regular py-2 px-4 rounded transition-colors duration-300">
             COPILOT
         </a>
     </div>
 
-    <h1 class="text-2xl font-bold text-white">🚬<span class="text-blue-400">AI</span>📽️ ☕️</h1>
+    <h1 class="text-2xl font-regular text-white">🚬<span class="text-blue-400">AI</span>📽️ ☕️</h1>
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
-        <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
+        <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-regular py-2 px-4 rounded transition-colors duration-300">
             BACKTEST
         </a>
     </div>
@@ -151,15 +155,15 @@
                     <div>
                         <!-- [FIX] Judul yang bisa diklik untuk toggle -->
                         <button id="toggle-upload-panel-btn" class="w-full flex justify-between items-center text-left mb-2">
-                            <h3 class="text-lg font-bold text-white">Mode Analisa Chart</h3>
+                            <h3 class="text-lg font-regular text-white">Mode Analisa Chart</h3>
                             <span id="toggle-upload-icon" class="transform transition-transform">🔽</span>
                         </button>
                         
                         <!-- [FIX] Konten yang bisa disembunyikan -->
                         <div id="upload-panel-content" class="transition-all duration-300 ease-in-out overflow-hidden">
                             <p class="text-xs text-gray-400 mb-4">
-                                <span class="font-bold">Mode Standar:</span> Cukup isi LTF. <br/>
-                                <span class="font-bold">Mode MTF Presisi:</span> Isi HTF & LTF.
+                                <span class="font-regular">Mode Standar:</span> Cukup isi LTF. <br/>
+                                <span class="font-regular">Mode MTF Presisi:</span> Isi HTF & LTF.
                             </p>
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-300 mb-1">1. Chart HTF (Tren Besar) <span class="text-gray-500 text-xs italic">- Opsional</span></label>
@@ -168,7 +172,7 @@
                                     <div id="htf-chart-placeholder" class="text-center text-gray-500 p-2 pointer-events-none"><p class="text-xs">Klik atau Drop gambar di sini</p></div>
                                 </div>
                                 <input type="file" id="htf-chart-upload" class="hidden" accept="image/*">
-                                <label for="htf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar HTF</label>
+                                <label for="htf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-regular py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar HTF</label>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-1">2. Chart LTF (Entry) <span class="text-green-400 text-xs italic">- Wajib</span></label>
@@ -177,32 +181,36 @@
                                     <div id="ltf-chart-placeholder" class="text-center text-gray-500 p-2 pointer-events-none"><p class="text-xs">Klik atau Drop gambar di sini</p></div>
                                 </div>
                                 <input type="file" id="ltf-chart-upload" class="hidden" accept="image/*">
-                                <label for="ltf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar LTF</label>
+                                <label for="ltf-chart-upload" class="mt-2 cursor-pointer w-full text-center bg-gray-600 text-white font-regular py-2 px-4 rounded-lg hover:bg-gray-700 transition block">Pilih Gambar LTF</label>
                             </div>
                         </div>
                     </div>
                     
                     <!-- [FIX] Tombol Analisa dipastikan ada di sini -->
-                    <button id="analyze-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-500 disabled:cursor-not-allowed text-lg">ANALISA SEKARANG</button>
+                    <button id="analyze-btn" class="w-full bg-blue-600 text-white font-regular py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-500 disabled:cursor-not-allowed text-lg">ANALISA SEKARANG</button>
                 </div>
             </aside>
 
             <main class="w-full md:w-2/3 lg:w-3/4 bg-gray-800 rounded-lg p-2 sm:p-4 shadow-md flex flex-col relative">
                 <div id="loader" class="hidden absolute inset-0 bg-gray-900/80 flex items-center justify-center flex-col gap-2 z-50 rounded-lg">
                     <div class="loader"></div>
-                    <p id="loader-text" class="text-white font-semibold"></p>
+                    <p id="loader-text" class="text-white font-regular"></p>
                 </div>
                 <div>
-                     <div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg mb-4">
-                        <h3 class="font-bold text-yellow-300">Setup Kunci AI (Wajib)</h3>
+                    <div class="bg-black-500/20 border border-black-700 rounded-md mb-4">
+                    <div id="apikey-content" class="px-4 pb-4 transition-all duration-300 ease-in-out overflow-hidden"> 
+                        <button id="toggle-apikey-btn" class="w-full flex items-center p-4 py-0">
+                            <span id="toggle-apikey-icon" class="transform transition-transform text-xs font-bold text-red-600 blinking-text-animation">📲 KLIK UNTUK INPUT API .........🔑</span>
+                        </button>
                         <input type="password" id="api-key-input" class="kalkulator-input mt-2" placeholder="Tempel API Key Google AI Studio di sini...">
                         <p class="text-xs text-gray-400 mt-1">Kunci akan disimpan secara lokal di browser Anda. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-300 font-bold">Dapatkan Kunci di sini (Gratis)</a>.</p>
                     </div>
+                </div>
                     <div class="flex flex-wrap border-b border-gray-700">
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">ANALISIS</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">KALKULATOR</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="proyeksi">📈 PROYEKSI</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-semibold text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="konfluensi">🤝 KONFLUENSI</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-regular text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">ANALISIS</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-regular text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">KALKULATOR</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-regular text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="proyeksi">📈 PROYEKSI</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-regular text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="konfluensi">🤝 KONFLUENSI</button>
                     </div>
                 </div>
 
@@ -212,124 +220,124 @@
                         <div id="analysis-wrapper" class="hidden">
                             <div id="analysis-content">
                                  <div class="mb-4 bg-gray-900 p-4 rounded-lg border-l-4 border-blue-400">
-                                     <h4 class="font-bold text-lg text-white mb-2">Hasil Detektif Data (LTF)</h4>
+                                     <h4 class="font-regular text-lg text-white mb-2">Hasil Detektif Data (LTF)</h4>
                                      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm items-center">
                                          <div>
-                                            <span class="font-semibold text-gray-400">Aset:</span> 
-                                            <span id="data-asset" class="font-bold"></span>
+                                            <span class="font-regular text-gray-400">Aset:</span> 
+                                            <span id="data-asset" class="font-regular"></span>
                                          </div>
-                                         <div><span class="font-semibold text-gray-400">Timeframe:</span> <span id="data-timeframe" class="font-bold"></span></div>
-                                         <div><span class="font-semibold text-gray-400">Harga Terakhir:</span> <span id="data-price" class="font-bold"></span></div>
+                                         <div><span class="font-regular text-gray-400">Timeframe:</span> <span id="data-timeframe" class="font-regular"></span></div>
+                                         <div><span class="font-regular text-gray-400">Harga Terakhir:</span> <span id="data-price" class="font-regular"></span></div>
                                      </div>
                                      <div class="mt-2">
-                                        <span class="font-semibold text-gray-400">Indikator Terdeteksi:</span>
-                                        <span id="data-indicators" class="font-bold text-xs text-blue-300"></span>
+                                        <span class="font-regular text-gray-400">Indikator Terdeteksi:</span>
+                                        <span id="data-indicators" class="font-regular text-xs text-blue-300"></span>
                                      </div>
                                  </div>
                                  <div class="bg-gray-900 rounded-lg overflow-hidden hidden md:block">
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-bold text-gray-400 bg-gray-800">Parameter</div><div class="analysis-table-cell font-bold text-green-400 bg-gray-800">Setup LONG</div><div class="analysis-table-cell font-bold text-red-400 bg-gray-800">Setup SHORT</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Kondisi Pasar</div><div class="analysis-table-cell" id="long-kondisi">-</div><div class="analysis-table-cell" id="short-kondisi">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Strategi "Aman"</div><div class="analysis-table-cell" id="long-strategi">-</div><div class="analysis-table-cell" id="short-strategi">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Probabilitas</div><div class="analysis-table-cell" id="long-probabilitas">-</div><div class="analysis-table-cell" id="short-probabilitas">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Area Entry</div><div class="analysis-table-cell" id="long-entry">-</div><div class="analysis-table-cell" id="short-entry">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Pemicu/Konfirmasi</div><div class="analysis-table-cell" id="long-pemicu">-</div><div class="analysis-table-cell" id="short-pemicu">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Stop Loss</div><div class="analysis-table-cell" id="long-sl">-</div><div class="analysis-table-cell" id="short-sl">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Alasan Stop Loss</div><div class="analysis-table-cell text-xs italic" id="long-alasan-sl">-</div><div class="analysis-table-cell text-xs italic" id="short-alasan-sl">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Target Profit</div><div class="analysis-table-cell" id="long-tp">-</div><div class="analysis-table-cell" id="short-tp">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Alasan Target Profit</div><div class="analysis-table-cell text-xs italic" id="long-alasan-tp">-</div><div class="analysis-table-cell text-xs italic" id="short-alasan-tp">-</div></div>
-    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-semibold">Aksi</div><div class="analysis-table-cell"><button class="use-data-btn w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 rounded" data-setup="long">Gunakan Data</button></div><div class="analysis-table-cell"><button class="use-data-btn w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded" data-setup="short">Gunakan Data</button></div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular text-gray-400 bg-gray-800">Parameter</div><div class="analysis-table-cell font-regular text-green-400 bg-gray-800">Setup LONG</div><div class="analysis-table-cell font-regular text-red-400 bg-gray-800">Setup SHORT</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Kondisi Pasar</div><div class="analysis-table-cell" id="long-kondisi">-</div><div class="analysis-table-cell" id="short-kondisi">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Strategi "Aman"</div><div class="analysis-table-cell" id="long-strategi">-</div><div class="analysis-table-cell" id="short-strategi">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Probabilitas</div><div class="analysis-table-cell" id="long-probabilitas">-</div><div class="analysis-table-cell" id="short-probabilitas">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Area Entry</div><div class="analysis-table-cell" id="long-entry">-</div><div class="analysis-table-cell" id="short-entry">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Pemicu/Konfirmasi</div><div class="analysis-table-cell" id="long-pemicu">-</div><div class="analysis-table-cell" id="short-pemicu">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Stop Loss</div><div class="analysis-table-cell" id="long-sl">-</div><div class="analysis-table-cell" id="short-sl">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Alasan Stop Loss</div><div class="analysis-table-cell text-xs italic" id="long-alasan-sl">-</div><div class="analysis-table-cell text-xs italic" id="short-alasan-sl">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Target Profit</div><div class="analysis-table-cell" id="long-tp">-</div><div class="analysis-table-cell" id="short-tp">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Alasan Target Profit</div><div class="analysis-table-cell text-xs italic" id="long-alasan-tp">-</div><div class="analysis-table-cell text-xs italic" id="short-alasan-tp">-</div></div>
+    <div class="grid grid-cols-1 md:grid-cols-3"><div class="analysis-table-cell font-regular">Aksi</div><div class="analysis-table-cell"><button class="use-data-btn w-full bg-green-600 hover:bg-green-700 text-white font-regular py-2 px-2 rounded" data-setup="long">Gunakan Data</button></div><div class="analysis-table-cell"><button class="use-data-btn w-full bg-red-600 hover:bg-red-700 text-white font-regular py-2 px-2 rounded" data-setup="short">Gunakan Data</button></div></div>
  </div>
 
  <div class="space-y-4 md:hidden">
      <div class="bg-gray-900 rounded-lg p-4">
-        <h3 class="font-bold text-lg text-green-400 mb-3 pb-2 border-b border-gray-700">Setup LONG</h3>
+        <h3 class="font-regular text-lg text-green-400 mb-3 pb-2 border-b border-gray-700">Setup LONG</h3>
         <div class="space-y-3 text-sm">
-            <div><strong class="text-gray-400 block">Kondisi Pasar:</strong> <span id="mobile-long-kondisi">-</span></div>
-            <div><strong class="text-gray-400 block">Strategi "Aman":</strong> <span id="mobile-long-strategi">-</span></div>
-            <div><strong class="text-gray-400 block">Probabilitas:</strong> <span id="mobile-long-probabilitas">-</span></div>
-            <div><strong class="text-gray-400 block">Area Entry:</strong> <span id="mobile-long-entry">-</span></div>
-            <div><strong class="text-gray-400 block">Pemicu/Konfirmasi:</b> <span id="mobile-long-pemicu">-</span></div>
-            <div><strong class="text-gray-400 block">Stop Loss:</strong> <span id="mobile-long-sl">-</span></div>
-            <div><strong class="text-gray-400 block">Alasan SL:</strong> <i id="mobile-long-alasan-sl">-</i></div>
-            <div><strong class="text-gray-400 block">Target Profit:</strong> <span id="mobile-long-tp">-</span></div>
-            <div><strong class="text-gray-400 block">Alasan TP:</strong> <i id="mobile-long-alasan-tp">-</i></div>
-            <button class="use-data-btn w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 rounded mt-2" data-setup="long">Gunakan Data</button>
+            <div><span class="text-gray-400 block">Kondisi Pasar:</span> <span id="mobile-long-kondisi">-</span></div>
+            <div><span class="text-gray-400 block">Strategi "Aman":</span> <span id="mobile-long-strategi">-</span></div>
+            <div><span class="text-gray-400 block">Probabilitas:</span> <span id="mobile-long-probabilitas">-</span></div>
+            <div><span class="text-gray-400 block">Area Entry:</span> <span id="mobile-long-entry">-</span></div>
+            <div><span class="text-gray-400 block">Pemicu/Konfirmasi:</b> <span id="mobile-long-pemicu">-</span></div>
+            <div><span class="text-gray-400 block">Stop Loss:</span> <span id="mobile-long-sl">-</span></div>
+            <div><span class="text-gray-400 block">Alasan SL:</span> <i id="mobile-long-alasan-sl">-</i></div>
+            <div><span class="text-gray-400 block">Target Profit:</span> <span id="mobile-long-tp">-</span></div>
+            <div><span class="text-gray-400 block">Alasan TP:</span> <i id="mobile-long-alasan-tp">-</i></div>
+            <button class="use-data-btn w-full bg-green-600 hover:bg-green-700 text-white font-regular py-2 px-2 rounded mt-2" data-setup="long">Gunakan Data</button>
         </div>
      </div>
      <div class="bg-gray-900 rounded-lg p-4">
-        <h3 class="font-bold text-lg text-red-400 mb-3 pb-2 border-b border-gray-700">Setup SHORT</h3>
+        <h3 class="font-regular text-lg text-red-400 mb-3 pb-2 border-b border-gray-700">Setup SHORT</h3>
         <div class="space-y-3 text-sm">
-            <div><strong class="text-gray-400 block">Kondisi Pasar:</strong> <span id="mobile-short-kondisi">-</span></div>
-            <div><strong class="text-gray-400 block">Strategi "Aman":</strong> <span id="mobile-short-strategi">-</span></div>
-            <div><strong class="text-gray-400 block">Probabilitas:</strong> <span id="mobile-short-probabilitas">-</span></div>
-            <div><strong class="text-gray-400 block">Area Entry:</strong> <span id="mobile-short-entry">-</span></div>
-            <div><strong class="text-gray-400 block">Pemicu/Konfirmasi:</strong> <span id="mobile-short-pemicu">-</span></div>
-            <div><strong class="text-gray-400 block">Stop Loss:</strong> <span id="mobile-short-sl">-</span></div>
-            <div><strong class="text-gray-400 block">Alasan SL:</strong> <i id="mobile-short-alasan-sl">-</i></div>
-            <div><strong class="text-gray-400 block">Target Profit:</strong> <span id="mobile-short-tp">-</span></div>
-            <div><strong class="text-gray-400 block">Alasan TP:</b> <i id="mobile-short-alasan-tp">-</i></div>
-            <button class="use-data-btn w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded mt-2" data-setup="short">Gunakan Data</button>
+            <div><span class="text-gray-400 block">Kondisi Pasar:</span> <span id="mobile-short-kondisi">-</span></div>
+            <div><span class="text-gray-400 block">Strategi "Aman":</span> <span id="mobile-short-strategi">-</span></div>
+            <div><span class="text-gray-400 block">Probabilitas:</span> <span id="mobile-short-probabilitas">-</span></div>
+            <div><span class="text-gray-400 block">Area Entry:</span> <span id="mobile-short-entry">-</span></div>
+            <div><span class="text-gray-400 block">Pemicu/Konfirmasi:</span> <span id="mobile-short-pemicu">-</span></div>
+            <div><span class="text-gray-400 block">Stop Loss:</span> <span id="mobile-short-sl">-</span></div>
+            <div><span class="text-gray-400 block">Alasan SL:</span> <i id="mobile-short-alasan-sl">-</i></div>
+            <div><span class="text-gray-400 block">Target Profit:</span> <span id="mobile-short-tp">-</span></div>
+            <div><span class="text-gray-400 block">Alasan TP:</b> <i id="mobile-short-alasan-tp">-</i></div>
+            <button class="use-data-btn w-full bg-red-600 hover:bg-red-700 text-white font-regular py-2 px-2 rounded mt-2" data-setup="short">Gunakan Data</button>
         </div>
      </div>
  </div>
-                                 <div class="mt-4 bg-blue-900/50 border-l-4 border-blue-400 p-4 rounded-r-lg"><h4 class="font-bold text-lg text-white mb-2">Rekomendasi Utama:</h4><p id="rekomendasi-text" class="text-blue-200">-</p></div>
+                                 <div class="mt-4 bg-blue-900/50 border-l-4 border-blue-400 p-4 rounded-r-lg"><h4 class="font-regular text-lg text-white mb-2">Rekomendasi Utama:</h4><p id="rekomendasi-text" class="text-blue-200">-</p></div>
                                  
                                  <div id="saran-container" class="mt-4 hidden">
                                      <div class="bg-purple-900/50 border-l-4 border-purple-400 p-4 rounded-r-lg">
-                                         <h4 class="font-bold text-lg text-purple-300 mb-2">✨ Saran Peningkatan Analisa AI</h4>
+                                         <h4 class="font-regular text-lg text-purple-300 mb-2">✨ Saran Peningkatan Analisa AI</h4>
                                          <p id="saran-text" class="text-purple-200 text-sm">-</p>
                                      </div>
                                  </div>
                             </div>
                              <div id="optimization-container" class="mt-4 hidden">
-                                 <button id="optimize-plan-btn" class="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition">✨ Minta Tinjauan & Optimasi Rencana</button>
+                                 <button id="optimize-plan-btn" class="w-full bg-purple-600 text-white font-regular py-2 px-4 rounded-lg hover:bg-purple-700 transition">✨ Minta Tinjauan & Optimasi Rencana</button>
                                  <div id="optimization-output" class="mt-4 bg-gray-900 p-4 rounded-lg hidden"></div>
                              </div>
-                             <button id="export-btn" class="mt-4 w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700 transition">Ekspor Laporan (Gambar)</button>
+                             <button id="export-btn" class="mt-4 w-full bg-teal-600 text-white font-regular py-2 px-4 rounded-lg hover:bg-teal-700 transition">Ekspor Laporan (Gambar)</button>
                         </div>
                     </div>
                     <div id="kalkulator" class="tab-pane hidden">
                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div class="bg-gray-900 p-4 rounded-lg space-y-4">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div><label class="font-semibold text-gray-300">Total Modal ($)</label><input type="number" id="calc-modal" class="kalkulator-input mt-1" value="250"></div>
-                                    <div><label class="font-semibold text-gray-300">Risiko/Trade (%)</label><input type="number" id="calc-risiko-pct" class="kalkulator-input mt-1" value="1.5" step="0.1"></div>
+                                    <div><label class="font-regular text-gray-300">Total Modal ($)</label><input type="number" id="calc-modal" class="kalkulator-input mt-1" value="250"></div>
+                                    <div><label class="font-regular text-gray-300">Risiko/Trade (%)</label><input type="number" id="calc-risiko-pct" class="kalkulator-input mt-1" value="1.5" step="0.1"></div>
                                 </div>
                                 <div>
-                                    <label class="font-semibold text-gray-300">Pilih Posisi</label>
+                                    <label class="font-regular text-gray-300">Pilih Posisi</label>
                                     <div class="grid grid-cols-2 gap-2 mt-1">
                                         <button id="btn-posisi-long" class="posisi-btn long p-2 rounded-lg bg-gray-700">LONG</button>
                                         <button id="btn-posisi-short" class="posisi-btn short p-2 rounded-lg bg-gray-700">SHORT</button>
                                     </div>
                                 </div>
-                                <div><label class="font-semibold text-gray-300">Harga Acuan (dari Zona Entry)</label><input type="number" id="calc-entry" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
-                                <div><label class="font-semibold text-gray-300">Leverage Pilihanmu (x)</label><input type="number" id="calc-leverage" class="kalkulator-input mt-1" value="10"></div>
+                                <div><label class="font-regular text-gray-300">Harga Acuan (dari Zona Entry)</label><input type="number" id="calc-entry" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
+                                <div><label class="font-regular text-gray-300">Leverage Pilihanmu (x)</label><input type="number" id="calc-leverage" class="kalkulator-input mt-1" value="10"></div>
                                 <div>
-                                    <label class="font-semibold text-gray-300">Biaya Posisi Manual ($) <span class="text-gray-500 text-xs italic">- Opsional</span></label>
+                                    <label class="font-regular text-gray-300">Biaya Posisi Manual ($) <span class="text-gray-500 text-xs italic">- Opsional</span></label>
                                     <input type="number" id="calc-margin-manual" class="kalkulator-input mt-1" placeholder="Ganti perhitungan otomatis">
                                 </div>
-                                <div><label class="font-semibold text-gray-300">Stop Loss</label><input type="number" id="calc-sl" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
-                                <div><label class="font-semibold text-gray-300">Manajemen Take Profit</label>
+                                <div><label class="font-regular text-gray-300">Stop Loss</label><input type="number" id="calc-sl" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
+                                <div><label class="font-regular text-gray-300">Manajemen Take Profit</label>
                                     <div class="space-y-2 mt-1">
                                         <div class="flex items-center gap-2"><input type="number" id="calc-tp1" step="any" class="kalkulator-input" placeholder="Harga TP 1"><input type="number" id="calc-tp1-pct" class="kalkulator-input w-24" value="50" placeholder="%"></div>
                                         <div class="flex items-center gap-2"><input type="number" id="calc-tp2" step="any" class="kalkulator-input" placeholder="Harga TP 2"><input type="number" id="calc-tp2-pct" class="kalkulator-input w-24" value="30" placeholder="%"></div>
                                         <div class="flex items-center gap-2"><input type="number" id="calc-tp3" step="any" class="kalkulator-input" placeholder="Harga TP 3"><input type="number" id="calc-tp3-pct" class="kalkulator-input w-24" value="20" placeholder="%"></div>
                                     </div>
                                 </div>
-                                <button id="hitung-rencana-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition">HITUNG RENCANA</button>
+                                <button id="hitung-rencana-btn" class="w-full bg-blue-600 text-white font-regular py-3 px-4 rounded-lg hover:bg-blue-700 transition">HITUNG RENCANA</button>
                             </div>
                             <div class="bg-gray-900 p-4 rounded-lg">
-                                <h3 class="font-bold text-xl mb-4 text-white border-b border-gray-700 pb-2">Rencana Trading</h3>
+                                <h3 class="font-regular text-xl mb-4 text-white border-b border-gray-700 pb-2">Rencana Trading</h3>
                                 <div id="kalkulator-hasil" class="space-y-3 hidden">
-                                    <div class="flex justify-between items-baseline"><span id="out-risiko-label" class="font-semibold text-gray-400">Risiko per Trade (1.5%):</span><span id="out-risiko" class="font-bold text-lg text-red-400">$0.00</span></div>
-                                    <div class="flex justify-between items-baseline"><span class="font-semibold text-gray-400">Ukuran Posisi (USD):</span><span id="out-posisi" class="font-bold text-lg text-white">$0.00</span></div>
-                                    <div class="bg-blue-900/50 p-3 rounded-lg text-center"><p class="text-sm text-blue-300">Biaya Posisi (Margin)</p><p id="out-margin" class="font-bold text-2xl text-white">$0.00</p></div>
-                                    <div class="flex justify-between items-baseline"><span class="font-semibold text-gray-400">Rekomendasi Leverage Aman:</span><span id="out-leverage-aman" class="font-bold text-lg text-yellow-400">~1x</span></div>
-                                    <div><h4 class="font-bold text-lg text-white mt-4">Potensi Profit:</h4>
+                                    <div class="flex justify-between items-baseline"><span id="out-risiko-label" class="font-regular text-gray-400">Risiko per Trade (1.5%):</span><span id="out-risiko" class="font-regular text-lg text-red-400">$0.00</span></div>
+                                    <div class="flex justify-between items-baseline"><span class="font-regular text-gray-400">Ukuran Posisi (USD):</span><span id="out-posisi" class="font-regular text-lg text-white">$0.00</span></div>
+                                    <div class="bg-blue-900/50 p-3 rounded-lg text-center"><p class="text-sm text-blue-300">Biaya Posisi (Margin)</p><p id="out-margin" class="font-regular text-2xl text-white">$0.00</p></div>
+                                    <div class="flex justify-between items-baseline"><span class="font-regular text-gray-400">Rekomendasi Leverage Aman:</span><span id="out-leverage-aman" class="font-regular text-lg text-yellow-400">~1x</span></div>
+                                    <div><h4 class="font-regular text-lg text-white mt-4">Potensi Profit:</h4>
                                         <div class="mt-2 space-y-2">
-                                            <div class="flex justify-between"><span id="out-tp1-label">TP 1 (RR 1:0.0):</span><span id="out-tp1-profit" class="font-semibold text-green-400">~$0.00</span></div>
-                                            <div class="flex justify-between"><span id="out-tp2-label">TP 2 (RR 1:0.0):</span><span id="out-tp2-profit" class="font-semibold text-green-400">~$0.00</span></div>
-                                            <div class="flex justify-between"><span id="out-tp3-label">TP 3 (RR 1:0.0):</span><span id="out-tp3-profit" class="font-semibold text-green-400">~$0.00</span></div>
+                                            <div class="flex justify-between"><span id="out-tp1-label">TP 1 (RR 1:0.0):</span><span id="out-tp1-profit" class="font-regular text-green-400">~$0.00</span></div>
+                                            <div class="flex justify-between"><span id="out-tp2-label">TP 2 (RR 1:0.0):</span><span id="out-tp2-profit" class="font-regular text-green-400">~$0.00</span></div>
+                                            <div class="flex justify-between"><span id="out-tp3-label">TP 3 (RR 1:0.0):</span><span id="out-tp3-profit" class="font-regular text-green-400">~$0.00</span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -340,7 +348,7 @@
                     
                     <!-- START: Modifikasi Tab Proyeksi -->
                     <div id="proyeksi" class="tab-pane hidden">
-                        <h3 class="text-xl font-bold text-white mb-4">Analisa Proyeksi dan Kondisi Aktual</h3>
+                        <h3 class="text-xl text-white mb-4">Analisa Proyeksi dan Kondisi Aktual</h3>
                         <div class="bg-gray-900 p-4 rounded-lg mb-6">
                             <!-- Input Aset & Tombol Generate -->
                             <div class="flex flex-col sm:flex-row gap-4 mb-4">
@@ -349,99 +357,99 @@
                                     <option value="BTCUSDT">
                                     <option value="ETHUSDT">
                                 </datalist>
-                                <button id="generate-proyeksi-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition">⏩️ ANALISA PROYEKSI</button>
+                                <button id="generate-proyeksi-btn" class="w-full sm:w-auto bg-green-600 text-white font-regular py-2 px-6 rounded-lg hover:bg-green-700 transition">⏩️ ANALISA PROYEKSI</button>
                             </div>
 
                             <!-- Loader dan Placeholder Awal -->
                             <div id="proyeksi-placeholder" class="text-center text-gray-500 p-8"><p>Masukkan simbol aset dan klik "Analisa Proyeksi" untuk melihat hasil.</p></div>
                             <div id="proyeksi-loader" class="hidden absolute inset-0 bg-gray-900/80 flex items-center justify-center flex-col gap-2 z-50 rounded-lg">
                                  <div class="loader"></div>
-                                 <p id="proyeksi-loader-text" class="text-white font-semibold"></p>
+                                 <p id="proyeksi-loader-text" class="text-white font-regular"></p>
                              </div>
 
                             <div id="proyeksi-details-output" class="hidden">
                                 <!-- Harga Saat Analisa (tetap terlihat) -->
                                 <div class="mt-4 p-3 bg-gray-800 rounded-lg" id="proyeksi-live-price-container">
                                     <p class="text-sm text-gray-400">Harga Saat Analisa:</p>
-                                    <p class="text-xl font-bold text-green-400" id="proyeksi-live-price-output">-</p>
+                                    <p class="text-xl font-regular text-green-400" id="proyeksi-live-price-output">-</p>
                                 </div>
 
                                 <!-- Bagian Analisa Kondisi Pasar Saat Ini (Gambar 3 - Dapat di-toggle) -->
                                 <div class="bg-gray-800 p-4 rounded-lg mt-4">
                                     <button class="w-full flex justify-between items-center text-left py-2 toggle-section-btn" data-target="kondisi-pasar-content">
-                                        <h4 class="font-bold text-lg text-white">Analisa Kondisi Pasar Saat Ini</h4>
+                                        <h4 class="font-regular text-lg text-white">Analisa Kondisi Pasar Saat Ini</h4>
                                         <span class="toggle-icon transform transition-transform">🔽</span>
                                     </button>
                                     <div id="kondisi-pasar-content" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
                                         <div class="space-y-3 text-sm pt-2 border-t border-gray-700">
-                                            <p><strong class="text-white-900 w-32 inline-block">Volatilitas:</strong> <span id="proj-volatilitas">-</span></p>
-                                            <p><strong class="text-white-900 w-32 inline-block">Sentimen Pasar:</strong> <span id="proj-sentimen">-</span></p>
+                                            <p><span class="text-white-900 w-32 inline-block">Volatilitas:</span> <span id="proj-volatilitas">-</span></p>
+                                            <p><span class="text-white-900 w-32 inline-block">Sentimen Pasar:</span> <span id="proj-sentimen">-</span></p>
                                         </div>
                                         <div class="mt-4 pt-4 border-t border-gray-700 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-5 text-sm">
                                             <div>
                                                 <span class="text-gray-400 block">Volume 24j</span>
-                                                <strong class="text-white" id="proj-volume-24h"></strong>
+                                                <span class="text-white" id="proj-volume-24h"></span>
                                                 <span class="text-xs" id="proj-volume-pct"></span>
                                             </div>
                                             <div>
                                                 <span class="text-gray-400 block">Open Interest</span>
-                                                <strong class="text-white" id="proj-open-interest"></strong>
+                                                <span class="text-white" id="proj-open-interest"></span>
                                             </div>
                                             <div>
                                                 <span class="text-gray-400 block">Funding Rate</span>
-                                                <strong class="text-white" id="proj-funding-rate"></strong>
+                                                <span class="text-white" id="proj-funding-rate"></span>
                                             </div>
                                             <div>
                                                 <span class="text-gray-400 block">L/S Ratio (Umum)</span>
-                                                <strong class="text-white" id="proj-ls-umum"></strong>
+                                                <span class="text-white" id="proj-ls-umum"></span>
                                             </div>
                                             <div>
                                                 <span class="text-gray-400 block">L/S Ratio (Top)</span>
-                                                <strong class="text-white" id="proj-ls-top"></strong>
+                                                <span class="text-white" id="proj-ls-top"></span>
                                             </div>
                                             <!-- NEW: Order Book Depth Summary -->
                                             <div>
                                                 <span class="text-gray-400 block">Order Book Bias</span>
-                                                <strong class="text-white" id="proj-order-book-bias"></strong>
+                                                <span class="text-white" id="proj-order-book-bias"></span>
                                             </div>
                                             <div>
                                                 <span class="text-gray-400 block">Dominan Bid/Ask</span>
-                                                <strong class="text-white" id="proj-order-book-dominant"></strong>
+                                                <span class="text-white" id="proj-order-book-dominant"></span>
                                             </div>
                                         </div>
                                         <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
-                                            <strong class="text-gray-400 block mb-2">Detail Indikator per Timeframe:</strong>
+                                            <span class="text-gray-400 block mb-2">Detail Indikator per Timeframe:</span>
                                             <div id="proj-indicator-details"></div>
                                         </div>
                                          <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
-                                            <p><strong class="text-gray-400">Kesimpulan Indikator:</strong> <span id="proj-kesimpulan-indikator">-</span></p>
+                                            <p><span class="text-gray-400">Kesimpulan Indikator:</span> <span id="proj-kesimpulan-indikator">-</span></p>
                                         </div>
                                         <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
-                                            <strong class="text-gray-400 block mb-2">Analisa Tambahan (Volume & Fundamental):</strong>
+                                            <span class="text-gray-400 block mb-2">Analisa Tambahan (Volume & Fundamental):</span>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
                                                 
                                                 <div>
-                                                    <span class="text-blue-400 font-semibold">VWAP Status:</span>
+                                                    <span class="text-blue-400 font-regular">VWAP Status:</span>
                                                     <span id="proj-vwap-status">-</span>
                                                 </div>
                                                 
                                                 <div>
-                                                    <span class="text-blue-400 font-semibold">OBV Trend:</span>
+                                                    <span class="text-blue-400 font-regular">OBV Trend:</span>
                                                     <span id="proj-obv-trend">-</span>
                                                 </div>
 
                                                 <div class="md:col-span-2">
-                                                    <span class="text-blue-400 font-semibold">Kategori Proyek:</span>
+                                                    <span class="text-blue-400 font-regular">Kategori Proyek:</span>
                                                     <span id="proj-kategori">-</span>
                                                 </div>
 
                                                 <div class="md:col-span-2">
-                                                    <span class="text-blue-400 font-semibold">Aktivitas Dev:</span>
+                                                    <span class="text-blue-400 font-regular">Aktivitas Dev:</span>
                                                     <span id="proj-dev-activity">-</span>
                                                 </div>
 
                                                 <div class="md:col-span-2">
-                                                    <span class="text-blue-400 font-semibold">Tokenomics:</span>
+                                                    <span class="text-blue-400 font-regular">Tokenomics:</span>
                                                     <span id="proj-tokenomics">-</span>
                                                 </div>
 
@@ -453,18 +461,18 @@
                                 <!-- Bagian Analisa Struktur Pasar (SMC) (Gambar 3 - Dapat di-toggle) -->
                                 <div class="bg-gray-800 p-4 rounded-lg mt-4">
                                     <button class="w-full flex justify-between items-center text-left py-2 toggle-section-btn" data-target="smc-content">
-                                        <h4 class="font-bold text-lg text-white">Analisa Struktur Pasar (SMC)</h4>
+                                        <h4 class="font-regular text-lg text-white">Analisa Struktur Pasar (SMC)</h4>
                                         <span class="toggle-icon transform transition-transform">🔽</span>
                                     </button>
                                     <div id="smc-content" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
                                         <div class="space-y-3 text-sm pt-2 border-t border-gray-700">
-                                            <p><strong class="text-green-400 w-36 inline-block">Bullish Order Block:</strong> <span id="proj-ob-bullish">-</span></p>
-                                            <p><strong class="text-red-400 w-36 inline-block">Bearish Order Block:</strong> <span id="proj-ob-bearish">-</span></p>
-                                            <p><strong class="text-yellow-400 w-36 inline-block">Fair Value Gap (FVG):</strong> <span id="proj-fvg">-</span></p>
-                                            <p><strong class="text-blue-400 w-36 inline-block">Liquidity Pools:</strong> <span id="proj-liquidity-pools">-</span></p>
+                                            <p><span class="text-green-400 w-36 inline-block">Bullish Order Block:</span> <span id="proj-ob-bullish">-</span></p>
+                                            <p><span class="text-red-400 w-36 inline-block">Bearish Order Block:</span> <span id="proj-ob-bearish">-</span></p>
+                                            <p><span class="text-yellow-400 w-36 inline-block">Fair Value Gap (FVG):</span> <span id="proj-fvg">-</span></p>
+                                            <p><span class="text-blue-400 w-36 inline-block">Liquidity Pools:</span> <span id="proj-liquidity-pools">-</span></p>
                                             
                                             <div class="pt-3 mt-3 border-t border-gray-700">
-                                               <p><strong class="text-gray-400">Kesimpulan SMC:</strong> <span id="proj-kesimpulan-smc">-</span></p>
+                                               <p><span class="text-gray-400">Kesimpulan SMC:</span> <span id="proj-kesimpulan-smc">-</span></p>
                                             </div>
                                         </div>
                                     </div>
@@ -473,7 +481,7 @@
                                 <!-- Bagian Proyeksi Lengkap (Gambar 2 - Dapat di-toggle) -->
                                 <div class="bg-gray-800 p-4 rounded-lg mt-6">
                                     <button class="w-full flex justify-between items-center text-left py-2 toggle-section-btn" data-target="proyeksi-lengkap-content">
-                                        <h4 class="font-bold text-lg text-white">Proyeksi Lengkap</h4>
+                                        <h4 class="font-regular text-lg text-white">Proyeksi Lengkap</h4>
                                         <span class="toggle-icon transform transition-transform">🔽</span>
                                     </button>
                                     <div id="proyeksi-lengkap-content" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
@@ -486,19 +494,19 @@
                                 <!-- Bagian Final Conclusion for Decision Making (Gambar 1 - Dapat di-toggle) -->
                                 <div class="bg-gray-800 p-4 rounded-lg mt-6">
                                     <button class="w-full flex justify-between items-center text-left py-2 toggle-section-btn" data-target="keputusan-akhir-content">
-                                        <h4 class="font-bold text-lg text-white">Keputusan Akhir (Pemilik & Calon Pembeli Aset)</h4>
+                                        <h4 class="font-regular text-lg text-white">Keputusan Akhir (Pemilik & Calon Pembeli Aset)</h4>
                                         <span class="toggle-icon transform transition-transform">🔽</span>
                                     </button>
                                     <div id="keputusan-akhir-content" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-700">
                                             <div class="bg-black-800 p-4 rounded-lg">
-                                                <h4 class="font-bold text-lg text-white mb-2">HOLDER</h4>
-                                                <p class="font-bold text-xl" id="proj-saran-pemilik"></p>
+                                                <h4 class="font-regular text-lg text-white mb-2">HOLDER</h4>
+                                                <p class="font-regular text-xl" id="proj-saran-pemilik"></p>
                                                 <p class="text-sm text-gray-400 mt-1" id="proj-alasan-pemilik"></p>
                                             </div>
                                             <div class="bg-black-800 p-4 rounded-lg">
-                                                <h4 class="font-bold text-lg text-white mb-2">CALON PEMBELI</h4>
-                                                <p class="font-bold text-xl" id="proj-saran-non-pemilik"></p>
+                                                <h4 class="font-regular text-lg text-white mb-2">CALON PEMBELI</h4>
+                                                <p class="text-xl" id="proj-saran-non-pemilik"></p>
                                                 <p class="text-sm text-gray-400 mt-1" id="proj-alasan-non-pemilik"></p>
                                             </div>
                                         </div>
@@ -515,7 +523,7 @@
                         <div class="bg-gray-900 p-4 rounded-lg mb-6">
                             <div class="flex flex-wrap justify-between items-center gap-4">
                                 <div>
-                                    <h2 class="text-2xl font-bold text-white">🤝 Dasbor Konfluensi</h2>
+                                    <h2 class="text-2xl font-regular text-white">🤝 Dasbor Konfluensi</h2>
                                     <p class="text-yellow-500">Analisa berdasarkan VPVR, MA, RSI, Stochastic RSI, MACD & Pola Candlestick.</p>
                                 </div>
                                 <div class="flex items-center gap-4 flex-wrap">
@@ -538,7 +546,7 @@
                                             <option value="1d">1 Hari</option>
                                         </select>
                                     </div>
-                                    <button id="konfluensi_run_btn" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg">Analisa</button>
+                                    <button id="konfluensi_run_btn" class="bg-sky-600 hover:bg-sky-700 text-white font-regular py-2 px-4 rounded-lg">Analisa</button>
                                 </div>
                             </div>
                         </div>
@@ -548,20 +556,20 @@
                                 <div id="konfluensi_chartDiv" class="w-full h-full" style="visibility: hidden;"></div>
                             </section>
                             <aside class="flex flex-col gap-6">
-                                <div class="bg-gray-900 p-4 rounded-lg"><h2 class="text-lg font-bold text-blue-400 mb-2">PUTUSAN (KONFLUENSI)</h2><div id="konfluensi_verdictLoader" class="text-gray-400 hidden">Menganalisis...</div><p id="konfluensi_verdictText" class="text-gray-300">Hasil akan muncul di sini.</p></div>
-                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-semibold text-white mb-3">Volume Profile (VPVR)</h3><div class="space-y-2 text-sm"><div class="flex justify-between items-center"><span class="text-gray-400">Value Area High (VAH)</span><span id="konfluensi_vahValue" class="font-mono font-medium text-red-400">-</span></div><div class="flex justify-between items-center"><span class="text-gray-400">Point of Control (POC)</span><span id="konfluensi_pocValue" class="font-mono font-bold text-blue-400">-</span></div><div class="flex justify-between items-center"><span class="text-gray-400">Value Area Low (VAL)</span><span id="konfluensi_valValue" class="font-mono font-medium text-green-400">-</span></div></div></div>
-                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-semibold text-white mb-3">Validasi Tren (SMA 20/50)</h3><div id="konfluensi_maStatusContainer" class="space-y-2 text-sm"><p class="text-gray-500">Menunggu...</p></div></div>
+                                <div class="bg-gray-900 p-4 rounded-lg"><h2 class="text-lg font-regular text-blue-400 mb-2">PUTUSAN (KONFLUENSI)</h2><div id="konfluensi_verdictLoader" class="text-gray-400 hidden">Menganalisis...</div><p id="konfluensi_verdictText" class="text-gray-300">Hasil akan muncul di sini.</p></div>
+                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-regular text-white mb-3">Volume Profile (VPVR)</h3><div class="space-y-2 text-sm"><div class="flex justify-between items-center"><span class="text-gray-400">Value Area High (VAH)</span><span id="konfluensi_vahValue" class="font-mono font-medium text-red-400">-</span></div><div class="flex justify-between items-center"><span class="text-gray-400">Point of Control (POC)</span><span id="konfluensi_pocValue" class="font-mono font-regular text-blue-400">-</span></div><div class="flex justify-between items-center"><span class="text-gray-400">Value Area Low (VAL)</span><span id="konfluensi_valValue" class="font-mono font-medium text-green-400">-</span></div></div></div>
+                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-regular text-white mb-3">Validasi Tren (SMA 20/50)</h3><div id="konfluensi_maStatusContainer" class="space-y-2 text-sm"><p class="text-gray-500">Menunggu...</p></div></div>
                                 <!-- [MODIFIKASI] Card baru untuk Oscillator -->
                                 <div class="bg-gray-900 p-4 rounded-lg">
-                                    <h3 class="font-semibold text-white mb-3">Analisa Momentum (Oscillator)</h3>
+                                    <h3 class="font-regular text-white mb-3">Analisa Momentum (Oscillator)</h3>
                                     <div id="konfluensi_oscillator_container" class="space-y-2 text-sm">
-                                        <div class="flex justify-between items-center"><span class="text-gray-400">RSI (14)</span><div><span id="konfluensi_rsi_value" class="font-mono font-medium">-</span><span id="konfluensi_rsi_status" class="text-xs font-bold ml-2">-</span></div></div>
-                                        <div class="flex justify-between items-center"><span class="text-gray-400">Stoch RSI (%K/%D)</span><div><span id="konfluensi_stoch_value" class="font-mono font-medium">-</span><span id="konfluensi_stoch_status" class="text-xs font-bold ml-2">-</span></div></div>
-                                        <div class="flex justify-between items-center"><span class="text-gray-400">MACD Cross</span><span id="konfluensi_macd_cross" class="font-mono font-bold">-</span></div>
+                                        <div class="flex justify-between items-center"><span class="text-gray-400">RSI (14)</span><div><span id="konfluensi_rsi_value" class="font-mono font-medium">-</span><span id="konfluensi_rsi_status" class="text-xs font-regular ml-2">-</span></div></div>
+                                        <div class="flex justify-between items-center"><span class="text-gray-400">Stoch RSI (%K/%D)</span><div><span id="konfluensi_stoch_value" class="font-mono font-medium">-</span><span id="konfluensi_stoch_status" class="text-xs font-regular ml-2">-</span></div></div>
+                                        <div class="flex justify-between items-center"><span class="text-gray-400">MACD Cross</span><span id="konfluensi_macd_cross" class="font-mono font-regular">-</span></div>
                                         <div class="flex justify-between items-center"><span class="text-gray-400">MACD Histogram</span><span id="konfluensi_macd_hist" class="font-mono font-medium">-</span></div>
                                     </div>
                                 </div>
-                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-semibold text-white mb-3">Pemicu Sinyal Candlestick</h3><div id="konfluensi_patternDisplay" class="text-center p-2 rounded-md bg-gray-800"><p class="text-gray-500 font-medium">BELUM ADA</p></div></div>
+                                <div class="bg-gray-900 p-4 rounded-lg"><h3 class="font-regular text-white mb-3">Pemicu Sinyal Candlestick</h3><div id="konfluensi_patternDisplay" class="text-center p-2 rounded-md bg-gray-800"><p class="text-gray-500 font-medium">BELUM ADA</p></div></div>
                             </aside>
                         </div>
                     </div>
@@ -1341,7 +1349,7 @@ const calculateVWAP = (klines, period = 20) => {
             Format jawaban Anda dengan jelas menggunakan poin-poin. Jangan gunakan format Markdown. Cukup teks biasa dengan baris baru.`;
 
             const optimizationText = await callGemini([{ text: prompt }], false);
-            optimizationOutput.innerHTML = `<h4 class="font-bold text-lg text-purple-300 mb-2">Tinjauan Manajer Risiko AI</h4><p class="text-sm text-gray-300 whitespace-pre-wrap">${optimizationText}</p>`;
+            optimizationOutput.innerHTML = `<h4 class="font-regular text-lg text-purple-300 mb-2">Tinjauan Manajer Risiko AI</h4><p class="text-sm text-gray-300 whitespace-pre-wrap">${optimizationText}</p>`;
             optimizationOutput.classList.remove('hidden');
 
         } catch (error) {
@@ -1649,7 +1657,7 @@ async function startPriceProjection() {
         const data = cleanAndParseJson(jsonText);
         
         if (!data || !data.analisa_kondisi_saat_ini || !data.proyeksi_lengkap || !data.saran_bagi_pemilik_aset) {
-             proyeksiDetailsOutput.innerHTML = `<div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg text-yellow-200"><h4 class="font-bold text-lg mb-2">Analisis Tidak Dilanjutkan</h4><p>AI tidak dapat menghasilkan proyeksi harga yang komprehensif saat ini atau struktur data tidak valid.</p></div>`;
+             proyeksiDetailsOutput.innerHTML = `<div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg text-yellow-200"><h4 class="font-regular text-lg mb-2">Analisis Tidak Dilanjutkan</h4><p>AI tidak dapat menghasilkan proyeksi harga yang komprehensif saat ini atau struktur data tidak valid.</p></div>`;
         } else {
             // Populate "Analisa Kondisi Pasar Saat Ini" (Gambar 3 - Bagian Atas)
             projVolatilitas.textContent = data.analisa_kondisi_saat_ini.volatilitas || '-';
@@ -1666,7 +1674,7 @@ async function startPriceProjection() {
 
             let indicatorHtml = '';
             (data.analisa_kondisi_saat_ini.detail_indikator_per_timeframe || []).forEach(tf => {
-                indicatorHtml += `<p class="mb-1"><strong class="text-blue-400">${tf.timeframe}:</strong> ${tf.analisa}</p>`;
+                indicatorHtml += `<p class="mb-1"><span class="text-blue-400">${tf.timeframe}:</span> ${tf.analisa}</p>`;
             });
             projIndicatorDetails.innerHTML = indicatorHtml || '<p class="text-gray-500">Tidak ada detail indikator.</p>';
             projKesimpulanIndikator.textContent = data.analisa_kondisi_saat_ini.kesimpulan_indikator || '-';
@@ -1686,8 +1694,8 @@ async function startPriceProjection() {
                 proyeksiHtml += `
                     <div class="bg-gray-800 p-4 rounded-lg flex flex-col justify-between">
                         <div>
-                            <h5 class="font-semibold text-blue-400">${p.periode}</h5>
-                            <p class="text-lg font-bold text-white">${p.target_harga}</p>
+                            <h5 class="font-regular text-blue-400">${p.periode}</h5>
+                            <p class="text-lg font-regular text-white">${p.target_harga}</p>
                             <p class="text-sm text-gray-300 mt-1">${p.alasan}</p>
                         </div>
                         <button class="use-projection-btn mt-3" data-price="${(p.target_harga || '0').match(/[\d.]+/)[0]}">Gunakan di Kalkulator</button>
@@ -1703,11 +1711,11 @@ async function startPriceProjection() {
                 return 'text-yellow-400';
             };
             projSaranPemilik.textContent = data.saran_bagi_pemilik_aset || '-';
-            projSaranPemilik.className = `font-bold text-xl ${getSaranColor(data.saran_bagi_pemilik_aset || '')}`;
+            projSaranPemilik.className = `font-regular text-xl ${getSaranColor(data.saran_bagi_pemilik_aset || '')}`;
             projAlasanPemilik.textContent = data.alasan_saran_pemilik || '-';
 
             projSaranNonPemilik.textContent = data.saran_bagi_non_pemilik || '-';
-            projSaranNonPemilik.className = `font-bold text-xl ${getSaranColor(data.saran_bagi_non_pemilik || '')}`;
+            projSaranNonPemilik.className = `font-regular text-xl ${getSaranColor(data.saran_bagi_non_pemilik || '')}`;
             projAlasanNonPemilik.textContent = data.alasan_saran_non_pemilik || '-';
 
             proyeksiDetailsOutput.classList.remove('hidden');
@@ -1724,7 +1732,7 @@ async function startPriceProjection() {
     } catch (error) {
         console.error("Kesalahan Proyeksi Harga:", error);
         if (error.message.includes("Kesalahan Jaringan: Akses API Binance diblokir")) {
-            proyeksiDetailsOutput.innerHTML = `<div class="bg-red-900/50 border border-red-700 p-4 rounded-lg text-red-200"><h4 class="font-bold text-lg mb-2">Kesalahan Akses API Binance</h4><p>${error.message}</p><p class="text-sm mt-2">Untuk mengatasi ini, jalankan file HTML melalui server web lokal (misalnya, gunakan ekstensi "Live Server" di VS Code, atau jalankan <code>python -m http.server</code> di folder file ini). Jika Anda sudah menggunakan server dan masih ada masalah, ini mungkin batasan dari Binance untuk origin Anda.</p></div>`;
+            proyeksiDetailsOutput.innerHTML = `<div class="bg-red-900/50 border border-red-700 p-4 rounded-lg text-red-200"><h4 class="font-regular text-lg mb-2">Kesalahan Akses API Binance</h4><p>${error.message}</p><p class="text-sm mt-2">Untuk mengatasi ini, jalankan file HTML melalui server web lokal (misalnya, gunakan ekstensi "Live Server" di VS Code, atau jalankan <code>python -m http.server</code> di folder file ini). Jika Anda sudah menggunakan server dan masih ada masalah, ini mungkin batasan dari Binance untuk origin Anda.</p></div>`;
         } else {
             proyeksiDetailsOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa proyeksi harga: ${error.message}</p>`;
         }
@@ -1830,20 +1838,20 @@ async function startPriceProjection() {
         function konfluensi_findEngulfingPattern(klines) { if (!klines || klines.length < 2) return { pattern: 'BELUM DITEMUKAN' }; const last = klines[klines.length - 1].map(parseFloat); const prev = klines[klines.length - 2].map(parseFloat); const [lastOpen, lastClose] = [last[1], last[4]]; const [prevOpen, prevClose] = [prev[1], prev[4]]; const isLastBullish = lastClose > lastOpen; const isPrevBullish = prevClose > prevOpen; const lastBody = Math.abs(lastClose - lastOpen); const prevBody = Math.abs(prevClose - prevOpen); if (isPrevBullish && !isLastBullish && lastBody > prevBody && lastClose < prevOpen && lastOpen > prevClose) { return { pattern: 'BEARISH ENGULFING' }; } if (!isPrevBullish && isLastBullish && lastBody > prevBody && lastClose > prevOpen && lastOpen < prevClose) { return { pattern: 'BULLISH ENGULFING' }; } return { pattern: 'BELUM DITEMUKAN' }; }
         function konfluensi_renderChart(symbol, interval) { const trace = { x: konfluensi_state.klines.map(k => new Date(parseInt(k[0]))), open: konfluensi_state.klines.map(k => parseFloat(k[1])), high: konfluensi_state.klines.map(k => parseFloat(k[2])), low: konfluensi_state.klines.map(k => parseFloat(k[3])), close: konfluensi_state.klines.map(k => parseFloat(k[4])), type: 'candlestick', name: symbol, increasing: { line: { color: '#34d399' } }, decreasing: { line: { color: '#ef4444' } } }; const layout = { title: { text: `${symbol} - ${interval.toUpperCase()}`, font: { color: '#d1d5db' } }, xaxis: { rangeslider: { visible: false }, gridcolor: '#374151' }, yaxis: { title: 'Harga', gridcolor: '#374151' }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: '#1f2937', font: { color: '#d1d5db', family: 'Inter' }, shapes: [ { type: 'line', x0: new Date(parseInt(konfluensi_state.klines[0][0])), y0: konfluensi_state.vpvr.vah, x1: new Date(parseInt(konfluensi_state.klines[konfluensi_state.klines.length - 1][0])), y1: konfluensi_state.vpvr.vah, line: { color: '#ef4444', width: 2, dash: 'dash' } }, { type: 'line', x0: new Date(parseInt(konfluensi_state.klines[0][0])), y0: konfluensi_state.vpvr.poc, x1: new Date(parseInt(konfluensi_state.klines[konfluensi_state.klines.length - 1][0])), y1: konfluensi_state.vpvr.poc, line: { color: '#3b82f6', width: 3 } }, { type: 'line', x0: new Date(parseInt(konfluensi_state.klines[0][0])), y0: konfluensi_state.vpvr.val, x1: new Date(parseInt(konfluensi_state.klines[konfluensi_state.klines.length - 1][0])), y1: konfluensi_state.vpvr.val, line: { color: '#22c55e', width: 2, dash: 'dash' } }, ] }; Plotly.react(konfluensi_ui.chartDiv, [trace], layout, { responsive: true, displaylogo: false }); }
         function konfluensi_renderVPVR() { const precision = getPrecisionForAsset(konfluensi_state.lastClose); konfluensi_ui.vahValue.textContent = konfluensi_state.vpvr.vah.toFixed(precision); konfluensi_ui.pocValue.textContent = konfluensi_state.vpvr.poc.toFixed(precision); konfluensi_ui.valValue.textContent = konfluensi_state.vpvr.val.toFixed(precision); }
-        function konfluensi_renderMATable() { konfluensi_ui.maStatusContainer.innerHTML = ''; const { status } = konfluensi_state.trendStatus; const colorClass = status === 'UPTREND' ? 'status-uptrend' : (status === 'DOWNTREND' ? 'status-downtrend' : 'status-chop'); const icon = status === 'UPTREND' ? '▲' : (status === 'DOWNTREND' ? '▼' : '▬'); const row = document.createElement('div'); row.className = 'flex justify-between items-center'; row.innerHTML = `<span class="text-gray-400">Tren</span><span class="font-mono font-bold ${colorClass}">${icon} ${status}</span>`; konfluensi_ui.maStatusContainer.appendChild(row); }
-        function konfluensi_renderPattern() { const { pattern } = konfluensi_state.pattern; konfluensi_ui.patternDisplay.innerHTML = ''; const p = document.createElement('p'); p.className = 'font-bold'; if (pattern !== 'BELUM DITEMUKAN') { p.textContent = pattern; p.classList.add('blinking-text-animation'); if (pattern === 'BULLISH ENGULFING') p.classList.add('text-green-400'); if (pattern === 'BEARISH ENGULFING') p.classList.add('text-red-400'); } else { p.textContent = 'TIDAK ADA'; p.classList.add('text-gray-500'); } konfluensi_ui.patternDisplay.appendChild(p); }
+        function konfluensi_renderMATable() { konfluensi_ui.maStatusContainer.innerHTML = ''; const { status } = konfluensi_state.trendStatus; const colorClass = status === 'UPTREND' ? 'status-uptrend' : (status === 'DOWNTREND' ? 'status-downtrend' : 'status-chop'); const icon = status === 'UPTREND' ? '▲' : (status === 'DOWNTREND' ? '▼' : '▬'); const row = document.createElement('div'); row.className = 'flex justify-between items-center'; row.innerHTML = `<span class="text-gray-400">Tren</span><span class="font-mono font-regular ${colorClass}">${icon} ${status}</span>`; konfluensi_ui.maStatusContainer.appendChild(row); }
+        function konfluensi_renderPattern() { const { pattern } = konfluensi_state.pattern; konfluensi_ui.patternDisplay.innerHTML = ''; const p = document.createElement('p'); p.className = 'font-regular'; if (pattern !== 'BELUM DITEMUKAN') { p.textContent = pattern; p.classList.add('blinking-text-animation'); if (pattern === 'BULLISH ENGULFING') p.classList.add('text-green-400'); if (pattern === 'BEARISH ENGULFING') p.classList.add('text-red-400'); } else { p.textContent = 'TIDAK ADA'; p.classList.add('text-gray-500'); } konfluensi_ui.patternDisplay.appendChild(p); }
         
         // [MODIFIKASI] Render function baru untuk oscillator
         function konfluensi_renderOscillators() {
             const { rsi, stoch, macd } = konfluensi_state;
             konfluensi_ui.rsiValue.textContent = rsi.value.toFixed(2);
             konfluensi_ui.rsiStatus.textContent = rsi.status;
-            konfluensi_ui.rsiStatus.className = `text-xs font-bold ml-2 ${rsi.class}`;
+            konfluensi_ui.rsiStatus.className = `text-xs font-regular ml-2 ${rsi.class}`;
             konfluensi_ui.stochValue.textContent = `${stoch.k.toFixed(1)}/${stoch.d.toFixed(1)}`;
             konfluensi_ui.stochStatus.textContent = stoch.status;
-            konfluensi_ui.stochStatus.className = `text-xs font-bold ml-2 ${stoch.class}`;
+            konfluensi_ui.stochStatus.className = `text-xs font-regular ml-2 ${stoch.class}`;
             konfluensi_ui.macdCross.textContent = macd.cross;
-            konfluensi_ui.macdCross.className = `font-mono font-bold ${macd.crossClass}`;
+            konfluensi_ui.macdCross.className = `font-mono font-regular ${macd.crossClass}`;
             konfluensi_ui.macdHist.textContent = macd.histStatus;
             konfluensi_ui.macdHist.className = `font-mono font-medium ${macd.histClass}`;
         }
@@ -1869,15 +1877,15 @@ async function startPriceProjection() {
             if (macd.histStatus === 'TURUN') bearishScore++;
             let verdict = '';
             if (bullishScore >= 8 && bullishScore > bearishScore * 2) {
-                verdict = `<strong class="text-green-400">SINYAL BELI KUAT.</strong> Konfluensi dari ${bullishScore} poin bullish terdeteksi.`;
+                verdict = `<span class="text-green-400">SINYAL BELI KUAT.</span> Konfluensi dari ${bullishScore} poin bullish terdeteksi.`;
             } else if (bearishScore >= 8 && bearishScore > bullishScore * 2) {
-                verdict = `<strong class="text-red-400">SINYAL JUAL KUAT.</strong> Konfluensi dari ${bearishScore} poin bearish terdeteksi.`;
+                verdict = `<span class="text-red-400">SINYAL JUAL KUAT.</span> Konfluensi dari ${bearishScore} poin bearish terdeteksi.`;
             } else if (bullishScore > bearishScore + 2) {
-                verdict = `<strong class="text-blue-400">SIAGA BELI.</strong> Ada bias bullish (${bullishScore} vs ${bearishScore}), tapi tunggu konfirmasi lebih lanjut.`;
+                verdict = `<span class="text-blue-400">SIAGA BELI.</span> Ada bias bullish (${bullishScore} vs ${bearishScore}), tapi tunggu konfirmasi lebih lanjut.`;
             } else if (bearishScore > bullishScore + 2) {
-                verdict = `<strong class="text-yellow-400">SIAGA JUAL.</strong> Ada bias bearish (${bearishScore} vs ${bullishScore}), tapi tunggu konfirmasi lebih lanjut.`;
+                verdict = `<span class="text-yellow-400">SIAGA JUAL.</span> Ada bias bearish (${bearishScore} vs ${bullishScore}), tapi tunggu konfirmasi lebih lanjut.`;
             } else {
-                verdict = `<strong>STANDBY.</strong> Pasar netral atau sinyal bercampur. Jangan paksakan trading.`;
+                verdict = `<span>STANDBY.</span> Pasar netral atau sinyal bercampur. Jangan paksakan trading.`;
             }
             konfluensi_ui.verdictText.innerHTML = verdict;
             konfluensi_ui.verdictText.style.display = 'block';
@@ -2004,6 +2012,26 @@ async function startPriceProjection() {
     
     generateProyeksiBtn.addEventListener('click', startPriceProjection);
     
+    // --- LOGIKA TOGGLE UNTUK PANEL API KEY (VERTIKAL) ---
+    const toggleApikeyBtn = document.getElementById('toggle-apikey-btn');
+    const apikeyContent = document.getElementById('apikey-content');
+    const toggleApikeyIcon = document.getElementById('toggle-apikey-icon');
+
+    // Atur agar TERTUTUP (hide) saat pertama kali dimuat
+    apikeyContent.style.maxHeight = '0px';
+    //toggleApikeyIcon.style.transform = 'rotate(-90deg)';
+
+    toggleApikeyBtn.addEventListener('click', () => {
+        const isPanelOpen = apikeyContent.style.maxHeight !== '0px';
+        if (isPanelOpen) {
+            apikeyContent.style.maxHeight = '0';
+            //toggleApikeyIcon.style.transform = 'rotate(-90deg)';
+        } else {
+            apikeyContent.style.maxHeight = apikeyContent.scrollHeight + 'px';
+            toggleApikeyIcon.style.transform = 'rotate(0deg)';
+        }
+    });
+
     proyeksiDetailsOutput.addEventListener('click', (e) => { // Modified to listen on parent
         if (e.target.classList.contains('use-projection-btn')) {
             const price = e.target.dataset.price;
