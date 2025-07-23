@@ -134,7 +134,7 @@
     
     <div class="absolute left-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-regular py-2 px-4 rounded transition-colors duration-300">
-            ANALYZER
+            COPILOT
         </a>
     </div>
 
@@ -142,7 +142,7 @@
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-regular py-2 px-4 rounded transition-colors duration-300">
-            BTC HISTORY
+            BACKTEST
         </a>
     </div>
 
@@ -198,14 +198,13 @@
                 </div>
                 <div>
                     <div class="bg-black-500/20 border border-black-700 rounded-md mb-4">
-                    <div id="apikey-content" class="px-4 pb-4 transition-all duration-300 ease-in-out overflow-hidden"> 
-                        <button id="toggle-apikey-btn" class="w-full flex items-center p-4 py-0">
-                            <span id="toggle-apikey-icon" class="transform transition-transform text-xs font-bold text-red-600 blinking-text-animation">📲 KLIK UNTUK INPUT API .........🔑</span>
+                        <button id="toggle-apikey-btn" class="w-full flex items-center p-4 py-2"> <span id="toggle-apikey-icon" class="transform transition-transform text-xs font-bold text-red-600 blinking-text-animation">📲 KLIK UNTUK INPUT API .........🔑</span>
                         </button>
-                        <input type="password" id="api-key-input" class="kalkulator-input mt-2" placeholder="Tempel API Key Google AI Studio di sini...">
-                        <p class="text-xs text-gray-400 mt-1">Kunci akan disimpan secara lokal di browser Anda. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-300 font-bold">Dapatkan Kunci di sini (Gratis)</a>.</p>
+                        <div id="apikey-content" class="px-4 pb-4 transition-all duration-300 ease-in-out overflow-hidden">
+                            <input type="password" id="api-key-input" class="kalkulator-input mt-2" placeholder="Tempel API Key Google AI Studio di sini...">
+                            <p class="text-xs text-gray-400 mt-1">Kunci akan disimpan secara lokal di browser Anda. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-300 font-bold">Dapatkan Kunci di sini (Gratis)</a>.</p>
+                        </div>
                     </div>
-                </div>
                     <div class="flex flex-wrap border-b border-gray-700">
                         <button class="tab-button flex-grow py-2 px-4 font-regular text-gray-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">ANALISIS</button>
                         <button class="tab-button flex-grow py-2 px-4 font-regular text-gray-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">KALKULATOR</button>
@@ -510,6 +509,21 @@
                                                 <p class="text-sm text-gray-400 mt-1" id="proj-alasan-non-pemilik"></p>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="bg-indigo-900/50 border border-indigo-700 p-4 rounded-lg mt-6">
+                                        <h4 class="font-bold text-lg text-indigo-300 mb-2">🔎 Analisa Khusus: BTCUSDT</h4>
+                                        <p class="text-sm text-gray-400 mb-3">Ajukan pertanyaan spesifik tentang siklus makro BTC. AI akan menjawab berdasarkan model historis dan data yang tersedia.</p>
+                                        
+                                        <div class="flex flex-col sm:flex-row gap-2">
+                                            <input type="text" id="btc-special-question" class="kalkulator-input flex-grow" placeholder="Contoh: masuk warna apa di rainbow chart?">
+                                            <button id="ask-btc-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">Tanyakan AI</button>
+                                        </div>
+
+                                        <div id="btc-special-loader" class="hidden text-center p-4">
+                                            <div class="loader mx-auto"></div>
+                                            <p class="text-indigo-200 mt-2 text-sm">AI sedang menganalisa pertanyaan Anda...</p>
+                                        </div>
+                                        <div id="btc-special-output" class="mt-4 bg-gray-900 p-4 rounded-lg hidden whitespace-pre-wrap text-gray-300"></div>
                                     </div>
                                 </div>
                             </div>
@@ -972,7 +986,7 @@ const calculateVWAP = (klines, period = 20) => {
     async function callGemini(parts, isJsonOutput = true) {
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) throw new Error("API Key belum dimasukkan.");
-        const model = 'gemini-1.5-flash-latest'; // Menggunakan model flash terbaru
+        const model = 'gemini-2.5-flash'; // Menggunakan model flash terbaru
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const payload = { contents: [{ role: "user", parts }] };
         if (isJsonOutput) {
@@ -1359,7 +1373,52 @@ const calculateVWAP = (klines, period = 20) => {
             hideLoader();
         }
     }
+async function analyzeSpecialBTC() {
+    const questionInput = document.getElementById('btc-special-question');
+    const question = questionInput.value.trim();
+    if (!question) {
+        showCustomMessage("Harap masukkan pertanyaan Anda terlebih dahulu.", "error");
+        return;
+    }
 
+    const loader = document.getElementById('btc-special-loader');
+    const outputDiv = document.getElementById('btc-special-output');
+    const askBtn = document.getElementById('ask-btc-btn');
+
+    loader.classList.remove('hidden');
+    outputDiv.classList.add('hidden');
+    askBtn.disabled = true;
+
+    // Mengambil tanggal dan waktu saat ini untuk konteks AI
+    const now = new Date();
+    const currentTime = now.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'long', timeZone: 'Asia/Jakarta' });
+
+    const prompt = `
+        Anda adalah seorang analis makro-ekonomi khusus Bitcoin yang sangat berpengalaman. 
+        Konteks waktu saat ini adalah ${currentTime}.
+
+        Tugas Anda adalah menjawab pertanyaan pengguna tentang siklus Bitcoin. Gunakan seluruh pengetahuan Anda tentang data historis, siklus halving, model Stock-to-Flow, dan model Bitcoin Rainbow Chart untuk memberikan jawaban yang mendalam dan berbobot.
+
+        PENTING: Anda tidak memiliki akses data real-time ke model seperti Rainbow Chart. Jadi, dalam jawaban Anda:
+        1. Beri disclaimer singkat bahwa analisa Anda berdasarkan prinsip model tersebut dan data pasar historis yang Anda ketahui hingga pembaruan terakhir.
+        2. Berikan jawaban terbaik berdasarkan prinsip tersebut. Misalnya, jika harga BTC saat ini (yang bisa Anda perkirakan berdasarkan pengetahuan umum) berada di level tertentu, jelaskan kira-kira itu masuk ke zona warna apa di Rainbow Chart dan apa artinya.
+        3. Jawab dengan format paragraf yang jelas dan mudah dibaca dalam Bahasa Indonesia.
+
+        Pertanyaan dari pengguna adalah: "${question}"
+    `;
+
+    try {
+        const responseText = await callGemini([{ text: prompt }], false);
+        outputDiv.textContent = responseText;
+        outputDiv.classList.remove('hidden');
+    } catch (error) {
+        outputDiv.textContent = `Terjadi kesalahan saat meminta analisa AI: ${error.message}`;
+        outputDiv.classList.remove('hidden');
+    } finally {
+        loader.classList.add('hidden');
+        askBtn.disabled = false;
+    }
+}
 // START: NEW/MODIFIED startPriceProjection function
 async function startPriceProjection() {
     const assetSymbol = proyeksiAssetInput.value.trim().toUpperCase();
@@ -1939,6 +1998,7 @@ async function startPriceProjection() {
         }
         konfluensi_ui.timeframeSelect.addEventListener('change', konfluensi_updateDashboard);
         konfluensi_ui.runBtn.addEventListener('click', konfluensi_updateDashboard);
+        
     }
 
     // --- INISIALISASI EVENT LISTENERS ---
@@ -2011,6 +2071,7 @@ async function startPriceProjection() {
     optimizePlanBtn.addEventListener('click', optimizeTradePlan);
     
     generateProyeksiBtn.addEventListener('click', startPriceProjection);
+    document.getElementById('ask-btc-btn').addEventListener('click', analyzeSpecialBTC);
     
     // --- LOGIKA TOGGLE UNTUK PANEL API KEY (VERTIKAL) ---
     const toggleApikeyBtn = document.getElementById('toggle-apikey-btn');
