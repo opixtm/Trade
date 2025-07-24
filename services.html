@@ -20,60 +20,94 @@
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
        
     <style>
-        /* --- Gaya Responsif Mobile (Versi NON-STICKY) --- */
+        /* --- Gaya Responsif Mobile --- */
+                /* --- Gaya Responsif Mobile --- */
         @media (max-width: 768px) {
-            /* (1) Atur tata letak utama menjadi tumpukan vertikal */
-            .flex.h-screen {
+            body {
                 flex-direction: column;
-                height: auto;
             }
 
-            /* (2) Jadikan 'aside' sebagai header statis biasa (ikut scroll) */
-            aside {
-                position: static !important; /* MEMASTIKAN TIDAK ADA STICKY */
+            /* Header penuh lebar di bagian atas */
+            .top-header-full-width {
+                position: static !important;
                 width: 100% !important;
                 height: auto !important;
-                background-color: #111827; /* Warna latar header */
+                flex-direction: column;
                 padding: 1rem;
                 border-bottom: 1px solid #374151;
             }
 
-            /* (3) Atur judul dan navigasi di dalam header */
-            aside .mb-8 {
-                text-align: center;
-                margin-bottom: 1rem;
-            }
-            #main-nav {
+            /* ### PERUBAHAN DIMULAI DI SINI ### */
+            
+            /* Container untuk Judul dan Tombol (Projector/Analyzer) */
+            .header-top-wrapper {
                 display: flex;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none; /* Sembunyikan scrollbar di Firefox */
-            }
-            #main-nav::-webkit-scrollbar {
-                display: none; /* Sembunyikan scrollbar di Chrome, Safari */
-            }
-            .nav-item {
-                flex-shrink: 0;
-                white-space: nowrap;
-                margin-right: 0.5rem;
-            }
-            .nav-item.status-loading {
-                background-color: #d97706; /* bg-amber-600 */
-                color: #ffffff;
-            }
-            .nav-item.status-loaded {
-                background-color: #059669; /* bg-emerald-600 */
-                color: #ffffff;
-            }
-            /* (4) Atur area konten utama */
-            main {
-                margin-left: 0 !important;
-                padding: 1.5rem 1rem; /* Padding normal, tidak perlu ganjalan */
-                flex-grow: 1;
+                flex-wrap: wrap; /* Izinkan item untuk pindah baris */
+                justify-content: center; /* Pusatkan item secara horizontal */
+                gap: 0.5rem; /* Jarak antar item, termasuk tombol */
+                width: 100%;
+                margin-bottom: 0.5rem;
             }
 
-            /* (5) Pastikan panel di dalam konten juga satu kolom */
-            #pillar-container, 
+            /* Tombol Projector dan Analyzer sekarang terlihat di mobile */
+            .desktop-header-btn {
+                display: flex; /* Ganti dari 'none' menjadi 'flex' */
+                justify-content: center;
+                align-items: center;
+                flex-grow: 1; /* Biarkan tombol membagi ruang yang tersedia */
+                padding: 0.6rem 1rem; /* Padding yang sesuai untuk mobile */
+                min-width: 120px; /* Lebar minimum agar tidak terlalu kecil */
+            }
+
+            /* Judul di Mobile */
+            .header-title-wrapper {
+                text-align: center;
+                margin: 0.5rem 0;
+                white-space: normal; /* Izinkan wrapping di mobile */
+                word-break: break-word;
+                order: -1; /* Pastikan judul tetap di urutan pertama (paling atas) */
+                width: 100%; /* Ambil lebar penuh untuk memaksa tombol ke baris baru di bawahnya */
+            }
+
+            /* ### AKHIR DARI PERUBAHAN ### */
+
+            .header-title-wrapper h1,
+            .header-title-wrapper p {
+                white-space: normal;
+            }
+
+            /* Navigasi Utama di Mobile (horizontal, wrap) */
+            #main-nav.horizontal-top-nav {
+                display: flex; /* Pastikan display flex */
+                flex-wrap: wrap; /* Izinkan wrapping jika terlalu banyak tombol */
+                overflow-x: hidden; /* Sembunyikan scrollbar jika wrapping */
+                width: 100%;
+                margin-top: 1rem;
+                justify-content: center; /* Pusatkan tombol navigasi di mobile */
+                padding-bottom: 0.5rem;
+                border-bottom: none;
+                gap: 0.5rem; /* Tambahkan jarak antar tombol */
+            }
+            #main-nav.horizontal-top-nav::-webkit-scrollbar {
+                display: none;
+            }
+            #main-nav.horizontal-top-nav .nav-item {
+                flex-shrink: 1; /* Biarkan item menyusut jika perlu */
+                white-space: nowrap; /* Teks tombol tetap satu baris */
+                margin-right: 0; /* Hapus margin kanan */
+                padding: 0.6rem 0.9rem;
+            }
+            /* Pastikan ikon dan teks di tombol mobile tidak terpisah jauh */
+            #main-nav.horizontal-top-nav .nav-item svg {
+                margin-right: 0.25rem; /* Kurangi margin ikon di mobile */
+            }
+
+            main {
+                margin-left: 0 !important;
+                padding: 1.5rem 1rem;
+                flex-grow: 1;
+            }
+            #pillar-container,
             #exportable-content .grid,
             #unified-search-panel .max-w-md,
             #settings-panel .max-w-xl {
@@ -81,12 +115,17 @@
                 max-width: 100%;
             }
         }
-        /* --- Gaya Umum --- */
-        body { 
-            font-family: 'Inter', sans-serif; 
+
+
+        /* --- Gaya Umum (Desktop) --- */
+        body {
+            font-family: 'Inter', sans-serif;
             background-color: #111827; /* bg-gray-900 */
             color: #e5e7eb; /* text-gray-200 */
-            scroll-behavior: smooth; 
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         /* Font khusus untuk teks Arab */
         .font-arabic {
@@ -97,8 +136,80 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+
+        /* --- Header Penuh Lebar di Atas --- */
+        .top-header-full-width {
+            width: 100%;
+            height: auto;
+            background-color: #1f2937; /* bg-gray-800/50 */
+            padding: 1rem;
+            display: flex;
+            flex-direction: column; /* Konten header disusun vertikal (baris atas + baris nav) */
+            flex-shrink: 0;
+            border-bottom: 1px solid #374151;
+        }
+
+        /* Container untuk Projector, Judul, Analyzer - Baris pertama di header */
+        .header-top-wrapper {
+            display: grid;
+            grid-template-columns: auto 1fr auto; /* Projector | Judul | Analyzer */
+            align-items: center;
+            width: 100%;
+            column-gap: 8px; /* Jarak antar kolom grid */
+            margin-bottom: 1rem; /* Jarak antara baris atas header dan navigasi */
+            min-height: 40px; /* Tambahkan minimal tinggi untuk baris ini */
+        }
         
-        /* --- Navigasi Sidebar --- */
+        /* Gaya untuk tombol PROJECTOR dan ANALYZER di desktop */
+        .desktop-header-btn {
+            flex-shrink: 0;
+            width: auto; /* Biarkan lebar otomatis berdasarkan konten */
+            padding: 8px 12px;
+            text-align: center;
+        }
+
+        /* Judul di Desktop */
+        .header-title-wrapper {
+            text-align: center;
+            overflow: hidden; /* Sembunyikan teks yang meluber */
+            text-overflow: ellipsis; /* Tambahkan elipsis */
+            line-height: 1.2;
+            min-width: 0; /* Penting untuk Grid item agar bisa menyusut */
+        }
+        .header-title-wrapper h1,
+        .header-title-wrapper p {
+            white-space: nowrap; /* Penting: Pastikan teks tetap satu baris di desktop */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        /* Gaya untuk navigasi horizontal di bagian atas header (desktop) */
+        #main-nav.horizontal-top-nav {
+            display: flex;
+            flex-wrap: wrap; /* Izinkan wrap jika terlalu banyak item nav */
+            gap: 0.5rem;
+            justify-content: center; /* Pusatkan item navigasi di desktop */
+            width: 100%;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        #main-nav.horizontal-top-nav .nav-item {
+            padding: 0.75rem 1rem;
+            margin-right: 0;
+        }
+        #main-nav.horizontal-top-nav .nav-item svg {
+            margin-right: 0.5rem;
+        }
+
+        /* --- Main Content Area --- */
+        main {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        /* --- Navigasi Item Umum (IDEA, camera, DATA/Settings) --- */
         .nav-item {
             display: flex;
             align-items: center;
@@ -112,15 +223,18 @@
             background-color: #1f2937; /* bg-gray-800 */
             color: #f9fafb; /* text-gray-50 */
         }
+        /* Warna kuning saat database unloaded */
         #main-nav.db-unloaded .nav-item:not([data-view="settings"]) {
-            background-color: #ca8a04; /* Warna Kuning */
+            background-color: lab(30.39% -27.32 5.67); /* Warna Kuning */
             color: #ffffff;
         }
+        /* Warna hijau saat tombol aktif */
         .nav-item.active {
             background-color: #059669; /* Warna Hijau */
             color: #ffffff;
             font-weight: 600;
-}
+        }
+        /* Ikon di nav item default (untuk desktop) */
         .nav-item svg {
             margin-right: 0.75rem;
             width: 1.25rem;
@@ -155,7 +269,7 @@
             cursor: pointer;
         }
         .group-btn:hover {
-            background-color: #4b5563; /* bg-gray-600 */
+            background-color: lab(25.79% 5.73 -31.51); /* bg-gray-600 */
         }
         .pillar-item {
             width: 100%;
@@ -165,7 +279,7 @@
             transition: all 0.2s ease-in-out;
         }
         .pillar-item:hover {
-            background-color: #374151; /* bg-gray-700 */
+            background-color: #34517e; /* bg-gray-700 */
             color: #10b981; /* text-emerald-500 */
         }
 
@@ -205,42 +319,34 @@
 </head>
 <body class="bg-gray-900 text-gray-200">
 
-    <div class="flex h-screen">
-      
-        <aside class="w-64 bg-gray-800/50 p-4 flex flex-col fixed h-full overflow-y-auto">
-                <nav id="main-nav" class="flex-grow space-y-2 db-unloaded">
+    <div class="top-header-full-width bg-gray-800/50 p-4 flex flex-col overflow-y-auto">
+            <div class="header-top-wrapper">
+                <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-regular py-2 px-4 rounded transition-colors duration-300 desktop-header-btn">
+                    PROJECTOR
+                </a>
+                <div class="header-title-wrapper">
+                    <h1 class="text-2xl font-bold text-white whitespace-nowrap">Ensiklopedia Nur</h1>
+                    <p class="text-sm text-emerald-400 whitespace-nowrap">v10.6 (MicroExpression)</p>
+                </div>
+                <a href="https://opixtm.github.io/Trade/about" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-regular py-2 px-4 rounded transition-colors duration-300 desktop-header-btn">
+                    ANALYZER
+                </a>
+            </div>
+
+            <nav id="main-nav" class="horizontal-top-nav db-unloaded">
                 <button class="nav-item status-indicator status-loading active" data-view="unified-search"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>IDEA</button>
                 <button class="nav-item status-indicator status-loading" data-view="image"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>camera</button>
                 <button class="nav-item" data-view="settings"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.424.35.534.954.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.075.124a6.57 6.57 0 01-.22.127c-.332.183-.582.495-.645.87l-.213 1.281c-.09.542-.56.94-1.11-.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.003-.827c.293.24.438.613-.438.995s-.145-.755-.438-.995l-1.003-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37.49l1.217.456c.355.133.75.072 1.075-.124.072-.044.146-.087.22-.127.332-.183.582.495.645-.87l.213-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>DATA</button>
-            <div id="results-container" class="w-full mx-auto mt-8"></div>
-         
+                <div id="results-container" class="w-full mx-auto mt-8"></div>
             </nav>
-        </aside>
+        </div>
 
-        <main class="ml-64 flex-1 p-8 overflow-y-auto">
-            <div id="dashboard-panel" class="panel panel-active"></div>
-            <div id="unified-search-panel" class="panel"></div>
-            <div id="image-panel" class="panel"></div>
-            <div id="settings-panel" class="panel"></div>
-        </main>
-           <div class="absolute left-4 top-1/2 -translate-y-1/2">
-        <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-regular py-2 px-4 rounded transition-colors duration-300">
-            PROJECTOR
-        </a>
-    </div>
-
-    <div class="absolute right-4 top-1/2 -translate-y-1/2">
-        <a href="https://opixtm.github.io/Trade/about" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-regular py-2 px-4 rounded transition-colors duration-300">
-            ANALYZER
-        </a>
-    </div>
-        <div class="mb-8 text-center">
-                <h1 class="text-2xl font-bold text-white">Ensiklopedia Nur</h1>
-                <p class="text-sm text-emerald-400">v10.6 (MicroExpression)</p>
-            </div>
-            
-    </div>
-    
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div id="dashboard-panel" class="panel panel-active"></div>
+        <div id="unified-search-panel" class="panel"></div>
+        <div id="image-panel" class="panel"></div>
+        <div id="settings-panel" class="panel"></div>
+    </main>   
     <script>
     const emotionTaxonomy = {
         "primary_emotions": [
