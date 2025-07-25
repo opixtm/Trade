@@ -1600,25 +1600,21 @@ const calculateVWAP = (klines, period = 20) => {
 // =======================================================================
 // FUNGSI INI MENGGANTIKAN FUNGSI analyzeSpecialBTC YANG LAMA
 // =======================================================================
+// KODE BARU - Mengimplementasikan Mode Hibrida
 async function analyzeSpecialBTC() {
     const questionInput = document.getElementById('btc-special-question');
     const question = questionInput.value.trim();
     const outputDiv = document.getElementById('btc-special-output');
     const loader = document.getElementById('btc-special-loader');
     const askBtn = document.getElementById('ask-btc-btn');
+    const rainbowDisplayDiv = document.getElementById('rainbow-chart-display');
+    const rainbowZoneSpan = document.getElementById('rainbow-chart-zone');
 
-    // Define a mapping for rainbow band labels to CSS classes
     const rainbowBandColors = {
-        'Fire sale!': 'rainbow-fire-sale',
-        'BUY!': 'rainbow-buy',
-        'Accumulate': 'rainbow-accumulate',
-        'Still cheap': 'rainbow-still-cheap',
-        'HODL!': 'rainbow-hodl',
-        'Is this a bubble?': 'rainbow-is-bubble',
-        'FOMO Intensifies': 'rainbow-fomo',
-        'Sell. Seriously, SELL!': 'rainbow-sell',
-        'Maximum bubble territory': 'rainbow-max-bubble',
-        'Basically a Fire-Sale': 'rainbow-fire-sale' // Tambahkan ini jika ada label berbeda
+        'Fire sale!': 'rainbow-fire-sale', 'BUY!': 'rainbow-buy', 'Accumulate': 'rainbow-accumulate',
+        'Still cheap': 'rainbow-still-cheap', 'HODL!': 'rainbow-hodl', 'Is this a bubble?': 'rainbow-is-bubble',
+        'FOMO Intensifies': 'rainbow-fomo', 'Sell. Seriously, SELL!': 'rainbow-sell', 'Maximum bubble territory': 'rainbow-max-bubble',
+        'Basically a Fire-Sale': 'rainbow-fire-sale'
     };
 
     if (!question) {
@@ -1626,101 +1622,55 @@ async function analyzeSpecialBTC() {
         return;
     }
 
-    // Sembunyikan semua output sebelumnya dan reset warna
-    // Sembunyikan output teks default (btc-special-output)
+    // Reset UI
     outputDiv.classList.add('hidden');
+    rainbowDisplayDiv.classList.add('hidden');
+    outputDiv.textContent = '';
+    Object.values(rainbowBandColors).forEach(cls => rainbowDisplayDiv.classList.remove(cls));
+    rainbowDisplayDiv.classList.remove('text-white');
     
-    // Dapatkan elemen untuk menampilkan hasil Rainbow Chart dengan kotak
-    const rainbowDisplayDiv = document.getElementById('rainbow-chart-display');
-    const rainbowZoneSpan = document.getElementById('rainbow-chart-zone');
-    
-    // Sembunyikan elemen rainbow chart display secara default
-    rainbowDisplayDiv.classList.add('hidden'); 
-    
-    // Hapus semua kelas warna yang mungkin ada dari tampilan rainbow chart
-    Object.values(rainbowBandColors).forEach(cls => {
-        rainbowDisplayDiv.classList.remove(cls);
-    });
-    
-    // Hapus kelas warna teks
-    rainbowDisplayDiv.classList.remove('text-white'); // Bersihkan teks putih juga
-
     // Tampilkan loader dan nonaktifkan tombol
     loader.classList.remove('hidden');
     askBtn.disabled = true;
 
-    // Cek jika pertanyaan mengandung kata kunci 'rainbow'
-    if (question.toLowerCase().includes('rainbow')) {
-        // --- BAGIAN LOGIKA RAINBOW CHART ---
-        try {
-            // Ambil harga BTC terkini
-            const priceTickerData = await fetchBinanceAPIData('ticker/price', { symbol: 'BTCUSDT' });
-            const btcPriceNow = parseFloat(priceTickerData.price);
+    try {
+        // Langkah 1: Selalu jalankan model lokal terlebih dahulu
+        const priceTickerData = await fetchBinanceAPIData('ticker/price', { symbol: 'BTCUSDT' });
+        const btcPriceNow = parseFloat(priceTickerData.price);
+        const localModelResult = RainbowChartModel.getBandForPrice(btcPriceNow);
+        
+        // Langkah 2: Langsung tampilkan hasil model lokal
+        rainbowZoneSpan.textContent = localModelResult.label;
+        const colorClass = rainbowBandColors[localModelResult.label] || 'bg-gray-700';
+        rainbowDisplayDiv.classList.add(colorClass, 'text-white');
+        rainbowDisplayDiv.classList.remove('hidden'); // Panel warna langsung muncul
 
-            // Panggil model Rainbow Chart kita
-            const result = RainbowChartModel.getBandForPrice(btcPriceNow);
+        // Langkah 3: Siapkan dan panggil AI dengan konteks dari model lokal
+        const promptForAI = `
+            Anda adalah analis ahli Bitcoin yang mampu memberikan penjelasan mendalam dan kontekstual.
+            Konteks Penting: Status Rainbow Chart saat ini adalah: "${localModelResult.label}".
+
+            Tugas Anda: Berdasarkan status di atas, berikan penjelasan lebih lanjut yang relevan dengan pertanyaan dari pengguna.
             
-            // Tampilkan hasilnya di elemen baru dengan kotak berwarna
-            rainbowZoneSpan.textContent = result.label;
-            const colorClass = rainbowBandColors[result.label];
-            if (colorClass) {
-                rainbowDisplayDiv.classList.add(colorClass); // Terapkan warna background
-                rainbowDisplayDiv.classList.remove('hidden'); // Tampilkan kotak
-                rainbowDisplayDiv.classList.add('text-white'); // Pastikan teks terlihat
-            } else {
-                // Fallback jika warna tidak ditemukan (misal: label baru ditambahkan ke model tapi belum di rainbowBandColors)
-                rainbowDisplayDiv.classList.add('bg-gray-700'); // Warna default jika tidak ada kecocokan
-                rainbowDisplayDiv.classList.remove('hidden');
-                rainbowDisplayDiv.classList.add('text-white'); 
-            }
+            Pertanyaan Pengguna: "${question}"
 
-        } catch (error) {
-            // Jika ada error di logika rainbow, tampilkan di outputDiv default
-            outputDiv.textContent = `Gagal menjalankan model Rainbow: ${error.message}`;
-            outputDiv.classList.remove('hidden'); // Tampilkan output default untuk error
-            outputDiv.classList.add('bg-gray-900'); // Pastikan background default untuk error
-            rainbowDisplayDiv.classList.add('hidden'); // Pastikan kotak rainbow disembunyikan jika ada error
-        } finally {
-            loader.classList.add('hidden');
-            askBtn.disabled = false;
-        }
+            Jawab dengan format paragraf yang jelas dan mudah dibaca dalam Bahasa Indonesia.
+        `;
+        
+        const aiResponseText = await callGemini([{ text: promptForAI }], false);
+        
+        // Langkah 4: Tampilkan hasil AI di bawah panel warna
+        outputDiv.textContent = aiResponseText;
+        outputDiv.classList.remove('hidden');
 
-    } else {
-        // --- BAGIAN LOGIKA AI GEMINI (KODE LAMA ANDA) ---
-        try {
-            // Mengambil tanggal dan waktu saat ini untuk Konteks AI
-            const now = new Date();
-            const currentTime = now.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'long', timeZone: 'Asia/Jakarta' });
-
-            const prompt = `
-                Anda adalah seorang analis makro-ekonomi khusus Bitcoin yang sangat berpengalaman. 
-                Konteks waktu saat ini adalah ${currentTime}.
-
-                Tugas Anda adalah menjawab pertanyaan pengguna tentang siklus Bitcoin. Gunakan seluruh pengetahuan Anda tentang data historis, siklus halving, model Stock-to-Flow, dan prinsip Bitcoin Rainbow Chart untuk memberikan jawaban yang mendalam dan berbobot.
-                
-                PENTING: Anda tidak memiliki akses data real-time ke model seperti Rainbow Chart. Jadi, dalam jawaban Anda:
-                1. Beri disclaimer singkat bahwa analisa Anda berdasarkan prinsip model tersebut dan data pasar historis yang Anda ketahui hingga pembaruan terakhir.
-                2. Berikan jawaban terbaik berdasarkan prinsip tersebut. Misalnya, jika harga BTC saat ini (yang bisa Anda perkirakan berdasarkan pengetahuan umum) berada di level tertentu, jelaskan kira-kira itu masuk ke zona warna apa di Rainbow Chart dan apa artinya.
-                3. Jawab dengan format paragraf yang jelas dan mudah dibaca dalam Bahasa Indonesia.
-
-                Pertanyaan dari pengguna adalah: "${question}"
-            `;
-
-            const responseText = await callGemini([{ text: prompt }], false);
-            outputDiv.textContent = responseText;
-            outputDiv.classList.remove('hidden'); // Tampilkan output teks default
-            outputDiv.classList.add('bg-gray-900'); // Pastikan background default
-            rainbowDisplayDiv.classList.add('hidden'); // Pastikan kotak rainbow disembunyikan jika AI generatif yang tampil
-
-        } catch (error) {
-            outputDiv.textContent = `Terjadi kesalahan saat meminta analisa AI: ${error.message}`;
-            outputDiv.classList.remove('hidden');
-            outputDiv.classList.add('bg-gray-900');
-            rainbowDisplayDiv.classList.add('hidden'); // Pastikan kotak rainbow disembunyikan jika ada error
-        } finally {
-            loader.classList.add('hidden');
-            askBtn.disabled = false;
-        }
+    } catch (error) {
+        // Menangani error dari API atau AI
+        outputDiv.innerHTML = `<span class="text-red-400">Terjadi kesalahan: ${error.message}</span>`;
+        outputDiv.classList.remove('hidden');
+    } finally {
+        // Selalu sembunyikan loader dan aktifkan tombol setelah selesai
+        loader.classList.add('hidden');
+        askBtn.disabled = false;
     }
 }
 // START: NEW/MODIFIED startPriceProjection function
