@@ -176,15 +176,15 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap border-b border-gray-700">
-                        <button class="tab-button flex-grow py-2 px-4 font-bold text-green-400 hover:bg-gray-700 transition rounded-t-lg active" data-tab="analisa">👓 CHART</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-bold text-orange-400 hover:bg-gray-700 transition rounded-t-lg" data-tab="kalkulator">🧮 CALC</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-bold text-green-300 hover:bg-gray-700 transition rounded-t-lg" data-tab="proyeksi">🏹 PRICE</button>
-                        <button class="tab-button flex-grow py-2 px-4 font-bold text-green-300 hover:bg-gray-700 transition rounded-t-lg" data-tab="konfluensi">🤝 SIGNAL</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-bold text-green-300 hover:bg-green-600 transition rounded-t-lg active" data-tab="proyeksi">🏹 PRICE</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-bold text-green-300 hover:bg-blue-600 transition rounded-t-lg" data-tab="konfluensi">🤝 SIGNAL</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-bold text-green-400 hover:bg-blue-600 transition rounded-t-lg" data-tab="analisa">👓 CHART</button>
+                        <button class="tab-button flex-grow py-2 px-4 font-bold text-orange-400 hover:bg-orange-600 transition rounded-t-lg" data-tab="kalkulator">🧮 CALC</button>
                     </div>
                 </div>
 
                 <div id="tab-content" class="flex-grow mt-4 overflow-y-auto">
-                    <div id="analisa" class="tab-pane">
+                    <div id="analisa" class="tab-pane hidden">
                         <div id="analysis-placeholder" class="text-center text-gray-500 p-8"><p>↓UPLOAD CHART</p></div>
 
                         <div class="bg-gray-900 rounded-lg p-4 flex flex-col gap-4 shadow-md mb-4"> <div>
@@ -352,8 +352,8 @@
                     </div>
                     
                     <!-- START: Modifikasi Tab Proyeksi -->
-                    <div id="proyeksi" class="tab-pane hidden">
-                        <h3 class="text-xl text-white mb-4">Analisa Proyeksi dan Kondisi Aktual</h3>
+                    <div id="proyeksi" class="tab-pane">
+                        <h3 class="text-lg text-white mb-4">Analisa Proyeksi dan Kondisi Aktual</h3>
                         <div class="bg-gray-900 p-4 rounded-lg mb-6">
                             <!-- Input Aset & Tombol Generate -->
                             <div class="flex flex-col sm:flex-row gap-4 mb-4">
@@ -471,13 +471,20 @@
                                     </button>
                                     <div id="smc-content" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
                                         <div class="space-y-3 text-sm pt-2 border-t border-gray-700">
-                                            <p><span class="text-green-400 w-36 inline-block">Bullish Order Block:</span> <span id="proj-ob-bullish">-</span></p>
-                                            <p><span class="text-red-400 w-36 inline-block">Bearish Order Block:</span> <span id="proj-ob-bearish">-</span></p>
-                                            <p><span class="text-yellow-400 w-36 inline-block">Fair Value Gap (FVG):</span> <span id="proj-fvg">-</span></p>
-                                            <p><span class="text-blue-400 w-36 inline-block">Liquidity Pools:</span> <span id="proj-liquidity-pools">-</span></p>
-                                            
+                                            <div>
+                                                <p class="text-gray-400 font-semibold mb-1">Narasi Struktur Pasar:</p>
+                                                <p id="proj-smc-narrative">-</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-green-400 font-semibold mb-1">POI Bullish Potensial:</p>
+                                                <p id="proj-smc-poi-bullish">-</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-red-400 font-semibold mb-1">POI Bearish Potensial:</p>
+                                                <p id="proj-smc-poi-bearish">-</p>
+                                            </div>
                                             <div class="pt-3 mt-3 border-t border-gray-700">
-                                               <p><span class="text-gray-400">Kesimpulan SMC:</span> <span id="proj-kesimpulan-smc">-</span></p>
+                                            <p><span class="text-gray-400">Kesimpulan SMC:</span> <span id="proj-kesimpulan-smc">-</span></p>
                                             </div>
                                         </div>
                                     </div>
@@ -1203,7 +1210,7 @@ const calculateVWAP = (klines, period = 20) => {
     async function callGemini(parts, isJsonOutput = true) {
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) throw new Error("API Key belum dimasukkan.");
-        const model = 'gemini-2.0-flash'; // Menggunakan model flash terbaru
+        const model = 'gemini-2.5-flash'; // Menggunakan model flash terbaru
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const payload = { contents: [{ role: "user", parts }] };
         if (isJsonOutput) {
@@ -1739,22 +1746,11 @@ async function startPriceProjection() {
     });
 
     try {
-        const priceTickerData = await fetchBinanceAPIData('ticker/price', { symbol: assetSymbol });
-        if (!priceTickerData || !priceTickerData.price) {
-            throw new Error(`Gagal mengambil harga terkini untuk ${assetSymbol}. Pastikan simbol valid.`);
-        }
-        const hargaSaatAnalisa = parseFloat(priceTickerData.price);
-        
-        proyeksiLivePriceOutput.textContent = `$${hargaSaatAnalisa.toFixed(getDecimalPlaces(hargaSaatAnalisa))}`;
-        document.getElementById('proyeksi-live-price-container').classList.remove('hidden');
-
-        showLoader(`Mengumpulkan data pasar lengkap untuk ${assetSymbol}...`, proyeksiLoader, proyeksiLoaderText);
-
         const [
-            tickerData, fundingData, openInterestData, lsRatioUmumData,
-            lsRatioTopTraderData, klines15m, klines1h, klines4h, klines1d,
-            orderBookDepth
+            priceTickerData, tickerData, fundingData, openInterestData, lsRatioUmumData,
+            lsRatioTopTraderData, klines15m, klines1h, klines4h, klines1d
         ] = await Promise.all([
+            fetchBinanceAPIData('ticker/price', { symbol: assetSymbol }),
             fetchBinanceAPIData('ticker/24hr', { symbol: assetSymbol }),
             fetchBinanceAPIData('premiumIndex', { symbol: assetSymbol }),
             fetchBinanceAPIData('openInterest', { symbol: assetSymbol }),
@@ -1763,335 +1759,171 @@ async function startPriceProjection() {
             fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '15m', limit: 100 }),
             fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1h', limit: 100 }),
             fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '4h', limit: 100 }),
-            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 100 }),
-            fetchBinanceAPIData('depth', { symbol: assetSymbol, limit: 50 })
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 200 })
         ]);
-
-        const volume24h = tickerData ? parseFloat(tickerData.quoteVolume).toLocaleString('id-ID', { maximumFractionDigits: 0 }) : 'N/A';
-        let volumePercentage = 'N/A';
-        if (klines1d && klines1d.length >= 7 && tickerData) {
-            const last7dVolumes = klines1d.slice(-7).map(k => parseFloat(k[7]));
-            const avgVolume7d = last7dVolumes.reduce((a, b) => a + b, 0) / 7;
-            const currentVolume = parseFloat(tickerData.quoteVolume);
-            if (avgVolume7d > 0) volumePercentage = ((currentVolume / avgVolume7d - 1) * 100).toFixed(2);
-        } else if (tickerData) {
-            volumePercentage = 'N/A (Data historis volume kurang)';
-        }
         
-        const openInterest = openInterestData ? parseFloat(openInterestData.openInterest).toLocaleString('id-ID', { maximumFractionDigits: 0 }) : 'N/A';
-        const lsRatioUmum = lsRatioUmumData?.[0]?.longShortRatio ? parseFloat(lsRatioUmumData[0].longShortRatio).toFixed(2) : 'N/A';
-        const lsRatioTopTrader = lsRatioTopTraderData?.[0]?.longShortRatio ? parseFloat(lsRatioTopTraderData[0].longShortRatio).toFixed(2) : 'N/A';
-        const fundingRate = fundingData ? (parseFloat(fundingData.lastFundingRate) * 100).toFixed(4) + '%' : 'N/A';
-        
-        let countdownFunding = 'N/A';
-        if (fundingData && fundingData.nextFundingTime) {
-            const timeLeftMs = parseInt(fundingData.nextFundingTime) - Date.now();
-            if (timeLeftMs > 0) {
-                const hours = Math.floor(timeLeftMs / 3600000);
-                const minutes = Math.floor((timeLeftMs % 3600000) / 60000);
-                countdownFunding = `${hours} jam ${minutes} menit`;
-            }
+        if (!priceTickerData || !priceTickerData.price) {
+            throw new Error(`Gagal mengambil harga terkini untuk ${assetSymbol}. Pastikan simbol valid.`);
         }
 
-        const rsi15m = calculateRSI(klines15m.map(k => parseFloat(k[4])));
-        const rsi1h = calculateRSI(klines1h.map(k => parseFloat(k[4])));
-        const rsi4h = calculateRSI(klines4h.map(k => parseFloat(k[4])));
-        const rsi1d = calculateRSI(klines1d.map(k => parseFloat(k[4])));
-        
-        const timeframes = {
-            '15m': klines15m.map(k => parseFloat(k[4])),
-            '1h': klines1h.map(k => parseFloat(k[4])),
-            '4h': klines4h.map(k => parseFloat(k[4])),
-            '1d': klines1d.map(k => parseFloat(k[4])),
-        };
+        const hargaSaatAnalisa = parseFloat(priceTickerData.price);
+        const precision = getPrecisionForAsset(hargaSaatAnalisa);
+        proyeksiLivePriceOutput.textContent = `$${hargaSaatAnalisa.toFixed(precision)}`;
+        document.getElementById('proyeksi-live-price-container').classList.remove('hidden');
+        showLoader(`Menghitung indikator & menganalisa...`, proyeksiLoader, proyeksiLoaderText);
 
-        const getIndicatorPositions = (closes) => {
-            if (!closes || closes.length < 50) return { bb: 'Data Kurang', ema: 'Data Kurang' };
-            const lastClose = closes[closes.length - 1];
-            const ema50 = calculateEMA(closes, 50).pop();
-            const posisiEma = lastClose > ema50 ? 'Di atas EMA50' : 'Di bawah EMA50';
-            const bb = calculateBollingerBands(closes, 20, 2);
-            let posisiBb = 'Di dalam Band';
-            if (lastClose > bb.upper) posisiBb = 'Di atas Upper Band';
-            if (lastClose < bb.lower) posisiBb = 'Di bawah Lower Band';
-            return { bb: posisiBb, ema: posisiEma };
-        };
-
-        const indicatorPositions15m = getIndicatorPositions(timeframes['15m']);
-        const indicatorPositions1h = getIndicatorPositions(timeframes['1h']);
-        const indicatorPositions4h = getIndicatorPositions(timeframes['4h']);
-        const indicatorPositions1d = getIndicatorPositions(timeframes['1d']);
-
-        const posisiBb15m = indicatorPositions15m.bb, posisiEma5015m = indicatorPositions15m.ema;
-        const posisiBb1h = indicatorPositions1h.bb, posisiEma501h = indicatorPositions1h.ema;
-        const posisiBb4h = indicatorPositions4h.bb, posisiEma504h = indicatorPositions4h.ema; // FIX: Corrected typo from posisiEema504h to posisiEma504h
-        const posisiBb1d = indicatorPositions1d.bb, posisiEma501d = indicatorPositions1d.ema;
-
-        let orderBookBias = 'Netral';
-        let dominantSide = 'Tidak ada';
-        if (orderBookDepth && orderBookDepth.bids && orderBookDepth.asks) {
-            const totalBids = orderBookDepth.bids.reduce((sum, bid) => sum + parseFloat(bid[1]), 0);
-            const totalAsks = orderBookDepth.asks.reduce((sum, ask) => sum + parseFloat(ask[1]), 0);
-            if (totalBids > totalAsks * 1.1) {
-                orderBookBias = 'Bullish';
-                dominantSide = 'Bid';
-            } else if (totalAsks > totalBids * 1.1) {
-                orderBookBias = 'Bearish';
-                dominantSide = 'Ask';
-            }
-        }
-
-        const obvValues = calculateOBV(klines1d);
-        const lastObvValue = obvValues[obvValues.length-1];
-        const prevObvValue = obvValues[obvValues.length-2];
-        const obvTrend = lastObvValue > prevObvValue ? 'Naik' : 'Turun';
-
-        const vwap20d = calculateVWAP(klines1d, 20);
-        const vwapStatus = hargaSaatAnalisa > vwap20d ? 'Di Atas VWAP' : 'Di Bawah VWAP';
-
-        showLoader(`Mengambil data fundamental untuk ${assetSymbol}...`, proyeksiLoader, proyeksiLoaderText);
-        let fundamentalData = {
-            kategori: 'Tidak terdeteksi',
-            dev_activity: 'Tidak terdeteksi',
-            tokenomics: 'Tidak terdeteksi'
-        };
-
+        let fundamentalData = { kategori: 'N/A', dev_activity: 'N/A', tokenomics: 'N/A' };
         try {
-            // Peta untuk koin utama untuk menghindari kesalahan pencarian
-            const majorCoinMapping = {
-                'btc': 'bitcoin',
-                'eth': 'ethereum',
-                'sol': 'solana',
-                'bnb': 'binancecoin',
-                'xrp': 'ripple',
-                'doge': 'dogecoin',
-                'ada': 'cardano'
-            };
-
             const assetSymbolOnly = assetSymbol.replace('USDT', '').toLowerCase();
-            let coinId = majorCoinMapping[assetSymbolOnly]; // Cek peta dulu
-
-            // Jika tidak ada di peta, baru cari di daftar lengkap
+            const majorCoinMapping = { 'btc': 'bitcoin', 'eth': 'ethereum', 'sol': 'solana', 'bnb': 'binancecoin' };
+            let coinId = majorCoinMapping[assetSymbolOnly];
             if (!coinId) {
                 const coinListResponse = await fetch('https://api.coingecko.com/api/v3/coins/list');
                 const coinList = await coinListResponse.json();
                 const coin = coinList.find(c => c.symbol === assetSymbolOnly);
-                if (coin) {
-                    coinId = coin.id;
-                }
+                if (coin) coinId = coin.id;
             }
-
             if (coinId) {
                 const coinDataResponse = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=true`);
                 const coinData = await coinDataResponse.json();
-                
                 fundamentalData.kategori = coinData.categories?.join(', ') || 'N/A';
                 fundamentalData.dev_activity = `Commit 4 minggu: ${coinData.developer_data?.commit_count_4_weeks || 'N/A'}`;
-                fundamentalData.tokenomics = `Pasokan Beredar: ${coinData.market_data?.circulating_supply?.toLocaleString() || 'N/A'}, Total Pasokan: ${coinData.market_data?.total_supply?.toLocaleString() || 'N/A'}`;
+                fundamentalData.tokenomics = `Pasokan Beredar: ${coinData.market_data?.circulating_supply?.toLocaleString() || 'N/A'}`;
             }
+        } catch (e) { console.error("Gagal mengambil data fundamental:", e); }
 
-        } catch (e) {
-            console.error("Gagal mengambil data fundamental dari CoinGecko:", e);
+        const obvValues = calculateOBV(klines1d);
+        const vwap20d = calculateVWAP(klines1d, 20);
+        const vwapStatus = hargaSaatAnalisa > vwap20d ? 'Di Atas VWAP' : 'Di Bawah VWAP';
+        const obvTrend = obvValues.length > 1 && obvValues[obvValues.length-1] > obvValues[obvValues.length-2] ? 'Naik' : 'Turun';
+        
+        const timeframes = { '15 Menit': klines15m, '1 Jam': klines1h, '4 Jam': klines4h, '1 Hari': klines1d };
+        let indicatorDataForAI = {};
+
+        for (const tfName in timeframes) {
+            const klines = timeframes[tfName];
+            if (klines && klines.length > 50) {
+                const closes = klines.map(k => parseFloat(k[4]));
+                const ema50Values = calculateEMA(closes, 50);
+                const ema50 = ema50Values.length > 0 ? ema50Values.pop() : 0;
+                const bb = calculateBollingerBands(closes, 20, 2);
+                const rsi = parseFloat(calculateRSI(closes, 14)) || 0;
+
+                if (bb && bb.upper !== undefined && ema50 > 0) {
+                    indicatorDataForAI[tfName] = {
+                        rsi: rsi.toFixed(2), ema50: ema50.toFixed(precision),
+                        bollinger_bands: { upper: bb.upper.toFixed(precision), middle: bb.middle.toFixed(precision), lower: bb.lower.toFixed(precision) }
+                    };
+                }
+            }
         }
         
-        showLoader(`Menganalisa proyeksi untuk ${assetSymbol}...`, proyeksiLoader, proyeksiLoaderText);
-
-        const formatKlinesForPrompt = (klines, name) => {
-            if (!klines || klines.length === 0) return `Data K-line ${name}: Tidak tersedia.\n`;
-            const recentKlines = klines.slice(-100);
-            const header = `Data K-line ${name} (Timestamp, Open, High, Low, Close):\n`;
-            const dataString = recentKlines.map(k => 
-                `${k[0]}, ${k[1]}, ${k[2]}, ${k[3]}, ${k[4]}`
-            ).join('\n');
-            return header + dataString + '\n';
+        const otherMarketData = {
+            hargaSaatIni: hargaSaatAnalisa.toFixed(precision),
+            vwapStatus: `${vwapStatus} (${vwap20d.toFixed(precision)})`,
+            obvTrend: obvTrend, ...fundamentalData,
+            volume24h: tickerData ? parseFloat(tickerData.quoteVolume).toLocaleString('id-ID', { maximumFractionDigits: 0 }) : 'N/A',
+            openInterest: openInterestData ? parseFloat(openInterestData.openInterest).toLocaleString('id-ID', { maximumFractionDigits: 0 }) : 'N/A',
+            lsRatioUmum: lsRatioUmumData?.[0]?.longShortRatio ? parseFloat(lsRatioUmumData[0].longShortRatio).toFixed(2) : 'N/A',
+            lsRatioTopTrader: lsRatioTopTraderData?.[0]?.longShortRatio ? parseFloat(lsRatioTopTraderData[0].longShortRatio).toFixed(2) : 'N/A',
+            fundingRate: fundingData ? (parseFloat(fundingData.lastFundingRate) * 100).toFixed(4) + '%' : 'N/A',
         };
 
-        const klines1hForPrompt = formatKlinesForPrompt(klines1h, '1 Jam');
-        const klines4hForPrompt = formatKlinesForPrompt(klines4h, '4 Jam');
-        const klines1dForPrompt = formatKlinesForPrompt(klines1d, '1 Hari');
+        const prompt = `Anda adalah Analis Pasar Kripto ahli SMC. Berikan analisis kualitatif berdasarkan data kuantitatif yang SAYA BERIKAN.
 
-        // NEW: Updated Prompt for AI
-        const prompt = `Anda adalah seorang Analis Kuantitatif & Ahli Sentimen Pasar untuk aset kripto. Anda sangat mahir dalam mensintesis berbagai data menjadi saran trading yang logis, aman, dan jitu. Seluruh respons Anda WAJIB dalam Bahasa Indonesia.
+        DATA PASAR & FUNDAMENTAL SAAT INI:
+        ${JSON.stringify(otherMarketData, null, 2)}
 
-            Tugas Anda adalah memberikan analisa holistik untuk aset \`${assetSymbol}\`, termasuk rekomendasi keputusan akhir dan proyeksi harga.
+        DATA INDIKATOR AKURAT PER TIMEFRAME:
+        ${JSON.stringify(indicatorDataForAI, null, 2)}
+        
+        INSTRUKSI UTAMA:
+        Berdasarkan SEMUA data di atas, berikan jawaban HANYA dalam format JSON valid di bawah ini.
 
-            Berikut adalah DATA PASAR TERKINI yang telah divalidasi dan WAJIB Anda gunakan sebagai dasar utama analisa:
-
-            **1. Data Harga & Volume:**
-            * **Harga Saat Ini:** ${hargaSaatAnalisa} USD
-            * **Volume 24 Jam:** ${volume24h} USD (Ini adalah ${volumePercentage}% dari rata-rata volume 7 hari terakhir).
-
-            **2. Data Sentimen Pasar:**
-            * **Open Interest (Saat Ini):** ${openInterest} USD (Total uang di pasar).
-            * **Rasio Long/Short (Umum):** ${lsRatioUmum} (Sentimen trader ritel).
-            * **Rasio Long/Short (Top Trader):** ${lsRatioTopTrader} (Sentimen 'smart money').
-            * **Funding Rate (Saat Ini):** ${fundingRate} (Biaya posisi & sentimen jangka pendek).
-            * **Countdown Funding Berikutnya:** ${countdownFunding}.
-            * **Order Book Bias:** ${orderBookBias} (Dominan: ${dominantSide}). Analisis ini berdasarkan kedalaman buku pesanan.
-
-            **3. Data Indikator Teknis Multi-Timeframe:**
-            * **15 Menit:** RSI=${rsi15m}, Posisi BB='${posisiBb15m}', Posisi vs EMA50='${posisiEma5015m}'.
-            * **1 Jam:** RSI=${rsi1h}, Posisi BB='${posisiBb1h}', Posisi vs EMA50='${posisiEma501h}'.
-            * **4 Jam:** RSI=${rsi4h}, Posisi BB='${posisiBb4h}', Posisi vs EMA50='${posisiEma504h}'.
-            * **1 Hari:** RSI=${rsi1d}, Posisi BB='${posisiBb1d}', Posisi vs EMA50='${posisiEma501d}'.
-            
-             **4. Analisis Indikator Berbasis Volume:**
-            * **VWAP (20-Day):** ${vwap20d.toFixed(getDecimalPlaces(hargaSaatAnalisa))} (Harga saat ini ${vwapStatus}).
-            * **Tren On-Balance Volume (OBV):** ${obvTrend}.
-            
-            **5. Data K-Line untuk Analisa Struktur Pasar & Pola:**
-            ${klines1hForPrompt}
-            ${klines4hForPrompt}
-            ${klines1dForPrompt}
-
-            **6. Data Fundamental Proyek (dari CoinGecko):**
-            * **Kategori Proyek:** ${fundamentalData.kategori}
-            * **Aktivitas Pengembang:** ${fundamentalData.dev_activity}
-            * **Tokenomics:** ${fundamentalData.tokenomics}
-
-            **INSTRUKSI UTAMA & STRUKTUR JSON (WAJIB DIPATUHI):**
-            Berdasarkan sintesis holistik dari SEMUA data di atas, berikan jawaban HANYA dalam format JSON yang valid dan terstruktur di bawah ini. Jangan menambahkan teks atau penjelasan lain di luar format JSON.
-            
-            
-
-            {
+        {
             "analisa_kondisi_saat_ini": {
-                "volatilitas": "string (Rendah, Sedang, atau Tinggi berdasarkan pergerakan harga dan volume relatif)",
-                "sentimen_keseluruhan": "string (Jelaskan kesimpulan dari data Volume, Long/Short Ratio, Funding Rate, dan Order Book Bias)",
+                "volatilitas": "string", "sentimen_keseluruhan": "string",
                 "detail_indikator_per_timeframe": [
-                {
-                    "timeframe": "15 Menit",
-                    "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 15 Menit)"
-                },
-                {
-                    "timeframe": "1 Jam",
-                    "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 1 Jam)"
-                },
-                {
-                    "timeframe": "4 Jam",
-                    "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 4 Jam)"
-                },
-                {
-                    "timeframe": "1 Hari",
-                    "analisa": "string (Jelaskan secara singkat arti dari data indikator HANYA untuk timeframe 1 Hari)"
-                }
-                ],
-                "kesimpulan_indikator": "string (Setelah merinci per timeframe, baru berikan kesimpulan gabungannya di sini)"
+                    { "timeframe": "string", "rsi_analisa": "string", "ema50_analisa": "string", "bollinger_bands_analisa": "string" }
+                ], "kesimpulan_indikator": "string"
             },
             "analisa_smc": {
-                "order_block_bullish": "string (WAJIB ANALISA. Gunakan data k-line mentah yang disediakan di atas untuk menemukan rentang harga OB Bullish terdekat. Jika tidak ada, sebutkan 'Tidak terdeteksi'.)",
-                "order_block_bearish": "string (WAJIB ANALISA. Gunakan data k-line mentah yang disediakan di atas untuk menemukan rentang harga OB Bearish terdekat. Jika tidak ada, sebutkan 'Tidak terdeteksi'.)",
-                "fair_value_gap": "string (WAJIB ANALISA. Gunakan data k-line mentah yang disediakan di atas untuk menemukan rentang harga FVG terdekat yang berpotensi diisi. Jika tidak ada, sebutkan 'Tidak terdeteksi'.)",
-                "liquidity_pools": "string (WAJIB ANALISA. Gunakan data k-line mentah yang disediakan di atas untuk menemukan level harga liquidity pool terdekat. Jika tidak ada, sebutkan 'Tidak terdeteksi'.)",
-                
-                "kesimpulan_smc": "string (Simpulkan narasi pasar berdasarkan temuan SMC di atas. Ke mana harga kemungkinan besar akan bergerak untuk mengambil likuiditas atau memitigasi zona?)"
+                "market_structure_narrative": "string (Jelaskan narasi struktur pasar saat ini. Apakah ada BOS/CHoCH? Di mana kemungkinan area inducement berikutnya?)",
+                "potential_poi_bullish": "string (Sebutkan TIPE zona POI bullish terdekat. Contoh: 'Order block H4 di support sebelumnya' atau 'Fair Value Gap M15 yang belum termitigasi'.)",
+                "potential_poi_bearish": "string (Sebutkan TIPE zona POI bearish terdekat. Contoh: 'Supply zone H1 setelah liquidity grab'.)",
+                "kesimpulan_smc": "string (Simpulkan bias trading jangka pendek berdasarkan narasi SMC.)"
             },
             "proyeksi_lengkap": [
-                {
-                "periode": "Jangka Pendek (1-7 hari)",
-                "target_harga": "string",
-                "alasan": "string"
-                },
-                {
-                "periode": "Jangka Menengah (1-4 minggu)",
-                "target_harga": "string",
-                "alasan": "string"
-                },
-                {
-                "periode": "Jangka Panjang (1-6 bulan)",
-                "target_harga": "string",
-                "alasan": "string"
-                }
-            ],
-            "saran_bagi_pemilik_aset": "string (Pilih salah satu: TAHAN, JUAL, TAMBAH, KURANGI SEBAGIAN)",
-            "alasan_saran_pemilik": "string (Alasan singkat dan logis berdasarkan semua data dan analisis)",
-            "saran_bagi_non_pemilik": "string (Contoh: BELI di area xxxx-yyyy USD atau TUNGGU KONFIRMASI)",
-            "alasan_saran_non_pemilik": "string (Jelaskan mengapa area tersebut ideal atau mengapa harus menunggu)"
-            }
-            `;
+            { "periode": "Sangat Pendek (24-48 jam)", "target_harga": "string", "alasan": "string (Fokus pada price action dan likuiditas terdekat)" },
+            { "periode": "Jangka Pendek (1-7 hari)", "target_harga": "string", "alasan": "string" },
+            { "periode": "Jangka Menengah (1-4 minggu)", "target_harga": "string", "alasan": "string" },
+            { "periode": "Jangka Panjang (6-12 bulan)", "target_harga": "string", "alasan": "string (Hubungkan dengan narasi makro)" },
+            { "periode": "Siklus Makro (1-3 tahun)", "target_harga": "string", "alasan": "string (Hubungkan dengan siklus halving atau adopsi besar)" }
+        ],
+            "saran_bagi_pemilik_aset": "string", "alasan_saran_pemilik": "string",
+            "saran_bagi_non_pemilik": "string", "alasan_saran_non_pemilik": "string"
+        }`;
+        
         const jsonText = await callGemini([{ text: prompt }], true);
         const data = cleanAndParseJson(jsonText);
         
-        if (!data || !data.analisa_kondisi_saat_ini || !data.proyeksi_lengkap || !data.saran_bagi_pemilik_aset) {
-             proyeksiDetailsOutput.innerHTML = `<div class="bg-yellow-900/50 border border-yellow-700 p-4 rounded-lg text-yellow-200"><h4 class="font-regular text-lg mb-2">Analisis Tidak Dilanjutkan</h4><p>AI tidak dapat menghasilkan proyeksi harga yang komprehensif saat ini atau struktur data tidak valid.</p></div>`;
-        } else {
-            // Populate "Analisa Kondisi Pasar Saat Ini" (Gambar 3 - Bagian Atas)
-            projVolatilitas.textContent = data.analisa_kondisi_saat_ini.volatilitas || '-';
-            projSentimen.textContent = data.analisa_kondisi_saat_ini.sentimen_keseluruhan || '-';
-            projVolume24h.textContent = volume24h + ' USD';
-            projVolumePct.textContent = `(${volumePercentage}%)`;
-            projVolumePct.className = `text-xs ${parseFloat(volumePercentage) < 0 ? 'text-red-400' : 'text-green-400'}`;
-            projOpenInterest.textContent = openInterest + ' USD';
-            projFundingRate.textContent = fundingRate;
-            projLsUmum.textContent = lsRatioUmum;
-            projLsTop.textContent = lsRatioTopTrader;
-            projOrderBookBias.textContent = orderBookBias;
-            projOrderBookDominant.textContent = dominantSide;
+        projVolatilitas.textContent = data.analisa_kondisi_saat_ini.volatilitas || '-';
+        projSentimen.textContent = data.analisa_kondisi_saat_ini.sentimen_keseluruhan || '-';
+        projVolume24h.textContent = otherMarketData.volume24h + ' USD';
+        const priceChangePct = tickerData ? parseFloat(tickerData.priceChangePercent) : 0;
+        projVolumePct.textContent = `(${priceChangePct.toFixed(2)}%)`;
+        projVolumePct.className = `text-xs ${priceChangePct < 0 ? 'text-red-400' : 'text-green-400'}`;
+        projOpenInterest.textContent = otherMarketData.openInterest + ' USD';
+        projFundingRate.textContent = otherMarketData.fundingRate;
+        projLsUmum.textContent = otherMarketData.lsRatioUmum;
+        projLsTop.textContent = otherMarketData.lsRatioTopTrader;
+        document.getElementById('proj-vwap-status').textContent = otherMarketData.vwapStatus;
+        document.getElementById('proj-obv-trend').textContent = otherMarketData.obvTrend;
+        document.getElementById('proj-kategori').textContent = otherMarketData.kategori;
+        document.getElementById('proj-dev-activity').textContent = otherMarketData.dev_activity;
+        document.getElementById('proj-tokenomics').textContent = otherMarketData.tokenomics;
+        
+        let indicatorHtml = '';
+        (data.analisa_kondisi_saat_ini.detail_indikator_per_timeframe || []).forEach(item => {
+            const tfName = item.timeframe;
+            const calculatedData = indicatorDataForAI[tfName];
+            if (calculatedData) {
+                const rsiVal = calculatedData.rsi || '?'; const emaVal = calculatedData.ema50 || '?'; const bbVal = calculatedData.bollinger_bands || {};
+                indicatorHtml += `<div class="mb-4"><h5 class="font-bold text-blue-400">${tfName}</h5><div class="text-sm pl-2 space-y-1 mt-1"><p><span class="font-semibold">RSI:</span> ${rsiVal} - ${item.rsi_analisa || 'N/A'}</p><p><span class="font-semibold">EMA 50:</span> ${emaVal} - ${item.ema50_analisa || 'N/A'}</p><p><span class="font-semibold">Bollinger Bands:</span> ${item.bollinger_bands_analisa || 'N/A'}<span class="text-xs text-gray-400 ml-1">(U: ${bbVal.upper || '?'}, M: ${bbVal.middle || '?'}, L: ${bbVal.lower || '?'})</span></p></div></div>`;
+            }
+        });
+        projIndicatorDetails.innerHTML = indicatorHtml || '<p class="text-gray-500">Gagal menghitung data indikator.</p>';
+        projKesimpulanIndikator.textContent = data.analisa_kondisi_saat_ini.kesimpulan_indikator || '-';
 
-            let indicatorHtml = '';
-            (data.analisa_kondisi_saat_ini.detail_indikator_per_timeframe || []).forEach(tf => {
-                indicatorHtml += `<p class="mb-1"><span class="text-blue-400">${tf.timeframe}:</span> ${tf.analisa}</p>`;
-            });
-            projIndicatorDetails.innerHTML = indicatorHtml || '<p class="text-gray-500">Tidak ada detail indikator.</p>';
-            projKesimpulanIndikator.textContent = data.analisa_kondisi_saat_ini.kesimpulan_indikator || '-';
+        document.getElementById('proj-smc-narrative').textContent = data.analisa_smc.market_structure_narrative || '-';
+        document.getElementById('proj-smc-poi-bullish').textContent = data.analisa_smc.potential_poi_bullish || '-';
+        document.getElementById('proj-smc-poi-bearish').textContent = data.analisa_smc.potential_poi_bearish || '-';
+        document.getElementById('proj-kesimpulan-smc').textContent = data.analisa_smc.kesimpulan_smc || '-';
 
-            // Populate "Analisa Struktur Pasar (SMC)" (Gambar 3 - Bagian Bawah)
-            projObBullish.textContent = data.analisa_smc.order_block_bullish || '-';
-            projObBearish.textContent = data.analisa_smc.order_block_bearish || '-';
-            projFvg.textContent = data.analisa_smc.fair_value_gap || '-';
-            projLiquidityPools.textContent = data.analisa_smc.liquidity_pools || '-';
-            
+        let proyeksiHtml = '';
+        (data.proyeksi_lengkap || []).forEach(p => {
+             proyeksiHtml += `<div class="bg-gray-800 p-4 rounded-lg flex flex-col justify-between"><div><h5 class="font-regular text-blue-400">${p.periode}</h5><p class="text-lg font-regular text-white">${p.target_harga}</p><p class="text-sm text-gray-300 mt-1">${p.alasan}</p></div><button class="use-projection-btn mt-3" data-price="${(p.target_harga || '0').match(/[\d.]+/)[0]}">Gunakan di Kalkulator</button></div>`;
+        });
+        proyeksiLengkapOutput.innerHTML = proyeksiHtml || '<p class="text-gray-500">Tidak ada proyeksi harga.</p>';
 
-            projKesimpulanSmc.textContent = data.analisa_smc.kesimpulan_smc || '-';
+        const getSaranColor = (saran) => {
+            if (saran.includes('JUAL') || saran.includes('KURANGI')) return 'text-red-400';
+            if (saran.includes('BELI') || saran.includes('TAMBAH')) return 'text-green-400';
+            return 'text-yellow-400';
+        };
+        projSaranPemilik.textContent = data.saran_bagi_pemilik_aset || '-';
+        projSaranPemilik.className = `font-regular text-xl ${getSaranColor(data.saran_bagi_pemilik_aset || '')}`;
+        projAlasanPemilik.textContent = data.alasan_saran_pemilik || '-';
+        projSaranNonPemilik.textContent = data.saran_bagi_non_pemilik || '-';
+        projSaranNonPemilik.className = `font-regular text-xl ${getSaranColor(data.saran_bagi_non_pemilik || '')}`;
+        projAlasanNonPemilik.textContent = data.alasan_saran_non_pemilik || '-';
 
-            // Populate "Proyeksi Lengkap" (Gambar 2)
-            let proyeksiHtml = '';
-            (data.proyeksi_lengkap || []).forEach(p => {
-                proyeksiHtml += `
-                    <div class="bg-gray-800 p-4 rounded-lg flex flex-col justify-between">
-                        <div>
-                            <h5 class="font-regular text-blue-400">${p.periode}</h5>
-                            <p class="text-lg font-regular text-white">${p.target_harga}</p>
-                            <p class="text-sm text-gray-300 mt-1">${p.alasan}</p>
-                        </div>
-                        <button class="use-projection-btn mt-3" data-price="${(p.target_harga || '0').match(/[\d.]+/)[0]}">Gunakan di Kalkulator</button>
-                    </div>
-                `;
-            });
-            proyeksiLengkapOutput.innerHTML = proyeksiHtml || '<p class="text-gray-500">Tidak ada proyeksi harga.</p>';
-
-            // Populate "Keputusan Akhir" (Gambar 1)
-            const getSaranColor = (saran) => {
-                if (saran.includes('JUAL') || saran.includes('KURANGI')) return 'text-red-400';
-                if (saran.includes('BELI') || saran.includes('TAMBAH')) return 'text-green-400';
-                return 'text-yellow-400';
-            };
-            projSaranPemilik.textContent = data.saran_bagi_pemilik_aset || '-';
-            projSaranPemilik.className = `font-regular text-xl ${getSaranColor(data.saran_bagi_pemilik_aset || '')}`;
-            projAlasanPemilik.textContent = data.alasan_saran_pemilik || '-';
-
-            projSaranNonPemilik.textContent = data.saran_bagi_non_pemilik || '-';
-            projSaranNonPemilik.className = `font-regular text-xl ${getSaranColor(data.saran_bagi_non_pemilik || '')}`;
-            projAlasanNonPemilik.textContent = data.alasan_saran_non_pemilik || '-';
-
-            proyeksiDetailsOutput.classList.remove('hidden');
-
-            document.getElementById('proj-vwap-status').textContent = `${vwapStatus} (${vwap20d.toFixed(getDecimalPlaces(hargaSaatAnalisa))})`;
-            document.getElementById('proj-obv-trend').textContent = obvTrend;
-            document.getElementById('proj-kategori').textContent = fundamentalData.kategori;
-            document.getElementById('proj-dev-activity').textContent = fundamentalData.dev_activity;
-            document.getElementById('proj-tokenomics').textContent = fundamentalData.tokenomics;
-
-            expandFirstProyeksiSection();
-        }
+        proyeksiDetailsOutput.classList.remove('hidden');
+        expandFirstProyeksiSection();
 
     } catch (error) {
         console.error("Kesalahan Proyeksi Harga:", error);
-        if (error.message.includes("Kesalahan Jaringan: Akses API Binance diblokir")) {
-            proyeksiDetailsOutput.innerHTML = `<div class="bg-red-900/50 border border-red-700 p-4 rounded-lg text-red-200"><h4 class="font-regular text-lg mb-2">Kesalahan Akses API Binance</h4><p>${error.message}</p><p class="text-sm mt-2">Untuk mengatasi ini, jalankan file HTML melalui server web lokal (misalnya, gunakan ekstensi "Live Server" di VS Code, atau jalankan <code>python -m http.server</code> di folder file ini). Jika Anda sudah menggunakan server dan masih ada masalah, ini mungkin batasan dari Binance untuk origin Anda.</p></div>`;
-        } else {
-            proyeksiDetailsOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa proyeksi harga: ${error.message}</p>`;
-        }
+        proyeksiDetailsOutput.innerHTML = `<p class="text-red-400">Gagal menganalisa proyeksi harga: ${error.message}</p>`;
         proyeksiDetailsOutput.classList.remove('hidden');
     } finally {
         hideLoader(proyeksiLoader);
