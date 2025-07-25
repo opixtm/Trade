@@ -143,15 +143,15 @@
         <header class="bg-gray-800/50 backdrop-blur-sm shadow-lg p-4 top-0 z-20 h-16 relative flex items-center justify-center">
     
     <div class="absolute left-4 top-1/2 -translate-y-1/2">
-        <a href="https://opixtm.github.io/Trade/about" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-regular py-2 px-4 rounded transition-colors duration-300">
-            SLOW MODE 🎯
+        <a href="https://opixtm.github.io/Trade/" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-regular py-2 px-4 rounded transition-colors duration-300">
+            SLOW MODE 🚀
         </a>
     </div>
 
-    <h1 class="text-2xl font-semibold text-white">🚬<span class="text-blue-400">AI</span>📽️FAST☕️</h1>
+    <h1 class="text-2xl font-bold text-white">🚬<span class="text-blue-400">AI</span>📽️SFAST☕️</h1>
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
-        <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-regular py-2 px-4 rounded transition-colors duration-300">
+        <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
             USTADZ AI
         </a>
     </div>
@@ -364,7 +364,7 @@
                             </div>
 
                             <!-- Loader dan Placeholder Awal -->
-                            <div id="proyeksi-placeholder" class="text-center text-green-500 blinking-text-animation p-8"><p>SLOW MODEL - Proses Lebih Cepat - Hasil Analisa Lebih Sederhana</p></div>
+                            <div id="proyeksi-placeholder" class="text-center text-blue-500 blinking-text-animation p-8"><p>FAST MODEL - Proses Lebih LAMBAT - Hasil Analisa LEBIH LENGKAP.</p></div>
                             <div id="proyeksi-loader" class="hidden absolute inset-0 bg-gray-900/80 flex items-center justify-center flex-col gap-2 z-50 rounded-lg">
                                  <div class="loader"></div>
                                  <p id="proyeksi-loader-text" class="text-white font-regular"></p>
@@ -1273,9 +1273,15 @@ const calculateVWAP = (klines, period = 20) => {
     }
     
     // START FIX: Improved error handling for Binance API fetch, including CORS warning
-    async function fetchBinanceAPIData(endpoint, params = {}) {
+    async function fetchBinanceAPIData(endpoint, params = {}, apiType = 'futures') { // Tambah parameter apiType
         const query = new URLSearchParams(params).toString();
-        const url = `https://fapi.binance.com/fapi/v1/${endpoint}?${query}`;
+        
+        // Pilih URL berdasarkan apiType
+        const baseUrl = apiType === 'spot'
+            ? 'https://api.binance.com/api/v3'
+            : 'https://fapi.binance.com/fapi/v1';
+
+        const url = `${baseUrl}/${endpoint}?${query}`;
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -1731,20 +1737,21 @@ async function startPriceProjection() {
     });
 
     try {
+        // Di dalam startPriceProjection()
         const [
             priceTickerData, tickerData, fundingData, openInterestData, lsRatioUmumData,
             lsRatioTopTraderData, klines15m, klines1h, klines4h, klines1d
         ] = await Promise.all([
-            fetchBinanceAPIData('ticker/price', { symbol: assetSymbol }),
-            fetchBinanceAPIData('ticker/24hr', { symbol: assetSymbol }),
-            fetchBinanceAPIData('premiumIndex', { symbol: assetSymbol }),
-            fetchBinanceAPIData('openInterest', { symbol: assetSymbol }),
-            fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()),
-            fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()),
-            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '15m', limit: 100 }),
-            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1h', limit: 100 }),
-            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '4h', limit: 100 }),
-            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 200 })
+            fetchBinanceAPIData('ticker/price', { symbol: assetSymbol }, 'spot'), // <--- Ganti di sini
+            fetchBinanceAPIData('ticker/24hr', { symbol: assetSymbol }, 'spot'),  // <--- Ganti di sini
+            fetchBinanceAPIData('premiumIndex', { symbol: assetSymbol }), // <-- Biarkan
+            fetchBinanceAPIData('openInterest', { symbol: assetSymbol }), // <-- Biarkan
+            fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()), // <-- Biarkan
+            fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()), // <-- Biarkan
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '15m', limit: 100 }, 'spot'), // <--- Ganti di sini
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1h', limit: 100 }, 'spot'),   // <--- Ganti di sini
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '4h', limit: 100 }, 'spot'),   // <--- Ganti di sini
+            fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 200 }, 'spot')    // <--- Ganti di sini
         ]);
         
         if (!priceTickerData || !priceTickerData.price) {
@@ -2005,7 +2012,7 @@ async function startPriceProjection() {
             return { macdLine, signalLine, histogram };
         };
 
-        async function konfluensi_fetchRealData(symbol, interval) { try { return await fetchBinanceAPIData('klines', { symbol, interval, limit: 1000 }); } catch (error) { console.error("Fetch Error:", error); konfluensi_ui.chartLoader.innerHTML = `<p class="text-red-400">Error: ${error.message}.</p>`; return null; } }
+        async function konfluensi_fetchRealData(symbol, interval) { try { return await fetchBinanceAPIData('klines', { symbol, interval, limit: 1000 }, 'spot'); } catch (error) { console.error("Fetch Error:", error); konfluensi_ui.chartLoader.innerHTML = `<p class="text-red-400">Error: ${error.message}.</p>`; return null; } }
         
         function konfluensi_calculateVPVR(klines) { if (!klines || klines.length === 0) return { poc: 0, vah: 0, val: 0 }; let volumeProfile = {}; let minPrice = Infinity, maxPrice = -Infinity; klines.forEach(kline => { minPrice = Math.min(minPrice, parseFloat(kline[3])); maxPrice = Math.max(maxPrice, parseFloat(kline[2])); }); const priceRange = maxPrice - minPrice; const tickSize = 0.01; const numLevels = Math.min(50, Math.floor(priceRange / tickSize)); const levelSize = priceRange / numLevels; if (levelSize <= 0) return { poc: parseFloat(klines[klines.length-1][4]), vah: parseFloat(klines[klines.length-1][4])*1.01, val: parseFloat(klines[klines.length-1][4])*0.99 }; for (let i = 0; i <= numLevels; i++) { const levelPrice = minPrice + i * levelSize; volumeProfile[levelPrice] = 0; } klines.forEach(kline => { const closePrice = parseFloat(kline[4]); const volume = parseFloat(kline[5]); const priceLevel = minPrice + Math.floor((closePrice - minPrice) / levelSize) * levelSize; if(volumeProfile[priceLevel] !== undefined) { volumeProfile[priceLevel] += volume; } }); let totalVolume = 0; let pocPrice = 0, maxVolume = 0; for (const price in volumeProfile) { totalVolume += volumeProfile[price]; if (volumeProfile[price] > maxVolume) { maxVolume = volumeProfile[price]; pocPrice = parseFloat(price); } } const targetVolume = totalVolume * 0.70; let currentVolume = 0; let sortedLevels = Object.entries(volumeProfile).sort((a,b) => b[1] - a[1]); let valueAreaLevels = []; for (const [price, volume] of sortedLevels) { currentVolume += volume; valueAreaLevels.push(parseFloat(price)); if(currentVolume >= targetVolume) break; } const vah = Math.max(...valueAreaLevels); const val = Math.min(...valueAreaLevels); return { poc: pocPrice, vah, val }; }
         function konfluensi_calculateSMA(closes, period) { if (closes.length < period) return 0; const slice = closes.slice(-period); return slice.reduce((a, b) => a + b, 0) / period; }
@@ -2462,20 +2469,24 @@ function konfluensi_findEngulfingPatternInternal(klines) {
         document.querySelector('.tab-button[data-tab="analisa"]').click();
     }
 // TAMBAHKAN FUNGSI BARU INI
+// KODE BARU (PERBAIKAN)
 async function fetchHistoricalPrice(date) {
-    const startTime = date.setHours(0, 0, 0, 0); // Timestamp awal hari
-    const endTime = date.setHours(23, 59, 59, 999); // Timestamp akhir hari
-
+    const startTime = date.setHours(0, 0, 0, 0);
+    const endTime = date.setHours(23, 59, 59, 999);
+    
+    // URL diubah langsung ke API Spot Binance untuk data historis yang lebih lengkap
+    const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&startTime=${startTime}&endTime=${endTime}&limit=1`;
+    
     try {
-        const klines = await fetchBinanceAPIData('klines', {
-            symbol: 'BTCUSDT',
-            interval: '1d',
-            startTime: startTime,
-            endTime: endTime,
-            limit: 1
-        });
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.error(`Gagal mengambil data historis dari Binance Spot: ${response.statusText}`);
+            return null;
+        }
+        const klines = await response.json();
         if (klines && klines.length > 0) {
-            return parseFloat(klines[0][4]); // Mengembalikan harga penutupan (close price)
+            // klines[0][4] adalah harga penutupan (close price)
+            return parseFloat(klines[0][4]);
         }
         return null; // Tidak ada data untuk tanggal tersebut
     } catch (error) {
@@ -2556,7 +2567,7 @@ async function initializeRainbowTab() {
     document.getElementById('rb-current-band').textContent = 'Memuat...';
 
     // Ambil harga live
-    liveBtcPrice = parseFloat((await fetchBinanceAPIData('ticker/price', { symbol: 'BTCUSDT' })).price);
+    liveBtcPrice = parseFloat((await fetchBinanceAPIData('ticker/price', { symbol: 'BTCUSDT' }, 'spot')).price);
     const currentBandInfo = RainbowChartModel.getBandForPrice(liveBtcPrice);
     
     // Update panel info live
