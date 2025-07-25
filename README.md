@@ -1,89 +1,180 @@
-Ringkasan Umum
+📘 Panduan Pengguna Lengkap: Trading Assistant "AI SLOW"
+Selamat datang di panduan resmi untuk "AI SLOW", sebuah trading assistant yang dirancang untuk memberikan analisa pasar yang mendalam, presisi, dan berbasis data untuk membantu Anda mengambil keputusan trading yang lebih baik.
 
-File ini adalah sebuah aplikasi web front-end yang sangat kompleks dan canggih bernama Trading Co-Pilot v.X.8.0 - MIXER. Aplikasi ini berfungsi sebagai dasbor analitik untuk trading, kemungkinan besar di pasar futures kripto, dengan menggunakan data dari API publik Binance. Aplikasi ini dirancang untuk membantu trader dalam mengambil keputusan dengan menyediakan analisa teknikal multi-timeframe, penilaian kualitas sinyal, manajemen risiko, dan fitur backtesting.
+Bab 1: Pendahuluan
+Apa itu "AI SLOW"?
 
-Aplikasi ini sepenuhnya berjalan di sisi klien (client-side), artinya semua kalkulasi dan analisa terjadi di dalam browser pengguna setelah data pasar diambil dari API Binance.
+"AI SLOW" adalah aplikasi web yang berfungsi sebagai asisten pribadi Anda dalam menganalisa pasar kripto. Disebut "SLOW" karena aplikasi ini mengambil waktu untuk melakukan analisa mendalam dan komprehensif, berbeda dengan mode "FAST" yang mungkin lebih cepat namun tidak sedetail ini. Tujuannya adalah memberikan Anda pandangan yang jernih dan rencana trading yang solid, bukan sinyal cepat yang gegabah.
 
-Analisa Fungsionalitas & Fitur Utama
+Alat ini menggabungkan kekuatan AI generatif (Google AI) dengan data pasar real-time dari Binance untuk menyediakan beberapa jenis analisa:
 
-Aplikasi dibagi menjadi beberapa modul utama yang dapat diakses melalui navigasi di sisi kiri:
+Analisa Chart (Gambar): Menerjemahkan screenshot chart Anda menjadi rencana trading yang bisa langsung dieksekusi.
 
-1. Dasbor Analisa (🧭 Kompas)
+Analisa Proyeksi Harga: Menganalisa kondisi pasar suatu aset secara fundamental dan teknikal untuk memproyeksikan pergerakan harganya.
 
-Ini adalah fitur inti dari aplikasi, yang menawarkan tiga mode analisa berbeda:
+Analisa Sinyal Konfluensi: Menggabungkan berbagai indikator untuk mencari sinyal trading dengan probabilitas tinggi.
 
-Mode Co-Pilot (Matic): Mode ini berfokus pada perhitungan Trade Opportunity Score (TOS), sebuah skor 0-100 yang mengukur kualitas sebuah setup trading (berdasarkan strategi BBMA). Skor ini dihitung dengan menggabungkan beberapa filter cerdas:
+Analisa Siklus Makro BTC: Menggunakan model Rainbow Chart untuk melihat gambaran besar siklus Bitcoin.
 
-ARF (ADX Regime Filter): Menganalisa kekuatan tren di timeframe yang lebih tinggi.
+Manajemen Risiko: Kalkulator untuk menghitung ukuran posisi dan risiko secara presisi.
 
-LZW (Liquidity Zone Warning): Mendeteksi potensi stop hunt atau jebakan likuiditas.
+⚠️ Pentingnya Setup Awal
 
-VCC (Volatility Consistency Check): Memeriksa konsistensi volatilitas pasar.
+Agar fitur AI dapat berjalan, Anda WAJIB melakukan setup awal, yaitu memasukkan API Key dari Google AI Studio. Tanpa kunci ini, fitur utama seperti analisa chart dan proyeksi harga tidak akan berfungsi.
 
-MTCS (Multi-Timeframe Coherence Score): Memastikan sinyal selaras dengan tren di timeframe yang lebih besar.
+Bab 2: Setup Awal - Kunci Menuju Analisa Akurat
+Langkah ini hanya perlu dilakukan sekali. Kunci API akan tersimpan aman di browser Anda.
 
-Mode Analis Pro (F1): Mode ini menggunakan pendekatan sinkronisasi 3 timeframe (TF1, TF2, TF3) untuk validasi. Ia memeriksa apakah Arah Tren (di TF1), Setup (di TF2), dan Konfirmasi Candle (di TF3) semuanya selaras. Hasilnya adalah sebuah "Sintesis" yang menyatakan apakah sinyal aman untuk dieksekusi.
+Dapatkan API Key Gratis:
 
-Mode Mixer (Baru!): Ini adalah mode paling canggih yang menggabungkan dua mode sebelumnya.
+Buka situs Google AI Studio.
 
-Tahap 1: Melakukan analisa sinkronisasi 3-TF seperti "Analis Pro".
+Masuk dengan akun Google Anda.
 
-Tahap 2: Jika dan hanya jika Tahap 1 berhasil (semua selaras), ia akan menghitung skor TOS seperti "Co-Pilot".
-Hasilnya adalah "Putusan Pamungkas" yang hanya merekomendasikan eksekusi jika sinyalnya benar-benar selaras DAN memiliki skor kualitas yang tinggi.
+Klik tombol "Create API key in new project".
 
-2. Dasbor Konfluensi (🤝)
+Salin (copy) kode API yang muncul di layar.
 
-Fitur ini menganalisa pertemuan (konfluensi) dari beberapa indikator pada satu chart interaktif (menggunakan Plotly.js):
+Masukkan API Key ke Aplikasi:
 
-Volume Profile Visible Range (VPVR): Menampilkan level harga penting seperti Point of Control (POC), Value Area High (VAH), dan Value Area Low (VAL).
+Kembali ke aplikasi "AI SLOW".
 
-Moving Averages (SMA 20/50): Untuk validasi tren.
+Di bagian atas, klik tulisan "📲 KLIK UNTUK INPUT API .........🔑". Panel input akan terbuka.
 
-Pola Candlestick: Mendeteksi sinyal pemicu seperti Bullish/Bearish Engulfing.
+Tempel (paste) API Key yang sudah Anda salin ke dalam kolom yang tersedia.
 
-3. Eksekusi & ZZL (🔬)
+Panel akan otomatis tertutup, dan aplikasi siap digunakan.
 
-Modul ini fokus pada manajemen risiko dan eksekusi:
+Bab 3: Tab "👓 CHART" - Menerjemahkan Gambar Menjadi Rencana
+Ini adalah salah satu fitur paling kuat. Anda memberikan gambar (screenshot chart), dan AI akan memberikan rencana trading lengkap.
 
-Kalkulator Cuan & SOP: Alat untuk menghitung ukuran posisi berdasarkan modal dan risiko yang ditetapkan. Ini membantu trader menentukan berapa banyak yang harus diinvestasikan per trade. Terdapat juga checklist SOP (Standard Operating Procedure) BBMA untuk validasi manual.
+Cara Menggunakan:
 
-Live Trade Monitor (ZZL): Setelah mensimulasikan "eksekusi", monitor ini akan melacak P/L (Profit/Loss) secara real-time. Fitur ini dirancang untuk membantu menerapkan prinsip Zon Zero Loss (ZZL), yaitu menutup posisi di titik impas jika harga kembali ke level entry, untuk menghindari kerugian.
+Siapkan Screenshot Chart: Ambil screenshot chart dari TradingView atau platform lain. Pastikan sumbu harga di sebelah kanan dan nama aset/timeframe di kiri atas terlihat jelas.
 
-4. Passive Backtest (📄)
+Pilih Mode Analisa:
 
-Modul ini memungkinkan pengguna untuk menguji strategi secara historis:
+Mode Standar (Wajib): Upload chart Lower Timeframe (LTF) atau timeframe dimana Anda akan melakukan entry (misal: 15 menit, 1 jam). Klik atau drag-and-drop gambar ke kotak "Chart LTF (Entry)".
 
-Market Scanner: Memindai data harga historis dalam rentang tanggal tertentu untuk menemukan semua setup BBMA yang valid.
+Mode MTF Presisi (Opsional, Sangat Direkomendasikan): Untuk analisa yang lebih akurat, upload juga chart Higher Timeframe (HTF) atau timeframe tren besar (misal: 4 jam, 1 hari) ke kotak "Chart HTF (Tren Besar)". Ini akan membantu AI memahami bias pasar utama.
 
-Report Generator: Setelah pemindaian selesai, fitur ini dapat membuat laporan naratif yang detail, menganalisa setiap sinyal yang ditemukan, dan memberikan "analisa forensik" serta hasil nyata dari sinyal tersebut.
+Klik "ANALISA SEKARANG": Tunggu beberapa saat hingga AI selesai menganalisa.
 
-5. Playbook v.X (📖)
+Membaca Hasil Analisa:
 
-Bagian ini berfungsi sebagai dokumentasi dan pusat bantuan. Ini menjelaskan filosofi di balik TOS, prinsip ZZL, dan aturan-aturan dasar dari strategi BBMA yang digunakan.
+Detektif Data: Ringkasan data yang berhasil diekstrak AI dari gambar Anda (Aset, Timeframe, Harga Terakhir, Indikator).
 
-Analisa Teknis
+Tabel Setup LONG vs. SHORT: Ini adalah inti dari analisa. Tabel ini memberikan detail lengkap untuk dua skenario:
 
-Struktur: Aplikasi ini dibangun sebagai Single Page Application (SPA) dalam satu file HTML. Navigasi antar bagian tidak memuat ulang halaman, hanya menampilkan atau menyembunyikan div yang sesuai.
+Kondisi Pasar: Penjelasan kondisi saat ini (Bullish, Bearish, Ranging).
 
-Styling: Menggunakan TailwindCSS untuk layout dan styling, yang memungkinkan desain yang modern dan responsif dengan cepat.
+Strategi "Aman": Strategi yang disarankan (misal: "Tunggu retest di support" atau "Cari konfirmasi breakout").
 
-JavaScript:
+Probabilitas: Tingkat keyakinan AI terhadap setup ini.
 
-Ditulis dalam Vanilla JavaScript (tanpa framework besar seperti React/Vue).
+Area Entry, Stop Loss, Target Profit: Level harga spesifik untuk rencana Anda.
 
-Struktur kode JS-nya cukup rapi, dengan pemisahan yang jelas antara konfigurasi, selektor UI, fungsi logika inti, fungsi kalkulasi indikator, dan fungsi display.
+Alasan SL & TP: Penjelasan teknikal mengapa level tersebut dipilih.
 
-Menggunakan Plotly.js untuk membuat chart interaktif di Dasbor Konfluensi.
+Rekomendasi Utama: Kesimpulan dan saran paling penting dari AI.
 
-Data: Mengambil data pasar (kline/candlestick, volume, dll.) secara langsung dari API Publik Binance Futures melalui fetch.
+Gunakan Data: Klik tombol "Gunakan Data" di bawah setup LONG atau SHORT untuk secara otomatis mengisi Kalkulator Manajemen Risiko dengan data dari analisa tersebut.
 
-Koneksi dengan Filosofi Trading Anda
+Ekspor Laporan: Klik "Ekspor Laporan (Gambar)" untuk menyimpan seluruh hasil analisa sebagai satu file gambar PNG.
 
-Aplikasi ini secara fundamental dibangun di atas prinsip-prinsip yang Anda minta untuk saya terapkan dalam analisa:
+Bab 4: Tab "🏹 PRICE" - Memproyeksikan Arah Pasar
+Fitur ini tidak menggunakan gambar, melainkan data pasar langsung untuk memberikan analisa dan proyeksi yang sangat mendalam.
 
-SUPER AMAN & SUPER JITU: Fokus utama alat ini bukanlah untuk menemukan banyak sinyal, tetapi untuk menyaring sinyal. Fitur seperti TOS, Analis Pro, dan terutama Mixer, dirancang untuk menolak setup yang tidak memenuhi kriteria ketat, sehingga hanya menyisakan peluang dengan probabilitas tertinggi.
+Cara Menggunakan:
 
-HATI TENANG: Fitur seperti Kalkulator Cuan memastikan Anda tidak mengambil risiko lebih dari yang seharusnya, sementara Prinsip ZZL dan monitornya dirancang untuk mengurangi stres dengan memberikan aturan keluar yang jelas untuk mencegah profit kecil berubah menjadi kerugian.
+Input Simbol Aset: Ketik simbol aset yang Anda inginkan (contoh: BTCUSDT, ETHUSDT).
 
-KONSISTEN & TAHAN GODAAN: Dengan adanya SOP Checklist dan proses analisa yang sistematis (terutama di mode Mixer), alat ini memaksa pengguna untuk disiplin dan tidak "emosi" atau terburu-buru masuk pasar hanya karena melihat pergerakan harga. Ia mendorong untuk menunggu konfirmasi berlapis.
+Klik "ANALISA PROYEKSI": Proses ini mungkin memakan waktu sedikit lebih lama karena AI menganalisa banyak data.
 
+Membedah Hasil Proyeksi:
+
+Hasilnya terbagi dalam beberapa panel yang bisa dibuka-tutup:
+
+Analisa Kondisi Pasar Saat Ini: Menampilkan data real-time seperti volatilitas, sentimen, volume, open interest, L/S ratio, dan ringkasan kondisi indikator (RSI, EMA, Bollinger Bands) di berbagai timeframe.
+
+Analisa Struktur Pasar (SMC): Memberikan narasi berdasarkan Smart Money Concepts, menunjukkan area Point of Interest (POI) Bullish dan Bearish yang penting untuk diperhatikan.
+
+Proyeksi Lengkap: Proyeksi target harga untuk berbagai periode, mulai dari 24 jam ke depan hingga siklus makro 1-3 tahun, lengkap dengan alasan teknikalnya.
+
+Keputusan Akhir: Saran praktis yang dibagi dua: untuk Anda yang sudah memegang aset (HOLDER) dan untuk Anda yang berencana membeli (CALON PEMBELI).
+
+Fitur Khusus: Analisa BTC
+
+Di bagian bawah, terdapat kolom untuk bertanya spesifik tentang siklus makro BTC. Misalnya, Anda bisa bertanya: "masuk warna apa di rainbow chart?" atau "apakah sekarang waktu yang tepat untuk akumulasi jangka panjang?". AI akan menjawab berdasarkan model Rainbow Chart dan data historis.
+
+Bab 5: Tab "🤝 SIGNAL" - Dasbor Konfluensi
+Konfluensi berarti pertemuan beberapa sinyal atau indikator di satu titik, yang biasanya menghasilkan sinyal trading dengan probabilitas tinggi. Dasbor ini melakukan hal tersebut secara otomatis.
+
+Cara Menggunakan:
+
+Pilih Aset & Timeframe: Input simbol aset dan pilih timeframe yang ingin dianalisa.
+
+Klik "Analisa": Aplikasi akan menarik data dan menampilkannya di dasbor.
+
+Membaca Dasbor:
+
+Chart Utama: Menampilkan pergerakan harga dengan 3 level penting dari Volume Profile (VPVR):
+
+VAH (Value Area High): Resistance kuat.
+
+POC (Point of Control): Level harga dengan volume terbanyak, bertindak seperti magnet.
+
+VAL (Value Area Low): Support kuat.
+
+Putusan (Verdict): Kesimpulan utama dari semua indikator, apakah sinyalnya BELI KUAT, JUAL KUAT, SIAGA, atau STANDBY.
+
+Detail Indikator: Panel di sebelah kanan memberikan rincian dari:
+
+Volume Profile (VPVR): Level VAH, POC, VAL.
+
+Validasi Tren (SMA 21/50): Menentukan tren saat ini (UPTREND/DOWNTREND/CHOP).
+
+Volatilitas (ATR 14): Mengukur tingkat volatilitas pasar.
+
+Analisa Momentum (Oscillator): Status RSI, Stochastic RSI, dan MACD.
+
+Pemicu Sinyal Candlestick: Mendeteksi pola candlestick penting seperti Engulfing, Hammer, dll.
+
+Bab 6: Tab "🌈 RAINBOW" - Memetakan Siklus Makro Bitcoin
+Fitur ini khusus untuk melihat gambaran besar siklus harga Bitcoin menggunakan model Bitcoin Rainbow Chart yang populer.
+
+Cara Membaca Dasbor:
+
+Status Pasar: Menampilkan harga live BTC dan pita warna tempat harga saat ini berada (misal: "HODL!", "BUY!", "Maximum bubble territory").
+
+Slider Tanggal: Anda bisa menggeser slider ini untuk melihat di pita warna mana harga BTC berada pada tanggal di masa lalu, atau melihat proyeksi pita warna di masa depan.
+
+Tabel Proyeksi: Tabel ini menunjukkan rentang harga untuk setiap pita warna sesuai dengan tanggal yang dipilih pada slider. Ini membantu Anda memahami apakah harga saat itu (atau saat ini) dianggap murah atau mahal secara historis.
+
+Bab 7: Tab "🧮 CALC" - Kalkulator Manajemen Risiko
+Trading tanpa manajemen risiko adalah judi. Kalkulator ini adalah alat bantu wajib Anda.
+
+Cara Mengisi:
+
+Isi Data Manual: Masukkan Total Modal, Persentase Risiko per trade, Posisi (LONG/SHORT), Harga Entry, Leverage, dan level Stop Loss serta Take Profit.
+
+Gunakan Data dari Analisa: Cara termudah adalah dengan klik tombol "Gunakan Data" dari tab "CHART" untuk mengisi kolom-kolom ini secara otomatis.
+
+Membaca Hasil "Rencana Trading":
+
+Risiko per Trade: Jumlah uang (dalam $) yang akan hilang jika trade Anda menyentuh Stop Loss.
+
+Ukuran Posisi: Total nilai posisi (termasuk leverage) yang harus Anda buka.
+
+Biaya Posisi (Margin): Modal asli yang Anda perlukan dari akun Anda untuk membuka posisi tersebut.
+
+Rekomendasi Leverage Aman: Leverage maksimal yang disarankan agar Anda tidak mempertaruhkan seluruh modal Anda.
+
+Potensi Profit: Perkiraan keuntungan dalam $ untuk setiap level TP, lengkap dengan Risk/Reward Ratio (RR).
+
+Bab 8: Kesimpulan & Pengingat Penting
+"AI SLOW" adalah alat bantu yang canggih, namun bukan mesin pencetak uang otomatis. Ingatlah selalu prinsip ini:
+
+Gunakan alat ini untuk membangun sebuah rencana yang SUPER AMAN dan SUPER JITU. Setelah rencana dibuat, tugas terberat Anda adalah KONSISTEN, TAHAN GODAAN untuk entry terlalu cepat atau mengubah rencana di tengah jalan, dan JANGAN BIARKAN EMOSI mengambil alih.
+
+Selamat bertrading dengan lebih cerdas dan tenang!
