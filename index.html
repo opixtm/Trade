@@ -161,7 +161,7 @@
         </a>
     </div>
 
-    <h1 class="text-sm font-bold text-blue">🚬<span class="text-blue-400">AI</span>PRICE PROJECTOR</h1>
+    <h1 class="text-sm font-bold text-white">🚬<span class="text-blue-400">AI</span>PRICE PROJECTOR</h1>
 
     <div class="absolute right-4 top-1/2 -translate-y-1/2">
         <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
@@ -1595,24 +1595,29 @@ async function startPriceProjection() {
 
     try {
     // Di dalam startPriceProjection()
+    const handleFetchError = (e, asset, endpoint) => {
+        console.warn(`Gagal mengambil ${endpoint} untuk ${asset}:`, e.message);
+        return null; // Kembalikan null sebagai nilai default jika error
+    };
+
     const [
         priceTickerData, tickerData, fundingData, openInterestData, lsRatioUmumData,
-        lsRatioTopTraderData, klines15m, klines1h, klines4h, klines1d,
-        orderBookData // <--- CARANYA: Tambahkan variabel ini di sini
+        lsRatioTopTraderData, klines15m, klines1h, klines4h, klines1d, orderBookData
     ] = await Promise.all([
-        fetchBinanceAPIData('ticker/price', { symbol: assetSymbol }, 'spot'),
-        fetchBinanceAPIData('ticker/24hr', { symbol: assetSymbol }, 'spot'),
-        fetchBinanceAPIData('premiumIndex', { symbol: assetSymbol }),
-        fetchBinanceAPIData('openInterest', { symbol: assetSymbol }),
-        fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()),
-        fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()),
-        fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '15m', limit: 100 }, 'spot'),
-        fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1h', limit: 100 }, 'spot'),
-        fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '4h', limit: 100 }, 'spot'),
-        fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 200 }, 'spot'), // <--- CARANYA: Tambah koma di sini
-        fetchBinanceAPIData('depth', { symbol: assetSymbol, limit: 100 }, 'spot')
+        fetchBinanceAPIData('ticker/price', { symbol: assetSymbol }, 'spot').catch(e => handleFetchError(e, assetSymbol, 'ticker/price')),
+        fetchBinanceAPIData('ticker/24hr', { symbol: assetSymbol }, 'spot').catch(e => handleFetchError(e, assetSymbol, 'ticker/24hr')),
+        fetchBinanceAPIData('premiumIndex', { symbol: assetSymbol }).catch(e => handleFetchError(e, assetSymbol, 'premiumIndex')),
+        fetchBinanceAPIData('openInterest', { symbol: assetSymbol }).catch(e => handleFetchError(e, assetSymbol, 'openInterest')),
+        fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()).catch(e => handleFetchError(e, assetSymbol, 'globalLongShortAccountRatio')),
+        fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${assetSymbol}&period=5m&limit=1`).then(res => res.json()).catch(e => handleFetchError(e, assetSymbol, 'topLongShortAccountRatio')),
+        fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '15m', limit: 100 }, 'spot').catch(e => handleFetchError(e, assetSymbol, 'klines 15m')),
+        fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1h', limit: 100 }, 'spot').catch(e => handleFetchError(e, assetSymbol, 'klines 1h')),
+        fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '4h', limit: 100 }, 'spot').catch(e => handleFetchError(e, assetSymbol, 'klines 4h')),
+        fetchBinanceAPIData('klines', { symbol: assetSymbol, interval: '1d', limit: 200 }, 'spot').catch(e => handleFetchError(e, assetSymbol, 'klines 1d')),
+        fetchBinanceAPIData('depth', { symbol: assetSymbol, limit: 100 }, 'spot').catch(e => handleFetchError(e, assetSymbol, 'depth'))
     ]);
     
+    // Proses data Order Book (Kode ini sudah benar)
     // Proses data Order Book (Kode ini sudah benar)
     if (orderBookData && orderBookData.bids && orderBookData.asks) {
         const totalBidQty = orderBookData.bids.reduce((sum, bid) => sum + parseFloat(bid[1]), 0);
@@ -1629,11 +1634,14 @@ async function startPriceProjection() {
             dominantText = `Dominan Ask`;
         }
         
-        document.getElementById('proj-order-book-bias').textContent = biasText;
-        document.getElementById('proj-order-book-dominant').textContent = dominantText;
+        // GUNAKAN VARIABEL YANG SUDAH ADA & TAMBAHKAN PENGECEKAN
+        if (projOrderBookBias) projOrderBookBias.textContent = biasText;
+        if (projOrderBookDominant) projOrderBookDominant.textContent = dominantText;
+
     } else {
-        document.getElementById('proj-order-book-bias').textContent = 'Data tidak tersedia';
-        document.getElementById('proj-order-book-dominant').textContent = 'Data tidak tersedia';
+        // GUNAKAN VARIABEL YANG SUDAH ADA & TAMBAHKAN PENGECEKAN
+        if (projOrderBookBias) projOrderBookBias.textContent = 'Data tidak tersedia';
+        if (projOrderBookDominant) projOrderBookDominant.textContent = 'Data tidak tersedia';
     }
 
     if (!priceTickerData || !priceTickerData.price) {
