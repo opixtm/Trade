@@ -398,8 +398,8 @@
                                     </button>
                                     <div id="kondisi-pasar-content" class="overflow-hidden transition-all duration-300" style="max-height: 0;">
                                         <div class="space-y-3 text-sm pt-2 border-t border-gray-700">
-                                            <p><span class="text-blue-500 w-32 inline-block">Volatility:</span> <span id="proj-volatilitas">-</span></p>
-                                            <p><span class="text-blue-400 w-32 inline-block">Market Sentiment:</span> <span id="proj-sentimen">-</span></p>
+                                            <p><span class="text-blue-300 w-32 inline-block">Volatility:</span> <span id="proj-volatilitas">-</span></p>
+                                            <p><span class="text-blue-300 w-32 inline-block">Market Sentiment:</span> <span id="proj-sentimen">-</span></p>
                                         </div>
                                         <div class="mt-4 pt-4 border-t border-gray-700 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-5 text-sm">
                                             <div>
@@ -434,7 +434,7 @@
                                             </div>
                                         </div>
                                         <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
-                                            <span class="text-indigo-500 block mb-2">Detail Indikator per Timeframe:</span>
+                                            <span class="text-indigo-300 block mb-2">Detail Indikator per Timeframe:</span>
                                             <div id="proj-indicator-details"></div>
                                         </div>
                                          <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
@@ -445,27 +445,27 @@
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
                                                 
                                                 <div>
-                                                    <span class="text-blue-400 font-regular">VWAP Status:</span>
+                                                    <span class="text-blue-300 font-regular">VWAP Status:</span>
                                                     <span id="proj-vwap-status">-</span>
                                                 </div>
                                                 
                                                 <div>
-                                                    <span class="text-blue-400 font-regular">OBV Trend:</span>
+                                                    <span class="text-blue-300 font-regular">OBV Trend:</span>
                                                     <span id="proj-obv-trend">-</span>
                                                 </div>
 
                                                 <div class="md:col-span-2">
-                                                    <span class="text-blue-400 font-regular">Kategori Proyek:</span>
+                                                    <span class="text-blue-300 font-regular">Kategori Proyek:</span>
                                                     <span id="proj-kategori">-</span>
                                                 </div>
 
                                                 <div class="md:col-span-2">
-                                                    <span class="text-blue-400 font-regular">Aktivitas Dev:</span>
+                                                    <span class="text-blue-300 font-regular">Aktivitas Dev:</span>
                                                     <span id="proj-dev-activity">-</span>
                                                 </div>
 
                                                 <div class="md:col-span-2">
-                                                    <span class="text-blue-400 font-regular">Tokenomics:</span>
+                                                    <span class="text-blue-300 font-regular">Tokenomics:</span>
                                                     <span id="proj-tokenomics">-</span>
                                                 </div>
 
@@ -491,7 +491,7 @@
                                                 <p id="proj-smc-poi-bullish">-</p>
                                             </div>
                                             <div>
-                                                <p class="text-red-400 font-semibold mb-1">POI Bearish Potensial:</p>
+                                                <p class="text-red-500 font-semibold mb-1">POI Bearish Potensial:</p>
                                                 <p id="proj-smc-poi-bearish">-</p>
                                             </div>
                                             <div class="pt-3 mt-3 border-t border-gray-700">
@@ -1750,7 +1750,7 @@ async function startPriceProjection() {
 
         let proyeksiHtml = '';
         (data.proyeksi_lengkap || []).forEach(p => {
-             proyeksiHtml += `<div class="bg-gray-800 p-4 rounded-lg flex flex-col justify-between"><div><h5 class="font-regular text-blue-400">${p.periode}</h5><p class="text-lg font-regular text-white">${p.target_harga}</p><p class="text-sm text-gray-300 mt-1">${p.alasan}</p></div>"btn-data-action projection mt-3" data-price="${(p.target_harga || '0').match(/[\d.]+/)[0]}">Gunakan di Kalkulator</button></div>`;
+             proyeksiHtml += `<div class="bg-gray-800 p-4 rounded-lg flex flex-col justify-between"><div><h5 class="font-regular text-blue-400">${p.periode}</h5><p class="text-lg font-regular text-white">${p.target_harga}</p><p class="text-sm text-gray-300 mt-1">${p.alasan}</p></div><button class="use-projection-btn mt-3" data-price="${(p.target_harga || '0').match(/[\d.]+/)[0]}">Gunakan di Kalkulator</button></div>`;
         });
         proyeksiLengkapOutput.innerHTML = proyeksiHtml || '<p class="text-gray-500">Tidak ada proyeksi harga.</p>';
 
