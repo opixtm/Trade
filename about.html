@@ -1,1619 +1,679 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
-<head>
+<html lang="id" class=""> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANALYZER</title>
+    <title>Dasbor Analisa Kripto Cerdas</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* General & Layout Styles from THE COPILOT */
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; background-color: #0f172a; color: #e2e8f0; }
-        .font-mono { font-family: 'Roboto Mono', monospace; }
-        .active-nav { background-color: #0ea5e9; color: #ffffff; font-weight: 600; }
-        .nav-item { transition: all 0.2s ease-in-out; }
-        .nav-item:hover { background-color: #334155; }
-        .section { display: none; }
-        .section.active { display: block; }
-        .btn-action { transition: transform 0.1s ease; }
-        .btn-action:active { transform: scale(0.95); }
-
-        /* Form & Input Styles */
-        select {
-            -webkit-appearance: none; -moz-appearance: none; appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
-            background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem;
+        /* Base Styles - Light Mode */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7;
+            color: #3D352E;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-
-        /* Animations & Indicators */
-        .spinner, .loader { border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: #0ea5e9; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes blinking-red {
-            0%, 100% { opacity: 1; color: #f87171; } /* rose-400 */
-            50% { opacity: 0.3; color: #f87171; }
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #EAE5E0;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease-in-out;
         }
-        .blinking-red-animation {
-            animation: blinking-red 1.5s infinite;
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
         }
-        @keyframes blinking-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .blinking-dot-animation { animation: blinking-dot 1.5s infinite; }
-        @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .blinking-text-animation { animation: blinking-text 1.8s infinite; }
+        .btn-primary {
+            background-color: #4A7C59;
+            color: #FFFFFF;
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #3B6347;
+        }
+        .input-primary {
+            background-color: #F8F5F1;
+            border: 1px solid #DCD6CF;
+            border-radius: 0.5rem;
+            padding: 0.625rem 1rem;
+            width: 100%;
+            color: #3D352E;
+        }
+        .input-primary:focus {
+            outline: none;
+            border-color: #4A7C59;
+            box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.2);
+        }
+        .tag-green { background-color: #E6F4EA; color: #4A7C59; }
+        .tag-red { background-color: #FCE8E8; color: #A83A3A; }
+        .tag-yellow { background-color: #FFF8E1; color: #B5840F; }
+        .tag-gray { background-color: #F1F3F4; color: #5F6368; }
 
-        /* Accordion Styles */
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out; }
-        .accordion-header .arrow-icon, .accordion-header span.transform { transition: transform 0.3s; }
-        .accordion-header.open .arrow-icon, .accordion-header.open span.transform { transform: rotate(180deg); }
-        
-        /* Co-Pilot Specific Styles */
-        .tos-super-jitu { color: #34d399; }
-        .tos-tinggi { color: #60a5fa; }
-        .tos-menengah { color: #facc15; }
-        .tos-rendah { color: #f87171; }
-        .tos-sangat-rendah { color: #9ca3af; }
-        .candle-body { width: 10px; }
-        .candle-wick { width: 2px; background-color: currentColor; margin-left: 4px;}
-        .sop-checked span { color: #34d399; text-decoration: line-through; text-decoration-color: #fbbf24; }
-        #confirmation-modal { backdrop-filter: blur(5px); }
-        
-        /* ZZL Feature Styles */
-        .pnl-profit { color: #34d399; }
-        .pnl-loss { color: #f87171; }
-        .pnl-neutral { color: #9ca3af; }
-        
-        /* Visual CCA Styles */
-        .cca-status-konfirmasi { color: #34d399; } /* emerald-400 */
-        .cca-status-kontra { color: #f87171; }   /* rose-400 */
-        .cca-status-netral { color: #facc15; }   /* amber-400 */
-        .cca-bullish-color { fill: #34d399; stroke: #34d399; }
-        .cca-bearish-color { fill: #f87171; stroke: #f87171; }
-        .cca-doji-color { fill: #9ca3af; stroke: #9ca3af; }
+        /* Dark Mode Styles */
+        .dark body {
+            background-color: #121212;
+            color: #E0E0E0;
+        }
+        .dark .card {
+            background-color: #1E1E1E;
+            border-color: #333;
+        }
+        .dark .input-primary {
+            background-color: #2a2a2a;
+            border-color: #444;
+            color: #E0E0E0;
+        }
+        .dark .input-primary:focus {
+            border-color: #4A7C59;
+            box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.3);
+        }
+        .dark .tag-green { background-color: rgba(74, 124, 89, 0.2); color: #69b37f; }
+        .dark .tag-red { background-color: rgba(168, 58, 58, 0.2); color: #d17474; }
+        .dark .tag-yellow { background-color: rgba(181, 132, 15, 0.2); color: #e0c273; }
+        .dark .tag-gray { background-color: rgba(95, 99, 104, 0.2); color: #9aa0a6; }
+        .dark .text-gray-800 { color: #E0E0E0; }
+        .dark .text-gray-500 { color: #9E9E9E; }
+        .dark .text-gray-600 { color: #BDBDBD; }
+        .dark .text-gray-700 { color: #E0E0E0; }
+        .dark .text-green-700 { color: #69b37f; }
+        .dark .text-red-700 { color: #d17474; }
+        .dark .text-blue-700 { color: #8ab4f8; }
+        .dark #mainChart { border-color: #333; }
+        .dark hr { border-color: #333; }
+        .dark .p-3.bg-gray-50 { background-color: #2a2a2a; border-color: #3a3a3a !important; }
 
-        /* Analis Pro Mode Styles */
-        .pro-panel { background-color: #1e293b; border-left-width: 4px; padding: 1.25rem; border-radius: 0.5rem; }
-        .pro-panel-title { font-size: 0.875rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.5rem; }
-        .pro-panel-value { font-size: 1.5rem; font-weight: 800; }
-        .sintesis-panel { padding: 1.25rem; border-radius: 0.5rem; font-weight: 700; text-align: center; }
-        
-        /* Analyzer Mixer Styles */
-        .mixer-stage { background-color: #1e293b; padding: 1.25rem; border-radius: 0.75rem; border-left-width: 4px; }
-        .mixer-stage-title { font-size: 1.1rem; font-weight: 700; color: #c084fc; margin-bottom: 1rem; }
-        .mixer-verdict { border: 2px solid #a855f7; background: linear-gradient(145deg, #2a0a4a, #1e293b); }
-
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4A7C59;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-300">
+<body class="antialiased">
+    <div class="absolute left-4 top-1/2 -translate-y-1/2">
+        <a href="https://opixtm.github.io/Trade/about" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-regular py-2 px-4 rounded transition-colors duration-300">
+            QUICK
+        </a>
+    </div>
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
 
-    <div class="container mx-auto p-4 md:p-6">
-        
-        <header class="relative mb-6 text-center">
-            <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight"><span class="text-sky-400">🔎ANALYZER</span></h1>
-            <p class="text-slate-400 mt-1">----</p>
+        <header class="mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Dasbor Analisa Kripto</h1>
+                <p class="text-gray-500 mt-1">Ditenagai oleh AI untuk keputusan yang lebih cerdas.</p>
+            </div>
+            <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none">
+                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 7.072l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z"></path></svg>
+            </button>
+            <div class="absolute right-4 top-1/2 -translate-y-1/2">
+        <a href="https://opixtm.github.io/Trade/services" target="_blank" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors duration-300">
+            USTADZ AI
+        </a>
+    </div>
         </header>
-            <header class="relative mb-6 text-center border-b border-slate-700 pb-6">
-                    <div class="absolute top-0 left-0 right-0 w-full">
-                        <div class="container mx-auto flex justify-between items-center p-1 md:p-0">
-                            <a href="https://opixtm.github.io/Trade" target="_blank" rel="noopener noreferrer" 
-                            class="btn-action bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs md:text-sm">
-                                PROJECTOR
-                            </a>
-                            
-                            <a href="https://opixtm.github.io/Trade/services" target="_blank" rel="noopener noreferrer" 
-                            class="btn-action bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold py-2 px-4 rounded-lg text-xs md:text-sm">
-                                USTADZ AI 
-                            </a>
-                        </div>
-    </div>
 
-   
-</header>
-        
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <aside class="md:col-span-3">
-                <div class="sticky top-6 space-y-4">
-                    <nav id="main-nav" class="bg-slate-800 rounded-xl p-3 space-y-2">
-                        <button data-target="kompas" class="nav-item active-nav w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🎛️</span><div><p class="font-semibold">Analysis Dashboard</p><p class="text-xs opacity-70">Matic - Analis Pro - Mixer</p></div></button>
-                        <button data-target="eksekusi" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">🔬</span><div><p class="font-semibold">HITUNG P/L</p><p class="text-xs opacity-70">Kalkulator & Simulasi</p></div></button>
-                        
-                        <button data-target="playbook" class="nav-item w-full text-left p-3 rounded-lg flex items-center space-x-3"><span class="text-2xl">📖</span><div><p class="font-semibold">READ ME</p><p class="text-xs opacity-70">Aturan & Bantuan</p></div></button>
-                    </nav>
-                                        
-                    <div id="sidebar-indicators">
-                        <div id="trend-direction-indicator" class="bg-slate-800 p-4 rounded-xl text-center hidden">
-                            <p class="text-sm font-semibold text-slate-400">ARAH UTAMA (BBMA)</p>
-                            <p id="trend-direction-text" class="text-3xl font-black">-</p>
-                        </div>
+        <main>
+            <div class="space-y-6 mb-8">
+                <section class="card p-4">
+                     <label for="gemini-api-key" class="block text-xs font-semibold mb-2 text-gray-500">🔑 GOOGLE AI API KEY</label>
+                     <input type="password" id="gemini-api-key" class="input-primary !text-xs !py-1.5" placeholder="Tempel API Key dari Google AI Studio di sini...">
+                </section>
+                
+                <section id="asset-selector" class="card p-6">
+                    <label for="asset-input" class="block text-lg font-semibold mb-2">Pilih Aset untuk Dianalisa</label>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="text" id="asset-input" list="asset-list" class="input-primary flex-grow" placeholder="Ketik simbol aset, contoh: BTCUSDT">
+                        <datalist id="asset-list">
+                            <option value="BTCUSDT">
+                            <option value="ETHUSDT">
+                            <option value="SOLUSDT">
+                        </datalist>
+                        <button id="analyze-asset-btn" class="btn-primary">Analisa</button>
+                    </div>
+                    <p id="asset-error" class="text-red-600 text-sm mt-2 hidden"></p>
+                </section>
+            </div>
 
-                        <div id="pure-bbma-indicator" class="bg-slate-800 p-4 rounded-xl text-center hidden">
-                            <p class="text-sm font-semibold text-slate-400">SETUP BBMA MURNI</p>
-                            <p id="pure-bbma-text" class="text-3xl font-black">-</p>
-                        </div>
+            <div id="dashboard-content" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-8">
+                        <section id="main-chart-section" class="card p-4 sm:p-6">
+                             <h2 class="text-xl font-bold mb-4">Visualisasi Harga & Level Kunci</h2>
+                             <div class="chart-container">
+                                <canvas id="mainChart"></canvas>
+                             </div>
+                        </section>
 
-                        <div id="tos-sidebar-container" class="bg-slate-800 p-6 rounded-xl text-center hidden">
-                            <p class="text-sm font-semibold text-slate-400 mb-1">TRADE OPPORTUNITY SCORE (TOS)</p>
-                            <p id="tos-score-display" class="text-7xl font-black">-</p>
-                            <p id="tos-level-display" class="text-xl font-bold mt-1">-</p>
-                        </div>
-                        
-                        <div id="candle-pattern-indicator" class="bg-slate-800 p-4 rounded-xl hidden">
-                            <h4 class="text-sm font-bold text-amber-400 text-center mb-3">🕯️ CANDLE CONTEXT ANALYZER 🕯️</h4>
-                            <div id="cca-result-container" class="text-center text-slate-500 italic">
-                                <p>Jalankan analisa untuk melihat konteks candle...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <main class="md:col-span-9">
-                <!-- [MODIFIED] Panel Kontrol Utama diubah untuk memasukkan harga live -->
-                <div id="main-controls" class="bg-slate-800 p-4 rounded-xl mb-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-center">
-                    <div class="lg:col-span-1">
-                        <label for="asset-select" class="block text-sm font-medium text-slate-400 mb-1"></label>
-                        <select id="asset-select" class="w-full bg-slate-700 border-slate-600 rounded-lg p-2.5 text-white focus:ring-sky-500 focus:border-sky-500 font-bold"></select>
-                    </div>
-                    <div class="lg:col-span-1">
-                        <label for="tf-select" class="block text-sm font-medium text-slate-400 mb-1"></label>
-                        <select id="tf-select" class="w-full bg-slate-700 border-slate-600 rounded-lg p-2.5 text-white focus:ring-sky-500 focus:border-sky-500 font-bold"></select>
-                    </div>
-                    <div class="lg:col-span-2">
-                        <label class="block text-sm font-medium text-slate-400 mb-1"></label>
-                        <div id="mode-switcher" class="grid grid-cols-3 gap-2">
-                            <input type="radio" id="mode-copilot" name="analysis-mode" value="copilot" class="sr-only peer" checked>
-                            <label for="mode-copilot" class="flex items-center justify-center w-full p-2 font-bold text-sky-400 bg-slate-700/50 rounded-lg border-2 border-slate-700 cursor-pointer peer-checked:border-sky-500 peer-checked:bg-sky-900/50 peer-checked:text-sky-300 transition-all duration-200">Matic</label>
-                            
-                            <input type="radio" id="mode-pro" name="analysis-mode" value="pro" class="sr-only peer">
-                            <label for="mode-pro" class="flex items-center justify-center w-full p-2 font-bold text-amber-400 bg-slate-700/50 rounded-lg border-2 border-slate-700 cursor-pointer peer-checked:border-amber-500 peer-checked:bg-amber-900/50 peer-checked:text-amber-300 transition-all duration-200">Analis Pro</label>
-                            
-                            <input type="radio" id="mode-mixer" name="analysis-mode" value="mixer" class="sr-only peer">
-                            <label for="mode-mixer" class="flex items-center justify-center w-full p-2 font-bold text-purple-400 bg-slate-700/50 rounded-lg border-2 border-slate-700 cursor-pointer peer-checked:border-purple-500 peer-checked:bg-purple-900/50 peer-checked:text-purple-300 transition-all duration-200">Mixer</label>
-                        </div>
-                    </div>
-                    <!-- [MODIFIED] Elemen Harga Live dipindahkan ke sini -->
-                    <div class="text-right lg:col-span-1">
-                    <div> <span class="text-xs text-slate-400"></span>
-                        <p id="live-price-display" class="text-xs font-bold text-sky-400">Loading...</p>
-                    </div>
-                    <div class="mt-2"> <span class="text-xs text-slate-400"></span>
-                        <p id="funding-info-display" class="text-xs font-bold text-amber-400">Loading...</p>
-                    </div>
-                </div>
-                </div>
-
-                <div id="kompas" class="section active space-y-6">
-                    <div class="bg-slate-800 p-6 rounded-xl">
-                        <h2 id="kompas-title" class="text-2xl font-bold text-white mb-4"></h2>
-                        <p id="kompas-description" class="text-slate-400 mb-6"></p>
-                        <button id="runAnalysisBtn" class="btn-action w-full bg-sky-500 hover:bg-sky-600 text-white font-bold p-4 rounded-lg flex items-center justify-center space-x-2">
-                            <svg id="loading-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            <span id="runAnalysisBtn-text"></span>
-                        </button>
-                    </div>
-
-                    <div id="copilot-dashboard" class="space-y-6">
-                        <div id="tos-main-container" class="space-y-6 hidden">
-                             <div id="market-intel-panel" class="p-6 rounded-xl bg-slate-800 hidden">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-xl font-bold text-white flex items-center"><span class="text-xl mr-2">⚡</span> Intelijen & Rincian Skor (BBMA)</h3>
-                                    <span id="intel-timestamp" class="text-xs font-mono text-slate-500"></span>
+                        <section id="smc-section" class="card p-6">
+                            <h2 class="text-xl font-bold mb-4">Wawasan Smart Money Concepts (SMC)</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="font-semibold text-gray-700">Narasi Struktur Pasar</h3>
+                                    <p id="smc-narrative" class="text-gray-600 text-sm mt-1">-</p>
                                 </div>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    <div class="bg-slate-900 p-4 rounded-lg"><p class="text-slate-400 font-semibold">Kekuatan Tren (ARF)</p><p id="intel-adx" class="text-2xl font-bold">-</p><p id="intel-adx-desc" class="text-xs text-slate-500 mt-1">-</p></div>
-                                    <div class="bg-slate-900 p-4 rounded-lg"><p class="text-slate-400 font-semibold">Volatilitas (VCC)</p><p id="intel-bbw" class="text-2xl font-bold">-</p><p id="intel-bbw-desc" class="text-xs text-slate-500 mt-1">-</p></div>
-                                    <div class="bg-slate-900 p-4 rounded-lg"><p class="text-slate-400 font-semibold">Setup & Likuiditas (LZW)</p><p id="intel-setup" class="text-2xl font-bold">-</p><p id="intel-setup-desc" class="text-xs text-slate-500 mt-1">-</p></div>
-                                    <div class="bg-slate-900 p-4 rounded-lg"><p class="text-slate-400 font-semibold">Koherensi (MTCS)</p><p id="intel-mtcs" class="text-2xl font-bold">-</p><p id="intel-mtcs-desc" class="text-xs text-slate-500 mt-1">-</p></div>
-                                    <div class="bg-slate-900 p-4 rounded-lg"><p class="text-slate-400 font-semibold">Aktivitas Volume (24j)</p><p id="intel-volume" class="text-2xl font-bold">-</p><p id="intel-volume-desc" class="text-xs text-slate-500 mt-1">Konfirmasi kekuatan pasar</p></div>
-                                    <div class="bg-slate-900 p-4 rounded-lg"><p class="text-slate-400 font-semibold">Sentimen Trader (L/S)</p><p id="intel-ls-ratio" class="text-2xl font-bold">-</p><p id="intel-ls-ratio-desc" class="text-xs text-slate-500 mt-1">Posisi mayoritas trader</p></div>
+                                <hr class="dark:border-gray-700"/>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h3 class="font-semibold text-green-700">POI Bullish Potensial</h3>
+                                        <p id="smc-poi-bullish" class="text-gray-600 text-sm mt-1">-</p>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-red-700">POI Bearish Potensial</h3>
+                                        <p id="smc-poi-bearish" class="text-gray-600 text-sm mt-1">-</p>
+                                    </div>
+                                </div>
+                                <hr class="dark:border-gray-700"/>
+                                <div>
+                                    <h3 class="font-semibold text-blue-700">Kesimpulan SMC</h3>
+                                    <p id="smc-conclusion" class="text-gray-600 text-sm mt-1">-</p>
                                 </div>
                             </div>
-                            <div class="bg-slate-800 p-6 rounded-xl">
-                                <h3 class="text-xl font-bold text-white mb-2">Rekomendasi & Playbook (BBMA)</h3>
-                                <div id="tos-recommendation-container" class="bg-slate-900 p-4 rounded-lg"><p class="text-slate-500 italic">Jalankan analisa untuk melihat rekomendasi...</p></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div id="pro-dashboard" class="space-y-6 hidden">
-                         <div id="pro-analysis-cockpit" class="grid grid-cols-1 sm:grid-cols-2 gap-4 hidden">
-                            <div id="pro-panel-1" class="pro-panel border-l-sky-400">
-                                <p id="pro-panel-1-title" class="pro-panel-title">TIMEFRAME 1: ARAH TREN</p>
-                                <p id="pro-panel-1-value" class="text-slate-500">-</p>
-                            </div>
-                            <div id="pro-panel-2" class="pro-panel border-l-amber-400">
-                                <p id="pro-panel-2-title" class="pro-panel-title">TIMEFRAME 2: SETUP</p>
-                                <p id="pro-panel-2-value" class="text-slate-500">-</p>
-                            </div>
-                            <div id="pro-panel-3" class="pro-panel border-l-emerald-400">
-                                <p id="pro-panel-3-title" class="pro-panel-title">KONFIRMASI AMAN (CCA)</p>
-                                <div id="pro-panel-3-value" class="text-slate-500 italic text-sm">Menunggu analisa...</div>
-                            </div>
-                            <div id="pro-panel-4" class="pro-panel border-l-purple-400">
-                                <p id="pro-panel-4-title" class="pro-panel-title">KONFIRMASI KLASIK (BBMA)</p>
-                                <p id="pro-panel-4-value" class="text-slate-500">-</p>
-                            </div>
-                        </div>
-
-                        <div id="sintesis-panel-container" class="hidden">
-                            <div id="sintesis-panel" class="sintesis-panel"></div>
-                            <p id="sintesis-alasan" class="text-center text-xs text-amber-300 mt-2"></p>
-                            <button id="lanjut-eksekusi-btn" class="btn-action w-full md:w-auto mx-auto mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hidden">
-                                Lanjutkan ke Rencana Eksekusi
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"/></svg>
-                            </button>
-                        </div>
+                        </section>
                     </div>
 
-                    <div id="mixer-dashboard" class="space-y-6 hidden">
-                        <div id="mixer-analysis-cockpit" class="grid grid-cols-1 sm:grid-cols-2 gap-4 hidden">
-                            <div id="mixer-panel-1" class="pro-panel border-l-sky-400">
-                                <p id="mixer-panel-1-title" class="pro-panel-title">TIMEFRAME 1: ARAH TREN</p>
-                                <p id="mixer-panel-1-value" class="text-slate-500">-</p>
+                    <aside class="space-y-8">
+                        <section id="current-state-section" class="card p-6">
+                            <h2 class="text-xl font-bold mb-4">Kondisi Pasar Saat Ini</h2>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">Harga Terkini</span>
+                                    <span id="current-price" class="font-bold text-lg">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">Perubahan 24j</span>
+                                    <span id="price-change-24h" class="font-semibold">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">Sentimen</span>
+                                    <span id="market-sentiment" class="tag tag-gray">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">Volatilitas</span>
+                                    <span id="market-volatility" class="tag tag-gray">-</span>
+                                </div>
                             </div>
-                            <div id="mixer-panel-2" class="pro-panel border-l-amber-400">
-                                <p id="mixer-panel-2-title" class="pro-panel-title">TIMEFRAME 2: SETUP</p>
-                                <p id="mixer-panel-2-value" class="text-slate-500">-</p>
-                            </div>
-                            <div id="mixer-panel-3" class="pro-panel border-l-emerald-400">
-                                <p id="mixer-panel-3-title" class="pro-panel-title">KONFIRMASI AMAN (CCA)</p>
-                                <div id="mixer-panel-3-value" class="text-slate-500 italic text-sm">Menunggu analisa...</div>
-                            </div>
-                            <div id="mixer-panel-4" class="pro-panel border-l-purple-400">
-                                <p id="mixer-panel-4-title" class="pro-panel-title">KONFIRMASI KLASIK (BBMA)</p>
-                                <p id="mixer-panel-4-value" class="text-slate-500">-</p>
-                            </div>
-                        </div>
-                        <div id="mixer-stage-1" class="mixer-stage border-l-sky-400 hidden">
+                        </section>
+                        
+                        <section id="confluence-signal-section" class="card p-6">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="mixer-stage-title !mb-0">TAHAP 1: SINKRONISASI PASAR (3-TF)</h3>
-                                 <span id="mixer-timestamp" class="text-xs font-mono text-slate-500"></span>
+                                <h2 class="text-xl font-bold">Sinyal Konfluensi</h2>
+                                <select id="confluence-timeframe" class="input-primary !w-auto text-sm !py-1 !px-2">
+                                    <option value="1m">1 Menit</option>
+                                            <option value="3m">3 Menit</option>
+                                            <option value="5m">5 Menit</option>
+                                            <option value="15m">15 Menit</option>
+                                            <option value="1h" selected>1 Jam</option>
+                                            <option value="2h">2 Jam</option>
+                                            <option value="4h">4 Jam</option>
+                                            <option value="6h">6 Jam</option>
+                                            <option value="12h">12 Jam</option>
+                                            <option value="1d">1 Hari</option>
+                                            <option value="3d">3 Hari</option>
+                                            <option value="1w">1 Minggu</option>
+                                </select>
                             </div>
-                            <div id="mixer-stage-1-result" class="text-center p-4 rounded-lg">
+                            <div id="confluence-verdict" class="text-center p-4 rounded-lg">
+                                <p class="text-2xl font-bold">-</p>
+                                <p class="text-sm text-gray-500 mt-1">-</p>
                             </div>
-                        </div>
-                        <div id="mixer-stage-2" class="mixer-stage border-l-amber-400 hidden">
-                             <h3 class="mixer-stage-title">TAHAP 2: SKORING PELUANG (TOS)</h3>
-                             <div id="mixer-stage-2-result" class="text-center p-4 rounded-lg">
-                            </div>
-                        </div>
-                        <div id="mixer-verdict-container" class="mixer-stage mixer-verdict p-6 text-center hidden">
-                            <h3 class="text-2xl font-black text-purple-300 mb-2">⚡ PUTUSAN FINAL ⚡</h3>
-                            <p id="mixer-verdict-text" class="text-lg font-semibold text-white"></p>
-                            <p id="mixer-verdict-reason" class="text-sm text-purple-200/80 mt-1"></p>
-                             <button id="mixer-lanjut-eksekusi-btn" class="btn-action w-full md:w-auto mx-auto mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hidden">
-                                Lanjutkan ke Rencana Eksekusi
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            
-                <div id="eksekusi" class="section space-y-6">
-                     <div class="bg-slate-800 p-6 rounded-xl">
-                         <h2 id="eksekusi-title" class="text-2xl font-bold text-white mb-4"></h2>
-                         <button id="findEntryBtn" class="btn-action w-full bg-sky-500 hover:bg-sky-600 text-white font-bold p-4 rounded-lg mb-6 flex items-center justify-center space-x-2"><span id="findEntryBtn-text"></span></button>
-                         <div id="entry-zone-container" class="bg-slate-900 p-4 rounded-lg border border-slate-700 hidden"><h3 class="text-lg font-bold text-white mb-2">Rekomendasi Zona Re-entry (LWMA Channel)</h3><p id="entry-zone-desc" class="text-slate-400 text-sm mb-2"></p><div class="text-center bg-sky-900/50 p-3 rounded-lg"><p id="entry-zone-label" class="text-sm text-sky-300"></p><p id="entry-zone-range" class="text-2xl font-bold text-white"></p></div></div>
-                     </div>
-                    <div id="kalkulator-container" class="bg-slate-800 p-6 rounded-xl">
-                        <h2 class="text-2xl font-bold text-white mb-2">💰 KALKULATOR & SOP</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-2 gap-4"><div><label for="modal" class="block text-sm font-medium text-slate-400">Total Modal ($)</label><input type="number" id="modal" value="250" class="w-full bg-slate-700 border-slate-600 rounded-lg p-2 text-white mt-1"></div><div><label for="risk-percent" class="block text-sm font-medium text-slate-400">Risiko/Trade (%)</label><input type="number" id="risk-percent" value="1.5" step="0.1" class="w-full bg-slate-700 border-slate-600 rounded-lg p-2 text-white mt-1"></div></div>
-                                <div><label class="block text-sm font-medium text-slate-400 mb-2">Pilih Posisi:</label><div class="grid grid-cols-2 gap-2"><input type="radio" id="posisi-long" name="posisi" value="LONG" class="sr-only peer"><label for="posisi-long" class="flex items-center justify-center w-full p-3 font-bold text-emerald-400 bg-slate-700/50 rounded-lg border-2 border-slate-700 cursor-pointer peer-checked:border-emerald-500 peer-checked:bg-emerald-900/50 peer-checked:text-emerald-300">LONG</label><input type="radio" id="posisi-short" name="posisi" value="SHORT" class="sr-only peer" checked><label for="posisi-short" class="flex items-center justify-center w-full p-3 font-bold text-rose-400 bg-slate-700/50 rounded-lg border-2 border-slate-700 cursor-pointer peer-checked:border-rose-500 peer-checked:bg-rose-900/50 peer-checked:text-rose-300">SHORT</label></div></div>
-                                <div><label for="entry" class="block text-sm font-medium text-slate-400 mb-1">Harga Acuan Entry</label><input type="number" id="entry" placeholder="<- Otomatis atau manual" class="w-full bg-slate-700 border-slate-600 rounded-lg p-2 text-white"></div>
-                                <div class="flex justify-between items-center"><label for="leverage-input" class="block text-sm font-medium text-slate-400">Leverage (x)</label><input type="number" id="leverage-input" value="10" class="w-1/2 bg-slate-700 border-slate-600 rounded-lg p-2 text-white"></div>
-                                <div><label for="cost-margin-input" class="block text-sm font-medium text-slate-400">Biaya Posisi Manual ($)</label><input type="number" id="cost-margin-input" placeholder="Atau isi ini" class="w-full bg-slate-700 border-slate-600 rounded-lg p-2 text-white mt-1"></div>
-                                <div><label for="stoploss" class="block text-sm font-medium text-slate-400 mb-1">Stop Loss</label><div class="flex gap-2"><input type="number" id="stoploss" placeholder="Harga Stop Loss" class="w-full bg-slate-700/50 border-slate-600 rounded-lg p-2 text-rose-400"><button id="swingBtn" class="btn-action bg-slate-600 hover:bg-slate-500 text-white text-xs font-bold p-2 rounded-lg">Saran SL/TP</button></div></div>
-                                <div class="space-y-2 bg-slate-900 p-3 rounded-lg"><label class="block text-sm font-bold text-slate-400">Manajemen Take Profit</label><input type="number" id="tp1" placeholder="TP 1" class="w-full bg-slate-700/50 border-slate-600 rounded-lg p-2 text-emerald-400 text-sm mb-2"><input type="number" id="tp2" placeholder="TP 2" class="w-full bg-slate-700/50 border-slate-600 rounded-lg p-2 text-emerald-400 text-sm mb-2"><input type="number" id="tp3" placeholder="TP 3" class="w-full bg-slate-700/50 border-slate-600 rounded-lg p-2 text-emerald-400 text-sm"></div>
-                                <button id="calculateBtn" class="btn-action w-full bg-sky-500 hover:bg-sky-600 text-white font-bold p-3 rounded-lg">HITUNG RENCANA</button>
-                                <div id="notification" class="h-6 text-center text-xs font-semibold"></div>
-                            </div>
-                            <div class="space-y-4">
-                                <div id="calc-results" class="bg-slate-900 p-4 rounded-lg space-y-3 border border-slate-700 hidden">
-                                    <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-2">Rencana Trading:</h3>
-                                    <div class="flex justify-between items-center"><span id="risk-label" class="text-slate-400">Risiko per Trade (1.5%):</span><span id="risk-usd" class="font-bold text-lg text-rose-500"></span></div>
-                                    <div class="flex justify-between items-center"><span class="text-slate-400">Ukuran Posisi (USD):</span><span id="pos-size" class="font-bold text-lg text-white"></span></div>
-                                    <div class="flex justify-between items-center bg-sky-500/20 p-2 rounded-md"><span class="text-sky-300 font-semibold">Biaya Posisi (Margin):</span><span id="cost-margin" class="font-bold text-xl text-sky-300"></span></div>
-                                    <div class="flex justify-between items-center text-xs text-slate-500 border-t border-slate-700 pt-2"><span class="italic">Rekomendasi Leverage Aman:</span><span id="leverage-info" class="font-bold"></span></div>
-                                    <h4 class="text-md font-bold text-white pt-2 border-t border-slate-700">Potensi Profit:</h4>
-                                    <div class="flex justify-between items-center text-sm"><span id="tp1-label" class="text-slate-400"></span><span id="profit-tp1" class="font-semibold text-emerald-400"></span></div>
-                                    <div class="flex justify-between items-center text-sm"><span id="tp2-label" class="text-slate-400"></span><span id="profit-tp2" class="font-semibold text-emerald-400"></span></div>
-                                    <div class="flex justify-between items-center text-sm"><span id="tp3-label" class="text-slate-400"></span><span id="profit-tp3" class="font-semibold text-emerald-400"></span></div>
-                                    <div id="execute-container" class="pt-2"></div>
+                        </section>
+
+                        <section id="projection-section" class="card p-6">
+                            <h2 class="text-xl font-bold mb-4">Proyeksi Harga AI</h2>
+                            <div class="space-y-3" id="projection-list">
                                 </div>
-                                <div id="sop-checklist-container" class="bg-slate-900 p-4 rounded-lg space-y-3 border border-amber-500/30">
-                                    <h3 class="text-lg font-bold text-amber-400">Laporan Validasi SOP BBMA</h3>
-                                    <label id="sop-label-1" class="flex items-center space-x-3 transition-colors duration-300"><input type="checkbox" id="sop-check-1" class="h-4 w-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-600" disabled><span class="text-slate-300">Arah utama (Mid BB) di TF besar valid.</span></label>
-                                    <label id="sop-label-2" class="flex items-center space-x-3 transition-colors duration-300"><input type="checkbox" id="sop-check-2" class="h-4 w-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-600" disabled><span class="text-slate-300">Ada sinyal CSM sebelumnya (konfirmasi tren).</span></label>
-                                    <label id="sop-label-3" class="flex items-center space-x-3 transition-colors duration-300"><input type="checkbox" id="sop-check-3" class="h-4 w-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-600" disabled><span class="text-slate-300">Harga di Zona Re-entry (LWMA 5/10).</span></label>
-                                    <label id="sop-label-4" class="flex items-center space-x-3 transition-colors duration-300"><input type="checkbox" id="sop-check-4" class="h-4 w-4 rounded bg-slate-700 border-slate-600 text-sky-500 focus:ring-sky-600" disabled><span class="text-slate-300">Ada candle konfirmasi (misal: Engulfing).</span></label>
+                        </section>
+
+                        <section id="ai-verdict-section" class="card p-6">
+                            <h2 class="text-xl font-bold mb-4">Keputusan Akhir AI</h2>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <h3 class="font-semibold text-green-700">Untuk Calon Pembeli</h3>
+                                    <p id="verdict-buyer-action" class="text-lg font-bold">-</p>
+                                    <p id="verdict-buyer-reason" class="text-sm text-gray-600 mt-1">-</p>
+                                </div>
+                                <hr class="dark:border-gray-700"/>
+                                <div>
+                                    <h3 class="font-semibold text-blue-700">Untuk Pemilik Aset</h3>
+                                    <p id="verdict-holder-action" class="text-lg font-bold">-</p>
+                                    <p id="verdict-holder-reason" class="text-sm text-gray-600 mt-1">-</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div id="zzl-monitor-container" class="bg-slate-800 p-6 rounded-xl border-t-4 border-amber-500 mt-6 hidden">
-                         <h2 class="text-2xl font-bold text-amber-400 mb-4 flex items-center gap-3"><span class="blinking-dot-animation inline-block h-3 w-3 bg-amber-400 rounded-full"></span>LIVE TRADE MONITOR</h2>
-                         <div class="bg-slate-900 p-4 rounded-lg space-y-4"><div class="grid grid-cols-3 gap-4 text-center"><div><p class="text-sm text-slate-400">Aset / Posisi</p><p id="zzl-asset-side" class="text-lg font-bold text-white"></p></div><div><p class="text-sm text-slate-400">Harga Entry</p><p id="zzl-entry-price" class="text-lg font-bold text-white"></p></div><div><p class="text-sm text-slate-400">Harga Saat Ini</p><p id="zzl-live-price" class="text-lg font-bold text-sky-400"></p></div></div><div class="bg-slate-800 p-4 rounded-lg text-center"><p class="text-sm text-slate-400 uppercase font-semibold">Live P/L (Simulasi)</p><p id="zzl-live-pnl" class="text-4xl font-black pnl-neutral">$0.00</p></div><div class="pt-2"><button id="zzl-close-btn" class="btn-action w-full bg-amber-600 hover:bg-amber-500 text-white font-bold p-3 rounded-lg">Tutup Posisi (Gunakan Prinsip ZZL)</button></div></div>
-                    </div>
+                        </section>
+
+                    </aside>
                 </div>
-                
-                <!-- [MODIFIED] Seluruh div#report dihapus -->
-                
-                <div id="playbook" class="section space-y-4">
-                     <div class="bg-slate-800 rounded-xl"><button class="accordion-header w-full flex justify-between items-center p-5 text-left font-semibold text-white"><span>Filosofi & Logika Trade Opportunity Score (TOS)</span><span class="transform">▼</span></button><div class="accordion-content"><div class="p-5 border-t border-slate-700 text-slate-400 space-y-4"><p>Co-pilot v.X.0.0 tidak lagi hanya memberi sinyal, tapi **mengukur kualitas sinyal** itu. Setiap setup BBMA akan diinterogasi oleh 4 filter cerdas untuk menghasilkan satu skor akhir: **Trade Opportunity Score (TOS)**.</p><p><strong class="text-sky-400">TOS = (Skor Dasar * ARF) + LZW + VCC + MTCS</strong></p><ul class="list-disc list-inside space-y-2"><li><strong class="text-white">Skor Dasar:</strong> Nilai awal (Re-entry=50, CSM=40, dst).</li><li><strong class="text-white">ARF (ADX Regime Filter):</strong> Apakah pasar trending (ADX > 25)?</li><li><strong class="text-white">LZW (Liquidity Zone Warning):</strong> Apakah zona Re-entry aman dari *stop hunt*?</li><li><strong class="text-white">VCC (Volatility Consistency Check):</strong> Apakah volatilitas (BBW) mendukung sinyal?</li><li><strong class="text-white">MTCS (Multi-Timeframe Coherence Score):</strong> Apakah sinyal selaras dengan tren di TF lebih tinggi?</li></ul></div></div></div>
-                     <div class="bg-slate-800 rounded-xl"><button class="accordion-header w-full flex justify-between items-center p-5 text-left font-semibold text-white"><span>Prinsip Zon Zero Loss (ZZL) - BARU!</span><span class="transform">▼</span></button><div class="accordion-content"><div class="p-5 border-t border-slate-700 text-slate-400 space-y-4"><p>ZZL adalah **aturan manajemen risiko paling penting** untuk melindungi modal dan menjaga HATI TENANG. Ini bukan setup entry, melainkan **aturan untuk KELUAR dari pasar**.</p><p class="font-bold text-amber-400">Logika Inti: "Jika sebuah trade tidak segera memberikan profit signifikan dan kembali ke titik entry, momentumnya dianggap hilang. Segera keluar di titik impas untuk menghindari kerugian."</p><ul class="list-disc list-inside space-y-2"><li>**Kapan Digunakan:** Setelah Anda masuk posisi.</li><li>**Pemicu:** Harga pasar kembali menyentuh harga entry Anda.</li><li>**Aksi:** **Tutup posisi segera di harga impas (breakeven)**.</li><li>**Manfaat:** Mencegah profit kecil jadi loss, mengurangi stres, dan memaksa disiplin.</li></ul><p>Fitur **Live Trade Monitor** dirancang khusus untuk membantu Anda menerapkan prinsip ini.</p></div></div></div>
-                     <div class="bg-slate-800 rounded-xl"><button class="accordion-header w-full flex justify-between items-center p-5 text-left font-semibold text-white"><span>Leksikon & Siklus Pasar BBMA</span><span class="transform">▼</span></button><div class="accordion-content"><div class="p-5 border-t border-slate-700 text-slate-400 space-y-6"><p>BBMA memiliki bahasa unik. Penting untuk membedakan antara "SIGNAL" (peringatan) dan "SETUP" (formasi yang bisa ditindaklanjuti).</p></div></div></div>
-                     <div class="bg-slate-800 rounded-xl"><button class="accordion-header w-full flex justify-between items-center p-5 text-left font-semibold text-white"><span>Tabel Eksekusi Berbasis TOS</span><span class="transform">▼</span></button><div class="accordion-content"><div class="p-5 border-t border-slate-700 text-slate-400 space-y-3"><div class="overflow-x-auto"><table class="w-full text-sm"><thead class="text-left text-slate-300"><tr><th class="p-2">TOS</th><th class="p-2">Level Keyakinan</th><th class="p-2">Rekomendasi Aksi</th></tr></thead><tbody><tr class="border-t border-slate-700"><td class="p-2 font-bold text-emerald-400">90-100</td><td class="p-2 font-semibold text-emerald-400">SUPER JITU</td><td class="p-2">Eksekusi Segera. Risiko standar.</td></tr><tr class="border-t border-slate-700"><td class="p-2 font-bold text-sky-400">75-89</td><td class="p-2 font-semibold text-sky-400">TINGGI</td><td class="p-2">Sangat direkomendasikan.</td></tr><tr class="border-t border-slate-700"><td class="p-2 font-bold text-amber-400">50-74</td><td class="p-2 font-semibold text-amber-400">MENENGAH</td><td class="p-2">Pertimbangkan, kurangi ukuran posisi.</td></tr><tr class="border-t border-slate-700"><td class="p-2 font-bold text-rose-400">25-49</td><td class="p-2 font-semibold text-rose-400">RENDAH</td><td class="p-2">ABAIKAN.</td></tr><tr class="border-t border-slate-700"><td class="p-2 font-bold text-slate-500">&lt; 25</td><td class="p-2 font-semibold text-slate-500">SANGAT RENDAH</td><td class="p-2">ABAIKAN.</td></tr></tbody></table></div></div></div></div>
-                     <div id="candle-confirmation-playbook" class="bg-slate-800 rounded-xl"><button class="accordion-header w-full flex justify-between items-center p-5 text-left font-semibold text-white"><span>Visual: Contoh Candle Konfirmasi</span><span class="transform">▼</span></button><div class="accordion-content"><div class="p-5 border-t border-slate-700 text-slate-400 space-y-6"></div></div></div>
-                     <div class="bg-slate-800 rounded-xl">
-    <button class="accordion-header w-full flex justify-between items-center p-5 text-left font-semibold text-white">
-        <span>📊 Panduan: Kondisi Aman Open Posisi (Semua Mode)</span>
-        <span class="transform">▼</span>
-    </button>
-    <div class="accordion-content">
-        <div class="p-5 border-t border-slate-700 text-slate-400 space-y-4">
-            <p>Ini adalah daftar kondisi utama yang harus terpenuhi untuk sinyal yang dianggap <span style="color:#34d399;font-weight:700;">"aman"</span> dan probabilitas tinggi di setiap mode analisis Co-Pilot Anda.</p>
-
-            <h3 style="color:#c084fc;font-size:1.4em;font-weight:700;margin-top:20px;">1. Mode Co-Pilot (Matic)</h3>
-            <p>Berfokus pada <strong>Trade Opportunity Score (TOS)</strong> sebagai indikator utama. Semakin tinggi TOS, semakin aman dan jitu sinyalnya.</p>
-            <ul style="list-style:none;padding-left:0;">
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Trade Opportunity Score (TOS) Tinggi:</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li>TOS idealnya <span style="color:#60a5fa;font-weight:700;">di atas 75</span>, dengan label <span style="color:#60a5fa;font-weight:700;">"TINGGI"</span> atau <span style="color:#34d399;font-weight:700;">"SUPER JITU"</span> (90-100).</li>
-                        <li>Rekomendasi Aksi: "Sangat direkomendasikan" atau "Eksekusi Segera".</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Kekuatan Tren (ARF):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li><code>ADX</code> di atas 25, menunjukkan pasar sedang <strong>trending kuat</strong>.</li>
-                        <li><code>multiplier</code> ARF memberikan bonus positif (misalnya, 1.3 atau 1.15).</li>
-                        <li><code>description</code> menyatakan "Trending" dan "Bonus utk sinyal pro-tren".</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Setup & Likuiditas (LZW):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li><code>description</code> menyatakan "Zona likuiditas tampak aman".</li>
-                        <li><code>modifier</code> LZW adalah 0, tidak ada penalti <em>stop hunt</em>.</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Volatilitas (VCC):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li><code>bbw</code> menunjukkan "Volatilitas normal".</li>
-                        <li><code>modifier</code> VCC memberikan bonus positif atau 0.</li>
-                        <li>Idealnya <em>squeeze breakout</em> kuat (modifier 25) atau <em>pullback</em> dengan volatilitas rendah (modifier 15).</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Koherensi (MTCS):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li>Status <span style="color:#34d399;font-weight:700;">"SELARAS"</span>.</li>
-                        <li><code>modifier</code> MTCS positif (misalnya, 10), menunjukkan tren di TF saat ini selaras dengan tren di TF lebih tinggi.</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Konfirmasi Candle (CCA):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li><code>status</code> adalah <span style="color:#34d399;font-weight:700;">'KONFIRMASI'</span>.</li>
-                        <li>Ini adalah validasi pola <em>candle</em> yang mendukung arah <em>setup</em> Anda.</li>
-                    </ul>
-                </li>
-            </ul>
-
-            <h3 style="color:#c084fc;font-size:1.4em;font-weight:700;margin-top:20px;">2. Mode Analis Pro (F1)</h3>
-            <p>Berfokus pada <strong>keselarasan (alignment)</strong> di tiga <em>timeframe</em> (TF1, TF2, TF3) dan konfirmasi. Sinyal aman jika <span style="color:#34d399;font-weight:700;">"SEMUA TIMEFRAME SELARAS"</span>.</p>
-            <ul style="list-style:none;padding-left:0;">
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Sintesis Akhir:</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li>Tampilan harus menunjukkan <span style="color:#34d399;font-weight:700;">✅ SINTESIS: SEMUA TIMEFRAME SELARAS. SINYAL AMAN.</span></li>
-                        <li><code>isAligned</code> harus <code>true</code>.</li>
-                        <li><code>alasanKonflik</code> harus kosong atau tidak ada alasan konflik yang terdeteksi.</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Timeframe 1 (Arah Tren - TF1):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li>Arah tren di TF1 (misalnya, uptrend) harus sesuai dengan arah <em>setup</em> yang ingin Anda ambil.</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Timeframe 2 (Setup - TF2):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li><code>setupType</code> yang terdeteksi di TF2 harus merupakan <em>setup</em> utama seperti <strong>'Re-entry'</strong>, <strong>'CSM'</strong>, atau <strong>'Re-entry stlh CSM'</strong>. Jenis <em>setup</em> lain (seperti MHV atau Extreme) dianggap berisiko.</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Konfirmasi Aman (CCA - TF3):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li><code>confirmationCCA.status</code> harus <span style="color:#34d399;font-weight:700;">'KONFIRMASI'</span>. Ini adalah filter ketat yang memastikan konfirmasi <em>candle</em> valid di TF3.</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Konfirmasi Klasik (BBMA - TF3):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li>Setup BBMA di TF3 juga harus mendukung arah <em>trade</em> dan idealnya konsisten dengan <em>setup</em> utama.</li>
-                    </ul>
-                </li>
-            </ul>
-
-            <h3 style="color:#c084fc;font-size:1.4em;font-weight:700;margin-top:20px;">3. Mode Analyzer Mixer</h3>
-            <p>Mode ini menggabungkan sinkronisasi 3-TF dan skoring TOS untuk putusan pamungkas. Sinyal aman jika lolos dua tahap dan memiliki TOS tinggi.</p>
-            <ul style="list-style:none;padding-left:0;">
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Tahap 1: Sinkronisasi Pasar (3-TF):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li>Hasil Tahap 1 harus menunjukkan <span style="color:#34d399;font-weight:700;">✅ SINKRONISASI BERHASIL</span>.</li>
-                        <li><code>isAligned</code> harus <code>true</code>, yang berarti:
-                            <ul style="list-style:circle;padding-left:20px;">
-                                <li>Arah Tren TF1 selaras dengan Setup TF2.</li>
-                                <li><code>setupType</code> di TF2 adalah 'Re-entry', 'CSM', atau 'Re-entry stlh CSM'.</li>
-                                <li><code>confirmationCCA.status</code> di TF3 harus <span style="color:#34d399;font-weight:700;">'KONFIRMASI'</span>.</li>
-                            </ul>
-                        </li>
-                        <li>Tidak ada <code>alasanKonflik</code> yang terdeteksi di Tahap 1.</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Tahap 2: Skoring Peluang (TOS):</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li>Setelah lolos Tahap 1, sistem akan menampilkan TOS.</li>
-                        <li><strong>TOS harus <span style="color:#60a5fa;font-weight:700;">"TINGGI"</span> (75-89) atau <span style="color:#34d399;font-weight:700;">"SUPER JITU"</span> (90-100)</strong>.</li>
-                    </ul>
-                </li>
-                <li style="position:relative;margin-bottom:10px;padding-left:25px;"><span style="color:#34d399;position:absolute;left:0;font-weight:bold;">✓</span> <strong>Putusan Pamungkas:</strong>
-                    <ul style="list-style:disc;padding-left:20px;">
-                        <li><code>verdictText</code> harus menyatakan "REKOMENDASI EKSEKUSI" atau "EKSEKUSI SEGERA (KEYAKINAN TERTINGGI)".</li>
-                        <li>Tombol "Lanjutkan ke Rencana Eksekusi" harus muncul dan bisa diklik.</li>
-                    </ul>
-                </li>
-            </ul>
-
-            <div style="background-color:#1e293b;border:1px solid #a855f7;padding:20px;border-radius:8px;margin-top:40px;text-align:center;">
-                <h3 style="color:#a855f7;margin-top:0;font-size:1.6em;">Penting untuk Diingat: Konsisten Tahan Godaan dan Gak Emosi</h3>
-                <p style="color:#d8b4fe;font-size:1.1em;">Meskipun indikator visual menunjukkan "SEMUA TIMEFRAME SELARAS. SINYAL AMAN.", selalu <strong>periksa detail di bawahnya</strong> untuk memahami mengapa skor tersebut diberikan dan untuk memastikan semua filter terpenuhi.</p>
-                <p style="color:#d8b4fe;font-size:1.1em;"><strong>Jangan memaksakan trade</strong> jika ada satu atau lebih kondisi di atas tidak terpenuhi, terutama jika rekomendasi adalah "ABAIKAN" atau ada "KONFLIK".</p>
-                <p style="color:#d8b4fe;font-size:1.1em;">Disiplin adalah kunci. Tujuan utama Co-Pilot adalah membantu Anda melakukan trading dengan <span style="color:#34d399;font-weight:700;">SUPER AMAN SUPER JITU</span>, <span style="color:#60a5fa;font-weight:700;">HATI TENANG</span>.</p>
             </div>
-        </div>
-    </div>
-</div>
-                </div>
-
-            </main>
-        </div>
-        
-        <div id="confirmation-modal" class="fixed inset-0 bg-slate-900/80 items-center justify-center hidden z-50">
-            <div class="bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-md text-center border border-sky-500"><h3 id="modal-title" class="text-xl font-bold text-white mb-4">Konfirmasi Perintah Eksekusi</h3><div id="modal-summary" class="text-left space-y-2 mb-6 bg-slate-900 p-4 rounded-lg"></div><div class="flex space-x-4"><button id="cancel-execute-btn" class="btn-action flex-1 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg">Batal</button><button id="confirm-execute-btn" class="btn-action flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg">YA, EKSEKUSI (SIMULASI)</button></div></div>
-        </div>
-    </div>
-<div class="bg-slate-800 p-6 rounded-xl flex flex-col" style="height: 88vh;">
-            <div class="flex flex-wrap justify-between items-center mb-4 gap-4 flex-shrink-0">
             
-            <div class="text-right">
-                
+            <div id="initial-placeholder" class="text-center py-20">
+                <p class="text-xl text-gray-500">Silakan masukkan simbol aset dan API Key untuk memulai analisa.</p>
             </div>
-        </div>
-        
-        <div class="w-full flex-1 bg-slate-900 rounded-lg">
-            <!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "60",
-  "locale": "en",
-  "save_image": true,
-  "style": "1",
-  "symbol": "BINANCE:BTCUSDT",
-  "theme": "dark",
-  "timezone": "Etc/UTC",
-  "backgroundColor": "#0F0F0F",
-  "gridColor": "rgba(242, 242, 242, 0.06)",
-  "watchlist": [],
-  "withdateranges": true,
-  "compareSymbols": [],
-  "studies": [
-    "STD;Bollinger_Bands",
-    "STD;Stochastic_RSI",
-    "STD;Divergence%1Indicator",
-    "STD;MA%1Cross"
-  ],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
- </div>
+            
+            <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex-col items-center justify-center hidden z-50">
+                 <div class="loader"></div>
+                 <p id="loader-text" class="text-white font-semibold mt-4">Memulai Analisa...</p>
+            </div>
+        </main>
+
+    </div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // --- [UPGRADE] CONFIGURATION, STATE, & CONSTANTS ---
-    const BINANCE_PUBLIC_API = 'https://fapi.binance.com';
-    const ASSET_CONFIG = {
-        'BTCUSDT': { ticker: 'BTCUSDT', precision: 2, quantityPrecision: 3 },
-        'ETHUSDT': { ticker: 'ETHUSDT', precision: 2, quantityPrecision: 3 },
-        'SOLUSDT': { ticker: 'SOLUSDT', precision: 2, quantityPrecision: 2 },
-        'XRPUSDT': { ticker: 'XRPUSDT', precision: 4, quantityPrecision: 1 },
-        'BNBUSDT': { ticker: 'BNBUSDT', precision: 3, quantityPrecision: 2 },
-        'PAXGUSDT': { ticker: 'PAXGUSDT', precision: 2, quantityPrecision: 3 },
-        //'1000PEPEUSDT': { ticker: '1000PEPEUSDT', precision: 7, quantityPrecision: 0 }
-    };
-    
-    const COPILOT_TF_CONFIG = {
-        '5m-1m': { kompas: '5m', eksekusi: '1m', label: '15M-5M-1M', htf: '15m' },
-        '15m-1m': { kompas: '15m', eksekusi: '1m', label: '1H-15M-1M', htf: '1h' },
-        '1h-5m': { kompas: '1h', eksekusi: '5m', label: '1H-5M', htf: '4h' },
-        '1h-15m': { kompas: '1h', eksekusi: '15m', label: '4H-1H-15M', htf: '4h' },
-        '4h-15m': { kompas: '4h', eksekusi: '15m', label: '1D-4H-15M', htf: '1d' },
-        '4h-1h': { kompas: '4h', eksekusi: '1h', label: '1D-4H-1H', htf: '1d' },
-        '1d-4h': { kompas: '1d', eksekusi: '4h', label: '1W-1D-4H', htf: '1w' }
-        
-    };
+document.addEventListener('DOMContentLoaded', () => {
 
-    const PRO_TF_CONFIG = {
-       '15m-5m-1m': { tf1: '15m', tf2: '5m', tf3: '1m', label: '15M-5M-1M'},
-       '1h-15m-1m': { tf1: '1h', tf2: '15m', tf3: '1m', label: '1H-15M-1M'}, 
-       '1h-15m-5m': { tf1: '1h', tf2: '15m', tf3: '5m', label: '1H-15M-5M'},
-       '4h-1h-5m': { tf1: '4h', tf2: '1h', tf3: '5m', label: '4H-1H-5M'},
-       '4h-1h-15m': { tf1: '4h', tf2: '1h', tf3: '15m', label: '4H-1H-15M'},
-       '1d-4h-15m': { tf1: '1d', tf2: '4h', tf3: '15m', label: '1D-H4-15m'},
-       '1w-1d-4h': { tf1: '1w', tf2: '1d', tf3: '4h', label: '1W-1D-4H'}             
-    };
+    // --- THEME TOGGLE LOGIC (Tetap sama) ---
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const darkIcon = document.getElementById('theme-toggle-dark-icon');
+    const lightIcon = document.getElementById('theme-toggle-light-icon');
 
-    const MIXER_TF_CONFIG = {
-       '15m-5m-1m': { tf1: '15m', tf2: '5m', tf3: '1m', label: '15M-5M-1M'},
-       '1h-15m-1m': { tf1: '1h', tf2: '15m', tf3: '1m', label: '1H-15M-1M'}, 
-       '1h-15m-5m': { tf1: '1h', tf2: '15m', tf3: '5m', label: '1H-15M-5M'},
-       '4h-1h-5m': { tf1: '4h', tf2: '1h', tf3: '5m', label: '4H-1H-5M'},
-       '4h-1h-15m': { tf1: '4h', tf2: '1h', tf3: '15m', label: '4H-1H-15M'},
-       '1d-4h-15m': { tf1: '1d', tf2: '4h', tf3: '15m', label: '1D-H4-15m'},
-       '1w-1d-4h': { tf1: '1w', tf2: '1d', tf3: '4h', label: '1W-1D-4H'}
-    };
-
-    let currentState = {
-        asset: ASSET_CONFIG['BTCUSDT'],
-        analysisMode: 'copilot',
-        timeframeKey: '1h-5m',
-        livePriceInterval: null,
-        latestCopilotAnalysis: null,
-        latestProAnalysis: null,
-        latestMixerAnalysis: null,
-        tradePlan: {},
-        
-        isTradeActive: false, 
-        activeTrade: {}, 
-        zzlInterval: null, 
-        
-    };
-
-    // --- UI ELEMENT SELECTORS ---
-    const ui = {
-        mainControls: document.getElementById('main-controls'),
-        assetSelect: document.getElementById('asset-select'),
-        tfSelect: document.getElementById('tf-select'),
-        modeSwitcher: document.getElementById('mode-switcher'),
-        mainNav: document.getElementById('main-nav'),
-        runAnalysisBtn: document.getElementById('runAnalysisBtn'),
-        runAnalysisBtnText: document.getElementById('runAnalysisBtn-text'),
-        spinner: document.getElementById('loading-spinner'),
-        livePriceDisplay: document.getElementById('live-price-display'),
-        fundingInfoDisplay: document.getElementById('funding-info-display'),
-        kompas: { 
-            title: document.getElementById('kompas-title'),
-            description: document.getElementById('kompas-description')
-        },
-        copilotDashboard: document.getElementById('copilot-dashboard'),
-        proDashboard: document.getElementById('pro-dashboard'),
-        mixerDashboard: document.getElementById('mixer-dashboard'),
-        sidebarIndicators: document.getElementById('sidebar-indicators'),
-        tos: {}, trendIndicator: {}, pureBbmaIndicator: {}, candleIndicator: {}, marketIntel: {}, 
-        eksekusi: {}, kalkulator: {}, sop: {}, modal: {}, notification: document.getElementById('notification'),
-        accordions: document.querySelectorAll('.accordion-header'),
-        pro: {},
-        zzl: {},
-        mixer: {}
-    };
-    
-    Object.assign(ui.tos, { sidebarContainer: document.getElementById('tos-sidebar-container'), mainContainer: document.getElementById('tos-main-container'), scoreDisplay: document.getElementById('tos-score-display'), levelDisplay: document.getElementById('tos-level-display'), recommendationContainer: document.getElementById('tos-recommendation-container') });
-    Object.assign(ui.trendIndicator, { panel: document.getElementById('trend-direction-indicator'), text: document.getElementById('trend-direction-text') });
-    Object.assign(ui.pureBbmaIndicator, { panel: document.getElementById('pure-bbma-indicator'), text: document.getElementById('pure-bbma-text') });
-    Object.assign(ui.candleIndicator, { panel: document.getElementById('candle-pattern-indicator'), container: document.getElementById('cca-result-container') });
-    Object.assign(ui.marketIntel, { panel: document.getElementById('market-intel-panel'), adx: document.getElementById('intel-adx'), adxDesc: document.getElementById('intel-adx-desc'), bbw: document.getElementById('intel-bbw'), bbwDesc: document.getElementById('intel-bbw-desc'), setup: document.getElementById('intel-setup'), setupDesc: document.getElementById('intel-setup-desc'), mtcs: document.getElementById('intel-mtcs'), mtcsDesc: document.getElementById('intel-mtcs-desc'), volume: document.getElementById('intel-volume'), lsRatio: document.getElementById('intel-ls-ratio') });
-    Object.assign(ui.eksekusi, { container: document.getElementById('kalkulator-container'), title: document.getElementById('eksekusi-title'), findEntryBtn: document.getElementById('findEntryBtn'), findEntryBtnText: document.getElementById('findEntryBtn-text'), entryZoneContainer: document.getElementById('entry-zone-container'), entryZoneDesc: document.getElementById('entry-zone-desc'), entryZoneLabel: document.getElementById('entry-zone-label'), entryZoneRange: document.getElementById('entry-zone-range') });
-    Object.assign(ui.kalkulator, { modal: document.getElementById('modal'), riskPercent: document.getElementById('risk-percent'), riskLabel: document.getElementById('risk-label'), leverageInput: document.getElementById('leverage-input'), costMarginInput: document.getElementById('cost-margin-input'), posisiLong: document.getElementById('posisi-long'), posisiShort: document.getElementById('posisi-short'), entry: document.getElementById('entry'), stoploss: document.getElementById('stoploss'), swingBtn: document.getElementById('swingBtn'), tp1: document.getElementById('tp1'), tp2: document.getElementById('tp2'), tp3: document.getElementById('tp3'), calculateBtn: document.getElementById('calculateBtn'), calcResults: document.getElementById('calc-results'), riskUsd: document.getElementById('risk-usd'), posSize: document.getElementById('pos-size'), costMargin: document.getElementById('cost-margin'), leverageInfo: document.getElementById('leverage-info'), tp1Label: document.getElementById('tp1-label'), tp2Label: document.getElementById('tp2-label'), tp3Label: document.getElementById('tp3-label'), profitTp1: document.getElementById('profit-tp1'), profitTp2: document.getElementById('profit-tp2'), profitTp3: document.getElementById('profit-tp3'), executeContainer: document.getElementById('execute-container') });
-    Object.assign(ui.sop, { check1: document.getElementById('sop-check-1'), check2: document.getElementById('sop-check-2'), check3: document.getElementById('sop-check-3'), check4: document.getElementById('sop-check-4'), label1: document.getElementById('sop-label-1'), label2: document.getElementById('sop-label-2'), label3: document.getElementById('sop-label-3'), label4: document.getElementById('sop-label-4') });
-    Object.assign(ui.modal, { self: document.getElementById('confirmation-modal'), title: document.getElementById('modal-title'), summary: document.getElementById('modal-summary'), cancelBtn: document.getElementById('cancel-execute-btn'), confirmBtn: document.getElementById('confirm-execute-btn') });
-    Object.assign(ui.pro, { 
-        cockpit: document.getElementById('pro-analysis-cockpit'), 
-        panel1_title: document.getElementById('pro-panel-1-title'), 
-        panel1_value: document.getElementById('pro-panel-1-value'), 
-        panel2_title: document.getElementById('pro-panel-2-title'), 
-        panel2_value: document.getElementById('pro-panel-2-value'), 
-        panel3_title: document.getElementById('pro-panel-3-title'), 
-        panel3_value: document.getElementById('pro-panel-3-value'), 
-        panel4_title: document.getElementById('pro-panel-4-title'),
-        panel4_value: document.getElementById('pro-panel-4-value'),
-        sintesisContainer: document.getElementById('sintesis-panel-container'), 
-        sintesisPanel: document.getElementById('sintesis-panel'),
-        sintesisAlasan: document.getElementById('sintesis-alasan'),
-        lanjutBtn: document.getElementById('lanjut-eksekusi-btn') 
-    });
-    Object.assign(ui.zzl, { monitorContainer: document.getElementById('zzl-monitor-container'), assetSide: document.getElementById('zzl-asset-side'), entryPrice: document.getElementById('zzl-entry-price'), livePrice: document.getElementById('zzl-live-price'), livePnl: document.getElementById('zzl-live-pnl'), closeBtn: document.getElementById('zzl-close-btn') });
-    Object.assign(ui.mixer, {
-        stage1: document.getElementById('mixer-stage-1'),
-        stage1Result: document.getElementById('mixer-stage-1-result'),
-        stage2: document.getElementById('mixer-stage-2'),
-        stage2Result: document.getElementById('mixer-stage-2-result'),
-        verdictContainer: document.getElementById('mixer-verdict-container'),
-        verdictText: document.getElementById('mixer-verdict-text'),
-        verdictReason: document.getElementById('mixer-verdict-reason'),
-        lanjutBtn: document.getElementById('mixer-lanjut-eksekusi-btn'),
-        cockpit: document.getElementById('mixer-analysis-cockpit'),
-        panel1_title: document.getElementById('mixer-panel-1-title'),
-        panel1_value: document.getElementById('mixer-panel-1-value'),
-        panel2_title: document.getElementById('mixer-panel-2-title'),
-        panel2_value: document.getElementById('mixer-panel-2-value'),
-        panel3_title: document.getElementById('mixer-panel-3-title'),
-        panel3_value: document.getElementById('mixer-panel-3-value'),
-        panel4_title: document.getElementById('mixer-panel-4-title'),
-        panel4_value: document.getElementById('mixer-panel-4-value'),
-        trendDirection: document.getElementById('mixer-trend-direction') 
-
-    });
-
-    // --- INDICATOR CALCULATION HELPERS ---
-    const calculateSMA = (data, period) => { if (data.length < period) return []; return data.slice(period - 1).map((_, i) => data.slice(i, i + period).reduce((a, b) => a + b, 0) / period); }
-    const calculateEMA = (data, period) => { if (data.length < period) return []; const k = 2 / (period + 1); let emaArray = [data.slice(0, period).reduce((a, b) => a + b, 0) / period]; for (let i = period; i < data.length; i++) emaArray.push((data[i] * k) + (emaArray[emaArray.length - 1] * (1 - k))); return emaArray; }
-    const WilderSmoothing = (data, period) => { if (data.length < period) return []; let smoothed = [data.slice(0, period).reduce((a, b) => a + b, 0)]; for (let i = period; i < data.length; i++) { smoothed.push(smoothed[smoothed.length - 1] - (smoothed[smoothed.length - 1] / period) + data[i]); } return smoothed.map(val => val / period); }
-    const calculateADX = (klines, period) => { if (klines.length < period * 2) return null; let trs = [], plusDMs = [], minusDMs = []; for (let i = 1; i < klines.length; i++) { const high = parseFloat(klines[i][2]), low = parseFloat(klines[i][3]), close = parseFloat(klines[i][4]); const prevHigh = parseFloat(klines[i-1][2]), prevLow = parseFloat(klines[i-1][3]), prevClose = parseFloat(klines[i-1][4]); trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose))); const upMove = high - prevHigh, downMove = prevLow - low; plusDMs.push(upMove > downMove && upMove > 0 ? upMove : 0); minusDMs.push(downMove > upMove && downMove > 0 ? downMove : 0); } const smoothedTR = WilderSmoothing(trs, period); const smoothedPlusDM = WilderSmoothing(plusDMs, period); const smoothedMinusDM = WilderSmoothing(minusDMs, period); let plusDIs = [], minusDIs = [], dxs = []; for (let i = 0; i < smoothedTR.length; i++) { if(smoothedTR[i] === 0) { plusDIs.push(0); minusDIs.push(0); } else { const pDI = (smoothedPlusDM[i] / smoothedTR[i]) * 100; const mDI = (smoothedMinusDM[i] / smoothedTR[i]) * 100; plusDIs.push(pDI); minusDIs.push(mDI); } const diSum = plusDIs[i] + minusDIs[i]; dxs.push(diSum === 0 ? 0 : (Math.abs(plusDIs[i] - minusDIs[i]) / diSum) * 100); } const adx = WilderSmoothing(dxs.slice(period-1), period); return adx ? adx[adx.length-1] : null; }
-    const calculateLWMA = (data, period) => { if (data.length < period) return []; const weights = Array.from({ length: period }, (_, i) => i + 1); const sumOfWeights = weights.reduce((a, b) => a + b, 0); let lwmaArray = []; for (let i = period - 1; i < data.length; i++) { const slice = data.slice(i - period + 1, i + 1); const weightedSum = slice.reduce((sum, value, index) => sum + (value * weights[index]), 0); lwmaArray.push(weightedSum / sumOfWeights); } return lwmaArray; }
-    const calculateBollingerBands = (closes, period, stdDevMultiplier) => { if (closes.length < period) return { upper: [], middle: [], lower: [] }; const middle = calculateSMA(closes, period); if (!middle.length) return { upper: [], middle: [], lower: [] }; let upper = [], lower = []; for (let i = period - 1; i < closes.length; i++) { const slice = closes.slice(i - period + 1, i + 1); const stdDev = Math.sqrt(slice.map(p => Math.pow(p - middle[i - period + 1], 2)).reduce((a, b) => a + b, 0) / period); upper.push(middle[i - period + 1] + (stdDev * stdDevMultiplier)); lower.push(middle[i - period + 1] - (stdDev * stdDevMultiplier)); } return { upper, middle, lower }; }
-    
-    // --- API CALLS ---
-    async function fetchPublicAPI(endpoint, params = {}) { const query = new URLSearchParams(params).toString(); try { const response = await fetch(`${BINANCE_PUBLIC_API}/${endpoint}?${query}`); if (!response.ok) throw new Error(`API Error ${response.status}: ${await response.text()}`); return response.json(); } catch (error) { showNotification(`Kesalahan Jaringan: ${error.message}`, true); throw error; } }
-
-    // --- [REFACTORED] HELPER FUNCTION ---
-    function getCurrentTimestamp() {
-    const now = new Date();
-    return `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-}
-    function getTosLevelAndClass(tos) {
-        let level = "SANGAT RENDAH";
-        let colorClass = "tos-sangat-rendah";
-        if (tos >= 90) { level = "SUPER JITU"; colorClass = "tos-super-jitu"; } 
-        else if (tos >= 75) { level = "TINGGI"; colorClass = "tos-tinggi"; } 
-        else if (tos >= 50) { level = "MENENGAH"; colorClass = "tos-menengah"; } 
-        else if (tos >= 25) { level = "RENDAH"; colorClass = "tos-rendah"; }
-        return { level, colorClass };
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        darkIcon.classList.remove('hidden');
+    } else {
+        document.documentElement.classList.remove('dark');
+        lightIcon.classList.remove('hidden');
     }
 
-    // --- CORE LOGIC (Master Analysis Function) ---
-    async function runMasterAnalysis() {
-        if(currentState.isTradeActive) {
-            showNotification('Tutup dulu posisi aktif di monitor ZZL!', true);
+    themeToggleBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        darkIcon.classList.toggle('hidden');
+        lightIcon.classList.toggle('hidden');
+        if (document.documentElement.classList.contains('dark')) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+        if (mainChartInstance) mainChartInstance.update();
+    });
+
+    // --- DOM ELEMENT SELECTORS (Tetap sama) ---
+    const assetInput = document.getElementById('asset-input');
+    const apiKeyInput = document.getElementById('gemini-api-key');
+    const analyzeBtn = document.getElementById('analyze-asset-btn');
+    const assetError = document.getElementById('asset-error');
+    const dashboardContent = document.getElementById('dashboard-content');
+    const initialPlaceholder = document.getElementById('initial-placeholder');
+    const loaderOverlay = document.getElementById('loader-overlay');
+    const loaderText = document.getElementById('loader-text');
+    const confluenceTimeframeSelect = document.getElementById('confluence-timeframe');
+    let mainChartInstance = null;
+    let analysisCache = {}; 
+
+    apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
+    apiKeyInput.addEventListener('change', () => {
+        localStorage.setItem('geminiApiKey', apiKeyInput.value);
+    });
+
+    analyzeBtn.addEventListener('click', runFullAnalysis);
+    assetInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') runFullAnalysis();
+    });
+    
+    // =======================================================================
+    // === PERUBAHAN UTAMA: Event listener untuk Sinyal Konfluensi ==========
+    // =======================================================================
+    confluenceTimeframeSelect.addEventListener('change', handleTimeframeChange);
+
+
+    // --- API & CALCULATION ENGINE (Tetap sama) ---
+    async function fetchBinanceAPIData(endpoint, params = {}) {
+        const baseUrl = 'https://api.binance.com/api/v3';
+        const query = new URLSearchParams(params).toString();
+        const url = `${baseUrl}/${endpoint}?${query}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Binance API error: ${errorData.msg || response.statusText}`);
+            }
+            return response.json();
+        } catch (error) {
+            console.error(`Network Error fetching from Binance: ${error.message}`);
+            throw new Error(`Gagal mengambil data dari Binance. Periksa koneksi atau simbol aset.`);
+        }
+    }
+
+    async function callGemini(parts) {
+        const apiKey = apiKeyInput.value.trim();
+        if (!apiKey) throw new Error("API Key Google AI belum dimasukkan.");
+
+        const model = 'gemini-1.5-flash';
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const payload = {
+            contents: [{ role: "user", parts }],
+            generationConfig: {
+                "response_mime_type": "application/json",
+                "max_output_tokens": 8192,
+                "temperature": 0.7
+            }
+        };
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Google AI API error: ${errorBody?.error?.message || response.statusText}`);
+        }
+        const result = await response.json();
+        if (result.candidates && result.candidates[0] && result.candidates[0].content.parts[0]) {
+            return JSON.parse(result.candidates[0].content.parts[0].text.trim());
+        }
+        throw new Error("Respons dari AI tidak valid atau kosong.");
+    }
+    const calculateRSI = (closes, period = 14) => {
+        if (!closes || closes.length <= period) return 50;
+        let gains = [], losses = [];
+        for (let i = 1; i < closes.length; i++) {
+            const diff = closes[i] - closes[i - 1];
+            diff >= 0 ? (gains.push(diff), losses.push(0)) : (gains.push(0), losses.push(Math.abs(diff)));
+        }
+        let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        for (let i = period; i < gains.length; i++) {
+            avgGain = (avgGain * (period - 1) + gains[i]) / period;
+            avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+        }
+        if (avgLoss === 0) return 100;
+        const rs = avgGain / avgLoss;
+        return (100 - (100 / (1 + rs)));
+    };
+    
+    // --- MAIN APPLICATION LOGIC ---
+    
+    /**
+     * Fungsi baru untuk menangani perubahan timeframe secara spesifik.
+     */
+    async function handleTimeframeChange() {
+        const asset = assetInput.value.trim().toUpperCase();
+        const newTimeframe = confluenceTimeframeSelect.value;
+        
+        // Jangan lakukan apa-apa jika belum ada analisa awal
+        if (!asset || !analysisCache.currentState) {
             return;
         }
-        ui.spinner.classList.remove('hidden'); 
-        ui.runAnalysisBtn.disabled = true;
 
-        if (currentState.analysisMode === 'copilot') {
-            ui.runAnalysisBtnText.textContent = 'Menghitung TOS...';
-            await runCopilotAnalysis();
-        } else if (currentState.analysisMode === 'pro') {
-            ui.runAnalysisBtnText.textContent = 'Menganalisa 3-TF...';
-            await runProAnalysis();
-        } else if (currentState.analysisMode === 'mixer') {
-            ui.runAnalysisBtnText.textContent = 'Menjalankan Analisa Mixer...';
-            await runMixerAnalysis_Part1(); 
-        }
-
-        ui.spinner.classList.add('hidden'); 
-        ui.runAnalysisBtn.disabled = false; 
-        updateUI();
-    }
-
-    // --- CO-PILOT (MATIC) MODE LOGIC ---
-    async function runCopilotAnalysis() {
-    resetCopilotDisplays();
-    try {
-        const tfConfig = COPILOT_TF_CONFIG[currentState.timeframeKey];
-        const [klines, htfKlines, executionKlines, volumeData, lsRatioData] = await Promise.all([
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.kompas, limit: 300 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.htf, limit: 300 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.eksekusi, limit: 50 }),
-            fetchPublicAPI('fapi/v1/ticker/24hr', { symbol: currentState.asset.ticker }).catch(e => null),
-            fetchPublicAPI('futures/data/globalLongShortAccountRatio', { symbol: currentState.asset.ticker, period: '5m' }).catch(e => null)
-        ]);
-        const { baseScore, setupType, isUptrend, lastCandle } = calculateBaseSetup(klines);
-
-        const pureBbmaText = ui.pureBbmaIndicator.text;
-        const dirClass = isUptrend ? 'text-emerald-400' : 'text-rose-400';
-        pureBbmaText.textContent = `${setupType} ${isUptrend ? 'BUY' : 'SELL'}`;
-        pureBbmaText.className = `text-3xl font-black ${dirClass}`;
-        ui.pureBbmaIndicator.panel.classList.remove('hidden');
-
-        const arfResult = calculateARF(htfKlines, setupType);
-        const lzwResult = calculateLZW(lastCandle, setupType);
-        const vccResult = calculateVCC(klines, setupType);
-        const mtcsResult = calculateMTCS(klines, htfKlines, isUptrend);
-
-        const ccaResult = runCCA(executionKlines.slice(-5), isUptrend);
-        displayCCAResult(ccaResult, ui.candleIndicator.container);
-
-        const finalTOS_raw = (baseScore * arfResult.multiplier) + lzwResult.modifier + vccResult.modifier + mtcsResult.modifier; 
-
-        // [BARU DITAMBAHKAN] Integrasi CCA ke TOS
-        let ccaModifier = 0;
-        if (ccaResult.status === 'KONFIRMASI') { 
-            ccaModifier = 10; 
-        } else if (ccaResult.status === 'KONTRA-SINYAL') { 
-            ccaModifier = -15; 
-        }
-
-        const finalTOS = finalTOS_raw + ccaModifier; 
-        const cappedTOS = Math.max(0, Math.min(100, Math.round(finalTOS)));
-        
-
-        const sopChecks = { 
-            htfTrendIsValid: mtcsResult.isCoherent, 
-            hasRecentCSM: setupType === 'Re-entry stlh CSM', 
-            inReentryZone: checkIfInReentryZone(executionKlines, isUptrend), 
-            hasConfirmationCandle: ccaResult.status === 'KONFIRMASI'
-        };
-
-        updateSopChecklist(sopChecks);
-        displayTOSResults(cappedTOS, isUptrend);
-        displayMarketIntel(arfResult, vccResult, lzwResult, mtcsResult, setupType, isUptrend, volumeData, lsRatioData);
-        currentState.latestCopilotAnalysis = { isUptrend, setupType, klines };
-        await autoSuggestTargets(tfConfig.eksekusi);
-    } catch (error) { showNotification(`Gagal menjalankan analisa TOS: ${error.message}`, true); }
-}
-
-    // --- ANALIS PRO (F1) MODE LOGIC ---
-    async function runProAnalysis() {
-    resetProDisplays();
-    try {
-        const tfConfig = PRO_TF_CONFIG[currentState.timeframeKey];
-
-        const [tf1Klines, tf2Klines, tf3Klines] = await Promise.all([
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf1, limit: 300 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf2, limit: 300 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf3, limit: 300 }),
-        ]);
-
-        const tf1Closes = tf1Klines.map(k => parseFloat(k[4]));
-        const tf1LastClose = tf1Closes[tf1Closes.length - 1];
-        const tf1MidBB = calculateSMA(tf1Closes, 20).pop();
-        const tf1Ema50 = calculateEMA(tf1Closes, 50).pop();
-        const trendResult = {
-            isUptrend: tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50,
-            text: (tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50) ? 'NAIK' : 'TURUN',
-            colorClass: (tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50) ? 'text-emerald-400' : 'text-rose-400'
-        };
-
-        const setupResult = calculateBaseSetup(tf2Klines);
-        const setupText = `${setupResult.setupType} ${setupResult.isUptrend ? 'BUY' : 'SELL'}`;
-
-        const confirmationCCA = runCCA(tf3Klines.slice(-5), trendResult.isUptrend);
-        const confirmationBBMA = calculateBaseSetup(tf3Klines);
-
-        let isAligned = true;
-        let alasanKonflik = [];
-        
-        if (trendResult.isUptrend !== setupResult.isUptrend) {
-            isAligned = false;
-            alasanKonflik.push("Arah tren tidak selaras dengan setup");
-        }
-        if (!['Re-entry', 'CSM', 'Re-entry stlh CSM'].includes(setupResult.setupType)) {
-            isAligned = false;
-            alasanKonflik.push(`Setup berisiko (${setupResult.setupType})`);
-        }
-        if (confirmationCCA.status !== 'KONFIRMASI') {
-            isAligned = false;
-            alasanKonflik.push("Tidak ada konfirmasi candle (CCA) yang valid");
-        }
-
-        const alasanText = isAligned ? '' : `Alasan: ${alasanKonflik.join(', ')}.`;
-
-        currentState.latestProAnalysis = {
-            isAligned,
-            isUptrend: trendResult.isUptrend,
-            tf2: { klines: tf2Klines, tf: tfConfig.tf2 },
-            tf3: { klines: tf3Klines, tf: tfConfig.tf3 },
-            confirmationClosePrice: parseFloat(tf3Klines[tf3Klines.length - 1][4])
-        };
-
-        displayProAnalysisResults(trendResult, setupText, confirmationCCA, confirmationBBMA, isAligned, alasanText, tfConfig);
-
-    } catch (error) {
-        showNotification(`Gagal menjalankan Analis Pro: ${error.message}`, true);
-    }
-}
-
-    // --- ANALYZER MIXER LOGIC ---
-    async function runMixerAnalysis_Part1() {
-    resetMixerDisplays();
-    showNotification('Memulai Analisa Mixer... Tahap 1: Sinkronisasi Pasar.');
-    ui.mixer.stage1.classList.remove('hidden'); 
-    document.getElementById('mixer-timestamp').textContent = getCurrentTimestamp();
-    ui.mixer.stage1Result.innerHTML = `<div class="spinner mx-auto"></div><p class="mt-2 text-slate-400">Menganalisa sinkronisasi 3 Timeframe...</p>`;
-
-    try {
-        const tfConfig = MIXER_TF_CONFIG[currentState.timeframeKey];
-        const [tf1Klines, tf2Klines, tf3Klines] = await Promise.all([
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf1, limit: 300 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf2, limit: 300 }),
-            fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: tfConfig.tf3, limit: 300 }),
-        ]);
-
-        const tf1Closes = tf1Klines.map(k => parseFloat(k[4]));
-        const tf1LastClose = tf1Closes[tf1Closes.length - 1];
-        const tf1MidBB = calculateSMA(tf1Closes, 20).pop();
-        const tf1Ema50 = calculateEMA(tf1Closes, 50).pop();
-        const trendResult = {
-            isUptrend: tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50,
-            text: (tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50) ? 'NAIK' : 'TURUN',
-            colorClass: (tf1LastClose > tf1MidBB && tf1LastClose > tf1Ema50) ? 'text-emerald-400' : 'text-rose-400'
-        };
-        const setupResult = calculateBaseSetup(tf2Klines);
-        const confirmationBBMA = calculateBaseSetup(tf3Klines);
-        const confirmationCCA = runCCA(tf3Klines.slice(-5), trendResult.isUptrend);
-
-        const arfResult = calculateARF(tf1Klines, setupResult.setupType);
-        const lzwResult = calculateLZW(setupResult.lastCandle, setupResult.setupType);
-        const vccResult = calculateVCC(tf2Klines, setupResult.setupType);
-        const mtcsResult = calculateMTCS(tf2Klines, tf1Klines, trendResult.isUptrend);
-        const finalTOS = (setupResult.baseScore * arfResult.multiplier) + lzwResult.modifier + vccResult.modifier + mtcsResult.modifier;
-        const cappedTOS = Math.max(0, Math.min(100, Math.round(finalTOS)));
-        const { level, colorClass } = getTosLevelAndClass(cappedTOS);
-
-        let isAligned = true;
-        let alasanKonflik = [];
-
-        if (trendResult.isUptrend !== setupResult.isUptrend) {
-            isAligned = false;
-            alasanKonflik.push(`Arah Tren ${tfConfig.tf1} (${trendResult.text}) tidak selaras dengan Setup ${tfConfig.tf2} (${setupResult.isUptrend ? 'BUY' : 'SELL'})`);
-        }
-        if (!['Re-entry', 'CSM', 'Re-entry stlh CSM'].includes(setupResult.setupType)) {
-            isAligned = false;
-            alasanKonflik.push(`Jenis setup di ${tfConfig.tf2} adalah '${setupResult.setupType}', yang memiliki risiko lebih tinggi.`);
-        }
-        if (confirmationCCA.status !== 'KONFIRMASI') {
-            isAligned = false;
-            alasanKonflik.push(`Tidak ada candle konfirmasi yang valid di ${tfConfig.tf3}. Status CCA: ${confirmationCCA.status}.`);
-        }
-        if (isAligned) {
-            ui.mixer.stage1Result.innerHTML = `<p class="text-2xl font-bold text-emerald-400">✅ SINKRONISASI BERHASIL</p><p class="text-slate-400">Arah tren, setup, dan konfirmasi selaras. Melanjutkan ke Tahap 2...</p>`;
-        } else {
-            ui.mixer.stage1Result.innerHTML = `
-                <p class="text-2xl font-bold text-rose-400">⚠️ KONFLIK TERDETEKSI</p>
-                <p class="text-slate-400 mt-2 mb-3">Analisa dihentikan di Tahap 1 karena komponen tidak selaras.</p>
-                <ul class="text-sm text-left text-rose-300/80 bg-rose-900/30 p-3 rounded-lg space-y-1">
-                    ${alasanKonflik.map(alasan => `<li>- ${alasan}</li>`).join('')}
-                </ul>`;
-        }
-        const analysisData = {
-            tf1Klines: tf1Klines, 
-            tf2Klines: tf2Klines, 
-            setupResult: setupResult, 
-            isUptrend: trendResult.isUptrend, 
-            confirmationPrice: parseFloat(tf3Klines[tf3Klines.length - 1][4]), 
-            isAligned: isAligned, 
-            alasanKonflik: alasanKonflik, 
-            trendResult: trendResult,
-            mixerSetupResult: setupResult, 
-            confirmationCCA: confirmationCCA,
-            confirmationBBMA: confirmationBBMA
-        };
-        await runMixerAnalysis_Part2(analysisData, cappedTOS, level, colorClass);
-        
-    } catch (error) {
-        console.error("Error di Mixer Analysis Tahap 1:", error);
-        ui.mixer.stage1Result.innerHTML = `<p class="text-rose-400">Gagal menjalankan analisa Tahap 1: ${error.message}</p>`;
-        ui.spinner.classList.add('hidden');
-        ui.runAnalysisBtn.disabled = false;
-    }
-}
-
-    async function runMixerAnalysis_Part2(analysisData, cappedTOS, level, colorClass) {
-    // Dapatkan isAligned dan alasanKonflik dari analysisData
-    const isAligned = analysisData.isAligned;
-    const alasanKonflik = analysisData.alasanKonflik;
-        
+        showLoader(true, `Memperbarui data untuk timeframe ${newTimeframe}...`);
         try {
-            ui.mixer.stage2Result.innerHTML = `
-                <p class="text-sm font-semibold text-slate-400 mb-1">SKOR PELUANG (TOS)</p>
-                <p class="text-7xl font-black ${colorClass}">${cappedTOS}</p>
-                <p class="text-xl font-bold mt-1 ${colorClass}">${level}</p>`;
+            // 1. Ambil data kline baru untuk timeframe yang dipilih
+            const klines = await fetchBinanceAPIData('klines', { symbol: asset, interval: newTimeframe, limit: 200 });
 
-            // [BARU] Tampilkan detail silinder Mixer
-            ui.mixer.cockpit.classList.remove('hidden'); // Tampilkan kokpit panel
-
-            // Silinder 1: Arah Tren (TF1)
-            ui.mixer.panel1_title.textContent = `TF 1: ARAH TREN (${MIXER_TF_CONFIG[currentState.timeframeKey].tf1.toUpperCase()})`;
-            ui.mixer.panel1_value.textContent = analysisData.trendResult.text;
-            ui.mixer.panel1_value.className = `pro-panel-value ${analysisData.trendResult.colorClass}`;
-
-            // Silinder 2: Setup (TF2)
-            ui.mixer.panel2_title.textContent = `TF 2: SETUP (${MIXER_TF_CONFIG[currentState.timeframeKey].tf2.toUpperCase()})`;
-            const mixerSetupText = `${analysisData.mixerSetupResult.setupType} ${analysisData.mixerSetupResult.isUptrend ? 'BUY' : 'SELL'}`;
-            ui.mixer.panel2_value.textContent = mixerSetupText;
-            ui.mixer.panel2_value.className = `pro-panel-value ${analysisData.mixerSetupResult.isUptrend ? 'text-sky-400' : 'text-rose-400'}`; // Perbaiki warna berdasarkan isUptrend
-
-            // Silinder 3: Konfirmasi Aman (CCA) (TF3)
-            ui.mixer.panel3_title.textContent = `KONFIRMASI AMAN (CCA) (${MIXER_TF_CONFIG[currentState.timeframeKey].tf3.toUpperCase()})`;
-            displayCCAResult(analysisData.confirmationCCA, ui.mixer.panel3_value);
-
-            // Silinder 4: Konfirmasi Klasik (BBMA) (TF3)
-            ui.mixer.panel4_title.textContent = `KONFIRMASI KLASIK (BBMA) (${MIXER_TF_CONFIG[currentState.timeframeKey].tf3.toUpperCase()})`;
-            ui.mixer.panel4_value.textContent = analysisData.confirmationBBMA.setupType;
-            ui.mixer.panel4_value.className = `pro-panel-value ${analysisData.confirmationBBMA.isUptrend ? 'text-emerald-400' : 'text-rose-400'}`; // Perbaiki warna berdasarkan isUptrend
-                
-            let verdictText = "";
-            let reasonText = "";
-            let showExecuteButton = false;
-            let verdictClass = ""; 
-
-            if (!isAligned) { 
-                verdictText = "JANGAN EKSEKUSI!";
-                reasonText = "Konflik di Tahap 1: " + alasanKonflik.join('; ') + ". Disarankan untuk TAHAN DIRI.";
-                verdictClass = "text-rose-400 blinking-red-animation"; 
-                showExecuteButton = false;
-            } else if (level === "SUPER JITU") {
-                verdictText = "EKSEKUSI SEGERA (KEYAKINAN TERTINGGI)";
-                reasonText = "Pasar terkonfirmasi selaras di 3-TF dan memiliki Skor Peluang (TOS) Super Jitu.";
-                verdictClass = "text-emerald-400"; // Hijau
-                showExecuteButton = true;
-            } else if (level === "TINGGI") {
-                verdictText = "REKOMENDASI EKSEKUSI";
-                reasonText = "Pasar selaras dan memiliki Skor Peluang (TOS) Tinggi. Kelola risiko dengan baik.";
-                verdictClass = "text-sky-400"; // Biru
-                showExecuteButton = true;
-            } else if (level === "MENENGAH") {
-                verdictText = "PERTIMBANGKAN (RISIKO SEDANG)";
-                reasonText = "Pasar selaras namun Skor Peluang (TOS) hanya Menengah. Kurangi ukuran posisi jika ingin masuk.";
-                verdictClass = "text-amber-400"; // Kuning
-                showExecuteButton = true;
-            } else { // Ini akan menangani TOS RENDAH dan SANGAT RENDAH meskipun isAligned true
-                verdictText = "TAHAN DIRI.";
-                reasonText = "Meskipun selaras, skor peluang (TOS) tidak cukup tinggi untuk eksekusi risiko rendah.";
-                verdictClass = "text-slate-500"; // Abu-abu
-                showExecuteButton = false;
-            }
+            // 2. Kalkulasi ulang sinyal konfluensi
+            const closes = klines.map(k => parseFloat(k[4]));
+            const rsi = calculateRSI(closes);
+            const newConfluenceData = getConfluenceScore(rsi);
             
-            ui.mixer.verdictContainer.classList.remove('hidden');
-            ui.mixer.verdictText.textContent = verdictText;
-            ui.mixer.verdictText.className = `text-lg font-semibold text-white ${verdictClass}`; // Terapkan kelas CSS
-            ui.mixer.verdictReason.textContent = reasonText;
-            
-            // [BARU] Sesuaikan teks dan warna tombol berdasarkan putusan
-            if (showExecuteButton) {
-                ui.mixer.lanjutBtn.className = 'btn-action w-full md:w-auto mx-auto mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2';
-                ui.mixer.lanjutBtn.innerHTML = 'Lanjutkan ke Rencana Eksekusi <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"/></svg>';
-            } else {
-                ui.mixer.lanjutBtn.className = 'btn-action w-full md:w-auto mx-auto mt-4 bg-slate-600 hover:bg-slate-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2'; // Warna abu-abu
-                ui.mixer.lanjutBtn.innerHTML = 'eksekusi (JANGAN NEKAT)';
-            }
+            // 3. Update cache untuk sinyal konfluensi dan data chart
+            analysisCache.confluence[newTimeframe] = newConfluenceData;
+            analysisCache.chartData = {
+                labels: klines.map(k => new Date(k[0])),
+                prices: closes,
+            };
 
-            ui.mixer.lanjutBtn.classList.remove('hidden'); // Selalu tampilkan tombol
-            
-            currentState.latestMixerAnalysis = { ...analysisData, tos: cappedTOS, level: level };
+            // 4. Update UI yang relevan
+            displayConfluenceWidget(); // Render kartu sinyal konfluensi
+            renderMainChart(analysisCache.chartData, analysisCache.keyLevels); // Render ulang chart dengan animasi
 
         } catch (error) {
-            console.error("Error di Mixer Analysis Tahap 2:", error);
-            ui.mixer.stage2Result.innerHTML = `<p class="text-rose-400">Gagal menjalankan analisa Tahap 2: ${error.message}</p>`;
+            console.error("Timeframe update failed:", error);
+            showError(`Gagal memperbarui data timeframe: ${error.message}`);
         } finally {
-            ui.spinner.classList.add('hidden');
-            ui.runAnalysisBtn.disabled = false;
+            showLoader(false);
         }
     }
-    
-    // --- TOS FILTERS & PATTERN RECOGNITION ---
-    function calculateBaseSetup(klines) { const closes = klines.map(k => parseFloat(k[4])); const lastCandle = klines[klines.length - 1]; const prevCandle = klines.length > 1 ? klines[klines.length - 2] : null; if (!lastCandle) return { baseScore: 0, setupType: "Data Kurang", isUptrend: false }; const [open, high, low, close] = lastCandle.map(parseFloat); const bb = calculateBollingerBands(closes, 20, 2); if (bb.middle.length === 0) return { baseScore: 0, setupType: "Data Kurang", isUptrend: false, lastCandle }; const midBB = bb.middle[bb.middle.length - 1]; const upperBB = bb.upper[bb.upper.length - 1]; const lowerBB = bb.lower[bb.lower.length - 1]; const ema50 = calculateEMA(closes, 50).pop(); const isUptrend = ema50 !== undefined && close > midBB && close > ema50; let setupType = "Re-entry"; let baseScore = 35; if ((isUptrend && close > upperBB) || (!isUptrend && close < lowerBB)) { setupType = "CSM"; baseScore = 40; } if (prevCandle) { const prevCloses = klines.slice(0, -1).map(k => parseFloat(k[4])); const prevBB = calculateBollingerBands(prevCloses, 20, 2); if (prevBB.upper.length > 0 && ((parseFloat(prevCandle[4]) > prevBB.upper[prevBB.upper.length - 1] && !isUptrend) || (parseFloat(prevCandle[4]) < prevBB.lower[prevBB.lower.length - 1] && isUptrend))) { setupType = "Re-entry stlh CSM"; baseScore = 50; } } if ( (isUptrend && high < upperBB && open > close) || (!isUptrend && low > lowerBB && open < close) ) { setupType = "MHV"; baseScore = 25; } const lwma5_high = calculateLWMA(klines.map(k=>parseFloat(k[2])), 5).pop(); const lwma5_low = calculateLWMA(klines.map(k=>parseFloat(k[3])), 5).pop(); if (lwma5_high > upperBB || lwma5_low < lowerBB) { setupType = "Extreme"; baseScore = 20; } return { baseScore, setupType, isUptrend, lastCandle }; }
-    function calculateARF(htfKlines, setupType) { const adx = calculateADX(htfKlines, 14); let multiplier = 1.0; let description = `HTF ADX ${adx ? adx.toFixed(1) : 'N/A'}. `; if (adx > 25) { description += "Trending. "; if (["Re-entry", "CSM", "Re-entry stlh CSM"].includes(setupType)) { multiplier = 1.3; description += "Bonus utk sinyal pro-tren."; } else { multiplier = 0.4; description += "Penalti utk sinyal kontra-tren."; } } else { description += "Ranging. "; if (["Re-entry", "CSM", "Re-entry stlh CSM"].includes(setupType)) { multiplier = 0.2; description += "Penalti berat utk sinyal tren."; } else { multiplier = 1.15; description += "Bonus kecil utk sinyal batas range."; } } return { adx, multiplier, description }; }
-    function calculateLZW(lastCandle, setupType) { let modifier = 0; let description = "Zona likuiditas tampak aman."; if (setupType !== "Re-entry" && setupType !== "Re-entry stlh CSM") { return { modifier, description }; } const [open, high, low, close] = lastCandle.map(parseFloat); const bodySize = Math.abs(open - close); const upperWick = high - Math.max(open, close); const lowerWick = Math.min(open, close) - low; if ( (upperWick > bodySize * 1.5 && open < close) || (lowerWick > bodySize * 1.5 && open > close) ) { modifier = -25; description = "Peringatan! Potensi stop hunt terdeteksi."; } return { modifier, description }; }
-    function calculateVCC(klines, setupType) { const closes = klines.map(k => parseFloat(k[4])); const bb = calculateBollingerBands(closes, 20, 2); if(bb.middle.length === 0) return { bbw: 0, modifier: 0, description: "Data tidak cukup." }; const midBB = bb.middle[bb.middle.length - 1]; const upperBB = bb.upper[bb.upper.length - 1]; const lowerBB = bb.lower[bb.lower.length - 1]; const bbw = midBB > 0 ? ((upperBB - lowerBB) / midBB) * 100 : 0; const prevCloses = klines.slice(0, -20).map(k => parseFloat(k[4])); const prevBB = calculateBollingerBands(prevCloses, 20, 2); if(prevBB.middle.length === 0) return { bbw, modifier: 0, description: "Volatilitas normal."}; const prevMidBB = prevBB.middle[prevBB.middle.length - 1]; const prevUpperBB = prevBB.upper[prevBB.upper.length - 1]; const prevLowerBB = prevBB.lower[prevBB.lower.length - 1]; const prevBbw = prevMidBB > 0 ? ((prevUpperBB - prevLowerBB) / prevMidBB) * 100 : 0; let modifier = 0; let description = "Volatilitas normal.";
 
-    // [UBAH] Penguatan bonus untuk Squeeze Breakout
-    if (setupType === "CSM" && bbw > prevBbw * 1.8 && prevBbw < 4) { // PrevBbw < 4 untuk squeeze yang lebih ketat
-        modifier = 25; // Bonus lebih besar
-        description = "Bonus! Breakout kuat dari kondisi Squeeze.";
-    }
-    // [UBAH] Penyesuaian untuk Re-entry
-    else if (["Re-entry", "Re-entry stlh CSM"].includes(setupType)) {
-        if (bbw < prevBbw * 0.8) { // Volatilitas turun lebih dari 20%
-            modifier = 15; // Bonus lebih besar untuk pullback sehat
-            description = "Bagus, pullback dgn volatilitas rendah.";
-        } else if (bbw > prevBbw * 2.5) { // Volatilitas naik ekstrem
-            modifier = -25; // Penalti lebih besar untuk volatilitas liar
-            description = "Waspada, pullback dgn volatilitas sangat liar.";
-        } else {
-            modifier = 5; // Bonus kecil jika volatilitas normal saat re-entry
-            description = "Volatilitas normal mendukung re-entry.";
+    async function runFullAnalysis() {
+        const asset = assetInput.value.trim().toUpperCase();
+        if (!asset) {
+            showError('Silakan masukkan simbol aset.');
+            return;
         }
-    }
-    // [BARU DITAMBAHKAN] Penalti jika Extreme tanpa volatilitas tinggi
-    else if (setupType === "Extreme" && bbw < 10) { // Extreme setup tapi tidak didukung volatilitas tinggi
-        modifier = -10;
-        description = "Penalti! Extreme setup tanpa volatilitas yang memadai.";
-    }
-
-    return { bbw, modifier, description };
-}
-    function calculateMTCS(klines, htfKlines, isUptrend) { const htfCloses = htfKlines.map(k => parseFloat(k[4])); const htfLastClose = htfCloses[htfCloses.length - 1]; const htfMidBB = calculateSMA(htfCloses, 20).pop(); const htfEma50 = calculateEMA(htfCloses, 50).pop(); if (htfMidBB === undefined || htfEma50 === undefined) return { isCoherent: false, modifier: -30, description: "Data HTF tidak cukup atau konflik." }; const htfLastCloseTrend = htfLastClose > htfMidBB && htfLastClose > htfEma50; let modifier = 0; let description = ""; if (isUptrend === htfLastCloseTrend) { modifier = 10; description = "Selaras dengan tren HTF."; } else { modifier = -30; description = "Konflik! Melawan arus utama HTF."; } return { isCoherent: isUptrend === htfLastCloseTrend, modifier, description }; }
-    function checkIfInReentryZone(klines, isUptrend) { if (klines.length < 10) return false; const lastClose = parseFloat(klines[klines.length - 1][4]); const highs = klines.map(k => parseFloat(k[2])); const lows = klines.map(k => parseFloat(k[3])); if (isUptrend) { const lwma5Low = calculateLWMA(lows, 5).pop(); const lwma10Low = calculateLWMA(lows, 10).pop(); return lastClose <= lwma5Low && lastClose >= lwma10Low; } else { const lwma5High = calculateLWMA(highs, 5).pop(); const lwma10High = calculateLWMA(highs, 10).pop(); return lastClose >= lwma5High && lastClose <= lwma10High; } }
-    
-    // --- VISUAL CCA - CANDLE CONTEXT ANALYZER MODULE ---
-    const CANDLE_PATTERN_LIBRARY = [ { name: 'Bullish Engulfing', type: 'Bullish', implication: 'Potensi Pembalikan Naik', strength: 'Kuat', check: (c, p) => p.isBearish && c.isBullish && c.body > p.body && c.close > p.open && c.open < p.close }, { name: 'Bearish Engulfing', type: 'Bearish', implication: 'Potensi Pembalikan Turun', strength: 'Kuat', check: (c, p) => p.isBullish && c.isBearish && c.body > p.body && c.close < p.open && c.open > p.close }, { name: 'Hammer', type: 'Bullish', implication: 'Potensi Pembalikan Naik', strength: 'Sedang', check: c => c.lowerWick > c.body * 2 && c.upperWick < c.body * 0.5 && c.body > 0 }, { name: 'Shooting Star', type: 'Bearish', implication: 'Potensi Pembalikan Turun', strength: 'Sedang', check: c => c.upperWick > c.body * 2 && c.lowerWick < c.body * 0.5 && c.body > 0 }, { name: 'Doji', type: 'Neutral', implication: 'Keraguan / Titik Balik', strength: 'Rendah', check: c => c.body / c.range < 0.1 }, { name: 'Bullish Marubozu', type: 'Bullish', implication: 'Kekuatan Tren Naik', strength: 'Kuat', check: c => c.isBullish && (c.upperWick + c.lowerWick) / c.range < 0.05 }, { name: 'Bearish Marubozu', type: 'Bearish', implication: 'Kekuatan Tren Turun', strength: 'Kuat', check: c => c.isBearish && (c.upperWick + c.lowerWick) / c.range < 0.05 } ];
-    function runCCA(klines, trendIsUp) { if (!klines || klines.length < 2) return { pattern: null, status: 'TIDAK ADA DATA', implication: '', statusClass: '' }; const parseCandle = (kline) => { const [open, high, low, close] = kline.slice(1, 5).map(Number); const body = Math.abs(close - open); const range = high - low; return { open, high, low, close, body, range, upperWick: high - Math.max(open, close), lowerWick: Math.min(open, close) - low, isBullish: close > open, isBearish: close < open, }; }; const currentCandle = parseCandle(klines[klines.length - 1]); const prevCandle = parseCandle(klines[klines.length - 2]); for (const pattern of CANDLE_PATTERN_LIBRARY) { if (pattern.check(currentCandle, prevCandle)) { let status = 'NETRAL'; let statusClass = 'cca-status-netral'; if (pattern.type === 'Bullish') { if (trendIsUp) { status = 'KONFIRMASI'; statusClass = 'cca-status-konfirmasi'; } else { status = 'KONTRA-SINYAL'; statusClass = 'cca-status-kontra'; } } else if (pattern.type === 'Bearish') { if (!trendIsUp) { status = 'KONFIRMASI'; statusClass = 'cca-status-konfirmasi'; } else { status = 'KONTRA-SINYAL'; statusClass = 'cca-status-kontra'; } } return { pattern: pattern.name, status, implication: pattern.implication, statusClass }; } } return { pattern: null, status: 'TIDAK ADA POLA', implication: 'Tidak ada pola signifikan terdeteksi.', statusClass: '' }; }
-    function drawCandlePatternSVG(patternName) { const bullishColor = 'cca-bullish-color'; const bearishColor = 'cca-bearish-color'; const dojiColor = 'cca-doji-color'; let svg = `<svg viewBox="0 0 60 80" width="60" height="80">`; switch(patternName) { case 'Bullish Engulfing': svg += `<line x1="15" y1="15" x2="15" y2="45" stroke-width="2" class="${bearishColor}" /><rect x="10" y="25" width="10" height="10" class="${bearishColor}" /><line x1="45" y1="5" x2="45" y2="75" stroke-width="2" class="${bullishColor}" /><rect x="40" y="15" width="10" height="50" class="${bullishColor}" />`; break; case 'Bearish Engulfing': svg += `<line x1="15" y1="15" x2="15" y2="45" stroke-width="2" class="${bullishColor}" /><rect x="10" y="25" width="10" height="10" class="${bullishColor}" /><line x1="45" y1="5" x2="45" y2="75" stroke-width="2" class="${bearishColor}" /><rect x="40" y="15" width="10" height="50" class="${bearishColor}" />`; break; case 'Hammer': svg += `<line x1="30" y1="20" x2="30" y2="75" stroke-width="2" class="${bullishColor}" /><rect x="25" y="10" width="10" height="10" class="${bullishColor}" />`; break; case 'Shooting Star': svg += `<line x1="30" y1="5" x2="30" y2="60" stroke-width="2" class="${bearishColor}" /><rect x="25" y="60" width="10" height="10" class="${bearishColor}" />`; break; case 'Doji': svg += `<line x1="30" y1="10" x2="30" y2="70" stroke-width="2" class="${dojiColor}" /><rect x="20" y="39" width="20" height="2" class="${dojiColor}" />`; break; case 'Bullish Marubozu': svg += `<rect x="25" y="10" width="10" height="60" class="${bullishColor}" />`; break; case 'Bearish Marubozu': svg += `<rect x="25" y="10" width="10" height="60" class="${bearishColor}" />`; break; default: return ''; } svg += `</svg>`; return svg; }
-
-    // --- KALKULATOR CUAN LOGIC ---
-    function runCalculation() {
-        if(currentState.isTradeActive) return;
-        ui.kalkulator.executeContainer.innerHTML = '';
-        const modal = parseFloat(ui.kalkulator.modal.value);
-        const riskPercent = parseFloat(ui.kalkulator.riskPercent.value);
-        const entry = parseFloat(ui.kalkulator.entry.value);
-        const stoploss = parseFloat(ui.kalkulator.stoploss.value);
-
-        if ([modal, riskPercent, entry, stoploss].some(v => isNaN(v) || v <= 0)) {
-            ui.kalkulator.calcResults.classList.add('hidden');
+        if (!apiKeyInput.value.trim()) {
+            showError('Silakan masukkan API Key Google AI.');
             return;
         }
 
-        const riskDistance = Math.abs(entry - stoploss);
-        if (riskDistance === 0) {
-            ui.kalkulator.calcResults.classList.add('hidden');
-            return;
-        }
+        hideError();
+        showLoader(true, 'Memulai Analisa...');
 
-        const riskDecimal = riskPercent / 100;
-        const riskUsd = modal * riskDecimal;
-        const recommendedPosSizeUsd = riskUsd / (riskDistance / entry);
-        const manualMargin = parseFloat(ui.kalkulator.costMarginInput.value);
-        const userLeverage = parseFloat(ui.kalkulator.leverageInput.value) || 10;
-        let finalPosSize, finalLeverage, finalCostMargin;
-
-        if (!isNaN(manualMargin) && manualMargin > 0) {
-            finalCostMargin = manualMargin;
-            finalLeverage = userLeverage;
-            finalPosSize = finalCostMargin * finalLeverage;
-        } else {
-            finalPosSize = recommendedPosSizeUsd;
-            finalLeverage = userLeverage;
-            finalCostMargin = finalPosSize / finalLeverage;
-        }
-
-        if ([finalCostMargin, finalLeverage, finalPosSize].some(v => isNaN(v) || v < 0) || finalCostMargin === 0) {
-            ui.kalkulator.calcResults.classList.add('hidden');
-            return;
-        }
-        
-        const maxMargin = modal * 0.30;
-        let recommendedLeverage = recommendedPosSizeUsd > maxMargin ? Math.ceil(recommendedPosSizeUsd / maxMargin) : 1;
-        const setText = (el, text) => { if(el) el.textContent = text; };
-        
-        ui.kalkulator.riskLabel.textContent = `Risiko per Trade (${riskPercent.toFixed(1)}%):`;
-        setText(ui.kalkulator.riskUsd, `$${riskUsd.toFixed(2)}`);
-        setText(ui.kalkulator.posSize, `$${finalPosSize.toFixed(2)}`);
-        setText(ui.kalkulator.costMargin, `$${finalCostMargin.toFixed(2)} (di ${finalLeverage.toFixed(1)}x)`);
-        setText(ui.kalkulator.leverageInfo, `Rekomendasi Aman: ~${recommendedLeverage}x`);
-        
-        for (let i = 1; i <= 3; i++) {
-            const tpPrice = parseFloat(document.getElementById(`tp${i}`).value);
-            const tpLabel = ui.kalkulator[`tp${i}Label`];
-            const profitEl = ui.kalkulator[`profitTp${i}`];
-            if (tpLabel) tpLabel.textContent = `TP ${i}:`;
-            if(profitEl) profitEl.textContent = '-';
-            if (!isNaN(tpPrice) && tpLabel && profitEl) {
-                const rewardDistance = Math.abs(tpPrice - entry);
-                const rrRatio = riskDistance > 0 ? (rewardDistance / riskDistance).toFixed(1) : 'N/A';
-                tpLabel.textContent = `TP ${i} (RR 1:${rrRatio}):`;
-                const profit = (rewardDistance / entry) * finalPosSize;
-                profitEl.textContent = `~$${profit.toFixed(2)}`;
-            }
-        }
-        
-        currentState.tradePlan = {
-            asset: currentState.asset,
-            side: document.getElementById('posisi-long').checked ? 'LONG' : 'SHORT',
-            posSize: finalPosSize,
-            quantity: finalPosSize / entry,
-            entry: entry,
-            stoploss: stoploss,
-            tp1: parseFloat(document.getElementById('tp1').value),
-            leverage: finalLeverage
-        };
-        
-        const executeBtn = document.createElement('button');
-        executeBtn.id = 'execute-trade-btn';
-        executeBtn.className = 'btn-action w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold p-3 rounded-lg mt-4';
-        executeBtn.textContent = 'SIMULASI';
-        executeBtn.onclick = showConfirmationModal;
-        ui.kalkulator.executeContainer.appendChild(executeBtn);
-        
-        ui.kalkulator.calcResults.classList.remove('hidden');
-    }
-
-    
-    // --- DISPLAY & UI FUNCTIONS ---
-    function updateSopChecklist(checks) { const checklistItems = [{ check: ui.sop.check1, label: ui.sop.label1, condition: checks.htfTrendIsValid }, { check: ui.sop.check2, label: ui.sop.label2, condition: checks.hasRecentCSM }, { check: ui.sop.check3, label: ui.sop.label3, condition: checks.inReentryZone }, { check: ui.sop.check4, label: ui.sop.label4, condition: checks.hasConfirmationCandle },]; checklistItems.forEach(item => { item.check.checked = item.condition; if (item.condition) { item.label.classList.add('sop-checked'); } else { item.label.classList.remove('sop-checked'); } }); }
-    function displayTOSResults(tos, isUptrend) {
-        const { level, colorClass } = getTosLevelAndClass(tos);
-        ui.tos.scoreDisplay.textContent = tos;
-        ui.tos.scoreDisplay.className = `text-7xl font-black ${colorClass}`;
-        ui.tos.levelDisplay.textContent = level;
-        ui.tos.levelDisplay.className = `text-xl font-bold mt-1 ${colorClass}`;
-        let recommendation = '';
-        if (level === "SUPER JITU") { recommendation = `<p><strong class="text-emerald-400">Aksi: EKSEKUSI SEGERA.</strong></p><p class="text-sm text-slate-400">Manajemen: Risiko standar, terapkan scaled-out.</p>`; } 
-        else if (level === "TINGGI") { recommendation = `<p><strong class="text-sky-400">Aksi: Sangat direkomendasikan.</strong></p><p class="text-sm text-slate-400">Manajemen: Risiko standar, TP1 di BB seberang.</p>`; } 
-        else if (level === "MENENGAH") { recommendation = `<p><strong class="text-amber-400">Aksi: Pertimbangkan hati-hati.</strong></p><p class="text-sm text-slate-400">Manajemen: Kurangi ukuran posisi (separuh risiko).</p>`; } 
-        else { recommendation = `<p><strong class="text-rose-400">Aksi: ABAIKAN.</strong></p><p class="text-sm text-slate-400">Manajemen: Jangan masuk pasar. Tunggu skor lebih tinggi.</p>`; } 
-        ui.tos.recommendationContainer.innerHTML = recommendation;
-        const trendText = ui.trendIndicator.text;
-        trendText.textContent = isUptrend ? 'NAIK' : 'TURUN';
-        trendText.className = `text-3xl font-black blinking-text-animation ${isUptrend ? 'text-emerald-400' : 'text-rose-400'}`;
-        ui.trendIndicator.panel.classList.remove('hidden');
-        if(isUptrend) { ui.kalkulator.posisiLong.checked = true; } else { ui.kalkulator.posisiShort.checked = true; }
-        ui.tos.sidebarContainer.classList.remove('hidden');
-        ui.tos.mainContainer.classList.remove('hidden');
-    }
-    function displayCCAResult(result, container) {
-        container.innerHTML = '';
-        if (!result || !result.pattern) {
-             container.innerHTML = `<p class="text-slate-500 italic text-sm">${result.implication || 'Tidak ada pola terdeteksi.'}</p>`;
-        } else {
-             const svgVisual = drawCandlePatternSVG(result.pattern);
-             const html = `<div class="flex items-center space-x-4"><div class="flex-shrink-0">${svgVisual}</div><div class="text-left space-y-1 flex-grow"><div><span class="text-xs text-slate-400">Pola:</span><p class="font-bold text-white">${result.pattern}</p></div><div><span class="text-xs text-slate-400">Implikasi:</span><p class="text-slate-300 text-sm">${result.implication}</p></div><div><span class="text-xs text-slate-400">Konteks:</span><p class="font-bold text-lg ${result.statusClass}">${result.status === 'KONFIRMASI' ? '✅' : (result.status === 'KONTRA-SINYAL' ? '⚠️' : '⏸️')} ${result.status}</p></div></div></div>`;
-            container.innerHTML = html;
-        }
-        container.closest('.hidden')?.classList.remove('hidden');
-    }
-    function displayMarketIntel(arf, vcc, lzw, mtcs, setupType, isUptrend, volumeData, lsRatioData) { let adxLabel, adxColor; if (arf.adx > 25) { adxLabel = "KUAT"; adxColor = 'text-emerald-400'; } else if (arf.adx >= 20) { adxLabel = "MUNCUL"; adxColor = 'text-amber-400'; } else { adxLabel = "LEMAH"; adxColor = 'text-slate-400'; } ui.marketIntel.adx.innerHTML = `${arf.adx ? arf.adx.toFixed(2) : 'N/A'} <span class="${adxColor}">${adxLabel}</span>`; ui.marketIntel.adxDesc.textContent = arf.description; let bbwLabel, bbwColor; if (vcc.bbw < 5) { bbwLabel = "SQUEEZE"; bbwColor = 'text-rose-400'; } else if (vcc.bbw > 15) { bbwLabel = "TINGGI"; bbwColor = 'text-emerald-400'; } else { bbwLabel = "NORMAL"; bbwColor = 'text-slate-400'; } ui.marketIntel.bbw.innerHTML = `${vcc.bbw.toFixed(2)}% <span class="${bbwColor}">${bbwLabel}</span>`; ui.marketIntel.bbwDesc.textContent = vcc.description; const dirClass = isUptrend ? 'text-emerald-400' : 'text-rose-400'; ui.marketIntel.setup.innerHTML = `${setupType} <span class="${dirClass}">${isUptrend ? 'BUY' : 'SELL'}</span>`; ui.marketIntel.setupDesc.textContent = lzw.description; let mtcsLabel, mtcsColor; if(mtcs.isCoherent) { mtcsLabel = "SELARAS"; mtcsColor = 'text-emerald-400'; } else { mtcsLabel = "KONFLIK"; mtcsColor = 'text-rose-400'; } ui.marketIntel.mtcs.innerHTML = `${mtcsLabel} <span class="${mtcsColor}">(${mtcs.modifier > 0 ? '+' : ''}${mtcs.modifier} pts)</span>`; ui.marketIntel.mtcsDesc.textContent = mtcs.description; if (volumeData) { const volUSD = parseFloat(volumeData.quoteVolume) / 1_000_000; ui.marketIntel.volume.innerHTML = `$${volUSD.toFixed(2)} Jt`; } else { ui.marketIntel.volume.textContent = 'N/A'; } if (lsRatioData && lsRatioData.length > 0) { const latestRatio = parseFloat(lsRatioData[lsRatioData.length-1].longShortRatio); let ratioLabel, ratioColor; if (latestRatio > 1.2) { ratioLabel = "DOMINAN LONG"; ratioColor = 'text-emerald-400'; } else if (latestRatio < 0.8) { ratioLabel = "DOMINAN SHORT"; ratioColor = 'text-rose-400'; } else { ratioLabel = "SEIMBANG"; ratioColor = 'text-amber-400'; } ui.marketIntel.lsRatio.innerHTML = `${latestRatio.toFixed(2)} <span class="${ratioColor} text-sm font-semibold">${ratioLabel}</span>`; } else { ui.marketIntel.lsRatio.textContent = 'N/A'; } { document.getElementById('intel-timestamp').textContent = getCurrentTimestamp(); } ui.marketIntel.panel.classList.remove('hidden'); }
-    
-    function displayProAnalysisResults(trend, setup, confirmationCCA, confirmationBBMA, isAligned, alasanText, tfConfig) {
-    ui.pro.panel1_title.textContent = `Timeframe 1: ARAH TREN (${tfConfig.tf1.toUpperCase()})`;
-    ui.pro.panel1_value.textContent = trend.text;
-    ui.pro.panel1_value.className = `pro-panel-value ${trend.colorClass}`;
-
-    ui.pro.panel2_title.textContent = `Timeframe 2: SETUP (${tfConfig.tf2.toUpperCase()})`;
-    ui.pro.panel2_value.textContent = setup;
-    ui.pro.panel2_value.className = `pro-panel-value ${setup.includes('BUY') ? 'text-sky-400' : 'text-rose-400'}`;
-
-    ui.pro.panel3_title.textContent = `KONFIRMASI AMAN (CCA) (${tfConfig.tf3.toUpperCase()})`;
-    displayCCAResult(confirmationCCA, ui.pro.panel3_value);
-
-    ui.pro.panel4_title.textContent = `KONFIRMASI KLASIK (BBMA) (${tfConfig.tf3.toUpperCase()})`;
-    ui.pro.panel4_value.textContent = confirmationBBMA.setupType;
-    ui.pro.panel4_value.className = `pro-panel-value ${confirmationBBMA.isUptrend ? 'text-emerald-400' : 'text-rose-400'}`;
-
-    const timestampHTML = `<p class="text-xs font-mono text-slate-500 mt-2">${getCurrentTimestamp()}</p>`;
-
-    ui.pro.sintesisAlasan.textContent = alasanText;
-    if (isAligned) {
-        ui.pro.sintesisPanel.className = 'sintesis-panel bg-emerald-900/50 text-emerald-300';
-        ui.pro.sintesisPanel.innerHTML = `✅ SINTESIS: SEMUA TIMEFRAME SELARAS. SINYAL AMAN.${timestampHTML}`;
-        ui.pro.lanjutBtn.className = 'btn-action w-full md:w-auto mx-auto mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2';
-        ui.pro.lanjutBtn.innerHTML = 'Lanjutkan ke Rencana Eksekusi <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"/></svg>';
-    } else {
-        ui.pro.sintesisPanel.className = 'sintesis-panel bg-rose-900/50 text-rose-300';
-        ui.pro.sintesisPanel.innerHTML = `⚠️ SINTESIS: KONFLIK TERDETEKSI.${timestampHTML}`;
-        ui.pro.lanjutBtn.className = 'btn-action w-full md:w-auto mx-auto mt-4 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2';
-        ui.pro.lanjutBtn.innerHTML = '⚠️ Lanjutkan (Risiko Pribadi)';
-    }
-
-    ui.pro.cockpit.classList.remove('hidden');
-    ui.pro.sintesisContainer.classList.remove('hidden');
-    ui.pro.lanjutBtn.classList.remove('hidden');
-}
-    
-    // --- MAIN INITIALIZATION & EVENT HANDLING ---
-    function initialize() {
-        Object.keys(ASSET_CONFIG).forEach(key => {
-            ui.assetSelect.add(new Option(key, key));
-            
-        });
-        
-        addEventListeners();
-        repopulateTimeframeSelect();
-        updateUI();
-        startLivePrice(); // [MODIFIED] Memulai update harga saat halaman dimuat
-        startFundingInfoUpdate();
-    }
-
-    function addEventListeners() {
-        ui.assetSelect.addEventListener('change', handleStateChange); 
-        ui.tfSelect.addEventListener('change', handleTimeframeChange);
-        ui.modeSwitcher.addEventListener('change', handleModeChange);
-        ui.mainNav.addEventListener('click', handleNavClick);
-        ui.runAnalysisBtn.addEventListener('click', runMasterAnalysis);
-        ui.eksekusi.findEntryBtn.addEventListener('click', findEntryZone);
-        ui.kalkulator.calculateBtn.addEventListener('click', runCalculation);
-        ui.kalkulator.swingBtn.addEventListener('click', () => {
-            let tf;
-            if(currentState.analysisMode === 'copilot') {
-                tf = COPILOT_TF_CONFIG[currentState.timeframeKey].eksekusi;
-            } else if (currentState.analysisMode === 'pro') {
-                tf = PRO_TF_CONFIG[currentState.timeframeKey].tf2;
-            } else {
-                tf = MIXER_TF_CONFIG[currentState.timeframeKey].tf2;
-            }
-            autoSuggestTargets(tf);
-        });
-
-        ['entry', 'stoploss', 'tp1', 'tp2', 'tp3', 'leverage-input', 'modal', 'risk-percent', 'cost-margin-input'].forEach(id => {
-            const el = document.getElementById(id); if(el) el.addEventListener('input', runCalculation);
-        });
-
-        ui.modal.cancelBtn.addEventListener('click', hideConfirmationModal);
-        ui.modal.confirmBtn.addEventListener('click', handleExecuteTrade);
-        document.body.addEventListener('click', function(e) { const header = e.target.closest('.accordion-header'); if (header) { e.preventDefault(); const content = header.nextElementSibling; header.classList.toggle('open'); content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px"; } });
-        
-        if(ui.zzl.closeBtn) ui.zzl.closeBtn.addEventListener('click', handleZzlClose);
-        if(ui.pro.lanjutBtn) ui.pro.lanjutBtn.addEventListener('click', handleLanjutKeEksekusi);
-        if(ui.mixer.lanjutBtn) ui.mixer.lanjutBtn.addEventListener('click', handleMixerLanjutKeEksekusi);
-
-        
-    }
-    
-    function handleNavClick(e) { 
-        const button = e.target.closest('.nav-item'); 
-        if (!button) return; 
-        const targetId = button.dataset.target; 
-        
-        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active-nav')); 
-        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active')); 
-        button.classList.add('active-nav'); 
-        document.getElementById(targetId).classList.add('active'); 
-        const noControlsTabs = ['playbook']; // Hanya playbook yang tidak ada kontrol utama
-        ui.mainControls.classList.toggle('hidden', noControlsTabs.includes(targetId)); 
-         
-        toggleDashboardView();
-    }
-
-    function handleStateChange() { 
-        if(currentState.isTradeActive) { showNotification('Tidak bisa ganti setelan saat trade aktif!', true); ui.assetSelect.value = currentState.activeTrade.asset.ticker; return; } 
-        stopLivePrice(); 
-        stopFundingInfoUpdate();
-        currentState.asset = ASSET_CONFIG[ui.assetSelect.value]; 
-        currentState.timeframeKey = ui.tfSelect.value;
-        resetAll(); 
-        updateUI(); 
-        startLivePrice(); // [MODIFIED] Memulai kembali update harga untuk aset baru
-        startFundingInfoUpdate();
-    }
-
-    function handleModeChange(e) {
-        currentState.analysisMode = e.target.value;
-        repopulateTimeframeSelect();
-        currentState.timeframeKey = ui.tfSelect.value;
-        updateUI();
-    }
-
-    function handleTimeframeChange() {
-        if (currentState.isTradeActive) return;
-
-        if (currentState.analysisMode === 'copilot') {
-            resetCopilotDisplays();
-        } else if (currentState.analysisMode === 'pro') {
-            resetProDisplays();
-        } else if (currentState.analysisMode === 'mixer') {
-            resetMixerDisplays();
-        }
-
-        currentState.timeframeKey = ui.tfSelect.value;
-        updateUI();
-    }
-
-    function handleLanjutKeEksekusi() {
-        const { latestProAnalysis } = currentState;
-        if (!latestProAnalysis) {
-            showNotification('Jalankan dulu analisa F1!', true);
-            return;
-        }
-        navigateToTab('eksekusi');
-        showNotification('Mempersiapkan Kalkulator Cuan dari analisa F1...', false);
-        setTimeout(async () => {
-            const { confirmationClosePrice, isUptrend, tf2 } = latestProAnalysis;
-            const { precision } = currentState.asset;
-            ui.kalkulator.entry.value = confirmationClosePrice.toFixed(precision);
-            if(isUptrend) { ui.kalkulator.posisiLong.checked = true; } else { ui.kalkulator.posisiShort.checked = true; }
-            await autoSuggestTargets(tf2.tf, tf2.klines);
-        }, 100);
-    }
-    
-    function handleMixerLanjutKeEksekusi() {
-        const { latestMixerAnalysis } = currentState;
-        if (!latestMixerAnalysis) {
-            showNotification('Jalankan dulu analisa Mixer!', true);
-            return;
-        }
-        navigateToTab('eksekusi');
-        showNotification('Mempersiapkan Kalkulator dari hasil Analisa Mixer...', false);
-        setTimeout(async () => {
-            const { confirmationPrice, isUptrend } = latestMixerAnalysis;
-            const tfConfig = MIXER_TF_CONFIG[currentState.timeframeKey];
-            const { precision } = currentState.asset;
-            ui.kalkulator.entry.value = confirmationPrice.toFixed(precision);
-            if(isUptrend) { ui.kalkulator.posisiLong.checked = true; } else { ui.kalkulator.posisiShort.checked = true; }
-            await autoSuggestTargets(tfConfig.tf2);
-        }, 100);
-    }
-
-    function repopulateTimeframeSelect() {
-        ui.tfSelect.innerHTML = '';
-        let config;
-        if (currentState.analysisMode === 'copilot') {
-            config = COPILOT_TF_CONFIG;
-        } else if (currentState.analysisMode === 'pro') {
-            config = PRO_TF_CONFIG;
-        } else {
-            config = MIXER_TF_CONFIG;
-        }
-        
-        Object.keys(config).forEach(key => {
-            ui.tfSelect.add(new Option(config[key].label, key));
-        });
-        currentState.timeframeKey = ui.tfSelect.value;
-    }
-
-    function toggleDashboardView() {
-        const isKompasActive = document.getElementById('kompas').classList.contains('active');
-        if (!isKompasActive) {
-            ui.copilotDashboard.classList.add('hidden');
-            ui.proDashboard.classList.add('hidden');
-            ui.mixerDashboard.classList.add('hidden');
-            ui.sidebarIndicators.classList.add('hidden');
-            return;
-        }
-        const mode = currentState.analysisMode;
-        ui.copilotDashboard.classList.toggle('hidden', mode !== 'copilot');
-        ui.proDashboard.classList.toggle('hidden', mode !== 'pro');
-        ui.mixerDashboard.classList.toggle('hidden', mode !== 'mixer');
-        ui.sidebarIndicators.classList.toggle('hidden', mode === 'mixer');
-    }
-    
-    function updateUI() { 
-        const { asset, analysisMode, timeframeKey } = currentState; 
-        document.title = `ANALYZER | ${asset.ticker}`; 
-        let tfConfig, title, description, btnText;
-
-        if (analysisMode === 'copilot') {
-            tfConfig = COPILOT_TF_CONFIG[timeframeKey];
-            //title = `🧭 Matic Panel `;
-            // description = `Jalankan analisa untuk menghitung Trade Opportunity Score (TOS) berdasarkan kombinasi TF ${tfConfig.label}.`;
-            btnText = `Analisa MATIC ${tfConfig.label}`;
-            if(ui.eksekusi.findEntryBtn) ui.eksekusi.findEntryBtn.style.display = 'flex';
-            ui.eksekusi.findEntryBtnText.textContent = `CARI ZONA ENTRY DI ${tfConfig.eksekusi.toUpperCase()}`;
-
-        } else if (analysisMode === 'pro') {
-            tfConfig = PRO_TF_CONFIG[timeframeKey];
-            //title = `🎯 Pro Panel 🎯`;
-            // description = `Jalankan analisa 3-TF untuk mendapatkan sintesis keselarasan pasar pada kombinasi ${tfConfig.label}.`;
-            btnText = `ANALISA PRO ${tfConfig.label}`;
-            if(ui.eksekusi.findEntryBtn) ui.eksekusi.findEntryBtn.style.display = 'none';
-        } else if (analysisMode === 'mixer') {
-            tfConfig = MIXER_TF_CONFIG[timeframeKey];
-            //title = `🏹 Mixer Panel 🏹`;
-            // description = `Analisa pamungkas yang menggabungkan sinkronisasi 3-TF & skoring TOS untuk sinyal super jitu pada kombinasi ${tfConfig.label}.`;
-            btnText = `ANALISA MIXER ${tfConfig.label}`;
-            ui.runAnalysisBtn.className = 'btn-action w-full bg-purple-600 hover:bg-purple-700 text-white font-bold p-4 rounded-lg flex items-center justify-center space-x-2';
-            if(ui.eksekusi.findEntryBtn) ui.eksekusi.findEntryBtn.style.display = 'none';
-        }
-
-        if (analysisMode !== 'mixer') {
-            ui.runAnalysisBtn.className = 'btn-action w-full bg-sky-500 hover:bg-sky-600 text-white font-bold p-4 rounded-lg flex items-center justify-center space-x-2';
-        }
-
-        ui.kompas.title.textContent = title;
-        ui.kompas.description.textContent = description;
-        ui.runAnalysisBtnText.textContent = btnText;
-        
-        ui.eksekusi.title.textContent = ``;
-        const step = 1 / Math.pow(10, asset.precision); 
-        document.querySelectorAll('input[type="number"]').forEach(input => { if (input.id !== 'leverage-input' && input.id !== 'modal' && !input.id.includes('percent')) input.step = step; });
-        toggleDashboardView();
-    }
-    
-    function resetAll() { 
-        resetCopilotDisplays();
-        resetProDisplays();
-        resetMixerDisplays();
-
-        ui.eksekusi.entryZoneContainer.classList.add('hidden'); 
-        ['entry', 'stoploss', 'tp1', 'tp2', 'tp3'].forEach(id => { const el = document.getElementById(id); if(el) { el.value = ''; }}); 
-        ui.kalkulator.calcResults.classList.add('hidden'); 
-    }
-
-    function resetCopilotDisplays() {
-        ui.tos.mainContainer.classList.add('hidden');
-        ui.tos.sidebarContainer.classList.add('hidden');
-        ui.marketIntel.panel.classList.add('hidden');
-        ui.trendIndicator.panel.classList.add('hidden');
-        ui.pureBbmaIndicator.panel.classList.add('hidden');
-        ui.candleIndicator.panel.classList.add('hidden');
-        updateSopChecklist({});
-        currentState.latestCopilotAnalysis = null;
-    }
-
-    function resetProDisplays() {
-        ui.pro.cockpit.classList.add('hidden');
-        ui.pro.sintesisContainer.classList.add('hidden');
-        if(ui.pro.panel4_value) ui.pro.panel4_value.textContent = '-';
-        if(ui.pro.sintesisAlasan) ui.pro.sintesisAlasan.textContent = '';
-        currentState.latestProAnalysis = null;
-    }
-
-    function resetMixerDisplays() {
-        ui.mixer.stage1.classList.add('hidden');
-        ui.mixer.stage2.classList.add('hidden');
-        ui.mixer.verdictContainer.classList.add('hidden');
-        ui.mixer.cockpit.classList.add('hidden'); // Sembunyikan panel detail Mixer
-        if(ui.mixer.panel1_value) ui.mixer.panel1_value.textContent = '-';
-        if(ui.mixer.panel2_value) ui.mixer.panel2_value.textContent = '-';
-        if(ui.mixer.panel3_value) ui.mixer.panel3_value.innerHTML = 'Menunggu analisa...'; // CCA panel uses innerHTML
-        if(ui.mixer.panel4_value) ui.mixer.panel4_value.textContent = '-';
-        ui.mixer.lanjutBtn.classList.add('hidden');
-        currentState.latestMixerAnalysis = null;
-    }
-
-    async function findEntryZone() { 
-        if(currentState.isTradeActive) { showNotification('Tutup dulu posisi aktif!', true); return; } 
-        let analysis, timeframe;
-        if (currentState.analysisMode === 'copilot') {
-            analysis = currentState.latestCopilotAnalysis;
-            timeframe = COPILOT_TF_CONFIG[currentState.timeframeKey].eksekusi;
-        } else {
-            return; 
-        }
-
-        if (!analysis) { showNotification('Jalankan dulu Analisa!', true); return; } 
-        showNotification(`Mencari zona Re-entry di ${timeframe}...`); 
-        try { 
-            const klines = await fetchPublicAPI('fapi/v1/klines', { symbol: currentState.asset.ticker, interval: timeframe, limit: 50 }); 
-            const highs = klines.map(k => parseFloat(k[2])); 
-            const lows = klines.map(k => parseFloat(k[3])); 
-            const { isUptrend } = analysis; 
-            const { precision } = currentState.asset; 
-            let zone, range, entryPrice; 
-            if (isUptrend) { zone = "BUY"; const lwma5 = calculateLWMA(lows, 5).pop(); const lwma10 = calculateLWMA(lows, 10).pop(); range = `${lwma10.toFixed(precision)} - ${lwma5.toFixed(precision)}`; entryPrice = lwma5; } 
-            else { zone = "SELL"; const lwma5 = calculateLWMA(highs, 5).pop(); const lwma10 = calculateLWMA(highs, 10).pop(); range = `${lwma5.toFixed(precision)} - ${lwma10.toFixed(precision)}`; entryPrice = lwma5; } 
-            ui.eksekusi.entryZoneDesc.textContent = `Berdasarkan analisa, arah utama adalah ${isUptrend ? 'NAIK' : 'TURUN'}.`; 
-            ui.eksekusi.entryZoneLabel.textContent = `Zona Re-entry ${zone}`; 
-            ui.eksekusi.entryZoneRange.textContent = range; 
-            ui.kalkulator.entry.value = entryPrice.toFixed(precision); 
-            await autoSuggestTargets(timeframe); 
-            ui.eksekusi.entryZoneContainer.classList.remove('hidden'); 
-        } catch (error) { showNotification(`Gagal mencari Zona Entry: ${error.message}`, true); } 
-    }
-
-    async function autoSuggestTargets(timeframe, klinesData = null) { 
-        if(currentState.isTradeActive) return; 
-        const entryPrice = parseFloat(ui.kalkulator.entry.value); 
-        const isUptrend = document.getElementById('posisi-long').checked;
-        if (isNaN(entryPrice)) return;
-
-        showNotification('Menghitung Saran SL/TP...', false); 
-        try { 
-            const klines = klinesData || await fetchPublicAPI('fapi/v1/klines', {symbol: currentState.asset.ticker, interval: timeframe, limit: 250});
-            const { precision } = currentState.asset; 
-            const { swingHigh, swingLow } = findSignificantSwings(klines, 200); 
-            const slPrice = (isUptrend ? swingLow : swingHigh).toFixed(precision); 
-            ui.kalkulator.stoploss.value = slPrice; 
-            const closes = klines.map(k => parseFloat(k[4])); 
-            const bb = calculateBollingerBands(closes, 20, 2); 
-            const oppositeBB = isUptrend ? bb.upper.pop() : bb.lower.pop(); 
-            ui.kalkulator.tp1.value = oppositeBB.toFixed(precision); 
-            const riskDistance = Math.abs(entryPrice - slPrice); 
-            if (riskDistance > 0) { const tp2Price = isUptrend ? entryPrice + (riskDistance * 3) : entryPrice - (riskDistance * 3); ui.kalkulator.tp2.value = tp2Price.toFixed(precision); } 
-            ui.kalkulator.tp3.value = ''; 
-            showNotification('Saran SL/TP berhasil dimuat.', false); 
-            runCalculation(); 
-        } catch(e) { showNotification('Gagal memuat saran SL/TP.', true); } 
-    }
-
-    function handleLanjutKeEksekusi() {
-        const { latestProAnalysis } = currentState;
-        if (!latestProAnalysis) {
-            showNotification('Jalankan dulu analisa F1!', true);
-            return;
-        }
-
-        navigateToTab('eksekusi');
-        showNotification('Mempersiapkan Kalkulator Cuan dari analisa F1...', false);
-
-        setTimeout(async () => {
-            const { confirmationClosePrice, isUptrend, tf2 } = latestProAnalysis;
-            const { precision } = currentState.asset;
-
-            ui.kalkulator.entry.value = confirmationClosePrice.toFixed(precision);
-            
-            if(isUptrend) { 
-                ui.kalkulator.posisiLong.checked = true; 
-            } else { 
-                ui.kalkulator.posisiShort.checked = true; 
-            }
-            
-            await autoSuggestTargets(tf2.tf, tf2.klines);
-        }, 100);
-    }
-
-    function navigateToTab(targetId) {
-        document.querySelector(`.nav-item[data-target="${targetId}"]`)?.click();
-    }
-    
-// --- UTILITIES, ZZL, ETC. ---
-    function findSignificantSwings(klines, lookback = 200) { const relevantKlines = klines.slice(-lookback); let swingLow = Infinity, swingHigh = -Infinity; let swingLowIndex = -1, swingHighIndex = -1; relevantKlines.forEach((k, index) => { const high = parseFloat(k[2]); const low = parseFloat(k[3]); if (high > swingHigh) { swingHigh = high; swingHighIndex = klines.length - lookback + index; } if (low < swingLow) { swingLow = low; swingLowIndex = klines.length - lookback + index; } }); return { swingHigh, swingLow, swingHighIndex, swingLowIndex }; }
-    function showNotification(message, isError = false) { ui.notification.textContent = message; ui.notification.style.opacity = 1; ui.notification.className = `h-6 text-center text-xs font-semibold ${isError ? 'text-rose-400' : 'text-sky-400'}`; setTimeout(() => { ui.notification.style.opacity = 0; }, 4000); }
-    async function startLivePrice() { if (currentState.livePriceInterval) return; async function updatePrice() { try { const data = await fetchPublicAPI('fapi/v1/ticker/price', {symbol: currentState.asset.ticker}); ui.livePriceDisplay.textContent = parseFloat(data.price).toFixed(currentState.asset.precision); } catch (e) { ui.livePriceDisplay.textContent = 'Error'; stopLivePrice(); } } await updatePrice(); currentState.livePriceInterval = setInterval(updatePrice, 2500); }
-    function stopLivePrice() { if(currentState.livePriceInterval) { clearInterval(currentState.livePriceInterval); currentState.livePriceInterval = null; } }
-    function showConfirmationModal() { const { posSize, side, entry, stoploss, leverage, asset } = currentState.tradePlan; const sideClass = side === 'LONG' ? 'text-emerald-400' : 'text-rose-400'; const summaryHtml = `<p><span class="font-semibold text-slate-400">Aset:</span> <span class="font-bold text-white">${asset.ticker}</span></p><p><span class="font-semibold text-slate-400">Posisi:</span> <span class="font-bold ${sideClass}">${side}</span></p><p><span class="font-semibold text-slate-400">Ukuran Posisi:</span> <span class="font-bold text-white">~$${posSize.toFixed(2)}</span></p><hr class="border-slate-600 my-2"><p><span class="font-semibold text-slate-400">Entry:</span> <span class="font-bold text-white">~${entry}</span></p><p><span class="font-semibold text-slate-400">Stop Loss:</span> <span class="font-bold text-rose-400">${stoploss}</span></p><p><span class="font-semibold text-slate-400">Leverage:</span> <span class="font-bold text-white">${leverage.toFixed(1)}x</span></p>`; ui.modal.summary.innerHTML = summaryHtml; ui.modal.self.classList.remove('hidden'); ui.modal.self.classList.add('flex'); }
-    function hideConfirmationModal() { ui.modal.self.classList.add('hidden'); ui.modal.self.classList.remove('flex'); }
-    function handleExecuteTrade() { hideConfirmationModal(); showNotification('SIMULASI TRADE DIAKTIFKAN! Monitor ZZL aktif.', false); currentState.isTradeActive = true; currentState.activeTrade = { ...currentState.tradePlan }; activateTradeMonitor(); startZzlMonitoring(); }
-    function activateTradeMonitor() { const { asset, side, entry } = currentState.activeTrade; const sideColor = side === 'LONG' ? 'text-emerald-400' : 'text-rose-400'; ui.zzl.assetSide.innerHTML = `${asset.ticker} <span class="${sideColor}">${side}</span>`; ui.zzl.entryPrice.textContent = entry.toFixed(asset.precision); ui.zzl.monitorContainer.classList.remove('hidden'); ui.eksekusi.container.classList.add('hidden'); }
-    function startZzlMonitoring() { if(currentState.zzlInterval) clearInterval(currentState.zzlInterval); const updateMonitor = async () => { if(!currentState.isTradeActive) { stopZzlMonitoring(); return; } try { const data = await fetchPublicAPI('fapi/v1/ticker/price', { symbol: currentState.activeTrade.asset.ticker }); const livePrice = parseFloat(data.price); const { entry, quantity, side } = currentState.activeTrade; ui.zzl.livePrice.textContent = livePrice.toFixed(currentState.activeTrade.asset.precision); let pnl = 0; if (side === 'LONG') { pnl = (livePrice - entry) * quantity; } else { pnl = (entry - livePrice) * quantity; } ui.zzl.livePnl.textContent = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`; if (pnl > 0) { ui.zzl.livePnl.className = 'text-4xl font-black pnl-profit'; } else if (pnl < 0) { ui.zzl.livePnl.className = 'text-4xl font-black pnl-loss'; } else { ui.zzl.livePnl.className = 'text-4xl font-black pnl-neutral'; } } catch(e) { console.error("Gagal update monitor ZZL:", e); ui.zzl.livePnl.textContent = 'Error'; } }; currentState.zzlInterval = setInterval(updateMonitor, 2000); updateMonitor(); }
-    function stopZzlMonitoring() { if(currentState.zzlInterval) { clearInterval(currentState.zzlInterval); currentState.zzlInterval = null; } }
-    function handleZzlClose() { stopZzlMonitoring(); currentState.isTradeActive = false; currentState.activeTrade = {}; ui.zzl.monitorContainer.classList.add('hidden'); ui.eksekusi.container.classList.remove('hidden'); showNotification('Posisi ditutup sesuai prinsip ZZL.', false); runCalculation(); }
-
-    
-    async function startFundingInfoUpdate() {
-    if (currentState.fundingInfoInterval) return; // Mencegah interval ganda
-
-    async function updateFundingData() {
         try {
-            // Fetch funding info. Premium Index provides real-time funding rate and next funding time.
-            const data = await fetchPublicAPI('fapi/v1/premiumIndex', { symbol: currentState.asset.ticker });
+            // Fetch all data required for a full analysis
+            showLoader(true, `Mengambil data pasar untuk ${asset}...`);
+            const [tickerData, klines1d, klines4h, klines1h] = await Promise.all([
+                fetchBinanceAPIData('ticker/24hr', { symbol: asset }),
+                fetchBinanceAPIData('klines', { symbol: asset, interval: '1d', limit: 200 }),
+                fetchBinanceAPIData('klines', { symbol: asset, interval: '4h', limit: 200 }),
+                fetchBinanceAPIData('klines', { symbol: asset, interval: '1h', limit: 200 })
+            ]);
+            
+            // Local calculations
+            showLoader(true, 'Menghitung indikator teknikal...');
+            const closes1d = klines1d.map(k => parseFloat(k[4]));
+            const rsi1d = calculateRSI(closes1d);
+            const closes4h = klines4h.map(k => parseFloat(k[4]));
+            const rsi4h = calculateRSI(closes4h);
+            const closes1h = klines1h.map(k => parseFloat(k[4]));
+            const rsi1h = calculateRSI(closes1h);
 
-            const fundingRate = parseFloat(data.lastFundingRate);
-            const nextFundingTime = parseInt(data.nextFundingTime); // Timestamp dalam milidetik
+            const calculateSimpleVPVR = (klines) => {
+                const volumeProfile = {};
+                klines.forEach(k => {
+                    const price = parseFloat(k[4]); const volume = parseFloat(k[5]);
+                    const priceLevel = Math.round(price / 100) * 100;
+                    volumeProfile[priceLevel] = (volumeProfile[priceLevel] || 0) + volume;
+                });
+                let poc = 0, maxVolume = 0;
+                Object.entries(volumeProfile).forEach(([price, volume]) => {
+                    if (volume > maxVolume) { maxVolume = volume; poc = parseFloat(price); }
+                });
+                return { poc, vah: poc * 1.05, val: poc * 0.95 };
+            };
+            const vpvrLevels = calculateSimpleVPVR(klines1d);
 
-            // Hitung countdown
-            const now = Date.now();
-            const timeLeftMs = nextFundingTime - now;
+            // AI analysis
+            showLoader(true, 'Meminta analisa dari AI...');
+            const prompt = `Anda adalah analis trading profesional untuk ${asset}. Diberikan data: Harga Terkini: ${tickerData.lastPrice}, Perubahan 24j: ${tickerData.priceChangePercent}%, RSI (1D): ${rsi1d.toFixed(2)}, Point of Control (POC): ${vpvrLevels.poc}. Tugas Anda adalah memberikan output HANYA dalam format JSON dengan skema berikut: {"sentiment": {"label": "string (Netral/Optimis/Pesimis)", "volatility": "string (Rendah/Sedang/Tinggi)"},"smc": {"narrative": "string", "poi_bullish": "string", "poi_bearish": "string", "conclusion": "string"},"projections": [{"period": "string", "target": "string", "reason": "string"}],"verdicts": {"buyerAction": "string", "buyerReason": "string", "holderAction": "string", "holderReason": "string"}}`;
+            const aiAnalysis = await callGemini([{ text: prompt }]);
 
-            if (timeLeftMs < 0) { // Jika waktu sudah lewat, mungkin API belum update untuk periode berikutnya
-                ui.fundingInfoDisplay.textContent = 'Menghitung ulang...';
-                // Mungkin perlu fetch ulang atau menunggu update dari API
-                return;
-            }
+            // Combine data and update cache
+            showLoader(true, 'Menyusun dasbor...');
+            const price = parseFloat(tickerData.lastPrice);
+            const change = parseFloat(tickerData.priceChangePercent);
+            
+            analysisCache = {
+                currentState: {
+                    price: price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    change: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
+                    changeColor: change >= 0 ? 'text-green-600' : 'text-red-600',
+                    sentiment: aiAnalysis.sentiment.label,
+                    sentimentColor: getSentimentColor(aiAnalysis.sentiment.label),
+                    volatility: aiAnalysis.sentiment.volatility,
+                    volatilityColor: getVolatilityColor(aiAnalysis.sentiment.volatility),
+                },
+                // Default chart view is based on the selected confluence timeframe
+                chartData: {
+                    labels: klines1h.map(k => new Date(k[0])),
+                    prices: klines1h.map(k => parseFloat(k[4])),
+                },
+                keyLevels: {
+                    poc: vpvrLevels.poc, vah: vpvrLevels.vah, val: vpvrLevels.val,
+                    poi_bullish: parseFloat(aiAnalysis.smc.poi_bullish.match(/[\d,.]+/)?.[0]?.replace(/,/g, '')) || vpvrLevels.val,
+                    poi_bearish: parseFloat(aiAnalysis.smc.poi_bearish.match(/[\d,.]+/)?.[0]?.replace(/,/g, '')) || vpvrLevels.vah,
+                },
+                smc: aiAnalysis.smc,
+                projections: aiAnalysis.projections,
+                verdicts: aiAnalysis.verdicts,
+                confluence: {
+                    "1h": getConfluenceScore(rsi1h),
+                    "4h": getConfluenceScore(rsi4h),
+                    "1d": getConfluenceScore(rsi1d),
+                }
+            };
+            
+            updateDashboardUI(analysisCache);
 
-            const hours = Math.floor(timeLeftMs / (1000 * 60 * 60));
-            const minutes = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeLeftMs % (1000 * 60)) / 1000);
-
-            const countdownText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-            let fundingRateColorClass = 'text-slate-400';
-            if (fundingRate > 0.0001) { // Positive funding rate, long pays short
-                fundingRateColorClass = 'text-rose-400';
-            } else if (fundingRate < -0.0001) { // Negative funding rate, short pays long
-                fundingRateColorClass = 'text-emerald-400';
-            }
-
-            ui.fundingInfoDisplay.innerHTML = `<span class="${fundingRateColorClass}">${(fundingRate * 100).toFixed(4)}%</span> / ${countdownText}`;
-
-        } catch (e) {
-            console.error("Gagal update Funding Info:", e);
-            ui.fundingInfoDisplay.textContent = 'Error';
-            stopFundingInfoUpdate(); // Hentikan update jika ada error
+        } catch (error) {
+            console.error("Analysis failed:", error);
+            showError(error.message);
+        } finally {
+            showLoader(false);
         }
     }
 
-    // Jalankan update pertama kali dan set interval
-    await updateFundingData();
-    currentState.fundingInfoInterval = setInterval(updateFundingData, 1000); // Update setiap 1 detik untuk countdown
-}
-
-function stopFundingInfoUpdate() {
-    if (currentState.fundingInfoInterval) {
-        clearInterval(currentState.fundingInfoInterval);
-        currentState.fundingInfoInterval = null;
+    // --- UI POPULATION FUNCTIONS (Fungsi-fungsi ini tetap sama) ---
+    function updateDashboardUI(data) {
+        initialPlaceholder.classList.add('hidden');
+        dashboardContent.classList.remove('hidden');
+        populateCurrentState(data.currentState);
+        populateSMC(data.smc);
+        populateProjections(data.projections);
+        populateVerdicts(data.verdicts);
+        displayConfluenceWidget(); 
+        renderMainChart(data.chartData, data.keyLevels);
     }
-}
-    // Initial global startup
-    initialize();
+    function showError(message) { assetError.textContent = message; assetError.classList.remove('hidden'); }
+    function hideError() { assetError.classList.add('hidden'); }
+    function showLoader(show, text = '') {
+        if (show) { loaderText.textContent = text; loaderOverlay.classList.remove('hidden'); loaderOverlay.classList.add('flex'); } 
+        else { loaderOverlay.classList.add('hidden'); loaderOverlay.classList.remove('flex'); }
+    }
+    function populateCurrentState(data) {
+        document.getElementById('current-price').textContent = `$${data.price}`;
+        const changeEl = document.getElementById('price-change-24h');
+        changeEl.textContent = data.change; changeEl.className = `font-semibold ${data.changeColor}`;
+        const sentimentEl = document.getElementById('market-sentiment');
+        sentimentEl.textContent = data.sentiment; sentimentEl.className = `tag ${data.sentimentColor}`;
+        const volatilityEl = document.getElementById('market-volatility');
+        volatilityEl.textContent = data.volatility; volatilityEl.className = `tag ${data.volatilityColor}`;
+    }
+    function populateSMC(data) {
+        document.getElementById('smc-narrative').textContent = data.narrative;
+        document.getElementById('smc-poi-bullish').textContent = data.poi_bullish;
+        document.getElementById('smc-poi-bearish').textContent = data.poi_bearish;
+        document.getElementById('smc-conclusion').textContent = data.conclusion;
+    }
+    function populateProjections(data) {
+        const listEl = document.getElementById('projection-list'); listEl.innerHTML = '';
+        data.forEach(proj => {
+            const div = document.createElement('div');
+            div.className = "p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700";
+            div.innerHTML = `<p class="font-semibold text-sm text-gray-800">${proj.period}</p><p class="font-bold text-lg text-green-700">${proj.target}</p><p class="text-xs text-gray-500 mt-1">${proj.reason}</p>`;
+            listEl.appendChild(div);
+        });
+    }
+    function populateVerdicts(data) {
+        document.getElementById('verdict-buyer-action').textContent = data.buyerAction;
+        document.getElementById('verdict-buyer-reason').textContent = data.buyerReason;
+        document.getElementById('verdict-holder-action').textContent = data.holderAction;
+        document.getElementById('verdict-holder-reason').textContent = data.holderReason;
+    }
+    const getSentimentColor = (sentiment) => {
+        const s = sentiment.toLowerCase();
+        if (s.includes('optimis')) return 'tag-green'; if (s.includes('pesimis')) return 'tag-red'; return 'tag-yellow';
+    };
+    const getVolatilityColor = (volatility) => {
+        const v = volatility.toLowerCase();
+        if (v.includes('tinggi')) return 'tag-red'; if (v.includes('rendah')) return 'tag-green'; return 'tag-yellow';
+    };
+    const getConfluenceScore = (rsi) => {
+        let bullishScore = 5, bearishScore = 5;
+        if (rsi > 50) bullishScore += Math.min(4, Math.floor((rsi - 50) / 5));
+        if (rsi < 50) bearishScore += Math.min(4, Math.floor((50 - rsi) / 5));
+        if (rsi > 70) bearishScore += 2; if (rsi < 30) bullishScore += 2;
+        const total = bullishScore + bearishScore;
+        bullishScore = Math.round((bullishScore / total) * 10); bearishScore = 10 - bullishScore;
+        let verdict = "STANDBY";
+        if (bullishScore >= 7) verdict = "SINYAL BELI KUAT";
+        else if (bullishScore >= 6) verdict = "SIAGA BELI";
+        else if (bearishScore >= 7) verdict = "SINYAL JUAL KUAT";
+        else if (bearishScore >= 6) verdict = "SIAGA JUAL";
+        return { verdict, score: `Konfluensi Bullish (${bullishScore} vs ${bearishScore})` };
+    };
+    function displayConfluenceWidget() {
+        if (!analysisCache.confluence) return;
+        const timeframe = confluenceTimeframeSelect.value;
+        const data = analysisCache.confluence[timeframe];
+        const verdictEl = document.getElementById('confluence-verdict');
+        const verdictTextEl = verdictEl.querySelector('p:first-child');
+        const scoreTextEl = verdictEl.querySelector('p:last-child');
+        verdictTextEl.textContent = data.verdict; scoreTextEl.textContent = data.score;
+        verdictEl.className = 'text-center p-4 rounded-lg'; verdictTextEl.className = 'text-2xl font-bold';
+        if (data.verdict.includes('BELI')) { verdictEl.classList.add('bg-green-100', 'dark:bg-green-900/50'); verdictTextEl.classList.add('text-green-800', 'dark:text-green-300'); } 
+        else if (data.verdict.includes('JUAL')) { verdictEl.classList.add('bg-red-100', 'dark:bg-red-900/50'); verdictTextEl.classList.add('text-red-800', 'dark:text-red-300'); } 
+        else if (data.verdict.includes('SIAGA')) { verdictEl.classList.add('bg-yellow-100', 'dark:bg-yellow-900/50'); verdictTextEl.classList.add('text-yellow-800', 'dark:text-yellow-300'); } 
+        else { verdictEl.classList.add('bg-gray-100', 'dark:bg-gray-700/50'); verdictTextEl.classList.add('text-gray-800', 'dark:text-gray-300'); }
+    }
+    function renderMainChart(chartData, keyLevels) {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        if (mainChartInstance) { mainChartInstance.destroy(); }
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const keyLevelsPlugin = {
+            id: 'keyLevelsPlugin',
+            afterDraw: (chart) => {
+                const yAxis = chart.scales.y; const ctx = chart.ctx;
+                const drawLine = (value, color, text, dash = []) => {
+                    if (isNaN(value)) return; const y = yAxis.getPixelForValue(value);
+                    ctx.save(); ctx.beginPath(); ctx.moveTo(chart.chartArea.left, y);
+                    ctx.lineTo(chart.chartArea.right, y); ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = color; ctx.setLineDash(dash); ctx.stroke();
+                    ctx.fillStyle = color; ctx.font = '600 10px Inter'; ctx.textAlign = 'left';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(`${text}: ${value.toLocaleString()}`, chart.chartArea.left + 5, y - 2);
+                    ctx.restore();
+                };
+                const colors = isDarkMode ? 
+                    { poc: '#8ab4f8', vah: '#c58af9', val: '#c58af9', bullish: '#69b37f', bearish: '#d17474' } :
+                    { poc: 'rgba(67, 56, 202, 0.8)', vah: 'rgba(217, 70, 239, 0.7)', val: 'rgba(217, 70, 239, 0.7)', bullish: 'rgba(5, 150, 105, 0.8)', bearish: 'rgba(220, 38, 38, 0.8)' };
+                drawLine(keyLevels.poc, colors.poc, `POC`); drawLine(keyLevels.vah, colors.vah, `VAH`, [5, 5]);
+                drawLine(keyLevels.val, colors.val, `VAL`, [5, 5]); drawLine(keyLevels.poi_bullish, colors.bullish, `POI Bullish`, [3, 3]);
+                drawLine(keyLevels.poi_bearish, colors.bearish, `POI Bearish`, [3, 3]);
+            }
+        };
+        mainChartInstance = new Chart(ctx, {
+            type: 'line', data: { labels: chartData.labels, datasets: [{
+                    label: 'Harga', data: chartData.prices, borderColor: '#4A7C59',
+                    backgroundColor: 'rgba(74, 124, 89, 0.1)', fill: true, tension: 0.1,
+                    pointRadius: 0, pointHoverRadius: 5, borderWidth: 2,
+                }] },
+            options: {
+                responsive: true, maintainAspectRatio: false, animation: { duration: 1000, easing: 'easeInOutQuad' },
+                scales: {
+                    x: { type: 'time', time: { unit: 'day', tooltipFormat: 'MMM dd, yyyy' }, grid: { display: false },
+                        ticks: { color: isDarkMode ? '#9E9E9E' : '#5F6368', maxRotation: 0, autoSkip: true, maxTicksLimit: 7 } },
+                    y: { grid: { color: isDarkMode ? '#333' : '#EAE5E0' },
+                        ticks: { color: isDarkMode ? '#9E9E9E' : '#5F6368', callback: value => '$' + value.toLocaleString() } }
+                },
+                plugins: { legend: { display: false },
+                    tooltip: { enabled: true, mode: 'index', intersect: false,
+                        callbacks: { label: context => `Harga: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y)}` } },
+                    keyLevelsPlugin },
+                interaction: { mode: 'index', intersect: false }
+            },
+            plugins: [keyLevelsPlugin]
+        });
+    }
 });
 </script>
 </body>
