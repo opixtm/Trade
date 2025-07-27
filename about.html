@@ -501,8 +501,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const change = parseFloat(tickerData.priceChangePercent);
             
             analysisCache = {
-                currentState: {
-                    price: price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            currentState: {
+                // PERBAIKAN: Format harga secara dinamis
+                price: price < 0.01 
+                    ? price.toLocaleString('en-US', { maximumFractionDigits: 8 }) 
+                    : price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                     change: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
                     changeColor: change >= 0 ? 'text-green-600' : 'text-red-600',
                     sentiment: aiAnalysis.sentiment.label,
