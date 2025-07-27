@@ -314,29 +314,39 @@
                     <div id="kalkulator" class="tab-pane hidden">
                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div class="bg-gray-900 p-4 rounded-lg space-y-4">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div><label class="font-regular text-gray-300">Total Modal ($)</label><input type="number" id="calc-modal" class="kalkulator-input mt-1" value="250"></div>
-                                    <div><label class="font-regular text-gray-300">Risiko/Trade (%)</label><input type="number" id="calc-risiko-pct" class="kalkulator-input mt-1" value="1.5" step="0.1"></div>
-                                </div>
-                                <div>
-                                    <label class="font-regular text-gray-300">Pilih Posisi</label>
-                                    <div class="grid grid-cols-2 gap-2 mt-1">
-                                        <button id="btn-posisi-long" class="posisi-btn long p-2 rounded-lg bg-gray-700">LONG</button>
-                                        <button id="btn-posisi-short" class="posisi-btn short p-2 rounded-lg bg-gray-700">SHORT</button>
-                                    </div>
-                                </div>
-                                <div><label class="font-regular text-gray-300">Harga Acuan (dari Zona Entry)</label><input type="number" id="calc-entry" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
-                                <div><label class="font-regular text-gray-300">Leverage Pilihanmu (x)</label><input type="number" id="calc-leverage" class="kalkulator-input mt-1" value="10"></div>
-                                <div>
-                                    <label class="font-regular text-gray-300">Biaya Posisi Manual ($) <span class="text-gray-500 text-xs italic">- Opsional</span></label>
-                                    <input type="number" id="calc-margin-manual" class="kalkulator-input mt-1" placeholder="Ganti perhitungan otomatis">
-                                </div>
-                                <div><label class="font-regular text-gray-300">Stop Loss</label><input type="number" id="calc-sl" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
+                        <div class="bg-gray-900 p-4 rounded-lg space-y-4">
+                        <div class="flex gap-4 items-start">
+                        <div class="flex-grow">
+                            <label class="font-regular text-gray-300 block">Total Modal</label>
+                            <input type="number" id="calc-modal" class="kalkulator-input mt-1" value="5000000">
+                        </div>
+
+                        <div>
+                            <label class="font-regular text-gray-300 block">% Modal</label>
+                            <input type="number" id="calc-margin-manual" class="kalkulator-input mt-1 w-24" value="100" min="10" max="100" step="1">
+                        </div>
+
+                        <div>
+                            <label class="font-regular text-gray-300 block">% Risiko</label>
+                            <input type="number" id="calc-risiko-pct" class="kalkulator-input mt-1 w-24" value="1.5" min="0" max="10" step="0.1">
+                        </div>
+                    </div>
+                        <div>
+                            
+                            <div class="grid grid-cols-2 gap-2 mt-1">
+                                <button id="btn-posisi-long" class="posisi-btn long p-2 rounded-lg bg-gray-700">BUY</button>
+                                <button id="btn-posisi-short" class="posisi-btn short p-2 rounded-lg bg-gray-700">SELL</button>
+                            </div>
+                        </div>
+                        <div><label class="font-regular text-gray-300">Buy/Sell Price</label><input type="number" id="calc-entry" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
+                        
+                        <div><label class="font-regular text-gray-300">Stop Loss</label><input type="number" id="calc-sl" step="any" class="kalkulator-input mt-1" placeholder="0.00"></div>
+                        </div>
                                 <div><label class="font-regular text-gray-300">Manajemen Take Profit</label>
                                     <div class="space-y-2 mt-1">
-                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp1" step="any" class="kalkulator-input" placeholder="Harga TP 1"><input type="number" id="calc-tp1-pct" class="kalkulator-input w-24" value="50" placeholder="%"></div>
-                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp2" step="any" class="kalkulator-input" placeholder="Harga TP 2"><input type="number" id="calc-tp2-pct" class="kalkulator-input w-24" value="30" placeholder="%"></div>
-                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp3" step="any" class="kalkulator-input" placeholder="Harga TP 3"><input type="number" id="calc-tp3-pct" class="kalkulator-input w-24" value="20" placeholder="%"></div>
+                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp1" step="any" class="kalkulator-input" placeholder="Harga TP 1"><input type="number" id="calc-tp1-pct" class="kalkulator-input w-24" value="100" placeholder="%"></div>
+                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp2" step="any" class="kalkulator-input" placeholder="Harga TP 2"><input type="number" id="calc-tp2-pct" class="kalkulator-input w-24" value="0" placeholder="%"></div>
+                                        <div class="flex items-center gap-2"><input type="number" id="calc-tp3" step="any" class="kalkulator-input" placeholder="Harga TP 3"><input type="number" id="calc-tp3-pct" class="kalkulator-input w-24" value="0" placeholder="%"></div>
                                     </div>
                                 </div>
                                 <button id="hitung-rencana-btn" class="w-full bg-blue-600 text-white font-regular py-3 px-4 rounded-lg hover:bg-blue-700 transition">HITUNG RENCANA</button>
@@ -344,15 +354,15 @@
                             <div class="bg-gray-900 p-4 rounded-lg">
                                 <h3 class="font-regular text-xl mb-4 text-white border-b border-gray-700 pb-2">Rencana Trading</h3>
                                 <div id="kalkulator-hasil" class="space-y-3 hidden">
-                                    <div class="flex justify-between items-baseline"><span id="out-risiko-label" class="font-regular text-gray-400">Risiko per Trade (1.5%):</span><span id="out-risiko" class="font-regular text-lg text-red-400">$0.00</span></div>
-                                    <div class="flex justify-between items-baseline"><span class="font-regular text-gray-400">Ukuran Posisi (USD):</span><span id="out-posisi" class="font-regular text-lg text-white">$0.00</span></div>
-                                    <div class="bg-blue-900/50 p-3 rounded-lg text-center"><p class="text-sm text-blue-300">Biaya Posisi (Margin)</p><p id="out-margin" class="font-regular text-2xl text-white">$0.00</p></div>
-                                    <div class="flex justify-between items-baseline"><span class="font-regular text-gray-400">Rekomendasi Leverage Aman:</span><span id="out-leverage-aman" class="font-regular text-lg text-yellow-400">~1x</span></div>
+                                    <div class="flex justify-between items-baseline"><span id="out-risiko-label" class="font-regular text-gray-400">Risiko per Trade (1.5%):</span><span id="out-risiko" class="font-regular text-lg text-red-400">Rp 0.00</span></div>
+                                    <div class="flex justify-between items-baseline"><span class="font-regular text-gray-400">Ukuran Modal (IDR):</span><span id="out-posisi" class="font-regular text-lg text-white">Rp 0.00</span></div>
+                                    <div class="bg-blue-900/50 p-3 rounded-lg text-center"><p class="text-sm text-blue-300">Modal Terpakai</p><p id="out-margin" class="font-regular text-2xl text-white">Rp 0.00</p></div>
+                                    <div class="flex justify-between items-baseline" style="display: none;"><span class="font-regular text-gray-400">Rekomendasi Leverage Aman:</span><span id="out-leverage-aman" class="font-regular text-lg text-yellow-400">~1x</span></div>
                                     <div><h4 class="font-regular text-lg text-white mt-4">Potensi Profit:</h4>
                                         <div class="mt-2 space-y-2">
-                                            <div class="flex justify-between"><span id="out-tp1-label">TP 1 (RR 1:0.0):</span><span id="out-tp1-profit" class="font-regular text-green-400">~$0.00</span></div>
-                                            <div class="flex justify-between"><span id="out-tp2-label">TP 2 (RR 1:0.0):</span><span id="out-tp2-profit" class="font-regular text-green-400">~$0.00</span></div>
-                                            <div class="flex justify-between"><span id="out-tp3-label">TP 3 (RR 1:0.0):</span><span id="out-tp3-profit" class="font-regular text-green-400">~$0.00</span></div>
+                                            <div class="flex justify-between"><span id="out-tp1-label">TP 1 (RR 1:0.0):</span><span id="out-tp1-profit" class="font-regular text-green-400">~Rp 0.00</span></div>
+                                            <div class="flex justify-between"><span id="out-tp2-label">TP 2 (RR 1:0.0):</span><span id="out-tp2-profit" class="font-regular text-green-400">~Rp 0.00</span></div>
+                                            <div class="flex justify-between"><span id="out-tp3-label">TP 3 (RR 1:0.0):</span><span id="out-tp3-profit" class="font-regular text-green-400">~Rp 0.00</span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1407,60 +1417,81 @@ const calculateRSI = (closes, period = 14) => {
     }
     
     function hitungRencana() {
-        const [totalModal, risikoPct, entryPrice, slPrice, leverage, manualMargin] = 
-            [calcModal, calcRisikoPct, calcEntry, calcSl, calcLeverage, calcMarginManual].map(el => parseFloat(el.value));
+    // Ambil nilai dari input
+    const risikoPct = parseFloat(document.getElementById('calc-risiko-pct').value) || 0;
+    const entryPrice = parseFloat(document.getElementById('calc-entry').value) || 0;
+    const slPrice = parseFloat(document.getElementById('calc-sl').value) || 0;
+    const manualMargin = parseFloat(document.getElementById('calc-margin-manual').value) || 0;
+    const totalModal = parseFloat(document.getElementById('calc-modal').value.replace(/\./g, '')) || 0;
 
-        if ([totalModal, entryPrice, slPrice, leverage].some(isNaN)) {
-             showCustomMessage("Pastikan Modal, Harga Entry, Stop Loss, dan Leverage terisi.", "error");
-             return;
-        }
-        if (isNaN(risikoPct) && isNaN(manualMargin)) {
-            showCustomMessage("Harap isi 'Risiko/Trade (%)' atau 'Biaya Posisi Manual ($)'.", "error");
-            return;
-        }
+    // Ambil nilai persentase dari input TP
+    const [tp1Pct, tp2Pct, tp3Pct] =
+    [document.getElementById('calc-tp1-pct'), document.getElementById('calc-tp2-pct'), document.getElementById('calc-tp3-pct')].map(el => parseFloat(el.value) || 0);
 
-        kalkulatorPlaceholder.classList.add('hidden');
-        kalkulatorHasil.classList.remove('hidden');
-        
-        let risikoUSD, ukuranPosisiUSD, marginUSD;
-        const jarakSL = Math.abs(entryPrice - slPrice);
-        if (jarakSL === 0) {
-            showCustomMessage("Jarak Stop Loss tidak boleh nol.", "error");
-            return;
-        }
-
-        if (manualMargin > 0) {
-            marginUSD = manualMargin;
-            ukuranPosisiUSD = marginUSD * leverage;
-            risikoUSD = ukuranPosisiUSD * (jarakSL / entryPrice);
-            const effectiveRisikoPct = (risikoUSD / totalModal) * 100;
-            outRisikoLabel.textContent = `Risiko per Trade (${effectiveRisikoPct.toFixed(2)}%):`;
-            calcRisikoPct.value = effectiveRisikoPct.toFixed(2);
-        } else {
-            risikoUSD = totalModal * (risikoPct / 100);
-            ukuranPosisiUSD = risikoUSD / (jarakSL / entryPrice);
-            marginUSD = ukuranPosisiUSD / leverage;
-            outRisikoLabel.textContent = `Risiko per Trade (${risikoPct}%):`;
-            calcMarginManual.value = '';
-        }
-
-        outRisiko.textContent = `$${risikoUSD.toFixed(2)}`;
-        outPosisi.textContent = `$${ukuranPosisiUSD.toFixed(2)}`;
-        outMargin.textContent = `$${marginUSD.toFixed(2)}`;
-        outLeverageAman.textContent = `~${(ukuranPosisiUSD / totalModal).toFixed(1)}x`;
-
-        [{el: calcTp1, label: outTp1Label, profit: outTp1Profit}, {el: calcTp2, label: outTp2Label, profit: outTp2Profit}, {el: calcTp3, label: outTp3Label, profit: outTp3Profit}].forEach((tp, i) => {
-            const tpPrice = parseFloat(tp.el.value);
-            if (!isNaN(tpPrice) && jarakSL > 0) {
-                const rr = Math.abs(tpPrice - entryPrice) / jarakSL;
-                tp.label.textContent = `TP ${i+1} (RR 1:${rr.toFixed(1)}):`;
-                tp.profit.textContent = `~$${(rr * risikoUSD).toFixed(2)}`;
-            } else {
-                 tp.label.textContent = `TP ${i+1}:`;
-                 tp.profit.textContent = `~$0.00`;
-            }
-        });
+    // Validasi input
+    if ([totalModal, entryPrice, slPrice].some(isNaN) || totalModal === 0) {
+        showCustomMessage("Pastikan Modal, Harga Entry, dan Stop Loss terisi dengan benar.", "error");
+        return;
     }
+    if (isNaN(risikoPct) && isNaN(manualMargin)) {
+        showCustomMessage("Harap isi 'Risiko/Trade (%)' atau 'Biaya Posisi (% Modal)'.", "error");
+        return;
+    }
+
+    // Tampilkan kontainer hasil
+    kalkulatorPlaceholder.classList.add('hidden');
+    kalkulatorHasil.classList.remove('hidden');
+
+    let risikoUSD, ukuranPosisiUSD, marginUSD;
+    const jarakSL = Math.abs(entryPrice - slPrice);
+    if (jarakSL === 0) {
+        showCustomMessage("Jarak Stop Loss tidak boleh nol.", "error");
+        return;
+    }
+
+    if (manualMargin > 0) {
+        ukuranPosisiUSD = (manualMargin / 100) * totalModal;
+        marginUSD = ukuranPosisiUSD;
+        risikoUSD = ukuranPosisiUSD * (jarakSL / entryPrice);
+        const effectiveRisikoPct = (risikoUSD / totalModal) * 100;
+        outRisikoLabel.textContent = `Risiko per Trade (${effectiveRisikoPct.toFixed(2)}%):`;
+        calcRisikoPct.value = effectiveRisikoPct.toFixed(2);
+    } else {
+        risikoUSD = totalModal * (risikoPct / 100);
+        ukuranPosisiUSD = risikoUSD / (jarakSL / entryPrice);
+        marginUSD = ukuranPosisiUSD;
+        outRisikoLabel.textContent = `Risiko per Trade (${risikoPct}%):`;
+        calcMarginManual.value = '';
+    }
+
+    // --- PERUBAHAN SIMBOL MATA UANG DI SINI ---
+    outRisiko.textContent = `Rp ${risikoUSD.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    outPosisi.textContent = `Rp ${ukuranPosisiUSD.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    outMargin.textContent = `Rp ${marginUSD.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+    // Logika Take Profit Parsial
+    const tpInputs = [
+        { el: calcTp1, label: outTp1Label, profit: outTp1Profit, pct: tp1Pct },
+        { el: calcTp2, label: outTp2Label, profit: outTp2Profit, pct: tp2Pct },
+        { el: calcTp3, label: outTp3Label, profit: outTp3Profit, pct: tp3Pct }
+    ];
+
+    tpInputs.forEach((tp, i) => {
+        const tpPrice = parseFloat(tp.el.value);
+        if (!isNaN(tpPrice) && jarakSL > 0) {
+            const rr = Math.abs(tpPrice - entryPrice) / jarakSL;
+            const fullProfitAtThisLevel = rr * risikoUSD;
+            const partialProfit = fullProfitAtThisLevel * (tp.pct / 100);
+
+            tp.label.textContent = `TP ${i + 1} (${tp.pct}%) (RR 1:${rr.toFixed(1)}):`;
+            // --- PERUBAHAN SIMBOL MATA UANG DI SINI ---
+            tp.profit.textContent = `~Rp ${partialProfit.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        } else {
+            tp.label.textContent = `TP ${i + 1} (${tp.pct}%):`;
+            tp.profit.textContent = `~Rp 0.00`;
+        }
+    });
+}
 
     async function optimizeTradePlan() {
         if (!latestAnalysisData) { showCustomMessage("Lakukan analisa chart terlebih dahulu.", "error"); return; }
