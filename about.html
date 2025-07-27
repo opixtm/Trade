@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiKey = apiKeyInput.value.trim();
         if (!apiKey) throw new Error("API Key Google AI belum dimasukkan.");
 
-        const model = 'gemini-1.5-flash';
+        const model = 'gemini-2.5-flash';
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const payload = {
             contents: [{ role: "user", parts }],
@@ -442,106 +442,106 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function runFullAnalysis() {
-        const asset = assetInput.value.trim().toUpperCase();
-        if (!asset) {
-            showError('Silakan masukkan simbol aset.');
-            return;
-        }
-        if (!apiKeyInput.value.trim()) {
-            showError('Silakan masukkan API Key Google AI.');
-            return;
-        }
-
-        hideError();
-        showLoader(true, 'Memulai Analisa...');
-
-        try {
-            // Fetch all data required for a full analysis
-            showLoader(true, `Mengambil data pasar untuk ${asset}...`);
-            const [tickerData, klines1d, klines4h, klines1h] = await Promise.all([
-                fetchBinanceAPIData('ticker/24hr', { symbol: asset }),
-                fetchBinanceAPIData('klines', { symbol: asset, interval: '1d', limit: 200 }),
-                fetchBinanceAPIData('klines', { symbol: asset, interval: '4h', limit: 200 }),
-                fetchBinanceAPIData('klines', { symbol: asset, interval: '1h', limit: 200 })
-            ]);
-            
-            // Local calculations
-            showLoader(true, 'Menghitung indikator teknikal...');
-            const closes1d = klines1d.map(k => parseFloat(k[4]));
-            const rsi1d = calculateRSI(closes1d);
-            const closes4h = klines4h.map(k => parseFloat(k[4]));
-            const rsi4h = calculateRSI(closes4h);
-            const closes1h = klines1h.map(k => parseFloat(k[4]));
-            const rsi1h = calculateRSI(closes1h);
-
-            const calculateSimpleVPVR = (klines) => {
-                const volumeProfile = {};
-                klines.forEach(k => {
-                    const price = parseFloat(k[4]); const volume = parseFloat(k[5]);
-                    const priceLevel = Math.round(price / 100) * 100;
-                    volumeProfile[priceLevel] = (volumeProfile[priceLevel] || 0) + volume;
-                });
-                let poc = 0, maxVolume = 0;
-                Object.entries(volumeProfile).forEach(([price, volume]) => {
-                    if (volume > maxVolume) { maxVolume = volume; poc = parseFloat(price); }
-                });
-                return { poc, vah: poc * 1.05, val: poc * 0.95 };
-            };
-            const vpvrLevels = calculateSimpleVPVR(klines1d);
-
-            // AI analysis
-            showLoader(true, 'Meminta analisa dari AI...');
-            const prompt = `Anda adalah analis trading profesional untuk ${asset}. Diberikan data: Harga Terkini: ${tickerData.lastPrice}, Perubahan 24j: ${tickerData.priceChangePercent}%, RSI (1D): ${rsi1d.toFixed(2)}, Point of Control (POC): ${vpvrLevels.poc}. Tugas Anda adalah memberikan output HANYA dalam format JSON dengan skema berikut: {"sentiment": {"label": "string (Netral/Optimis/Pesimis)", "volatility": "string (Rendah/Sedang/Tinggi)"},"smc": {"narrative": "string", "poi_bullish": "string", "poi_bearish": "string", "conclusion": "string"},"projections": [{"period": "string", "target": "string", "reason": "string"}],"verdicts": {"buyerAction": "string", "buyerReason": "string", "holderAction": "string", "holderReason": "string"}}`;
-            const aiAnalysis = await callGemini([{ text: prompt }]);
-
-            // Combine data and update cache
-            showLoader(true, 'Menyusun dasbor...');
-            const price = parseFloat(tickerData.lastPrice);
-            const change = parseFloat(tickerData.priceChangePercent);
-            
-            analysisCache = {
-            currentState: {
-                // PERBAIKAN: Format harga secara dinamis
-                price: price < 0.01 
-                    ? price.toLocaleString('en-US', { maximumFractionDigits: 8 }) 
-                    : price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    change: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
-                    changeColor: change >= 0 ? 'text-green-600' : 'text-red-600',
-                    sentiment: aiAnalysis.sentiment.label,
-                    sentimentColor: getSentimentColor(aiAnalysis.sentiment.label),
-                    volatility: aiAnalysis.sentiment.volatility,
-                    volatilityColor: getVolatilityColor(aiAnalysis.sentiment.volatility),
-                },
-                // Default chart view is based on the selected confluence timeframe
-                chartData: {
-                    labels: klines1h.map(k => new Date(k[0])),
-                    prices: klines1h.map(k => parseFloat(k[4])),
-                },
-                keyLevels: {
-                    poc: vpvrLevels.poc, vah: vpvrLevels.vah, val: vpvrLevels.val,
-                    poi_bullish: parseFloat(aiAnalysis.smc.poi_bullish.match(/[\d,.]+/)?.[0]?.replace(/,/g, '')) || vpvrLevels.val,
-                    poi_bearish: parseFloat(aiAnalysis.smc.poi_bearish.match(/[\d,.]+/)?.[0]?.replace(/,/g, '')) || vpvrLevels.vah,
-                },
-                smc: aiAnalysis.smc,
-                projections: aiAnalysis.projections,
-                verdicts: aiAnalysis.verdicts,
-                confluence: {
-                    "1h": getConfluenceScore(rsi1h),
-                    "4h": getConfluenceScore(rsi4h),
-                    "1d": getConfluenceScore(rsi1d),
-                }
-            };
-            
-            updateDashboardUI(analysisCache);
-
-        } catch (error) {
-            console.error("Analysis failed:", error);
-            showError(error.message);
-        } finally {
-            showLoader(false);
-        }
+    // GANTI FUNGSI LAMA DI about.html DENGAN YANG BARU INI
+async function runFullAnalysis() {
+    const asset = assetInput.value.trim().toUpperCase();
+    if (!asset) {
+        showError('Silakan masukkan simbol aset.');
+        return;
     }
+    if (!apiKeyInput.value.trim()) {
+        showError('Silakan masukkan API Key Google AI.');
+        return;
+    }
+
+    hideError();
+    showLoader(true, 'Memulai Analisa...');
+
+    try {
+        showLoader(true, `Mengambil data pasar untuk ${asset}...`);
+        const [tickerData, klines1d, klines4h, klines1h] = await Promise.all([
+            fetchBinanceAPIData('ticker/24hr', { symbol: asset }),
+            fetchBinanceAPIData('klines', { symbol: asset, interval: '1d', limit: 200 }),
+            fetchBinanceAPIData('klines', { symbol: asset, interval: '4h', limit: 200 }),
+            fetchBinanceAPIData('klines', { symbol: asset, interval: '1h', limit: 200 })
+        ]);
+
+        showLoader(true, 'Menghitung indikator teknikal...');
+        const closes1d = klines1d.map(k => parseFloat(k[4]));
+        const rsi1d = calculateRSI(closes1d);
+        const closes4h = klines4h.map(k => parseFloat(k[4]));
+        const rsi4h = calculateRSI(closes4h);
+        const closes1h = klines1h.map(k => parseFloat(k[4]));
+        const rsi1h = calculateRSI(closes1h);
+
+        const calculateSimpleVPVR = (klines) => {
+            const volumeProfile = {};
+            klines.forEach(k => {
+                const price = parseFloat(k[4]); const volume = parseFloat(k[5]);
+                const priceLevel = Math.round(price / 100) * 100;
+                volumeProfile[priceLevel] = (volumeProfile[priceLevel] || 0) + volume;
+            });
+            let poc = 0, maxVolume = 0;
+            Object.entries(volumeProfile).forEach(([price, volume]) => {
+                if (volume > maxVolume) { maxVolume = volume; poc = parseFloat(price); }
+            });
+            return { poc, vah: poc * 1.05, val: poc * 0.95 };
+        };
+        const vpvrLevels = calculateSimpleVPVR(klines1d);
+
+        showLoader(true, 'Meminta analisa dari AI...');
+        // --- INI BAGIAN PROMPT YANG DIPERBAIKI ---
+        const prompt = `Anda adalah analis trading profesional untuk ${asset}. Diberikan data: Harga Terkini: ${tickerData.lastPrice}, Perubahan 24j: ${tickerData.priceChangePercent}%, RSI (1D): ${rsi1d.toFixed(2)}, Point of Control (POC): ${vpvrLevels.poc}. Tugas Anda adalah memberikan output HANYA dalam format JSON dengan skema berikut. Fokus pada konfluensi data yang ada, jangan menebak struktur visual.
+
+        {
+            "sentiment": {"label": "string (Netral/Optimis/Pesimis)", "volatility": "string (Rendah/Sedang/Tinggi)"},
+            "key_levels": {
+                "narrative": "string (Jelaskan narasi pasar berdasarkan tren dan sentimen)", 
+                "support_zone": "string (Identifikasi zona support kunci berdasarkan konfluensi data)", 
+                "resistance_zone": "string (Identifikasi zona resistance kunci berdasarkan konfluensi data)", 
+                "conclusion": "string (Simpulkan bias jangka pendek berdasarkan level-level ini)"
+            },
+            "projections": [{"period": "string", "target": "string", "reason": "string"}],
+            "verdicts": {"buyerAction": "string", "buyerReason": "string", "holderAction": "string", "holderReason": "string"}
+        }`;
+
+        const aiAnalysis = await callGemini([{ text: prompt }]);
+
+        showLoader(true, 'Menyusun dasbor...');
+        const price = parseFloat(tickerData.lastPrice);
+        const change = parseFloat(tickerData.priceChangePercent);
+
+        analysisCache = {
+            currentState: {
+                price: price < 0.01 ? price.toLocaleString('en-US', { maximumFractionDigits: 8 }) : price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                change: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
+                changeColor: change >= 0 ? 'text-green-600' : 'text-red-600',
+                sentiment: aiAnalysis.sentiment.label,
+                sentimentColor: getSentimentColor(aiAnalysis.sentiment.label),
+                volatility: aiAnalysis.sentiment.volatility,
+                volatilityColor: getVolatilityColor(aiAnalysis.sentiment.volatility),
+            },
+            chartData: { labels: klines1h.map(k => new Date(k[0])), prices: klines1h.map(k => parseFloat(k[4])) },
+            keyLevels: {
+                poc: vpvrLevels.poc, vah: vpvrLevels.vah, val: vpvrLevels.val,
+                poi_bullish: parseFloat(aiAnalysis.key_levels.support_zone.match(/[\d,.]+/)?.[0]?.replace(/,/g, '')) || vpvrLevels.val,
+                poi_bearish: parseFloat(aiAnalysis.key_levels.resistance_zone.match(/[\d,.]+/)?.[0]?.replace(/,/g, '')) || vpvrLevels.vah,
+            },
+            smc: aiAnalysis.key_levels, // Ganti smc dengan key_levels
+            projections: aiAnalysis.projections,
+            verdicts: aiAnalysis.verdicts,
+            confluence: { "1h": getConfluenceScore(rsi1h), "4h": getConfluenceScore(rsi4h), "1d": getConfluenceScore(rsi1d) }
+        };
+
+        updateDashboardUI(analysisCache);
+
+    } catch (error) {
+        console.error("Analysis failed:", error);
+        showError(error.message);
+    } finally {
+        showLoader(false);
+    }
+}
 
     // --- UI POPULATION FUNCTIONS (Fungsi-fungsi ini tetap sama) ---
     function updateDashboardUI(data) {
@@ -569,10 +569,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const volatilityEl = document.getElementById('market-volatility');
         volatilityEl.textContent = data.volatility; volatilityEl.className = `tag ${data.volatilityColor}`;
     }
+    // GANTI FUNGSI LAMA DI about.html DENGAN YANG BARU INI
     function populateSMC(data) {
         document.getElementById('smc-narrative').textContent = data.narrative;
-        document.getElementById('smc-poi-bullish').textContent = data.poi_bullish;
-        document.getElementById('smc-poi-bearish').textContent = data.poi_bearish;
+        document.getElementById('smc-poi-bullish').textContent = data.support_zone; // Diubah dari poi_bullish
+        document.getElementById('smc-poi-bearish').textContent = data.resistance_zone; // Diubah dari poi_bearish
         document.getElementById('smc-conclusion').textContent = data.conclusion;
     }
     function populateProjections(data) {
