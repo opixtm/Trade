@@ -2379,95 +2379,111 @@ function calculateIchimokuCloud(klines, tenkanP = 9, kijunP = 26, senkouP = 52) 
             return swing.C.price - (impulseMove * 1.618);
         }
     }
-    /**
-     * Menghitung dan menampilkan setup scalping berdasarkan ATR dan pivot.
-     */
-    /**
- * Menghitung dan menampilkan setup scalping berdasarkan ATR dan pivot.
- * VERSI FINAL: Logika TP2 & TP3 diperbaiki untuk memastikan urutan yang logis dan tidak memaksakan informasi.
- */
-/**
- * Menghitung dan menampilkan setup scalping dengan metodologi profesional.
- * Menggabungkan ATR, R:R, Pivot, dan Fibonacci.
- */
-function calculateAndDisplayScalpingSetup() {
-    const { klines, calculatedData } = analysisCache;
-    if (!klines || klines.length < 50 || !calculatedData) { // Butuh lebih banyak data untuk swing
-        document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup untuk setup scalping.</p>';
-        return;
-    }
-
-    const container = document.getElementById('scalping-setup-content');
-    document.getElementById('scalping-timeframe-display').textContent = timeframeSelect.value;
-    const closes = klines.map(k => parseFloat(k[4]));
-    const lastPrice = closes[closes.length - 1];
     
-    // 1. Tentukan Bias Sesaat (EMA 9 vs EMA 21)
-    const ema9 = calculateEMA(closes, 9).pop();
-    const ema21 = calculateEMA(closes, 21).pop();
-    const bias = ema9 > ema21 ? 'LONG' : 'SHORT';
-
-    // 2. Kalkulasi Stop Loss & TP 1 berdasarkan ATR & R:R
-    const atrValue = calculatedData.atr.value;
-    if (atrValue === 0) {
-        container.innerHTML = '<p class="text-sm text-gray-500">Volatilitas terlalu rendah untuk menghitung setup.</p>';
-        return;
-    }
-    const slMultiplier = 1.5;
-    const tp1Multiplier = 1.5; // R:R 1:1.5 untuk TP1
-    const stopLoss = bias === 'LONG' ? lastPrice - (atrValue * slMultiplier) : lastPrice + (atrValue * slMultiplier);
-    const takeProfit1 = bias === 'LONG' ? lastPrice + (atrValue * tp1Multiplier) : lastPrice - (atrValue * tp1Multiplier);
-
-    // 3. Kalkulasi TP2 & TP3 dengan logika profesional
-    const pivots = findPivots(klines, 5);
-    const lastSwing = findLastSignificantSwing(klines);
-    let takeProfit2 = 'N/A', takeProfit3 = 'N/A';
-
-    if (bias === 'LONG') {
-        const atrTarget2 = lastPrice + (atrValue * 3.0); // R:R 1:2
-        const pivotTarget = pivots.filter(p => p.type === 'high' && p.price > takeProfit1).map(p => p.price).sort((a, b) => a - b)[0];
-        
-        // TP2 adalah target yang lebih konservatif antara pivot terdekat atau R:R 1:2
-        takeProfit2 = pivotTarget ? Math.min(atrTarget2, pivotTarget) : atrTarget2;
-
-        // TP3 adalah target Fibonacci Extension
-        const fibTarget = calculateFibonacciExtension(lastSwing);
-        if (fibTarget && fibTarget > takeProfit2) {
-            takeProfit3 = fibTarget;
+    
+    function calculateAndDisplayScalpingSetup() {
+        const { klines, calculatedData } = analysisCache;
+        if (!klines || klines.length < 50 || !calculatedData) {
+            document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup untuk setup scalping.</p>';
+            return;
         }
 
-    } else if (bias === 'SHORT') {
-        const atrTarget2 = lastPrice - (atrValue * 3.0); // R:R 1:2
-        const pivotTarget = pivots.filter(p => p.type === 'low' && p.price < takeProfit1).map(p => p.price).sort((a, b) => b - a)[0];
-
-        // TP2 adalah target yang lebih konservatif antara pivot terdekat atau R:R 1:2
-        takeProfit2 = pivotTarget ? Math.max(atrTarget2, pivotTarget) : atrTarget2;
+        const container = document.getElementById('scalping-setup-content');
+        document.getElementById('scalping-timeframe-display').textContent = timeframeSelect.value;
+        const closes = klines.map(k => parseFloat(k[4]));
+        const lastPrice = closes[closes.length - 1];
         
-        // TP3 adalah target Fibonacci Extension
-        const fibTarget = calculateFibonacciExtension(lastSwing);
-        if (fibTarget && fibTarget < takeProfit2) {
-            takeProfit3 = fibTarget;
-        }
-    }
-    
-    // --- Tampilan UI ---
-    const biasClass = bias === 'LONG' ? 'positive' : 'negative';
-    const tp2Display = takeProfit2 !== 'N/A' ? formatPrice(takeProfit2) : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
-    const tp3Display = takeProfit3 !== 'N/A' ? formatPrice(takeProfit3) : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
+        // 1. Tentukan Bias Sesaat (EMA 9 vs EMA 21)
+        const ema9 = calculateEMA(closes, 9).pop();
+        const ema21 = calculateEMA(closes, 21).pop();
+        const bias = ema9 > ema21 ? 'LONG' : 'SHORT';
 
-    container.innerHTML = `
-        <div class="grid grid-cols-3 gap-4 text-center">
-            <div><p class="text-xs text-gray-500">Bias Sesaat</p><p class="font-bold text-2xl ${biasClass}">${bias}</p></div>
-            <div><p class="text-xs text-gray-500">Saran Entri</p><p class="font-semibold text-lg text-gray-800 dark:text-gray-200">${formatPrice(lastPrice)}</p></div>
-            <div><p class="text-sm text-gray-500">SL (ATR x${slMultiplier})</p><p class="font-semi bold text-lg negative">${formatPrice(stopLoss)}</p></div>
-        </div>
-        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center">
-            <div><p class="text-xs text-gray-500">TP 1 (R:R 1:1.5)</p><p class="font-semibold positive">${formatPrice(takeProfit1)}</p></div>
-            <div><p class="text-xs text-gray-500">TP 2 (Pivot/R:R)</p><p class="font-semibold positive">${tp2Display}</p></div>
-            <div><p class="text-xs text-gray-500">TP 3 (Fibonacci)</p><p class="font-semibold positive">${tp3Display}</p></div>
-        </div>
-    `;
-}
+        // 2. Kalkulasi Stop Loss & TP 1 berdasarkan ATR & R:R
+        const atrValue = calculatedData.atr.value;
+        if (atrValue === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-500">Volatilitas terlalu rendah untuk menghitung setup.</p>';
+            return;
+        }
+        const slMultiplier = 1.5;
+        const tp1Multiplier = 1.5; // R:R 1:1.5 untuk TP1
+        const stopLoss = bias === 'LONG' ? lastPrice - (atrValue * slMultiplier) : lastPrice + (atrValue * slMultiplier);
+        const takeProfit1 = bias === 'LONG' ? lastPrice + (atrValue * tp1Multiplier) : lastPrice - (atrValue * tp1Multiplier);
+
+        // 3. Kalkulasi TP2 & TP3
+        const pivots = findPivots(klines, 5);
+        const lastSwing = findLastSignificantSwing(klines);
+        let takeProfit2 = 'N/A', takeProfit3 = 'N/A';
+
+        if (bias === 'LONG') {
+            const atrTarget2 = lastPrice + (atrValue * 3.0); // R:R 1:2
+            const pivotTarget = pivots.filter(p => p.type === 'high' && p.price > takeProfit1).map(p => p.price).sort((a, b) => a - b)[0];
+            takeProfit2 = pivotTarget ? Math.min(atrTarget2, pivotTarget) : atrTarget2;
+            const fibTarget = calculateFibonacciExtension(lastSwing);
+            if (fibTarget && fibTarget > takeProfit2) takeProfit3 = fibTarget;
+
+        } else if (bias === 'SHORT') {
+            const atrTarget2 = lastPrice - (atrValue * 3.0); // R:R 1:2
+            const pivotTarget = pivots.filter(p => p.type === 'low' && p.price < takeProfit1).map(p => p.price).sort((a, b) => b - a)[0];
+            takeProfit2 = pivotTarget ? Math.max(atrTarget2, pivotTarget) : atrTarget2;
+            const fibTarget = calculateFibonacciExtension(lastSwing);
+            if (fibTarget && fibTarget < takeProfit2) takeProfit3 = fibTarget;
+        }
+        
+        // --- [BARU] FUNGSI BANTUAN UNTUK MENGHITUNG PERSENTASE ---
+        const calculatePercentage = (targetPrice, entryPrice) => {
+            if (typeof targetPrice !== 'number' || entryPrice === 0) return '';
+            const percentage = ((targetPrice - entryPrice) / entryPrice) * 100;
+            return `(${percentage.toFixed(2)}%)`;
+        };
+
+        // --- [BARU] Hitung semua persentase ---
+        const slPercent = calculatePercentage(stopLoss, lastPrice);
+        const tp1Percent = calculatePercentage(takeProfit1, lastPrice);
+        const tp2Percent = calculatePercentage(takeProfit2, lastPrice);
+        const tp3Percent = calculatePercentage(takeProfit3, lastPrice);
+        
+        // --- Tampilan UI yang Diperbarui ---
+        const biasClass = bias === 'LONG' ? 'positive' : 'negative';
+        const tpColorClass = bias === 'LONG' ? 'positive' : 'negative'; // Untuk SHORT, TP lebih rendah dari entri, jadi warnanya harus 'negative' jika ingin konsisten, atau 'positive' jika ingin menandakan profit. Kita gunakan 'positive' untuk profit.
+        const slColorClass = 'negative'; // SL selalu negatif
+
+        // Logika tampilan untuk TP2 dan TP3 jika 'N/A'
+        const tp2Display = takeProfit2 !== 'N/A' ? `${formatPrice(takeProfit2)}<br><span class="text-xs font-mono positive">${tp2Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
+        const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono positive">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
+
+        container.innerHTML = `
+            <div class="grid grid-cols-3 gap-4 text-center items-start">
+                <div>
+                    <p class="text-xs text-gray-500">Bias Sesaat</p>
+                    <p class="font-bold text-2xl ${biasClass}">${bias}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">Saran Entri</p>
+                    <p class="font-semibold text-lg text-gray-800 dark:text-gray-200">${formatPrice(lastPrice)}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">SL (ATR x${slMultiplier})</p>
+                    <p class="font-semibold text-lg ${slColorClass}">${formatPrice(stopLoss)}</p>
+                    <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
+                <div>
+                    <p class="text-xs text-gray-500">TP 1 (R:R 1:1.5)</p>
+                    <p class="font-semibold positive">${formatPrice(takeProfit1)}</p>
+                    <p class="text-xs font-mono positive">${tp1Percent}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">TP 2 (Pivot/R:R)</p>
+                    <p class="font-semibold positive">${tp2Display}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">TP 3 (Fibonacci)</p>
+                    <p class="font-semibold positive">${tp3Display}</p>
+                </div>
+            </div>
+        `;
+    }
     // =======================================================
     /**
      * Fungsi baru untuk menghitung ATR dalam bentuk persentase.
