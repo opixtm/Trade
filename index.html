@@ -1159,77 +1159,79 @@
 // Lengkapi return untuk bullish/bearish; tambahkan default 0. Juga pastikan semua indicator punya bobot di userSettings.weights.
 // // =======================================================
     function getUltimateSignalScore(indicator, signalData) {
-        const w = (userSettings?.weights?.[indicator]) ?? 1;
+    let w = (userSettings?.weights?.[indicator]) ?? 1;
+    // pastikan numeric
+    w = (typeof w === 'number') ? w : (Number(w) || 1);
 
-        // Helper umum
-        const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-        const mapRange = (x, inMin, inMax, outMin, outMax) => {
-            const t = (x - inMin) / (inMax - inMin);
-            return outMin + clamp(t, 0, 1) * (outMax - outMin);
-        };
+    // Helper umum
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+    const mapRange = (x, inMin, inMax, outMin, outMax) => {
+        const t = (x - inMin) / (inMax - inMin);
+        return outMin + clamp(t, 0, 1) * (outMax - outMin);
+    };
 
-        // Parsing umum bias/teks
-        const text = (signalData?.status || signalData?.bias || signalData?.signal || '').toString().toUpperCase();
-        const biasSigned = typeof signalData?.biasSigned === 'number' ? signalData.biasSigned : null;
+    // Ambil confidence (default = 1)
+    const confidence = (typeof signalData?.confidence === 'number')
+        ? clamp(signalData.confidence, 0, 1)
+        : 1;
 
-        // Normalisasi indikator by name
-        if (['ma','macd','rsi','stoch','psar','linreg','roc','pivot','vwap','ichimoku','candlePattern','bollingerBands'].includes(indicator)) {
-            // fallback via teks umum Bullish/Bearish/Netral
-            if (text.includes('BULL')) return  +1 * w;
-            if (text.includes('BEAR')) return  -1 * w;
-            return 0;
-        }
+    // Parsing umum bias/teks
+    const text = (signalData?.status || signalData?.bias || signalData?.signal || '').toString().toUpperCase();
+    const biasSigned = (typeof signalData?.biasSigned === 'number') 
+        ? Math.sign(signalData.biasSigned) 
+        : null;
 
-        // Divergence
-        if (indicator === 'rsiDivergence' || indicator === 'obvDivergence') {
-            if (text.includes('BULL')) return +1 * w;
-            if (text.includes('BEAR')) return -1 * w;
-            return 0;
-        }
-
-        // Open Interest
-        if (indicator === 'openInterest') {
-            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * w;
-            if (text.includes('UP')) return +1 * w;
-            if (text.includes('DOWN')) return -1 * w;
-            return 0;
-        }
-
-        // Funding (handle alias fundingRate)
-        if (indicator === 'funding' || indicator === 'fundingRate') {
-            const v = typeof signalData?.value === 'number' ? signalData.value : 0;
-            // funding kecil ~ netral; funding tinggi → condong dengan arah mayoritas
-            const s = mapRange(Math.abs(v), 0, 0.05, 0, 1) * Math.sign(v || 0);
-            return clamp(s, -1, 1) * w;
-        }
-
-        // L/S Ratio (handle alias lsRatio)
-        if (indicator === 'lsr' || indicator === 'lsRatio') {
-            const v = typeof signalData?.value === 'number' ? signalData.value : 1;
-            const s = clamp(v - 1, -1, 1); // >1 bullish, <1 bearish (sederhana)
-            return s * w;
-        }
-
-        // Order Book Bias
-        if (indicator === 'orderBookBias') {
-            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * w;
-            if (text.includes('BID')) return +1 * w;
-            if (text.includes('ASK')) return -1 * w;
-            return 0;
-        }
-
-        // Squeeze (BB vs KC)
-        if (indicator === 'bbSqueeze') {
-            const st = (signalData?.status || '').toString().toUpperCase();
-            if (st.includes('RELEASE')) return +1 * w;   // ready to move
-            if (st.includes('ON')) return 0;            // dalam kompresi
-            if (st.includes('OFF')) return 0.3 * w;     // keluar dari channel
-            return 0;
-        }
-
-        // fallback
+    // Normalisasi indikator by name
+    if (['ma','macd','rsi','stoch','psar','linreg','roc','pivot','vwap','ichimoku','candlePattern','bollingerBands'].includes(indicator)) {
+        if (biasSigned !== null) return clamp(biasSigned, -1, 1) * w * confidence;
+        if (text.includes('BULL')) return +1 * w * confidence;
+        if (text.includes('BEAR')) return -1 * w * confidence;
         return 0;
     }
+
+    if (indicator === 'rsiDivergence' || indicator === 'obvDivergence') {
+        if (text.includes('BULL')) return +1 * w * confidence;
+        if (text.includes('BEAR')) return -1 * w * confidence;
+        return 0;
+    }
+
+    if (indicator === 'openInterest') {
+        if (biasSigned !== null) return clamp(biasSigned, -1, 1) * w * confidence;
+        if (text.includes('UP')) return +1 * w * confidence;
+        if (text.includes('DOWN')) return -1 * w * confidence;
+        return 0;
+    }
+
+    if (indicator === 'funding' || indicator === 'fundingRate') {
+        const v = typeof signalData?.value === 'number' ? signalData.value : 0;
+        const s = mapRange(Math.abs(v), 0, 0.05, 0, 1) * Math.sign(v || 0);
+        return clamp(s, -1, 1) * w * confidence;
+    }
+
+    if (indicator === 'lsr' || indicator === 'lsRatio') {
+        const v = typeof signalData?.value === 'number' ? signalData.value : 1;
+        const s = clamp(v - 1, -1, 1);
+        return s * w * confidence;
+    }
+
+    if (indicator === 'orderBookBias') {
+        if (biasSigned !== null) return clamp(biasSigned, -1, 1) * w * confidence;
+        if (text.includes('BID')) return +1 * w * confidence;
+        if (text.includes('ASK')) return -1 * w * confidence;
+        return 0;
+    }
+
+    if (indicator === 'bbSqueeze') {
+        const st = (signalData?.status || '').toString().toUpperCase();
+        if (st.includes('RELEASE')) return +1 * w * confidence;
+        if (st.includes('ON')) return 0;
+        if (st.includes('OFF')) return 0.3 * w * confidence;
+        return 0;
+    }
+
+    return 0;
+}
+
 
 // =======================================================
 
