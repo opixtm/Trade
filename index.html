@@ -2894,26 +2894,23 @@ function attachTopMoversListeners() {
 // =======================================================
 // =======================================================
 async function runFullAnalysis() {
+    // Bagian awal (setup)
     WebSocketManager.registerHandler('kline', (message) => klineQueue.push(message));
     WebSocketManager.registerHandler('aggTrade', (trade) => tradeQueue.push(trade));
     WebSocketManager.registerHandler('depthUpdate', (data) => depthQueue.push(data));
-    
     orderBookDOMElements = null;
-    //topMoversSection.classList.add('hidden');
     hideError();
     showLoader(true, 'Memulai Analisa...');
     WebSocketManager.resetSubscriptions();
     destroyCharts();
-
     specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
     specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Mencari data on-chain...</p>`;
     trendingPoolsContent.innerHTML = `<div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div>`;
     
     try {
+        // Reset UI AI
         const aiContentContainer = document.getElementById('ai-content-container');
-        if (aiContentContainer) {
-            aiContentContainer.classList.add('hidden');
-        }
+        if (aiContentContainer) aiContentContainer.classList.add('hidden');
         const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
         if (comprehensiveBtn) {
             const btnText = comprehensiveBtn.querySelector('span');
@@ -2922,79 +2919,53 @@ async function runFullAnalysis() {
             btnLoader.classList.add('hidden');
             comprehensiveBtn.disabled = false;
         }
+
+        // Ambil input
         const binanceSymbol = assetInput.value.trim().toUpperCase();
         const correlationAsset = document.getElementById('correlation-asset-input').value.trim().toUpperCase() || 'BTCUSDT';
         const marketType = marketTypeSelect.value;
         const selectedTimeframe = timeframeSelect.value;
         
+        // Validasi Simbol
         await validateBinanceSymbol(binanceSymbol, marketType);
 
-        let klines;
-        const cachedItem = klineCache[binanceSymbol + selectedTimeframe];
-        if (cachedItem && (Date.now() - cachedItem.timestamp < KLINE_CACHE_DURATION)) {
-            console.log(`Menggunakan Klines dari Cache untuk ${binanceSymbol}`);
-            klines = cachedItem.data;
-            showLoader(true, 'Menggunakan data dari cache...');
-        } else {
-            console.log(`Mengambil Klines dari API untuk ${binanceSymbol}`);
-            showLoader(true, 'Mengambil data candle...');
-            klines = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType);
-            klineCache[binanceSymbol + selectedTimeframe] = { data: klines, timestamp: Date.now() };
-        }
+        // --- PENGAMBILAN DATA SEKUENSIAL (ANTI-CRASH) ---
+        showLoader(true, 'Mengambil data candle...');
+        const klines = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType);
+        klineCache[binanceSymbol + selectedTimeframe] = { data: klines, timestamp: Date.now() };
+
+        showLoader(true, 'Mengambil data pasar...');
+        const tickerData = await fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType);
+        const assetDailyKlines = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType);
+        const btcDailyKlines = await fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot');
+        const orderBookData = await fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType);
+        const usdToIdrRate = await fetchUsdToIdrRate();
+        const globalData = await fetch('https://api.coingecko.com/api/v3/global').then(res => res.json());
 
         const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
-        let coinGeckoId;
+        let coinGeckoData = null;
         try {
-            coinGeckoId = await getCoinGeckoId(baseAsset);
-        } catch (e) {
-            console.warn(`Gagal mendapatkan CoinGecko ID untuk ${baseAsset}: ${e.message}`);
-        }
-
-        showLoader(true, 'Mengambil data pasar lainnya...');
-        const promises = [
-            fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType),
-            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType),
-            fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot'),
-            fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
-            fetchUsdToIdrRate(),
-            fetch('https://api.coingecko.com/api/v3/global').then(res => res.json()),
-            coinGeckoId ? fetchCoinGeckoData(coinGeckoId) : Promise.resolve(null)
-        ];
-
-        if (marketType === 'futures') {
-            promises.push(
-                fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures'),
-                fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures'),
-                fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json()),
-                fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json())
-            );
-        }
-
-        const promiseResults = await Promise.all(promises);
-
-        const [
-            tickerData, assetDailyKlines, btcDailyKlines,
-            orderBookData, usdToIdrRate, globalData, coinGeckoData,
-            ...futuresData
-        ] = promiseResults;
+            showLoader(true, 'Mengambil data fundamental...');
+            const coinGeckoId = await getCoinGeckoId(baseAsset);
+            coinGeckoData = await fetchCoinGeckoData(coinGeckoId);
+        } catch (e) { console.warn(`Gagal mengambil data CoinGecko: ${e.message}`); }
 
         let openInterestData, fundingRateData, lsRatioUmumData, lsRatioTopData;
         if (marketType === 'futures') {
-            [openInterestData, fundingRateData, lsRatioUmumData, lsRatioTopData] = futuresData;
+            showLoader(true, 'Mengambil data futures...');
+            openInterestData = await fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures');
+            fundingRateData = await fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures');
+            lsRatioUmumData = await fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json());
+            lsRatioTopData = await fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json());
         }
 
         let correlationValue = null;
         if (binanceSymbol !== 'BTCUSDT' && assetDailyKlines && btcDailyKlines && assetDailyKlines.length === btcDailyKlines.length) {
-            const assetCloses = assetDailyKlines.map(k => parseFloat(k[4]));
-            const btcCloses = btcDailyKlines.map(k => parseFloat(k[4]));
-            correlationValue = calculateCorrelation(assetCloses, btcCloses);
+            correlationValue = calculateCorrelation(assetDailyKlines.map(k=>parseFloat(k[4])), btcDailyKlines.map(k=>parseFloat(k[4])));
         }
 
-        analysisCache = {
-            tickerData, klines, orderBookData, usdToIdrRate, globalData, coinGeckoData,
-            openInterestData, fundingRateData, lsRatioUmumData, lsRatioTopData,
-            binanceSymbol, selectedTimeframe, correlationData: correlationValue
-        };
+        analysisCache = { tickerData, klines, orderBookData, usdToIdrRate, globalData, coinGeckoData, openInterestData, fundingRateData, lsRatioUmumData, lsRatioTopData, binanceSymbol, selectedTimeframe, correlationData: correlationValue };
+
 
         showLoader(true, 'Menghitung indikator...');
 
@@ -5203,23 +5174,24 @@ function analyzeAndDisplayConfluenceContributors() {
         // Panggil ulang update skor konfluensi agar ikut berubah
         updateQuickConfluenceWidget();
     }
-    
+
     // =======================================================
     // BAGIAN 5: EVENT LISTENER UTAMA  
     // =======================================================  
     document.addEventListener('DOMContentLoaded', () => {
-        scanTopMoversForOpportunities('1h');
-        document.getElementById('top-movers-timeframe-selector').addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                const timeframe = e.target.dataset.timeframe;
-                // Hapus kelas 'active' dari semua tombol, lalu tambahkan ke yang diklik
-                document.querySelectorAll('.top-movers-tf-btn').forEach(btn => btn.classList.remove('active'));
-                e.target.classList.add('active');
-                // Panggil ulang pemindaian dengan timeframe baru
-                scanTopMoversForOpportunities(timeframe);
-            }
-        });
         loadSettings();
+        scanTopMoversForOpportunities('1h');
+            document.getElementById('top-movers-timeframe-selector').addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const timeframe = e.target.dataset.timeframe;
+                    // Hapus kelas 'active' dari semua tombol, lalu tambahkan ke yang diklik
+                    document.querySelectorAll('.top-movers-tf-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    // Panggil ulang pemindaian dengan timeframe baru
+                    scanTopMoversForOpportunities(timeframe);
+                }
+            });
+        
         loadWatchlist();
         scanWatchlist();
         adjustContentPadding();
@@ -5261,7 +5233,7 @@ function analyzeAndDisplayConfluenceContributors() {
 
         apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
         apiKeyInput.addEventListener('change', () => localStorage.setItem('geminiApiKey', apiKeyInput.value));
-        analyzeBtn.addEventListener('click', runFullAnalysis);
+        //analyzeBtn.addEventListener('click', runFullAnalysis);
         assetInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') runFullAnalysis(); });
 
         document.getElementById('vwap-mode-buttons').addEventListener('click', (e) => {
