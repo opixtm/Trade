@@ -1370,41 +1370,24 @@
  */
 // GANTI FUNGSI LAMA DENGAN VERSI FINAL INI
 // GANTI FUNGSI LAMA DENGAN VERSI BARU YANG LEBIH LENGKAP INI
-async function analyzeCandidate(asset, type, timeframe) {
+// GANTI DENGAN VERSI FINAL YANG LEBIH RINGAN INI
+async function analyzeCandidate(asset, type) {
     const details = {};
     let score = 0;
-    
-    // --- BARU: Tambahan untuk menyimpan perubahan harga granular ---
-    let granularChanges = {
-        change1h: 'N/A',
-        change15m: 'N/A',
-        change5m: 'N/A'
-    };
-
+    const timeframe = '1h';
+    let change1h = 'N/A';
     try {
-        // --- BARU: Ambil semua data kline yang dibutuhkan secara paralel ---
-        const [klines, klines1h, klines15m, klines5m] = await Promise.all([
-            fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: timeframe, limit: 200 }, 'futures'),
-            fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '1h', limit: 2 }, 'futures'),
-            fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '15m', limit: 2 }, 'futures'),
-            fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '5m', limit: 2 }, 'futures')
-        ]);
-
-        if (!klines || klines.length < 50) return { ...asset, score: 0, details: { error: 'Data kline kurang' } };
-
-        // Fungsi helper untuk menghitung persen perubahan dari 2 candle
+        const klines = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: timeframe, limit: 200 }, 'futures');
+        if (!klines || klines.length < 50) { details.error = 'Data kline kurang'; return { ...asset, score: 0, details, change1h }; }
+        
         const calculateChange = (klineData) => {
             if (!klineData || klineData.length < 2) return 'N/A';
             const prevClose = parseFloat(klineData[0][4]);
             const currentClose = parseFloat(klineData[1][4]);
-            return prevClose > 0 ? (((currentClose - prevClose) / prevClose) * 100).toFixed(2) : 0;
+            return prevClose > 0 ? (((currentClose - prevClose) / prevClose) * 100).toFixed(2) : '0.00';
         };
-
-        granularChanges.change1h = calculateChange(klines1h);
-        granularChanges.change15m = calculateChange(klines15m);
-        granularChanges.change5m = calculateChange(klines5m);
-        // --- AKHIR BLOK BARU ---
-
+        change1h = calculateChange(klines.slice(-2));
+        
         const closes = klines.map(k => parseFloat(k[4]));
         const rsiValues = calculateRSI(closes, 14);
 
@@ -1412,53 +1395,31 @@ async function analyzeCandidate(asset, type, timeframe) {
         score++;
         try {
             const divergence = detectRSIDivergence(closes, rsiValues);
-            if (type === 'short' && divergence.status === 'BEARISH') {
-                score += 2;
-                details[`Divergensi Bearish (${timeframe})`] = '✅ Terdeteksi';
-            } else if (type === 'long' && divergence.status === 'BULLISH') {
-                score += 2;
-                details[`Divergensi Bullish (${timeframe})`] = '✅ Terdeteksi';
-            } else {
-                details[`Divergensi (${timeframe})`] = '⚪️ Tidak Ada';
-            }
+            if (type === 'short' && divergence.status === 'BEARISH') { score += 2; details[`Divergensi Bearish (${timeframe})`] = '✅ Terdeteksi'; }
+            else if (type === 'long' && divergence.status === 'BULLISH') { score += 2; details[`Divergensi Bullish (${timeframe})`] = '✅ Terdeteksi'; }
+            else { details[`Divergensi (${timeframe})`] = '▫️ Tidak Ada'; }
         } catch(e) { details['Divergensi'] = '❌ Error Cek'; }
+        
         try {
             const fundingRateResp = await fetchBinanceAPIData('premiumIndex', { symbol: asset.symbol }, 'futures');
             const rate = parseFloat(fundingRateResp.lastFundingRate);
             const ratePercent = (rate * 100).toFixed(3);
-            if (type === 'short' && rate > 0.0005) {
-                score++;
-                details['Funding Rate Tinggi'] = `✅ (${ratePercent}%)`;
-            } else if (type === 'long' && rate < -0.0005) {
-                score++;
-                details['Funding Rate Negatif'] = `✅ (${ratePercent}%)`;
-            } else {
-                details['Funding Rate'] = `⚪️ Normal (${ratePercent}%)`;
-            }
+            if (type === 'short' && rate > 0.0005) { score++; details['Funding Rate Tinggi'] = `✅ (${ratePercent}%)`; }
+            else if (type === 'long' && rate < -0.0005) { score++; details['Funding Rate Negatif'] = `✅ (${ratePercent}%)`; }
+            else { details['Funding Rate'] = `▫️ Normal (${ratePercent}%)`; }
         } catch (e) { details['Funding Rate'] = '❌ Gagal ambil data'; }
-        try {
-            const baseAsset = asset.symbol.replace(/USDT$|^\d+/g, '');
-            const coinId = await getCoinGeckoId(baseAsset);
-            const geckoData = await fetchCoinGeckoData(coinId);
-            const marketCap = geckoData?.market_data?.market_cap?.usd || 0;
-            if (marketCap > 0 && marketCap < 500000000) {
-                score++;
-                details['Market Cap Rendah'] = `✅ ($${(marketCap / 1000000).toFixed(1)} Jt)`;
-            } else if (marketCap > 0) {
-                details['Market Cap'] = `($${(marketCap / 1000000).toFixed(1)} Jt)`;
-            } else {
-                details['Market Cap'] = '⚪️ Tidak tersedia';
-            }
-        } catch (e) {
-            details['Market Cap'] = '❌ Tidak ditemukan';
-        }
+
+        // --- BAGIAN MARKET CAP DIHAPUS DARI ANALISIS OTOMATIS ---
+        // Poin untuk Market Cap sekarang dihilangkan dari skor awal
+        details['Market Cap'] = 'ℹ️ Cek di Analisis Penuh';
+
     } catch (e) {
         console.error(`Analisis mendalam untuk ${asset.symbol} gagal:`, e);
         details.error = 'Gagal analisis';
     }
     
-    // Gabungkan data asli, skor, detail, dan perubahan harga granular
-    return { ...asset, ...granularChanges, score: Math.min(score, 5), details };
+    // Skor maksimal sekarang disesuaikan (misal jadi 4)
+    return { ...asset, score: Math.min(score, 4), details, change1h };
 }
 
 // 3. FUNGSI UTAMA BARU YANG DINAMIS
@@ -1804,10 +1765,20 @@ function attachTopMoversListeners() {
         });
     }
 // =======================================================    
+    // GANTI DENGAN VERSI BARU YANG LEBIH PINTAR INI
     async function validateBinanceSymbol(symbol, marketType) {
-        if (!exchangeInfoCache[marketType]) await initializeExchangeInfo(marketType);
+        // KUNCI: Cek cache. Jika kosong, panggil initializeExchangeInfo dan TUNGGU sampai selesai.
+        if (!exchangeInfoCache[marketType]) {
+            console.log(`Cache ExchangeInfo untuk '${marketType}' kosong, inisialisasi sekarang...`);
+            await initializeExchangeInfo(marketType);
+        }
+        
+        // Setelah cache dijamin terisi, baru lakukan validasi.
         const symbolData = exchangeInfoCache[marketType].find(s => s.symbol === symbol);
-        if (!symbolData || symbolData.status !== 'TRADING') throw new Error(`Simbol "${symbol}" tidak valid atau tidak aktif di Binance ${marketType}.`);
+        if (!symbolData || symbolData.status !== 'TRADING') {
+            throw new Error(`Simbol "${symbol}" tidak valid atau tidak aktif di Binance ${marketType}.`);
+        }
+        // Jika lolos, tidak melakukan apa-apa (sukses)
     }
 // =======================================================    
     async function callGemini(parts, isJsonOutput = true) {
