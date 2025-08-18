@@ -1359,66 +1359,70 @@
         return fullStar.repeat(score) + emptyStar.repeat(5 - score);
     }
 // FUNGSI 2: analyzeCandidate (Sekarang hanya dipanggil 'on-demand')
-    async function analyzeCandidate(asset, type) {
-        const details = {};
-        let score = 0;
-        const timeframe = '1h'; // Analisis skor tetap di 1H
-        let change1h = 'N/A', change15m = 'N/A', change5m = 'N/A';
+    // GANTI DENGAN VERSI YANG MENGAMBIL SEMUA DATA GRANULAR INI
+async function analyzeCandidate(asset, type) {
+    const details = {};
+    let score = 0;
+    const timeframe = '1h'; // Analisis skor tetap di 1H
+    
+    // Siapkan variabel untuk semua timeframe
+    let change1h = 'N/A', change15m = 'N/A', change5m = 'N/A';
 
-        try {
-// Helper untuk menghitung persen perubahan
-            const calculateChange = (klineData) => {
-                if (!klineData || klineData.length < 2) return 'N/A';
-                const prevClose = parseFloat(klineData[0][4]);
-                const currentClose = parseFloat(klineData[1][4]);
-                return prevClose > 0 ? (((currentClose - prevClose) / prevClose) * 100).toFixed(2) : '0.00';
-            };
+    try {
+        // Helper untuk menghitung persen perubahan
+        const calculateChange = (klineData) => {
+            if (!klineData || klineData.length < 2) return 'N/A';
+            const prevClose = parseFloat(klineData[0][4]);
+            const currentClose = parseFloat(klineData[1][4]);
+            return prevClose > 0 ? (((currentClose - prevClose) / prevClose) * 100).toFixed(2) : '0.00';
+        };
 
-// Ambil data utama untuk analisis (1H)
-            const klines = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: timeframe, limit: 200 }, 'futures');
-            if (!klines || klines.length < 50) { 
-                details.error = 'Data kline kurang'; 
-                return { ...asset, score: 0, details, change1h, change15m, change5m }; 
-            }
-            change1h = calculateChange(klines.slice(-2)); // Hitung 1H dari data utama
-
-// Ambil data tambahan untuk tampilan
-            const klines15m = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '15m', limit: 2 }, 'futures');
-            change15m = calculateChange(klines15m);
-
-            const klines5m = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '5m', limit: 2 }, 'futures');
-            change5m = calculateChange(klines5m);
-
-// --- Sisa dari logika skoring tetap sama ---
-            const closes = klines.map(k => parseFloat(k[4]));
-            const rsiValues = calculateRSI(closes, 14);
-
-            details['Harga Parabolik (24J)'] = `✅ (${type === 'short' ? '+' : ''}${parseFloat(asset.priceChangePercent).toFixed(1)}%)`;
-            score++;
-            try {
-                const divergence = detectRSIDivergence(closes, rsiValues);
-                if (type === 'short' && divergence.status === 'BEARISH') { score += 2; details[`Divergensi Bearish (${timeframe})`] = '✅ Terdeteksi'; }
-                else if (type === 'long' && divergence.status === 'BULLISH') { score += 2; details[`Divergensi Bullish (${timeframe})`] = '✅ Terdeteksi'; }
-                else { details[`Divergensi (${timeframe})`] = '⚪️ Tidak Ada'; }
-            } catch(e) { details['Divergensi'] = '❌ Error Cek'; }
-            try {
-                const fundingRateResp = await fetchBinanceAPIData('premiumIndex', { symbol: asset.symbol }, 'futures');
-                const rate = parseFloat(fundingRateResp.lastFundingRate);
-                const ratePercent = (rate * 100).toFixed(3);
-                if (type === 'short' && rate > 0.0005) { score++; details['Funding Rate Tinggi'] = `✅ (${ratePercent}%)`; }
-                else if (type === 'long' && rate < -0.0005) { score++; details['Funding Rate Negatif'] = `✅ (${ratePercent}%)`; }
-                else { details['Funding Rate'] = `⚪️ Normal (${ratePercent}%)`; }
-            } catch (e) { details['Funding Rate'] = '❌ Gagal ambil data'; }
-            
-            details['Market Cap'] = 'ℹ️ Cek di Analisis Penuh';
-
-        } catch (e) {
-            console.error(`Analisis mendalam untuk ${asset.symbol} gagal:`, e);
-            details.error = 'Gagal analisis';
+        // Ambil data utama untuk analisis (1H)
+        const klines = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: timeframe, limit: 200 }, 'futures');
+        if (!klines || klines.length < 50) { 
+            details.error = 'Data kline kurang'; 
+            return { ...asset, score: 0, details, change1h, change15m, change5m }; 
         }
-                
-        return { ...asset, score: Math.min(score, 4), details, change1h, change15m, change5m };
+        change1h = calculateChange(klines.slice(-2)); // Hitung 1H dari data utama
+
+        // Ambil data tambahan untuk tampilan
+        const klines15m = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '15m', limit: 2 }, 'futures');
+        change15m = calculateChange(klines15m);
+
+        const klines5m = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '5m', limit: 2 }, 'futures');
+        change5m = calculateChange(klines5m);
+
+        // --- Sisa dari logika skoring tetap sama ---
+        const closes = klines.map(k => parseFloat(k[4]));
+        const rsiValues = calculateRSI(closes, 14);
+
+        details['Harga Parabolik (24J)'] = `✅ (${type === 'short' ? '+' : ''}${parseFloat(asset.priceChangePercent).toFixed(1)}%)`;
+        score++;
+        try {
+            const divergence = detectRSIDivergence(closes, rsiValues);
+            if (type === 'short' && divergence.status === 'BEARISH') { score += 2; details[`Divergensi Bearish (${timeframe})`] = '✅ Terdeteksi'; }
+            else if (type === 'long' && divergence.status === 'BULLISH') { score += 2; details[`Divergensi Bullish (${timeframe})`] = '✅ Terdeteksi'; }
+            else { details[`Divergensi (${timeframe})`] = '⚪️ Tidak Ada'; }
+        } catch(e) { details['Divergensi'] = '❌ Error Cek'; }
+        try {
+            const fundingRateResp = await fetchBinanceAPIData('premiumIndex', { symbol: asset.symbol }, 'futures');
+            const rate = parseFloat(fundingRateResp.lastFundingRate);
+            const ratePercent = (rate * 100).toFixed(3);
+            if (type === 'short' && rate > 0.0005) { score++; details['Funding Rate Tinggi'] = `✅ (${ratePercent}%)`; }
+            else if (type === 'long' && rate < -0.0005) { score++; details['Funding Rate Negatif'] = `✅ (${ratePercent}%)`; }
+            else { details['Funding Rate'] = `⚪️ Normal (${ratePercent}%)`; }
+        } catch (e) { details['Funding Rate'] = '❌ Gagal ambil data'; }
+        
+        details['Market Cap'] = 'ℹ️ Cek di Analisis Penuh';
+
+    } catch (e) {
+        console.error(`Analisis mendalam untuk ${asset.symbol} gagal:`, e);
+        details.error = 'Gagal analisis';
     }
+    
+    // Kembalikan semua data, termasuk persen perubahan 5m & 15m
+    return { ...asset, score: Math.min(score, 4), details, change1h, change15m, change5m };
+}
 // FUNGSI 3: scanTopMoversForOpportunities (Versi Cepat & Ringan)
     async function scanTopMoversForOpportunities(timeframe = '1h') {
         try {
@@ -1457,38 +1461,34 @@ function displayTopMovers(data, container, colorClass) {
         const formattedPrice = formatPrice(parseFloat(item.lastPrice)).replace('$', '');
         const stars = generateStars(item.score);
         const detailsString = JSON.stringify(item.details || {});
-
-// Helper untuk format dan warna persentase
+        
         const formatChange = (changeValue, label) => {
-            if (changeValue === 'N/A' || isNaN(parseFloat(changeValue))) {
-                return `<span class="text-gray-500">${label} --</span>`;
-            }
+            if (changeValue === 'N/A' || isNaN(parseFloat(changeValue))) return `<span class="text-gray-500">${label} --</span>`;
             const value = parseFloat(changeValue);
             const color = value >= 0 ? 'positive' : 'negative';
             return `<span class="${color}">${label} ${value.toFixed(2)}%</span>`;
         };
 
+        const change24h = parseFloat(item.priceChangePercent);
+
         return `
         <button class="w-full text-left p-2 rounded-md bg-gray-800 dark:bg-gray-800 hover:bg-gray-700 dark:hover:bg-gray-900 transition-colors duration-200 mover-item" 
-                data-symbol="${item.symbol}" 
+                data-symbol="${item.symbol}"
                 data-details='${detailsString}'
                 data-type="${colorClass === 'positive' ? 'Short' : 'Long'}">
-            
             <div class="flex justify-between items-center text-sm font-semibold">
                 <div>
-                    <span class="dark:text-white">${item.symbol.replace('USDT','')}</span>
+                    <span class="dark:text-white cursor-pointer mover-item-main" data-symbol="${item.symbol}">${item.symbol.replace('USDT','')}</span>
                     <span class="font-mono text-xs ml-2">(${stars})</span>
                 </div>
                 <span class="dark:text-white font-mono">${formattedPrice}</span>
             </div>
-
             <div class="flex justify-start items-center gap-3 text-xs mt-1">
-                ${formatChange(item.priceChangePercent, '24H')}
+                <span class="${change24h >= 0 ? 'positive' : 'negative'}">24H ${change24h.toFixed(2)}%</span>
                 ${formatChange(item.change1h, '1H')}
                 ${formatChange(item.change15m, '15M')}
                 ${formatChange(item.change5m, '5M')}
             </div>
-
         </button>`;
     }).join('');
 }
