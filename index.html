@@ -409,34 +409,9 @@
                 <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <div>
                         <input type="password" id="gemini-api-key" class="input-primary" placeholder="Tempel API Key dari Google AI Studio...">
-                        <p class="text-xs text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
-                    </div>
-                    <div>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <input type="text" id="asset-input" list="asset-list" class="input-primary text-sm flex-grow uppercase" placeholder="Ketik Simbol Aset (cth: BTCUSDT)" value="BTCUSDT">
-                            <datalist id="asset-list"></datalist>
-                            <select id="market-type-select" class="input-primary text-sm !w-auto">
-                                <option value="spot">Spot</option>
-                                <option value="futures" selected>Perp</option>
-                            </select>
-                            <select id="timeframe-select" class="input-primary text-sm !w-auto">
-                                <option value="1m">1m</option><option value="3m">3m</option><option value="5m">5m</option><option value="15m"selected>15m</option><option value="30m">30m</option><option value="1h" >1h</option><option value="2h">2h</option><option value="4h">4h</option><option value="1d">1d</option><option value="1w">W</option>
-                            </select>
-                        </div>
+                        <p class="text-sm text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
                     </div>
                     
-                    <div class="md:col-span-2 flex gap-4">
-                         <button id="analyze-asset-btn" class="btn-primary w-full font-bold text-xl">
-                            <span id="button-text">GET DATA</span>
-                            <div id="button-loader" class="loader hidden">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                        </button>
-                        <p id="asset-error" class="text-red-600 text-sm mt-2 text-center hidden"></p>
-                        <button id="reset-btn" class="btn-secondary !w-auto">REFRESH</button>
-                    </div>
                 </section>
                 <section id="settings-card" class="card p-4">
                     <button id="toggle-settings-btn" class="w-full flex justify-between items-center text-left">
@@ -514,7 +489,34 @@
                         <div><h3 class="text-lg font-semibold text-red-500 mb-2"> 🔴</h3><div id="losers-list" class="space-y-2"></div></div>
                     </div>
                 </section>
-                
+                <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <div>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <input type="text" id="asset-input" list="asset-list" class="input-primary text-sm flex-grow uppercase" placeholder="Ketik Simbol Aset (cth: BTCUSDT)" value="BTCUSDT">
+                            <datalist id="asset-list"></datalist>
+                            <select id="market-type-select" class="input-primary text-sm !w-auto">
+                                <option value="spot">Spot</option>
+                                <option value="futures" selected>Perp</option>
+                            </select>
+                            <select id="timeframe-select" class="input-primary text-sm !w-auto">
+                                <option value="1m">1m</option><option value="3m">3m</option><option value="5m">5m</option><option value="15m"selected>15m</option><option value="30m">30m</option><option value="1h" >1h</option><option value="2h">2h</option><option value="4h">4h</option><option value="1d">1d</option><option value="1w">W</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-2 flex gap-4">
+                         <button id="analyze-asset-btn" class="btn-primary w-full font-bold text-xl">
+                            <span id="button-text">GET DATA</span>
+                            <div id="button-loader" class="loader hidden">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        </button>
+                        <p id="asset-error" class="text-red-600 text-sm mt-2 text-center hidden"></p>
+                        <button id="reset-btn" class="btn-secondary !w-auto">REFRESH</button>
+                    </div>
+                </section>
                 
             </div>
 
@@ -1412,9 +1414,6 @@ async function analyzeCandidate(asset, type) {
             else if (type === 'long' && rate < -0.0005) { score++; details['Funding Rate Negatif'] = `✅ (${ratePercent}%)`; }
             else { details['Funding Rate'] = `⚪️ Normal (${ratePercent}%)`; }
         } catch (e) { details['Funding Rate'] = '❌ Gagal ambil data'; }
-        
-        details['Market Cap'] = 'ℹ️ Cek di Analisis Penuh';
-
     } catch (e) {
         console.error(`Analisis mendalam untuk ${asset.symbol} gagal:`, e);
         details.error = 'Gagal analisis';
@@ -3431,96 +3430,88 @@ renderWatchlistTable(results);
         });
     }
 
-    // =======================================================
-    // == BLOK FUNGSI BARU UNTUK FITUR WATCHLIST (SELESAI) ==
-// =================================================================================
-// == BLOK KODE UPGRADE FINAL V2 UNTUK ANALISIS AI (TERMASUK KORELASI & RISIKO) ==
-// =================================================================================
+// ========BLOK FUNGSI BARU UNTUK FITUR WATCHLIST (SELESAI) ========================
+    
+// ===BLOK KODE UPGRADE FINAL V2 UNTUK ANALISIS AI (TERMASUK KORELASI & RISIKO) ====
+    async function runComprehensiveAIAnalysis() {
+        if (!analysisCache.tickerData) {
+            showError("Jalankan 'GET DATA' terlebih dahulu untuk memuat data.");
+            return;
+        }
 
-/**
- * FUNGSI UTAMA: Menjalankan seluruh alur analisis AI yang komprehensif.
- */
-// GANTI KESELURUHAN FUNGSI LAMA DENGAN VERSI LENGKAP DAN BENAR INI
-async function runComprehensiveAIAnalysis() {
-    if (!analysisCache.tickerData) {
-        showError("Jalankan 'GET DATA' terlebih dahulu untuk memuat data.");
-        return;
-    }
-
-    const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
-    const btnText = comprehensiveBtn.querySelector('span');
-    const btnLoader = comprehensiveBtn.querySelector('.loader');
-    const aiContentContainer = document.getElementById('ai-content-container');
-    const aiNarrativeEl = document.getElementById('ai-narrative-content');
-
-    btnText.classList.add('hidden');
-    btnLoader.classList.remove('hidden');
-    comprehensiveBtn.disabled = true;
-
-    // --- PERBAIKAN KUNCI: BERSIHKAN SEMUA KONTENER DI SINI ---
-    document.getElementById('projection-results-container').innerHTML = '';
-    document.getElementById('saran-buyer').textContent = '-';
-    document.getElementById('alasan-buyer').textContent = '';
-    document.getElementById('saran-holder').textContent = '-';
-    document.getElementById('alasan-holder').textContent = '';
-
-    aiNarrativeEl.innerHTML = '';
-    aiContentContainer.classList.remove('hidden');
-
-    try {
-        const { 
-            binanceSymbol, 
-            calculatedData, 
-            tickerData, 
-            correlationData,
-            onChainSummary
-        } = analysisCache;
-        
-        const marketType = marketTypeSelect.value;
-
-        // 1. Panggil fungsi untuk mendapatkan ringkasan TF Alignment
-        const tfAlignmentSummary = await createTFAlignmentSummary(binanceSymbol, marketType);
-
-        // 2. Siapkan data analisis volume
-        const klines1d = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 200 }, marketType);
-        const vwap20d = calculateVWAP(klines1d, 'rolling', 20);
-        const obvValues = calculateOBV(klines1d);
-        const obvTrend = obvValues.length > 1 && obvValues[obvValues.length - 1] > obvValues[obvValues.length - 2] ? 'Naik (Akumulasi)' : 'Turun (Distribusi)';
-        const vwapStatus = parseFloat(tickerData.lastPrice) > vwap20d ? 'Di Atas VWAP (Bullish)' : 'Di Bawah VWAP (Bearish)';
-        
-        const volumeAnalysisData = {
-            vwap_20d: vwapStatus,
-            obv_trend: obvTrend
-        };
-
-        // 3. Buat prompt hybrid dengan variabel yang benar
-        const prompt = constructHybridAIPrompt(
-            binanceSymbol, 
-            calculatedData, 
-            tfAlignmentSummary, // Mengirimkan hasil ringkasan
-            volumeAnalysisData, 
-            onChainSummary, 
-            correlationData
-        );
-        
-        const aiResponseText = await callGemini([{ text: prompt }], false);
-        const parsedData = parseAIResponseWithTags(aiResponseText);
-        displayComprehensiveResults(parsedData);
-
-    } catch (error) {
-        aiNarrativeEl.innerHTML = `<p class="text-red-500">Gagal mendapatkan analisa AI: ${error.message}</p>`;
-
-    } finally {
+        const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
         const btnText = comprehensiveBtn.querySelector('span');
         const btnLoader = comprehensiveBtn.querySelector('.loader');
+        const aiContentContainer = document.getElementById('ai-content-container');
+        const aiNarrativeEl = document.getElementById('ai-narrative-content');
 
-        btnText.classList.remove('hidden');
-        btnLoader.classList.add('hidden');
-        comprehensiveBtn.disabled = false;
+        btnText.classList.add('hidden');
+        btnLoader.classList.remove('hidden');
+        comprehensiveBtn.disabled = true;
+
+        // --- PERBAIKAN KUNCI: BERSIHKAN SEMUA KONTENER DI SINI ---
+        document.getElementById('projection-results-container').innerHTML = '';
+        document.getElementById('saran-buyer').textContent = '-';
+        document.getElementById('alasan-buyer').textContent = '';
+        document.getElementById('saran-holder').textContent = '-';
+        document.getElementById('alasan-holder').textContent = '';
+
+        aiNarrativeEl.innerHTML = '';
+        aiContentContainer.classList.remove('hidden');
+
+        try {
+            const { 
+                binanceSymbol, 
+                calculatedData, 
+                tickerData, 
+                correlationData,
+                onChainSummary
+            } = analysisCache;
+            
+            const marketType = marketTypeSelect.value;
+
+            // 1. Panggil fungsi untuk mendapatkan ringkasan TF Alignment
+            const tfAlignmentSummary = await createTFAlignmentSummary(binanceSymbol, marketType);
+
+            // 2. Siapkan data analisis volume
+            const klines1d = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 200 }, marketType);
+            const vwap20d = calculateVWAP(klines1d, 'rolling', 20);
+            const obvValues = calculateOBV(klines1d);
+            const obvTrend = obvValues.length > 1 && obvValues[obvValues.length - 1] > obvValues[obvValues.length - 2] ? 'Naik (Akumulasi)' : 'Turun (Distribusi)';
+            const vwapStatus = parseFloat(tickerData.lastPrice) > vwap20d ? 'Di Atas VWAP (Bullish)' : 'Di Bawah VWAP (Bearish)';
+            
+            const volumeAnalysisData = {
+                vwap_20d: vwapStatus,
+                obv_trend: obvTrend
+            };
+
+            // 3. Buat prompt hybrid dengan variabel yang benar
+            const prompt = constructHybridAIPrompt(
+                binanceSymbol, 
+                calculatedData, 
+                tfAlignmentSummary, // Mengirimkan hasil ringkasan
+                volumeAnalysisData, 
+                onChainSummary, 
+                correlationData
+            );
+            
+            const aiResponseText = await callGemini([{ text: prompt }], false);
+            const parsedData = parseAIResponseWithTags(aiResponseText);
+            displayComprehensiveResults(parsedData);
+
+        } catch (error) {
+            aiNarrativeEl.innerHTML = `<p class="text-red-500">Gagal mendapatkan analisa AI: ${error.message}</p>`;
+
+        } finally {
+            const btnText = comprehensiveBtn.querySelector('span');
+            const btnLoader = comprehensiveBtn.querySelector('.loader');
+
+            btnText.classList.remove('hidden');
+            btnLoader.classList.add('hidden');
+            comprehensiveBtn.disabled = false;
+        }
     }
-}
-
-    // GANTI SELURUH FUNGSI INI DENGAN VERSI FINAL YANG PALING ROBUST
+// =================================================================================
     function constructHybridAIPrompt(symbol, singleTfData, multiTfData, volumeData, onChainSummary, correlationData) {
         const mainPriceContext = {
             current_price: formatPrice(parseFloat(analysisCache.tickerData.lastPrice))
@@ -3645,6 +3636,7 @@ async function runComprehensiveAIAnalysis() {
 
             [PROYEKSI_LENGKAP_JSON_START]
             [
+                { "periode": "Micro Scalp (1-12 jam)", "target_harga": "...", "alasan": "..." },
                 { "periode": "Sangat Pendek (24-48 jam)", "target_harga": "...", "alasan": "..." },
                 { "periode": "Jangka Pendek (1-7 hari)", "target_harga": "...", "alasan": "..." },
                 { "periode": "Jangka Menengah (1-4 minggu)", "target_harga": "...", "alasan": "..." },
@@ -3670,7 +3662,7 @@ async function runComprehensiveAIAnalysis() {
             [ALASAN_BUYER_END]
             `;
     }
-
+// =================================================================================
     function parseAIResponseWithTags(rawText) {
     const result = {};
     const tags = [
@@ -3703,90 +3695,86 @@ async function runComprehensiveAIAnalysis() {
 }
 
 
-/**
- * UI RENDERER (VERSI ULTIMATE v2): Menampilkan hasil analisis baru termasuk risiko.
- */
-   // GANTI KESELURUHAN FUNGSI LAMA DENGAN VERSI FINAL INI
-function displayComprehensiveResults(data) {
-    // --- [PERBAIKAN KUNCI] Bersihkan semua kontainer sebelum menampilkan hasil baru ---
-    const aiNarrativeEl = document.getElementById('ai-narrative-content');
-    const projectionContainer = document.getElementById('projection-results-container');
-    const buyerSaranEl = document.getElementById('saran-buyer');
-    const buyerAlasanEl = document.getElementById('alasan-buyer');
-    const holderSaranEl = document.getElementById('saran-holder');
-    const holderAlasanEl = document.getElementById('alasan-holder');
-    
-    aiNarrativeEl.innerHTML = '';
-    projectionContainer.innerHTML = '';
-    buyerSaranEl.textContent = '-';
-    buyerAlasanEl.textContent = '';
-    holderSaranEl.textContent = '-';
-    holderAlasanEl.textContent = '';
-    // --- AKHIR PERBAIKAN ---
+// ==================UI RENDERER (VERSI ULTIMATE v2)=================
+    function displayComprehensiveResults(data) {    
+        const aiNarrativeEl = document.getElementById('ai-narrative-content');
+        const projectionContainer = document.getElementById('projection-results-container');
+        const buyerSaranEl = document.getElementById('saran-buyer');
+        const buyerAlasanEl = document.getElementById('alasan-buyer');
+        const holderSaranEl = document.getElementById('saran-holder');
+        const holderAlasanEl = document.getElementById('alasan-holder');
+        
+        aiNarrativeEl.innerHTML = '';
+        projectionContainer.innerHTML = '';
+        buyerSaranEl.textContent = '-';
+        buyerAlasanEl.textContent = '';
+        holderSaranEl.textContent = '-';
+        holderAlasanEl.textContent = '';
+        // --- AKHIR PERBAIKAN ---
 
-    if (!data || Object.keys(data).length === 0) {
-        aiNarrativeEl.innerHTML = '<p class="text-red-500 text-center">AI gagal memberikan analisis yang bisa diproses. Coba lagi.</p>';
-        return;
-    }
+        if (!data || Object.keys(data).length === 0) {
+            aiNarrativeEl.innerHTML = '<p class="text-red-500 text-center">AI gagal memberikan analisis yang bisa diproses. Coba lagi.</p>';
+            return;
+        }
 
-    // 1. Tampilkan data sentimen (jika ada)
-    if (data.sentimen_data_json) {
-        try {
-            const sentimentData = { ...JSON.parse(data.sentimen_data_json), lastUpdated: new Date() };
-            analysisCache.shortTermSentiment = sentimentData;
-            displaySentimentDataInDashboard(sentimentData);
-        } catch (e) {
-            console.error("Gagal parse JSON sentimen dari AI:", e);
-            const sentimentContainer = document.getElementById('sentiment-display-container');
-            if(sentimentContainer) {
-                 sentimentContainer.innerHTML = `<p class="text-xs text-center text-red-500">AI gagal memberikan data sentimen dalam format JSON yang benar.</p>`;
+        // 1. Tampilkan data sentimen (jika ada)
+        if (data.sentimen_data_json) {
+            try {
+                const sentimentData = { ...JSON.parse(data.sentimen_data_json), lastUpdated: new Date() };
+                analysisCache.shortTermSentiment = sentimentData;
+                displaySentimentDataInDashboard(sentimentData);
+            } catch (e) {
+                console.error("Gagal parse JSON sentimen dari AI:", e);
+                const sentimentContainer = document.getElementById('sentiment-display-container');
+                if(sentimentContainer) {
+                    sentimentContainer.innerHTML = `<p class="text-xs text-center text-red-500">AI gagal memberikan data sentimen dalam format JSON yang benar.</p>`;
+                }
             }
         }
+        
+        // 2. Buat verdict singkat berdasarkan Skor Konfluensi
+        let shortVerdictHtml = '';
+        if (analysisCache.quickConfluenceScore) {
+            const { bull, bear } = analysisCache.quickConfluenceScore;
+            const { text, class: verdictClass } = generateShortVerdict(bull, bear);
+            shortVerdictHtml = `<p class="text-center font-bold text-2xl mb-4 ${verdictClass}">${text}</p>`;
+        }
+
+        // 3. Gunakan Marked.js untuk memformat narasi dan smc (jika ada)
+        const narrativeHtml = data.narasi_pasar ? marked.parse(data.narasi_pasar) : '';
+        const smcHtml = data.smc_narrative ? marked.parse(data.smc_narrative) : '';
+
+        let detailsHtml = `
+            <div class="space-y-4 text-sm">
+                ${narrativeHtml ? `<div class="p-3 bg-gray-50 dark:bg-gray-800/20 rounded-md">${narrativeHtml}</div>` : ''}
+                ${data.analisis_risiko ? `<div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-dashed border-yellow-500/50"><strong>Analisis Risiko:</strong> ${data.analisis_risiko}</div>` : ''}
+                ${smcHtml ? `<div class="p-3 bg-gray-50 dark:bg-gray-800/20 rounded-md mt-3">${smcHtml}</div>` : ''}
+            </div>
+        `;
+        
+        // 4. Gabungkan verdict singkat dengan sisa analisis
+        aiNarrativeEl.innerHTML = shortVerdictHtml + detailsHtml;
+
+        // 5. Tampilkan Proyeksi Harga & Saran Strategis
+        if (data.proyeksi_lengkap_json && data.proyeksi_lengkap_json.length > 0) {
+            data.proyeksi_lengkap_json.forEach(p => {
+                projectionContainer.innerHTML += `
+                    <div class="card p-3 bg-gray-50 dark:bg-gray-800/50">
+                        <h4 class="font-semibold text-blue-400 text-sm">${p.periode}</h4>
+                        <p class="font-bold text-base text-gray-800 dark:text-white">${p.target_harga}</p>
+                        <p class="text-xs text-gray-500 mt-1">${p.alasan}</p>
+                    </div>`;
+            });
+            projectionContainer.className = `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4`;
+        } else {
+            projectionContainer.innerHTML = '<p class="text-xs text-gray-500 col-span-full">Proyeksi harga tidak tersedia.</p>';
+        }
+
+        buyerSaranEl.textContent = data.saran_buyer || 'N/A';
+        buyerAlasanEl.innerHTML = (data.alasan_buyer || 'Tidak ada alasan spesifik.').replace(/\$([\d,.-]+)/g, '<span class="font-bold text-yellow-400">\$&</span>');
+        holderSaranEl.textContent = data.saran_holder || 'N/A';
+        holderAlasanEl.innerHTML = (data.alasan_holder || 'Tidak ada alasan spesifik.').replace(/\$([\d,.-]+)/g, '<span class="font-bold text-yellow-400">\$&</span>');
     }
-    
-    // 2. Buat verdict singkat berdasarkan Skor Konfluensi
-    let shortVerdictHtml = '';
-    if (analysisCache.quickConfluenceScore) {
-        const { bull, bear } = analysisCache.quickConfluenceScore;
-        const { text, class: verdictClass } = generateShortVerdict(bull, bear);
-        shortVerdictHtml = `<p class="text-center font-bold text-2xl mb-4 ${verdictClass}">${text}</p>`;
-    }
-
-    // 3. Gunakan Marked.js untuk memformat narasi dan smc (jika ada)
-    const narrativeHtml = data.narasi_pasar ? marked.parse(data.narasi_pasar) : '';
-    const smcHtml = data.smc_narrative ? marked.parse(data.smc_narrative) : '';
-
-    let detailsHtml = `
-        <div class="space-y-4 text-sm">
-            ${narrativeHtml ? `<div class="p-3 bg-gray-50 dark:bg-gray-800/20 rounded-md">${narrativeHtml}</div>` : ''}
-            ${data.analisis_risiko ? `<div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-dashed border-yellow-500/50"><strong>Analisis Risiko:</strong> ${data.analisis_risiko}</div>` : ''}
-            ${smcHtml ? `<div class="p-3 bg-gray-50 dark:bg-gray-800/20 rounded-md mt-3">${smcHtml}</div>` : ''}
-        </div>
-    `;
-    
-    // 4. Gabungkan verdict singkat dengan sisa analisis
-    aiNarrativeEl.innerHTML = shortVerdictHtml + detailsHtml;
-
-    // 5. Tampilkan Proyeksi Harga & Saran Strategis
-    if (data.proyeksi_lengkap_json && data.proyeksi_lengkap_json.length > 0) {
-        data.proyeksi_lengkap_json.forEach(p => {
-            projectionContainer.innerHTML += `
-                <div class="card p-3 bg-gray-50 dark:bg-gray-800/50">
-                    <h4 class="font-semibold text-blue-400 text-sm">${p.periode}</h4>
-                    <p class="font-bold text-base text-gray-800 dark:text-white">${p.target_harga}</p>
-                    <p class="text-xs text-gray-500 mt-1">${p.alasan}</p>
-                </div>`;
-        });
-        projectionContainer.className = `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4`;
-    } else {
-        projectionContainer.innerHTML = '<p class="text-xs text-gray-500 col-span-full">Proyeksi harga tidak tersedia.</p>';
-    }
-
-    buyerSaranEl.textContent = data.saran_buyer || 'N/A';
-    buyerAlasanEl.innerHTML = (data.alasan_buyer || 'Tidak ada alasan spesifik.').replace(/\$([\d,.-]+)/g, '<span class="font-bold text-yellow-400">\$&</span>');
-    holderSaranEl.textContent = data.saran_holder || 'N/A';
-    holderAlasanEl.innerHTML = (data.alasan_holder || 'Tidak ada alasan spesifik.').replace(/\$([\d,.-]+)/g, '<span class="font-bold text-yellow-400">\$&</span>');
-}
 // =======================================================
 function generateShortVerdict(bullPercentage, bearPercentage) {
     let verdict = "NETRAL / KONSOLIDASI";
@@ -3847,40 +3835,40 @@ function analyzeAndDisplayConfluenceContributors() {
 }
 
 // =======================================================
-async function createTFAlignmentSummary(symbol, marketType) {
-    const timeframes = ['15m', '1h', '4h', '1d'];
-    const summary = {};
-    
-    const klinesPromises = timeframes.map(tf => 
-        fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType)
-    );
-    const klinesResults = await Promise.all(klinesPromises);
+    async function createTFAlignmentSummary(symbol, marketType) {
+        const timeframes = ['15m', '1h', '4h', '1d'];
+        const summary = {};
+        
+        const klinesPromises = timeframes.map(tf => 
+            fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType)
+        );
+        const klinesResults = await Promise.all(klinesPromises);
 
-    klinesResults.forEach((klines, index) => {
-        const tf = timeframes[index];
-        if (klines && klines.length >= 50) {
-            const closes = klines.map(k => parseFloat(k[4]));
-            const ema21 = calculateEMA(closes, 21).pop();
-            const ema50 = calculateEMA(closes, 50).pop();
-            summary[tf] = ema21 > ema50 ? 'BULLISH' : 'BEARISH';
-        } else {
-            summary[tf] = 'N/A';
+        klinesResults.forEach((klines, index) => {
+            const tf = timeframes[index];
+            if (klines && klines.length >= 50) {
+                const closes = klines.map(k => parseFloat(k[4]));
+                const ema21 = calculateEMA(closes, 21).pop();
+                const ema50 = calculateEMA(closes, 50).pop();
+                summary[tf] = ema21 > ema50 ? 'BULLISH' : 'BEARISH';
+            } else {
+                summary[tf] = 'N/A';
+            }
+        });
+
+        // Tampilkan juga di UI
+        const alignmentContainer = document.getElementById('tf-alignment-summary');
+        let alignmentHtml = '<h4 class="font-bold text-gray-300 mt-2 mb-1">Keselarasan Tren (EMA 21/50)</h4><div class="flex justify-center gap-2">';
+        for(const tf in summary){
+            const colorClass = summary[tf] === 'BULLISH' ? 'positive' : (summary[tf] === 'BEARISH' ? 'negative' : 'text-gray-500');
+            alignmentHtml += `<div class="text-center p-1 rounded-md bg-gray-800/50 flex-1"><span class="font-bold">${tf}</span><br><span class="text-xs ${colorClass}">${summary[tf]}</span></div>`;
         }
-    });
+        alignmentHtml += '</div>';
+        alignmentContainer.innerHTML = alignmentHtml;
 
-    // Tampilkan juga di UI
-    const alignmentContainer = document.getElementById('tf-alignment-summary');
-    let alignmentHtml = '<h4 class="font-bold text-gray-300 mt-2 mb-1">Keselarasan Tren (EMA 21/50)</h4><div class="flex justify-center gap-2">';
-    for(const tf in summary){
-        const colorClass = summary[tf] === 'BULLISH' ? 'positive' : (summary[tf] === 'BEARISH' ? 'negative' : 'text-gray-500');
-        alignmentHtml += `<div class="text-center p-1 rounded-md bg-gray-800/50 flex-1"><span class="font-bold">${tf}</span><br><span class="text-xs ${colorClass}">${summary[tf]}</span></div>`;
+        return summary;
     }
-    alignmentHtml += '</div>';
-    alignmentContainer.innerHTML = alignmentHtml;
-
-    return summary;
-}
-// ### AKHIR DARI BLOK KODE BARU ###
+// =================================================================================
     function updateDashboardUI() {
         if (!analysisCache.tickerData) return;
         const navInfoContainer = document.getElementById('nav-info-container');
@@ -3932,13 +3920,7 @@ async function createTFAlignmentSummary(symbol, marketType) {
             destroyCharts();
         }
     }
-    
-    /**
- * Menjalankan animasi scroll yang halus ke sebuah elemen dengan offset.
- * @param {HTMLElement} element - Elemen tujuan untuk scroll.
- * @param {number} duration - Durasi animasi dalam milidetik.
- * @param {number} offset - Jarak (dalam pixel) dari puncak layar.
- */
+// =======Menjalankan animasi scroll yang halus ke sebuah elemen dengan offset=============
     function smoothScrollTo(element, duration, offset = 0) {
     if (!element) return; // Pengaman jika elemen tidak ditemukan
     const targetPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
@@ -3963,10 +3945,7 @@ async function createTFAlignmentSummary(symbol, marketType) {
 
     requestAnimationFrame(animation);
 }
-    // =======================================================
-    // == FUNGSI BARU UNTUK EFEK SCROLL HALUS (SELESAI) ==
-    // =======================================================
-
+// =====FUNGSI BARU UNTUK EFEK SCROLL HALUS (SELESAI) ==
     function startFundingRateTimer(nextFundingTime) {
         if (fundingRateTimer) clearInterval(fundingRateTimer);
 
@@ -4134,7 +4113,7 @@ async function createTFAlignmentSummary(symbol, marketType) {
 
     }
 
-    // Fungsi baru untuk mendeteksi "wall"
+// Fungsi baru untuk mendeteksi "wall"
     function detectAndDisplayWall(bids, asks) {
     // BARU: Ambil data Exchange Info dari cache untuk mendapatkan aturan pasar (tickSize, dll.)
         const symbolInfo = exchangeInfoCache[marketTypeSelect.value]?.find(s => s.symbol === analysisCache.binanceSymbol);
@@ -4713,7 +4692,6 @@ async function createTFAlignmentSummary(symbol, marketType) {
     }
 // =======================================================
     function destroyCharts() {
-    // 1. Hapus semua chart utama (LightweightCharts)
         charts.forEach(chart => {
             if (chart) {
                 chart.remove();
@@ -4737,164 +4715,163 @@ async function createTFAlignmentSummary(symbol, marketType) {
             }
         });
     }
-// =======================================================
-    // HAPUS SEMUA VERSI LAMA DARI processQueues DAN GANTI DENGAN INI:
 
-const processQueues = () => {
-    // 1. Proses Antrian Kline (Candlestick) dengan aman
-    if (klineQueue.length > 0) {
-        try {
-            const latestKlineMessage = klineQueue.pop();
-            klineQueue = [];
-            if (candlestickSeries && latestKlineMessage) {
-                const candle = latestKlineMessage.k;
-                const formattedCandle = {
-                    time: candle.t / 1000,
-                    open: parseFloat(candle.o), high: parseFloat(candle.h),
-                    low: parseFloat(candle.l), close: parseFloat(candle.c)
-                };
-                candlestickSeries.update(formattedCandle);
-                if (candle.x) {
-                    analysisCache.klines.shift();
-                    analysisCache.klines.push([candle.t, candle.o, candle.h, candle.l, candle.c, candle.v, candle.T, candle.q, candle.n, candle.V, candle.Q, candle.B]);
-                    updateRealTimeIndicators(analysisCache.klines);
+        const processQueues = () => {
+            // 1. Proses Antrian Kline (Candlestick) dengan aman
+            if (klineQueue.length > 0) {
+                try {
+                    const latestKlineMessage = klineQueue.pop();
+                    klineQueue = [];
+                    if (candlestickSeries && latestKlineMessage) {
+                        const candle = latestKlineMessage.k;
+                        const formattedCandle = {
+                            time: candle.t / 1000,
+                            open: parseFloat(candle.o), high: parseFloat(candle.h),
+                            low: parseFloat(candle.l), close: parseFloat(candle.c)
+                        };
+                        candlestickSeries.update(formattedCandle);
+                        if (candle.x) {
+                            analysisCache.klines.shift();
+                            analysisCache.klines.push([candle.t, candle.o, candle.h, candle.l, candle.c, candle.v, candle.T, candle.q, candle.n, candle.V, candle.Q, candle.B]);
+                            updateRealTimeIndicators(analysisCache.klines);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error saat memproses kline:", error);
                 }
             }
-        } catch (error) {
-            console.error("Error saat memproses kline:", error);
-        }
-    }
 
     // 2. Proses Antrian Trade (untuk CVD dan Harga Live) dengan aman
-    if (tradeQueue.length > 0) {
-        try {
-            const tradesToProcess = tradeQueue.splice(0, tradeQueue.length);
-            // <<< LOGIKA LENGKAP DIMASUKKAN DI SINI >>>
-            tradesToProcess.forEach(trade => {
-                const quantity = parseFloat(trade.q);
-                const price = parseFloat(trade.p);
-                const navPriceEl = document.getElementById('nav-price');
-                const navIdrEl = document.getElementById('nav-price-idr');
-                if (navPriceEl && navIdrEl) {
-                    navPriceEl.textContent = formatPrice(price);
-                    navIdrEl.textContent = `Rp ${(price * (analysisCache.usdToIdrRate || 0)).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+            if (tradeQueue.length > 0) {
+                try {
+                    const tradesToProcess = tradeQueue.splice(0, tradeQueue.length);
+                    // <<< LOGIKA LENGKAP DIMASUKKAN DI SINI >>>
+                    tradesToProcess.forEach(trade => {
+                        const quantity = parseFloat(trade.q);
+                        const price = parseFloat(trade.p);
+                        const navPriceEl = document.getElementById('nav-price');
+                        const navIdrEl = document.getElementById('nav-price-idr');
+                        if (navPriceEl && navIdrEl) {
+                            navPriceEl.textContent = formatPrice(price);
+                            navIdrEl.textContent = `Rp ${(price * (analysisCache.usdToIdrRate || 0)).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                        }
+                        if (cvdChartInstance) {
+                            if (isNaN(quantity) || quantity === 0) return;
+                            const sign = trade.m ? -1 : 1;
+                            liveCvdValue += quantity * sign;
+                            liveCvdValueUsdt += (quantity * price) * sign;
+                            const newPoint = { x: trade.T, y_coin: liveCvdValue, y_usdt: liveCvdValueUsdt };
+                            cvdChartInstance.data.datasets[0].data.push(newPoint);
+                            liveCvdData.push(newPoint);
+                            while (cvdChartInstance.data.datasets[0].data.length > 300) {
+                                cvdChartInstance.data.datasets[0].data.shift();
+                                liveCvdData.shift();
+                            }
+                            cvdChartInstance.update('none');
+                            updateCvdTableLive();
+                        }
+                    });
+                } catch (error) {
+                    console.error("Error saat memproses trade:", error);
                 }
-                if (cvdChartInstance) {
-                    if (isNaN(quantity) || quantity === 0) return;
-                    const sign = trade.m ? -1 : 1;
-                    liveCvdValue += quantity * sign;
-                    liveCvdValueUsdt += (quantity * price) * sign;
-                    const newPoint = { x: trade.T, y_coin: liveCvdValue, y_usdt: liveCvdValueUsdt };
-                    cvdChartInstance.data.datasets[0].data.push(newPoint);
-                    liveCvdData.push(newPoint);
-                    while (cvdChartInstance.data.datasets[0].data.length > 300) {
-                        cvdChartInstance.data.datasets[0].data.shift();
-                        liveCvdData.shift();
-                    }
-                    cvdChartInstance.update('none');
-                    updateCvdTableLive();
-                }
-            });
-        } catch (error) {
-            console.error("Error saat memproses trade:", error);
-        }
-    }
+            }
 
     // 3. Proses Antrian Depth (Order Book) dengan aman
-    if (depthQueue.length > 0) {
-        try {
-            const updatesToProcess = depthQueue.splice(0, depthQueue.length);
-            // <<< LOGIKA LENGKAP DIMASUKKAN DI SINI >>>
-            updatesToProcess.forEach(update => {
-                if (update.b) {
-                    update.b.forEach(([price, qty]) => {
-                        const existingIndex = latestBids.findIndex(bid => bid[0] === price);
-                        if (parseFloat(qty) === 0) {
-                            if (existingIndex !== -1) latestBids.splice(existingIndex, 1);
-                        } else {
-                            if (existingIndex !== -1) latestBids[existingIndex] = [price, qty];
-                            else latestBids.push([price, qty]);
+            if (depthQueue.length > 0) {
+                try {
+                    const updatesToProcess = depthQueue.splice(0, depthQueue.length);
+                    // <<< LOGIKA LENGKAP DIMASUKKAN DI SINI >>>
+                    updatesToProcess.forEach(update => {
+                        if (update.b) {
+                            update.b.forEach(([price, qty]) => {
+                                const existingIndex = latestBids.findIndex(bid => bid[0] === price);
+                                if (parseFloat(qty) === 0) {
+                                    if (existingIndex !== -1) latestBids.splice(existingIndex, 1);
+                                } else {
+                                    if (existingIndex !== -1) latestBids[existingIndex] = [price, qty];
+                                    else latestBids.push([price, qty]);
+                                }
+                            });
+                        }
+                        if (update.a) {
+                            update.a.forEach(([price, qty]) => {
+                                const existingIndex = latestAsks.findIndex(ask => ask[0] === price);
+                                if (parseFloat(qty) === 0) {
+                                    if (existingIndex !== -1) latestAsks.splice(existingIndex, 1);
+                                } else {
+                                    if (existingIndex !== -1) latestAsks[existingIndex] = [price, qty];
+                                    else latestAsks.push([price, qty]);
+                                }
+                            });
                         }
                     });
+                    latestBids.sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
+                    latestAsks.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+                    const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
+                    const precision = getPrecisionForAsset(parseFloat(latestPrice));
+                    const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
+                    renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
+                } catch (error) {
+                    console.error("Error saat memproses depth:", error);
                 }
-                if (update.a) {
-                    update.a.forEach(([price, qty]) => {
-                        const existingIndex = latestAsks.findIndex(ask => ask[0] === price);
-                        if (parseFloat(qty) === 0) {
-                            if (existingIndex !== -1) latestAsks.splice(existingIndex, 1);
-                        } else {
-                            if (existingIndex !== -1) latestAsks[existingIndex] = [price, qty];
-                            else latestAsks.push([price, qty]);
-                        }
-                    });
-                }
-            });
-            latestBids.sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
-            latestAsks.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
-            const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
-            const precision = getPrecisionForAsset(parseFloat(latestPrice));
-            const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
-            renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
-        } catch (error) {
-            console.error("Error saat memproses depth:", error);
+            }
+        };
+
+
+// =======================================================
+    function populateCurrentStateWidget() {
+        const { tickerData, coinGeckoData, usdToIdrRate, globalData, openInterestData, fundingRateData, binanceSymbol } = analysisCache;
+        
+        // Mengisi Navigasi Atas
+        document.getElementById('nav-symbol').textContent = binanceSymbol;
+        const navChange24hEl = document.getElementById('nav-change-24h');
+        const navChange1hEl = document.getElementById('nav-change-1h');
+        
+        const change24h = parseFloat(tickerData.priceChangePercent);
+        if (navChange24hEl) {
+            navChange24hEl.textContent = `${change24h.toFixed(2)}%`;
+            navChange24hEl.className = `font-semibold ${change24h >= 0 ? 'positive' : 'negative'}`;
         }
-    }
-};
+        
+        if (navChange1hEl && coinGeckoData?.market_data) {
+            const change1h = coinGeckoData.market_data.price_change_percentage_1h_in_currency.usd || 0;
+            navChange1hEl.textContent = `${change1h.toFixed(2)}%`;
+            navChange1hEl.className = `font-semibold ${change1h >= 0 ? 'positive' : 'negative'}`;
+        }
+        navVolume24h.textContent = `$${parseFloat(tickerData.quoteVolume).toLocaleString('en-US', { notation: 'compact' })}`;
+        if (coinGeckoData?.market_data) {
+            navAth.textContent = formatPrice(coinGeckoData.market_data.ath.usd);
+            navAtl.textContent = formatPrice(coinGeckoData.market_data.atl.usd);
+        }
 
+        // Mengisi Kartu DATA DASAR yang Disederhanakan
+        if (coinGeckoData?.market_data) {
+            document.getElementById('market-cap').textContent = formatPrice(coinGeckoData.market_data.market_cap.usd);
+        }
+        if (globalData?.data) {
+            document.getElementById('btc-dominance').textContent = `${globalData.data.market_cap_percentage.btc.toFixed(2)}%`;
+        }
 
-
-function populateCurrentStateWidget() {
-    const { tickerData, coinGeckoData, usdToIdrRate, globalData, openInterestData, fundingRateData, binanceSymbol } = analysisCache;
-    
-    // Mengisi Navigasi Atas
-    document.getElementById('nav-symbol').textContent = binanceSymbol;
-    const navChange24hEl = document.getElementById('nav-change-24h');
-    const navChange1hEl = document.getElementById('nav-change-1h');
-    
-    const change24h = parseFloat(tickerData.priceChangePercent);
-    if (navChange24hEl) {
-        navChange24hEl.textContent = `${change24h.toFixed(2)}%`;
-        navChange24hEl.className = `font-semibold ${change24h >= 0 ? 'positive' : 'negative'}`;
-    }
-    
-    if (navChange1hEl && coinGeckoData?.market_data) {
-        const change1h = coinGeckoData.market_data.price_change_percentage_1h_in_currency.usd || 0;
-        navChange1hEl.textContent = `${change1h.toFixed(2)}%`;
-        navChange1hEl.className = `font-semibold ${change1h >= 0 ? 'positive' : 'negative'}`;
-    }
-    navVolume24h.textContent = `$${parseFloat(tickerData.quoteVolume).toLocaleString('en-US', { notation: 'compact' })}`;
-    if (coinGeckoData?.market_data) {
-        navAth.textContent = formatPrice(coinGeckoData.market_data.ath.usd);
-        navAtl.textContent = formatPrice(coinGeckoData.market_data.atl.usd);
-    }
-
-    // Mengisi Kartu DATA DASAR yang Disederhanakan
-    if (coinGeckoData?.market_data) {
-        document.getElementById('market-cap').textContent = formatPrice(coinGeckoData.market_data.market_cap.usd);
-    }
-    if (globalData?.data) {
-        document.getElementById('btc-dominance').textContent = `${globalData.data.market_cap_percentage.btc.toFixed(2)}%`;
-    }
-
-    // Mengisi Bagian Lain yang Masih Ada di Dasbor
-    document.getElementById('current-state-title').innerHTML = `<span class="text-yellow-500 font-semibold">💲 ${binanceSymbol}</span>`;
-    document.getElementById('range-24h').textContent = `${formatPrice(parseFloat(tickerData.lowPrice)).replace('$', '')} - ${formatPrice(parseFloat(tickerData.highPrice)).replace('$', '')}`;
-    
-    const futuresContainer = document.getElementById('futures-data-container');
-    const price = parseFloat(tickerData.lastPrice);
-    if (marketTypeSelect.value === 'futures' && openInterestData && fundingRateData) {
-        futuresContainer.classList.remove('hidden');
-        document.getElementById('open-interest').textContent = `$${(parseFloat(openInterestData.openInterest) * price).toLocaleString('en-US', { notation: 'compact' })}`;
-        document.getElementById('funding-rate').textContent = `${(parseFloat(fundingRateData.lastFundingRate) * 100).toFixed(4)}%`;
-        if (fundingRateData.nextFundingTime) {
-            startFundingRateTimer(fundingRateData.nextFundingTime);
+        // Mengisi Bagian Lain yang Masih Ada di Dasbor
+        document.getElementById('current-state-title').innerHTML = `<span class="text-yellow-500 font-semibold">💲 ${binanceSymbol}</span>`;
+        document.getElementById('range-24h').textContent = `${formatPrice(parseFloat(tickerData.lowPrice)).replace('$', '')} - ${formatPrice(parseFloat(tickerData.highPrice)).replace('$', '')}`;
+        
+        const futuresContainer = document.getElementById('futures-data-container');
+        const price = parseFloat(tickerData.lastPrice);
+        if (marketTypeSelect.value === 'futures' && openInterestData && fundingRateData) {
+            futuresContainer.classList.remove('hidden');
+            document.getElementById('open-interest').textContent = `$${(parseFloat(openInterestData.openInterest) * price).toLocaleString('en-US', { notation: 'compact' })}`;
+            document.getElementById('funding-rate').textContent = `${(parseFloat(fundingRateData.lastFundingRate) * 100).toFixed(4)}%`;
+            if (fundingRateData.nextFundingTime) {
+                startFundingRateTimer(fundingRateData.nextFundingTime);
+            } else {
+                document.getElementById('funding-rate-interval').textContent = '-';
+            }
         } else {
-            document.getElementById('funding-rate-interval').textContent = '-';
+            futuresContainer.classList.add('hidden');
         }
-    } else {
-        futuresContainer.classList.add('hidden');
     }
-}
+// =======================================================
     function renderCvdChart() {
         const { cvdData } = analysisCache;
         if (!cvdData || cvdData.length === 0) return;
@@ -4952,8 +4929,7 @@ function populateCurrentStateWidget() {
     
     const reconnectDelay = 5000; // Coba sambung kembali setiap 5 detik
 
-// --- FUNGSI KALKULASI BARU ---
-
+// =======================================================
     function calculateROC(closes, period = 12) {
         if (closes.length < period + 1) return { value: 0, status: 'N/A' };
         const currentClose = closes[closes.length - 1];
@@ -5066,61 +5042,61 @@ function populateCurrentStateWidget() {
         return obv;
     };
 
-    // DENGAN FUNGSI BARU INI
-function calculateVWAP(klines, mode = 'rolling', period = 20) {
-    if (!klines || klines.length === 0) return 0;
+// =======================================================
+    function calculateVWAP(klines, mode = 'rolling', period = 20) {
+        if (!klines || klines.length === 0) return 0;
 
-    let sumPV = 0; // sum(Price * Volume)
-    let sumV = 0;  // sum(Volume)
-    let vwapValues = [];
+        let sumPV = 0; // sum(Price * Volume)
+        let sumV = 0;  // sum(Volume)
+        let vwapValues = [];
 
-    if (mode === 'rolling') {
-        const recentKlines = klines.slice(-period);
-        recentKlines.forEach(k => {
-            const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
-            sumPV += ((high + low + close) / 3) * vol;
-            sumV += vol;
-        });
-        return sumV > 0 ? sumPV / sumV : 0;
+        if (mode === 'rolling') {
+            const recentKlines = klines.slice(-period);
+            recentKlines.forEach(k => {
+                const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
+                sumPV += ((high + low + close) / 3) * vol;
+                sumV += vol;
+            });
+            return sumV > 0 ? sumPV / sumV : 0;
 
-    } else if (mode === 'session') {
-        const todayUTC = new Date().toISOString().slice(0, 10);
-        const sessionKlines = klines.filter(k => new Date(k[0]).toISOString().slice(0, 10) === todayUTC);
-        if (sessionKlines.length === 0) return 0; // Tidak ada data untuk sesi hari ini
-        
-        sessionKlines.forEach(k => {
-            const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
-            sumPV += ((high + low + close) / 3) * vol;
-            sumV += vol;
-        });
-        return sumV > 0 ? sumPV / sumV : 0;
+        } else if (mode === 'session') {
+            const todayUTC = new Date().toISOString().slice(0, 10);
+            const sessionKlines = klines.filter(k => new Date(k[0]).toISOString().slice(0, 10) === todayUTC);
+            if (sessionKlines.length === 0) return 0; // Tidak ada data untuk sesi hari ini
+            
+            sessionKlines.forEach(k => {
+                const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
+                sumPV += ((high + low + close) / 3) * vol;
+                sumV += vol;
+            });
+            return sumV > 0 ? sumPV / sumV : 0;
 
-    } else if (mode === 'anchored') {
-        const anchorLookback = 200; // Mencari titik terendah dalam 200 candle terakhir
-        const recentSlice = klines.slice(-anchorLookback);
-        if (recentSlice.length === 0) return 0;
+        } else if (mode === 'anchored') {
+            const anchorLookback = 200; // Mencari titik terendah dalam 200 candle terakhir
+            const recentSlice = klines.slice(-anchorLookback);
+            if (recentSlice.length === 0) return 0;
 
-        let lowestLow = Infinity;
-        let anchorIndex = -1;
-        
-        recentSlice.forEach((k, index) => {
-            const low = parseFloat(k[3]);
-            if (low < lowestLow) {
-                lowestLow = low;
-                anchorIndex = klines.length - anchorLookback + index;
-            }
-        });
+            let lowestLow = Infinity;
+            let anchorIndex = -1;
+            
+            recentSlice.forEach((k, index) => {
+                const low = parseFloat(k[3]);
+                if (low < lowestLow) {
+                    lowestLow = low;
+                    anchorIndex = klines.length - anchorLookback + index;
+                }
+            });
 
-        const anchoredKlines = klines.slice(anchorIndex);
-        anchoredKlines.forEach(k => {
-            const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
-            sumPV += ((high + low + close) / 3) * vol;
-            sumV += vol;
-        });
-        return sumV > 0 ? sumPV / sumV : 0;
+            const anchoredKlines = klines.slice(anchorIndex);
+            anchoredKlines.forEach(k => {
+                const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
+                sumPV += ((high + low + close) / 3) * vol;
+                sumV += vol;
+            });
+            return sumV > 0 ? sumPV / sumV : 0;
+        }
+        return 0; // Fallback
     }
-    return 0; // Fallback
-}
 
     // =======================================================
     // == BLOK FUNGSI BARU UNTUK FITUR KORELASI (MULAI) ==
@@ -5150,9 +5126,7 @@ function calculateVWAP(klines, mode = 'rolling', period = 20) {
         return numerator / denominator;
     }
 
-    /**
-     * Mengisi widget korelasi dengan data dari analysisCache.
-     */
+// == BLOK FUNGSI UNTUK FITUR KORELASI  ==
     function populateCorrelationWidget() {
         const valueEl = document.getElementById('correlation-value');
         const textEl = document.getElementById('correlation-text');
@@ -5182,10 +5156,7 @@ function calculateVWAP(klines, mode = 'rolling', period = 20) {
         textEl.textContent = text;
         valueEl.className = `text-lg font-semibold ${colorClass}`;
     }
-
-    // =======================================================
-    // == BLOK FUNGSI BARU UNTUK FITUR KORELASI (SELESAI) ==
-    // =======================================================
+// == BLOK FUNGSI BARU UNTUK FITUR KORELASI (SELESAI) ==
 // === FUNGSI RESET BARU ===
     function resetDashboard() {
         console.log("Mereset dasbor...");
@@ -5212,7 +5183,7 @@ function calculateVWAP(klines, mode = 'rolling', period = 20) {
         // Gulir kembali ke atas
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    // =======================================================
+// =======================================================
     function updateVwapDisplay(mode) {
         if (!analysisCache.klines) return;
         
@@ -5232,6 +5203,7 @@ function calculateVWAP(klines, mode = 'rolling', period = 20) {
         // Panggil ulang update skor konfluensi agar ikut berubah
         updateQuickConfluenceWidget();
     }
+    
     // =======================================================
     // BAGIAN 5: EVENT LISTENER UTAMA  
     // =======================================================  
