@@ -395,8 +395,8 @@
     <div id="main-content-container" class="px-4 pb-8 sm:px-6 lg:px-8">
         <header class="py-4 flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold text-gray-800">ULTIMATE 🤑 with MVRZ Z-Score</h1>
-                <p class="text-yellow-500 font-mono mt-1 text-sm">Final Goes to $1.000.000.000,00 Bugs Fixed!</p>
+                <h1 class="text-xl font-bold text-gray-800">ULTIMATE 🤑</h1>
+                <p class="text-yellow-500 font-mono mt-1 text-sm">Final Goes to $1.000.000.000,00 TOP MOVERS ganti ECU</p>
             </div>
             <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none">
                 <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
@@ -409,7 +409,7 @@
                 <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <div>
                         <input type="password" id="gemini-api-key" class="input-primary" placeholder="Tempel API Key dari Google AI Studio...">
-                        <p class="text-xs text-gray-400 mt-1">API 🔑  👆🏻<a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY</a>.</p>
+                        <p class="text-xs text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
                     </div>
                     <div>
                         <div class="flex flex-col sm:flex-row gap-4">
@@ -1350,117 +1350,115 @@
             tableBody.deleteRow(tableBody.rows.length - 1);
         }
     }
-// ===========================chatgpt============================
-/**
- * BARU: Helper untuk mengubah skor angka menjadi emoji bintang.
- */
+// ===========================TOP MOVERS============================
+// FUNGSI 1: generateStars    
     function generateStars(score) {
         if (score === undefined || score === null) return '';
         const fullStar = '🤑';
-        const emptyStar = '✩';
+        const emptyStar = '🫥';
         return fullStar.repeat(score) + emptyStar.repeat(5 - score);
     }
+// FUNGSI 2: analyzeCandidate (Sekarang hanya dipanggil 'on-demand')
+    async function analyzeCandidate(asset, type) {
+        const details = {};
+        let score = 0;
+        const timeframe = '1h'; // Analisis skor tetap di 1H
+        let change1h = 'N/A', change15m = 'N/A', change5m = 'N/A';
 
-    /**
- * BARU: Menganalisis satu aset secara mendalam untuk kandidat Long/Short.
- */
-    /**
- * Menganalisis satu aset secara mendalam untuk kandidat Long/Short.
- * Versi ini sudah diperbaiki dan lebih tangguh.
- */
-// GANTI FUNGSI LAMA DENGAN VERSI FINAL INI
-// GANTI FUNGSI LAMA DENGAN VERSI BARU YANG LEBIH LENGKAP INI
-// GANTI DENGAN VERSI FINAL YANG LEBIH RINGAN INI
-async function analyzeCandidate(asset, type) {
-    const details = {};
-    let score = 0;
-    const timeframe = '1h';
-    let change1h = 'N/A';
-    try {
-        const klines = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: timeframe, limit: 200 }, 'futures');
-        if (!klines || klines.length < 50) { details.error = 'Data kline kurang'; return { ...asset, score: 0, details, change1h }; }
-        
-        const calculateChange = (klineData) => {
-            if (!klineData || klineData.length < 2) return 'N/A';
-            const prevClose = parseFloat(klineData[0][4]);
-            const currentClose = parseFloat(klineData[1][4]);
-            return prevClose > 0 ? (((currentClose - prevClose) / prevClose) * 100).toFixed(2) : '0.00';
-        };
-        change1h = calculateChange(klines.slice(-2));
-        
-        const closes = klines.map(k => parseFloat(k[4]));
-        const rsiValues = calculateRSI(closes, 14);
-
-        details['Harga Parabolik (24J)'] = `✅ (${type === 'short' ? '+' : ''}${parseFloat(asset.priceChangePercent).toFixed(1)}%)`;
-        score++;
         try {
-            const divergence = detectRSIDivergence(closes, rsiValues);
-            if (type === 'short' && divergence.status === 'BEARISH') { score += 2; details[`Divergensi Bearish (${timeframe})`] = '✅ Terdeteksi'; }
-            else if (type === 'long' && divergence.status === 'BULLISH') { score += 2; details[`Divergensi Bullish (${timeframe})`] = '✅ Terdeteksi'; }
-            else { details[`Divergensi (${timeframe})`] = '▫️ Tidak Ada'; }
-        } catch(e) { details['Divergensi'] = '❌ Error Cek'; }
-        
+// Helper untuk menghitung persen perubahan
+            const calculateChange = (klineData) => {
+                if (!klineData || klineData.length < 2) return 'N/A';
+                const prevClose = parseFloat(klineData[0][4]);
+                const currentClose = parseFloat(klineData[1][4]);
+                return prevClose > 0 ? (((currentClose - prevClose) / prevClose) * 100).toFixed(2) : '0.00';
+            };
+
+// Ambil data utama untuk analisis (1H)
+            const klines = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: timeframe, limit: 200 }, 'futures');
+            if (!klines || klines.length < 50) { 
+                details.error = 'Data kline kurang'; 
+                return { ...asset, score: 0, details, change1h, change15m, change5m }; 
+            }
+            change1h = calculateChange(klines.slice(-2)); // Hitung 1H dari data utama
+
+// Ambil data tambahan untuk tampilan
+            const klines15m = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '15m', limit: 2 }, 'futures');
+            change15m = calculateChange(klines15m);
+
+            const klines5m = await fetchBinanceAPIData('klines', { symbol: asset.symbol, interval: '5m', limit: 2 }, 'futures');
+            change5m = calculateChange(klines5m);
+
+// --- Sisa dari logika skoring tetap sama ---
+            const closes = klines.map(k => parseFloat(k[4]));
+            const rsiValues = calculateRSI(closes, 14);
+
+            details['Harga Parabolik (24J)'] = `✅ (${type === 'short' ? '+' : ''}${parseFloat(asset.priceChangePercent).toFixed(1)}%)`;
+            score++;
+            try {
+                const divergence = detectRSIDivergence(closes, rsiValues);
+                if (type === 'short' && divergence.status === 'BEARISH') { score += 2; details[`Divergensi Bearish (${timeframe})`] = '✅ Terdeteksi'; }
+                else if (type === 'long' && divergence.status === 'BULLISH') { score += 2; details[`Divergensi Bullish (${timeframe})`] = '✅ Terdeteksi'; }
+                else { details[`Divergensi (${timeframe})`] = '⚪️ Tidak Ada'; }
+            } catch(e) { details['Divergensi'] = '❌ Error Cek'; }
+            try {
+                const fundingRateResp = await fetchBinanceAPIData('premiumIndex', { symbol: asset.symbol }, 'futures');
+                const rate = parseFloat(fundingRateResp.lastFundingRate);
+                const ratePercent = (rate * 100).toFixed(3);
+                if (type === 'short' && rate > 0.0005) { score++; details['Funding Rate Tinggi'] = `✅ (${ratePercent}%)`; }
+                else if (type === 'long' && rate < -0.0005) { score++; details['Funding Rate Negatif'] = `✅ (${ratePercent}%)`; }
+                else { details['Funding Rate'] = `⚪️ Normal (${ratePercent}%)`; }
+            } catch (e) { details['Funding Rate'] = '❌ Gagal ambil data'; }
+            
+            details['Market Cap'] = 'ℹ️ Cek di Analisis Penuh';
+
+        } catch (e) {
+            console.error(`Analisis mendalam untuk ${asset.symbol} gagal:`, e);
+            details.error = 'Gagal analisis';
+        }
+                
+        return { ...asset, score: Math.min(score, 4), details, change1h, change15m, change5m };
+    }
+// FUNGSI 3: scanTopMoversForOpportunities (Versi Cepat & Ringan)
+    async function scanTopMoversForOpportunities(timeframe = '1h') {
         try {
-            const fundingRateResp = await fetchBinanceAPIData('premiumIndex', { symbol: asset.symbol }, 'futures');
-            const rate = parseFloat(fundingRateResp.lastFundingRate);
-            const ratePercent = (rate * 100).toFixed(3);
-            if (type === 'short' && rate > 0.0005) { score++; details['Funding Rate Tinggi'] = `✅ (${ratePercent}%)`; }
-            else if (type === 'long' && rate < -0.0005) { score++; details['Funding Rate Negatif'] = `✅ (${ratePercent}%)`; }
-            else { details['Funding Rate'] = `▫️ Normal (${ratePercent}%)`; }
-        } catch (e) { details['Funding Rate'] = '❌ Gagal ambil data'; }
+            const allTickers = await fetchBinanceAPIData('ticker/24hr', {}, 'futures');
+            const exchangeInfo = await fetchBinanceAPIData('exchangeInfo', {}, 'futures');
+            const tradingSymbols = new Set(exchangeInfo.symbols.filter(s => s.status === 'TRADING').map(s => s.symbol));
+            const filtered = allTickers
+                .filter(t => t.symbol.endsWith('USDT') && tradingSymbols.has(t.symbol))
+                .map(t => ({ ...t, priceChangePercent: parseFloat(t.priceChangePercent) }));
+            filtered.sort((a, b) => b.priceChangePercent - a.priceChangePercent);
+            
+            const gainerCandidates = filtered.slice(0, 10); //tambah kurang topmovers
+            const loserCandidates = filtered.slice(-10).reverse();
 
-        // --- BAGIAN MARKET CAP DIHAPUS DARI ANALISIS OTOMATIS ---
-        // Poin untuk Market Cap sekarang dihilangkan dari skor awal
-        details['Market Cap'] = 'ℹ️ Cek di Analisis Penuh';
+            const gainersPromises = gainerCandidates.map(asset => analyzeCandidate(asset, 'short', timeframe));
+            const losersPromises = loserCandidates.map(asset => analyzeCandidate(asset, 'long', timeframe));
+            const [finalGainers, finalLosers] = await Promise.all([
+                Promise.all(gainersPromises),
+                Promise.all(losersPromises)
+            ]);
 
-    } catch (e) {
-        console.error(`Analisis mendalam untuk ${asset.symbol} gagal:`, e);
-        details.error = 'Gagal analisis';
+            displayTopMovers(finalGainers, gainersList, 'positive');
+            displayTopMovers(finalLosers, losersList, 'negative');
+            attachTopMoversListeners();
+            topMoversSection.classList.remove('hidden');
+        } catch (e) {
+            console.error('Gagal memindai Top Movers:', e);
+            
+            topMoversSection.classList.add('hidden');
+        }
     }
-    
-    // Skor maksimal sekarang disesuaikan (misal jadi 4)
-    return { ...asset, score: Math.min(score, 4), details, change1h };
-}
-
-// 3. FUNGSI UTAMA BARU YANG DINAMIS
-async function scanTopMoversForOpportunities(timeframe = '1h') {
-    try {
-        const allTickers = await fetchBinanceAPIData('ticker/24hr', {}, 'futures');
-        const exchangeInfo = await fetchBinanceAPIData('exchangeInfo', {}, 'futures');
-        const tradingSymbols = new Set(exchangeInfo.symbols.filter(s => s.status === 'TRADING').map(s => s.symbol));
-        const filtered = allTickers
-            .filter(t => t.symbol.endsWith('USDT') && tradingSymbols.has(t.symbol))
-            .map(t => ({ ...t, priceChangePercent: parseFloat(t.priceChangePercent) }));
-        filtered.sort((a, b) => b.priceChangePercent - a.priceChangePercent);
-        
-        const gainerCandidates = filtered.slice(0, 10); //tambah kurang topmovers
-        const loserCandidates = filtered.slice(-5).reverse();
-
-        const gainersPromises = gainerCandidates.map(asset => analyzeCandidate(asset, 'short', timeframe));
-        const losersPromises = loserCandidates.map(asset => analyzeCandidate(asset, 'long', timeframe));
-        const [finalGainers, finalLosers] = await Promise.all([
-            Promise.all(gainersPromises),
-            Promise.all(losersPromises)
-        ]);
-
-        displayTopMovers(finalGainers, gainersList, 'positive');
-        displayTopMovers(finalLosers, losersList, 'negative');
-        attachTopMoversListeners();
-        topMoversSection.classList.remove('hidden');
-    } catch (e) {
-        console.error('Gagal memindai Top Movers:', e);
-        topMoversSection.classList.add('hidden');
-    }
-}
 // =======================================================  
-// GANTI FUNGSI LAMA DENGAN VERSI BARU INI
+// FUNGSI 4: displayTopMovers & attachTopMoversListeners (Versi On-Demand)
 function displayTopMovers(data, container, colorClass) {
     container.innerHTML = data.map(item => {
         const formattedPrice = formatPrice(parseFloat(item.lastPrice)).replace('$', '');
         const stars = generateStars(item.score);
         const detailsString = JSON.stringify(item.details || {});
 
-        // Helper untuk format dan warna persentase
+// Helper untuk format dan warna persentase
         const formatChange = (changeValue, label) => {
             if (changeValue === 'N/A' || isNaN(parseFloat(changeValue))) {
                 return `<span class="text-gray-500">${label} --</span>`;
@@ -1494,8 +1492,7 @@ function displayTopMovers(data, container, colorClass) {
         </button>`;
     }).join('');
 }
-// =======================================================  
-    // GANTI FUNGSI LAMA DENGAN VERSI BARU INI
+
 function attachTopMoversListeners() {
     const tooltipElement = document.getElementById('custom-tooltip');
     const hideTooltip = () => {
@@ -2903,7 +2900,7 @@ async function runFullAnalysis() {
     WebSocketManager.registerHandler('depthUpdate', (data) => depthQueue.push(data));
     
     orderBookDOMElements = null;
-    topMoversSection.classList.add('hidden');
+    //topMoversSection.classList.add('hidden');
     hideError();
     showLoader(true, 'Memulai Analisa...');
     WebSocketManager.resetSubscriptions();
