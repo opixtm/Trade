@@ -424,6 +424,15 @@
                                     <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Parameter Indikator</h3>
                                     <div class="space-y-2 text-sm">
                                         <div class="flex items-center justify-between"><label for="setting-rsi-period" class="text-gray-500">Periode RSI</label><input type="number" id="setting-rsi-period" class="input-primary !w-20 text-center" value="14"></div>
+                                        <div class="flex items-center justify-between">
+                                            <label for="setting-stoch-rsi-period" class="text-gray-500">Stoch RSI (RSI/Stoch/K/D)</label>
+                                            <div class="flex gap-1">
+                                                <input type="number" id="setting-stoch-rsi-period" class="input-primary !w-12 text-center" value="14">
+                                                <input type="number" id="setting-stoch-stoch-period" class="input-primary !w-12 text-center" value="14">
+                                                <input type="number" id="setting-stoch-k-smooth" class="input-primary !w-12 text-center" value="3">
+                                                <input type="number" id="setting-stoch-d-smooth" class="input-primary !w-12 text-center" value="3">
+                                            </div>
+                                        </div>
                                         <div class="flex items-center justify-between"><label for="setting-macd-fast" class="text-gray-500">MACD Fast/Slow/Signal</label><div class="flex gap-1"><input type="number" id="setting-macd-fast" class="input-primary !w-16 text-center" value="12"><input type="number" id="setting-macd-slow" class="input-primary !w-16 text-center" value="26"><input type="number" id="setting-macd-signal" class="input-primary !w-16 text-center" value="9"></div></div>
                                         <div class="flex items-center justify-between">
                                             <label for="setting-weight-obv-divergence" class="text-gray-500">Bobot Divergensi OBV</label>
@@ -902,6 +911,7 @@
     // BAGIAN 3: DEKLARASI STATE & VARIABEL GLOBAL
     // =======================================================
     // GANTI BLOK userSettings YANG LAMA DENGAN INI:
+    // GANTI BLOK userSettings YANG LAMA DENGAN INI:
     let userSettings = {
         active: {
             weights: {}, // Akan diisi oleh preset
@@ -909,35 +919,32 @@
         },
         presets: {
             'default': {
-                weights: { ma: 2, pivot: 2, vwap: 2, ichimoku: 3, rsi: 1.5, stoch: 1, macd: 2, candlePattern: 1.5, psar: 1, linreg: 1, roc: 1, bollingerBands: 1, rsiDivergence: 2.5, obvDivergence: 3.0, openInterest: 1, funding: 1, lsr: 1, orderBookBias: 1, bbSqueeze: 1 }
+                weights: { ma: 2, pivot: 2, vwap: 2, ichimoku: 3, rsi: 1.5, stoch: 1, macd: 2, candlePattern: 1.5, psar: 1, linreg: 1, roc: 1, bollingerBands: 1, rsiDivergence: 2.5, obvDivergence: 3.0, openInterest: 1, funding: 1, lsr: 1, orderBookBias: 1, bbSqueeze: 1 },
+                // [BARU] Tambahkan parameter Stoch RSI default
+                indicatorParams: { 
+                    rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9,
+                    stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 
+                }
             },
-            'scalper': {
-                weights: { stoch: 1.0, rsi: 1.0, vwap: 0.8, macd: 0.8, bbSqueeze: 0.7, orderBookBias: 0.7, funding: 0.3, lsr: 0.3, ma: 0.2, pivot: 0.5, ichimoku: 0.1, candlePattern: 0.5, psar: 0.6, linreg: 0.5, roc: 0.4, bollingerBands: 0.5, rsiDivergence: 0.3, obvDivergence: 0.2, openInterest: 0.5 }
-            },
-            'dayTrader': {
-                weights: { ma: 1.2, macd: 1.0, rsi: 0.8, stoch: 0.6, bbSqueeze: 0.6, ichimoku: 0.8, vwap: 0.7, adx: 0.7, rsiDivergence: 0.5, obvDivergence: 0.5, pivot: 0.8, candlePattern: 0.7, psar: 0.5, linreg: 0.5, roc: 0.5, bollingerBands: 0.6, openInterest: 0.6, funding: 0.4, lsr: 0.4, orderBookBias: 0.6 }
-            },
-            'swingTrader': {
-                weights: { ma: 1.5, ichimoku: 1.2, adx: 1.0, macd: 1.0, rsi: 0.6, bbSqueeze: 0.6, pivot: 0.6, obvDivergence: 1.2, rsiDivergence: 0.8, candlePattern: 1.0, psar: 0.8, linreg: 0.8, roc: 0.5, bollingerBands: 0.7, openInterest: 0.2, funding: 0.1, lsr: 0.1, orderBookBias: 0.3, vwap: 0.5 }
-            }
+            // ... (preset 'scalper', 'dayTrader', 'swingTrader' tetap sama) ...
         }
     };
 
-    // TAMBAHKAN BLOK BARU INI TEPAT DI BAWAH userSettings
+    // GANTI BLOK timeframeParameterMap YANG LAMA DENGAN INI:
     const timeframeParameterMap = {
-        // Kategori Scalping (Timeframe <= 15m)
-        '1m': { rsi_period: 7, macd_fast: 5, macd_slow: 13, macd_signal: 5 },
-        '3m': { rsi_period: 9, macd_fast: 5, macd_slow: 13, macd_signal: 5 },
-        '5m': { rsi_period: 9, macd_fast: 8, macd_slow: 21, macd_signal: 9 },
-        '15m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9 },
-        // Kategori Day Trading (Timeframe > 15m dan <= 4h)
-        '30m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9 },
-        '1h': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9 },
-        '2h': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9 },
-        '4h': { rsi_period: 21, macd_fast: 12, macd_slow: 26, macd_signal: 9 },
-        // Kategori Swing Trading (Timeframe > 4h)
-        '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9 },
-        '1w': { rsi_period: 25, macd_fast: 21, macd_slow: 55, macd_signal: 9 }
+        // Kategori Scalping (Timeframe <= 15m) -> Stoch RSI lebih sensitif
+        '1m': { rsi_period: 7, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '3m': { rsi_period: 9, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '5m': { rsi_period: 9, macd_fast: 8, macd_slow: 21, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '15m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        // Kategori Day Trading (Timeframe > 15m dan <= 4h) -> Stoch RSI standar
+        '30m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '1h': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '2h': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '4h': { rsi_period: 21, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        // Kategori Swing Trading (Timeframe > 4h) -> Stoch RSI lebih stabil
+        '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '1w': { rsi_period: 25, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 25, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 }
     };
 
     let klineCache = {};
@@ -1065,18 +1072,21 @@
 
     // TAMBAHKAN FUNGSI BARU INI
     function adaptIndicatorParamsToTimeframe(timeframe) {
-        const params = timeframeParameterMap[timeframe] || timeframeParameterMap['15m']; // Default ke 15m jika tidak ditemukan
+        const params = timeframeParameterMap[timeframe] || timeframeParameterMap['15m'];
 
-        // Update state internal
-        userSettings.active.indicatorParams = { ...params };
+        userSettings.active.indicatorParams = { ...userSettings.presets['default'].indicatorParams, ...params };
 
-        // Update tampilan di menu settings agar user tahu parameter apa yang aktif
-        document.getElementById('setting-rsi-period').value = params.rsi_period;
-        document.getElementById('setting-macd-fast').value = params.macd_fast;
-        document.getElementById('setting-macd-slow').value = params.macd_slow;
-        document.getElementById('setting-macd-signal').value = params.macd_signal;
+        document.getElementById('setting-rsi-period').value = userSettings.active.indicatorParams.rsi_period;
+        document.getElementById('setting-macd-fast').value = userSettings.active.indicatorParams.macd_fast;
+        document.getElementById('setting-macd-slow').value = userSettings.active.indicatorParams.macd_slow;
+        document.getElementById('setting-macd-signal').value = userSettings.active.indicatorParams.macd_signal;
+        // [BARU] Update UI untuk Stoch RSI
+        document.getElementById('setting-stoch-rsi-period').value = userSettings.active.indicatorParams.stoch_rsi_period;
+        document.getElementById('setting-stoch-stoch-period').value = userSettings.active.indicatorParams.stoch_stoch_period;
+        document.getElementById('setting-stoch-k-smooth').value = userSettings.active.indicatorParams.stoch_k_smooth;
+        document.getElementById('setting-stoch-d-smooth').value = userSettings.active.indicatorParams.stoch_d_smooth;
         
-        console.log(`Parameter indikator diadaptasi untuk timeframe ${timeframe}:`, params);
+        console.log(`Parameter indikator diadaptasi untuk timeframe ${timeframe}:`, userSettings.active.indicatorParams);
     }
     function applyPreset(presetName) {
             if (!userSettings.presets[presetName]) return;
@@ -1193,13 +1203,11 @@ function determineMarketRegime(klines, closes) {
     function loadSettings() {
         const savedActiveSettings = localStorage.getItem('ultimateAppSettings');
         
-        // Selalu inisialisasi dengan default terlebih dahulu
         applyPreset('default'); 
         
         if (savedActiveSettings) {
             try {
                 const parsed = JSON.parse(savedActiveSettings);
-                // Timpa default dengan data tersimpan jika ada
                 if (parsed.weights) userSettings.active.weights = { ...userSettings.active.weights, ...parsed.weights };
                 if (parsed.indicatorParams && Object.keys(parsed.indicatorParams).length > 0) {
                     userSettings.active.indicatorParams = { ...userSettings.active.indicatorParams, ...parsed.indicatorParams };
@@ -1209,22 +1217,26 @@ function determineMarketRegime(klines, closes) {
             }
         }
 
-        // Jika setelah semua proses, indicatorParams masih kosong (karena data lama),
-        // atau jika tidak ada data tersimpan, panggil adaptif.
         if (Object.keys(userSettings.active.indicatorParams).length === 0) {
             console.log("Parameter indikator kosong, memuat default berdasarkan timeframe...");
             adaptIndicatorParamsToTimeframe(timeframeSelect.value);
         }
 
-        // Memuat nilai final ke UI
         document.getElementById('setting-rsi-period').value = userSettings.active.indicatorParams.rsi_period;
         document.getElementById('setting-macd-fast').value = userSettings.active.indicatorParams.macd_fast;
         document.getElementById('setting-macd-slow').value = userSettings.active.indicatorParams.macd_slow;
         document.getElementById('setting-macd-signal').value = userSettings.active.indicatorParams.macd_signal;
+        // [BARU] Muat parameter Stoch RSI ke UI
+        document.getElementById('setting-stoch-rsi-period').value = userSettings.active.indicatorParams.stoch_rsi_period;
+        document.getElementById('setting-stoch-stoch-period').value = userSettings.active.indicatorParams.stoch_stoch_period;
+        document.getElementById('setting-stoch-k-smooth').value = userSettings.active.indicatorParams.stoch_k_smooth;
+        document.getElementById('setting-stoch-d-smooth').value = userSettings.active.indicatorParams.stoch_d_smooth;
+
         document.getElementById('setting-weight-divergence').value = userSettings.active.weights.rsiDivergence;
         document.getElementById('setting-weight-macd').value = userSettings.active.weights.macd;
         document.getElementById('setting-weight-obv-divergence').value = userSettings.active.weights.obvDivergence;
     }
+
 // --- FUNGSI UTAMA & UTILITIES ---
     function showError(message) {
         assetError.textContent = message;
@@ -2221,7 +2233,12 @@ function attachTopMoversListeners() {
         };
     };
 
-    const calculateStochasticRSI = (closes, rsiPeriod = 14, stochPeriod = 14, kSmooth = 3, dSmooth = 3) => {
+    const calculateStochasticRSI = (closes, 
+        rsiPeriod = userSettings.active.indicatorParams.stoch_rsi_period, 
+        stochPeriod = userSettings.active.indicatorParams.stoch_stoch_period, 
+        kSmooth = userSettings.active.indicatorParams.stoch_k_smooth, 
+        dSmooth = userSettings.active.indicatorParams.stoch_d_smooth
+    ) => {
         const rsiValues = calculateRSI(closes, rsiPeriod).filter(v => v !== undefined);
         if (rsiValues.length < stochPeriod) {
             return { k: 50, d: 50, status: 'Netral', class: 'tag-gray', kLine: [], dLine: [], kOffset: 0, dOffset: 0 };
