@@ -577,18 +577,31 @@
                             <section id="risk-management-section" class="card p-6">
                                 <h2 class="text-xl font-bold mb-4">📐 Manajemen Risiko</h2>
                                 <div class="space-y-4 text-sm">
-                                    <div class="flex justify-between items-center">
-                                        <label for="risk-amount-input" class="text-gray-400">Risiko per Trade ($)</label>
-                                        <input type="number" id="risk-amount-input" class="input-primary !w-32 text-center" value="100">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="risk-amount-input" class="text-gray-400">Risiko per Trade ($)</label>
+                                            <input type="number" id="risk-amount-input" class="input-primary w-full text-center mt-1" value="100">
+                                        </div>
+                                        <div>
+                                            <label for="leverage-input" class="text-gray-400">Leverage</label>
+                                            <div class="relative">
+                                                <input type="number" id="leverage-input" class="input-primary w-full text-center mt-1 pr-6" value="10">
+                                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">x</span>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-400">Rasio Risk/Reward (ke TP1)</span>
                                         <span id="rr-ratio-display" class="font-mono font-semibold text-yellow-400">-</span>
                                     </div>
                                     <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-center">
-                                        <p class="text-xs text-gray-500">Saran Ukuran Posisi</p>
+                                        <p class="text-xs text-gray-500">Saran Ukuran Posisi (Notional)</p>
                                         <p id="position-size-display" class="text-2xl font-bold text-gray-800 dark:text-gray-200">-</p>
                                         <p id="position-size-usd-display" class="text-xs font-mono text-gray-400">-</p>
+                                    </div>
+                                    <div class="p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-center border border-dashed border-blue-400/50">
+                                        <p class="text-xs text-blue-400">Margin yang Dibutuhkan</p>
+                                        <p id="margin-required-display" class="text-2xl font-bold text-blue-300">-</p>
                                     </div>
                                 </div>
                             </section>
@@ -2982,18 +2995,30 @@ function calculateAndDisplayScalpingSetup() {
         </div>
     `;
     
-    // Update juga kalkulator manajemen risiko dengan data baru
+    // Panggil kalkulator manajemen risiko
     calculatePositionSize({ entry: entryPrice, sl: stopLoss, tp1: takeProfit1 });
+
+    // [TAMBAHKAN BARIS INI] Simpan level terakhir ke cache untuk digunakan nanti
+    analysisCache.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
 }
 // =======================================================
+    // GANTI FUNGSI calculatePositionSize YANG LAMA DENGAN INI:
     function calculatePositionSize(levels) {
         const riskAmountInput = document.getElementById('risk-amount-input');
+        const leverageInput = document.getElementById('leverage-input'); // [BARU] Ambil input leverage
         const riskAmount = parseFloat(riskAmountInput.value);
-        
+        const leverage = parseFloat(leverageInput.value) || 1; // [BARU] Ambil nilai leverage
+
+        const positionSizeEl = document.getElementById('position-size-display');
+        const positionSizeUsdEl = document.getElementById('position-size-usd-display');
+        const rrRatioEl = document.getElementById('rr-ratio-display');
+        const marginRequiredEl = document.getElementById('margin-required-display'); // [BARU] Elemen untuk margin
+
         if (!levels || !riskAmount || isNaN(riskAmount) || riskAmount <= 0) {
-            document.getElementById('position-size-display').textContent = '-';
-            document.getElementById('position-size-usd-display').textContent = '-';
-            document.getElementById('rr-ratio-display').textContent = '-';
+            positionSizeEl.textContent = '-';
+            positionSizeUsdEl.textContent = '-';
+            rrRatioEl.textContent = '-';
+            marginRequiredEl.textContent = '-'; // [BARU] Reset margin
             return;
         }
 
@@ -3003,16 +3028,27 @@ function calculateAndDisplayScalpingSetup() {
         
         if (stopLossDistance === 0) return;
 
-        // Hitung & tampilkan Ukuran Posisi
+        // Kalkulasi Ukuran Posisi (Notional) - Tetap sama
         const positionSizeCoin = riskAmount / stopLossDistance;
         const positionSizeUsd = positionSizeCoin * entry;
-        document.getElementById('position-size-display').textContent = positionSizeCoin.toFixed(4);
-        document.getElementById('position-size-usd-display').textContent = `($${positionSizeUsd.toLocaleString('en-US', {maximumFractionDigits: 0})})`;
+        positionSizeEl.textContent = positionSizeCoin.toFixed(4);
+        positionSizeUsdEl.textContent = `($${positionSizeUsd.toLocaleString('en-US', {maximumFractionDigits: 0})})`;
 
-        // Hitung & tampilkan RR Ratio
+        // [BARU] Kalkulasi Margin yang Dibutuhkan
+        const marginRequired = positionSizeUsd / leverage;
+        marginRequiredEl.textContent = `$${marginRequired.toLocaleString('en-US', {maximumFractionDigits: 2})}`;
+
+        // Kalkulasi Risk/Reward Ratio - Tetap sama
         const rrRatio = takeProfitDistance / stopLossDistance;
-        document.getElementById('rr-ratio-display').textContent = `1 : ${rrRatio.toFixed(2)}`;
+        rrRatioEl.textContent = `1 : ${rrRatio.toFixed(2)}`;
     }
+
+// [BARU] Tambahkan event listener untuk input leverage
+document.getElementById('leverage-input').addEventListener('input', () => {
+    if (analysisCache.latestScalpingSetup) {
+        calculatePositionSize(analysisCache.latestScalpingSetup);
+    }
+});
     // =======================================================
     /**
      * Fungsi baru untuk menghitung ATR dalam bentuk persentase.
@@ -5327,20 +5363,11 @@ function analyzeAndDisplayConfluenceContributors() {
             applyPreset(e.target.value);
         });
 
+        // GANTI BLOK EVENT LISTENER YANG LAMA DENGAN INI:
         document.getElementById('risk-amount-input').addEventListener('input', () => {
-            // Panggil ulang kalkulator saat user mengubah nilai risiko
-            // Kita perlu mengambil data level dari setup scalping yang sudah dihitung
-            // Ini cara sederhana untuk melakukannya tanpa state management yang kompleks
-            const scalpingContent = document.getElementById('scalping-setup-content');
-            const entryEl = scalpingContent.querySelector('.text-lg.font-semibold');
-            const slEl = scalpingContent.querySelector('.text-lg.negative');
-            const tp1El = scalpingContent.querySelector('.font-semibold.positive');
-
-            if (entryEl && slEl && tp1El) {
-                const entry = parseFloat(entryEl.textContent.replace(/[^0-9.-]+/g,""));
-                const sl = parseFloat(slEl.textContent.replace(/[^0-9.-]+/g,""));
-                const tp1 = parseFloat(tp1El.textContent.replace(/[^0-9.-]+/g,""));
-                calculatePositionSize({ entry, sl, tp1 });
+            // Panggil ulang kalkulator dengan data dari cache, bukan dari HTML
+            if (analysisCache.latestScalpingSetup) {
+                calculatePositionSize(analysisCache.latestScalpingSetup);
             }
         });
 
