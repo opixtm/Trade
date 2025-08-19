@@ -3874,16 +3874,22 @@ function generateShortVerdict(bullPercentage, bearPercentage) {
 }
 
 // =======================================================
+// GANTI SELURUH FUNGSI analyzeAndDisplayConfluenceContributors DENGAN INI:
 function analyzeAndDisplayConfluenceContributors() {
     const data = analysisCache.calculatedData;
     if (!data) return;
 
     let contributors = [];
-    for (const indicator in userSettings.weights) {
+    // Loop ini sudah benar, membaca dari userSettings.active.weights
+    for (const indicator in userSettings.active.weights) {
         if (data[indicator]) {
             const score = getUltimateSignalScore(indicator, data[indicator]);
             if (score !== 0) {
-                contributors.push({ name: indicator.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()), score });
+                // [PERBAIKAN] Menyimpan skor mentah (raw score) untuk ditampilkan
+                contributors.push({ 
+                    name: indicator.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()), 
+                    score: score 
+                });
             }
         }
     }
@@ -3894,17 +3900,30 @@ function analyzeAndDisplayConfluenceContributors() {
     const topBullish = contributors.filter(c => c.score > 0).slice(0, 3);
     const topBearish = contributors.filter(c => c.score < 0).slice(0, 3);
 
-    let bullishHtml = '<h4 class="font-bold positive mb-1">👍 Pro Bullish</h4><ul class="list-disc list-inside text-gray-400">';
-    topBullish.forEach(item => {
-        bullishHtml += `<li>${item.name}</li>`;
-    });
+    // Bagian untuk menampilkan kontributor Bullish
+    let bullishHtml = '<h4 class="font-bold positive mb-1">👍 Pro Bullish</h4><ul class="space-y-1 text-gray-400">';
+    if (topBullish.length > 0) {
+        topBullish.forEach(item => {
+            // [PERBAIKAN] Tampilkan nama DAN skornya
+            bullishHtml += `<li class="flex justify-between"><span>• ${item.name}</span> <span class="font-mono text-xs positive">+${item.score.toFixed(2)}</span></li>`;
+        });
+    } else {
+        bullishHtml += '<li class="text-xs italic text-gray-600">Tidak ada.</li>';
+    }
     bullishHtml += '</ul>';
     document.getElementById('top-bullish-contributors').innerHTML = bullishHtml;
 
-    let bearishHtml = '<h4 class="font-bold negative mb-1">👎 Kontra Bearish</h4><ul class="list-disc list-inside text-gray-400">';
-    topBearish.forEach(item => {
-        bearishHtml += `<li>${item.name}</li>`;
-    });
+    // Bagian untuk menampilkan kontributor Bearish
+    // [PERBAIKAN] Ganti label dari "Kontra Bearish" menjadi "Pro Bearish"
+    let bearishHtml = '<h4 class="font-bold negative mb-1">👎 Pro Bearish</h4><ul class="space-y-1 text-gray-400">';
+    if (topBearish.length > 0) {
+        topBearish.forEach(item => {
+            // [PERBAIKAN] Tampilkan nama DAN skornya
+            bearishHtml += `<li class="flex justify-between"><span>• ${item.name}</span> <span class="font-mono text-xs negative">${item.score.toFixed(2)}</span></li>`;
+        });
+    } else {
+        bearishHtml += '<li class="text-xs italic text-gray-600">Tidak ada.</li>';
+    }
     bearishHtml += '</ul>';
     document.getElementById('top-bearish-contributors').innerHTML = bearishHtml;
     
@@ -3912,44 +3931,51 @@ function analyzeAndDisplayConfluenceContributors() {
 }
 
 // =======================================================
-    async function createTFAlignmentSummary(symbol, marketType) {
-        const timeframes = ['15m', '1h', '4h', '1d'];
-        const summary = {};
-        
-        let score = 0;
-        
-        const klinesPromises = timeframes.map(tf => 
-            fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType)
-        );
-        const klinesResults = await Promise.all(klinesPromises);
+    // GANTI SELURUH FUNGSI createTFAlignmentSummary DENGAN INI:
+async function createTFAlignmentSummary(symbol, marketType) {
+    const timeframes = ['15m', '1h', '4h', '1d'];
+    const summary = {};
+    
+    let score = 0; // Dimulai dari 0
+    
+    const klinesPromises = timeframes.map(tf => 
+        fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType)
+    );
+    const klinesResults = await Promise.all(klinesPromises);
 
-        klinesResults.forEach((klines, index) => {
-            const tf = timeframes[index];
-            if (klines && klines.length >= 50) {
-                const closes = klines.map(k => parseFloat(k[4]));
-                const ema21 = calculateEMA(closes, 21).pop();
-                const ema50 = calculateEMA(closes, 50).pop();
-                summary[tf] = ema21 > ema50 ? 'BULLISH' : 'BEARISH';
-            } else {
-                summary[tf] = 'N/A';
-            }
-        });
-
-        analysisCache.tfAlignmentSummary = { summary, score };
-
-        // Tampilkan juga di UI
-        const alignmentContainer = document.getElementById('tf-alignment-summary');
-        let alignmentHtml = '<h4 class="font-bold text-gray-300 mt-2 mb-1">Keselarasan Tren (EMA 21/50)</h4><div class="flex justify-center gap-2">';
-        for(const tf in summary){
-            const colorClass = summary[tf] === 'BULLISH' ? 'positive' : (summary[tf] === 'BEARISH' ? 'negative' : 'text-gray-500');
-            alignmentHtml += `<div class="text-center p-1 rounded-md bg-gray-800/50 flex-1"><span class="font-bold">${tf}</span><br><span class="text-xs ${colorClass}">${summary[tf]}</span></div>`;
+    klinesResults.forEach((klines, index) => {
+        const tf = timeframes[index];
+        if (klines && klines.length >= 50) {
+            const closes = klines.map(k => parseFloat(k[4]));
+            const ema21 = calculateEMA(closes, 21).pop();
+            const ema50 = calculateEMA(closes, 50).pop();
+            summary[tf] = ema21 > ema50 ? 'BULLISH' : 'BEARISH';
+        } else {
+            summary[tf] = 'N/A';
         }
-        alignmentHtml += '</div>';
-        alignmentContainer.innerHTML = alignmentHtml;
 
-        return { summary, score }; // Kembalikan objek lengkap
+        // [PERBAIKAN] Tambahkan logika untuk menjumlahkan skor
+        if (summary[tf] === 'BULLISH') {
+            score++;
+        } else if (summary[tf] === 'BEARISH') {
+            score--;
+        }
+    });
 
+    analysisCache.tfAlignmentSummary = { summary, score };
+
+    // Tampilkan juga di UI
+    const alignmentContainer = document.getElementById('tf-alignment-summary');
+    let alignmentHtml = '<h4 class="font-bold text-gray-300 mt-2 mb-1">Keselarasan Tren (EMA 21/50)</h4><div class="flex justify-center gap-2">';
+    for(const tf in summary){
+        const colorClass = summary[tf] === 'BULLISH' ? 'positive' : (summary[tf] === 'BEARISH' ? 'negative' : 'text-gray-500');
+        alignmentHtml += `<div class="text-center p-1 rounded-md bg-gray-800/50 flex-1"><span class="font-bold">${tf}</span><br><span class="text-xs ${colorClass}">${summary[tf]}</span></div>`;
     }
+    alignmentHtml += '</div>';
+    if(alignmentContainer) alignmentContainer.innerHTML = alignmentHtml;
+
+    return { summary, score };
+}
 // =================================================================================
     function updateDashboardUI() {
         if (!analysisCache.tickerData) return;
