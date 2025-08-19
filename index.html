@@ -4583,7 +4583,7 @@ async function createTFAlignmentSummary(symbol, marketType) {
         const bbPlotData = calculateBollingerBands_forPlot(closes, 20, 2, klines);
         const macdData = calculatedData.macd;
         const macdLinePlotData = formatLineData(macdData.macdLine, klines);
-        const signalLinePlotData = formatLineData(macdData.signalLine, klines, (userSettings.indicator.macd_slow - 1));
+        const signalLinePlotData = formatLineData(macdData.signalLine, klines, (userSettings.active.indicatorParams.macd_slow - 1));
         const histogramPlotData = macdData.histogram
             .map((item, index) => {
                 if (klines[index] && item !== undefined) {
