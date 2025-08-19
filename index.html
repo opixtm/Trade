@@ -559,10 +559,10 @@
                     </section>
                     
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-start">
-                        <div class="flex flex-col gap-4">
-                            <section id="scalping-setup-section" class="card p-6">
-                                <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-start">
+    <div class="flex flex-col gap-4">
+        <section id="scalping-setup-section" class="card p-6">
+            <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
                                     <h2 class="text-xl font-bold">⚡ Setup Scalping Cepat (<span id="scalping-timeframe-display"></span>)</h2>
                                     <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
@@ -577,7 +577,7 @@
                                         <div id="ls-top-container" class="flex justify-between items-center text-sm"><span class="text-gray-500">L/S Ratio (Top Trader)</span><span id="ls-ratio-top" class="font-mono">-</span></div>
                                         <div class="flex justify-between items-start text-sm mt-1">
                                             <div>
-                                                <span class="text-gray-500">Average True Range</span>
+                                                <span class="text-gray-500 text-sm">Average True Range</span>
                                                 <span id="atr-status-badge" class="tag tag-gray ml-2">...</span>
                                             </div>
                                             <div class="text-right">
@@ -585,60 +585,22 @@
                                                 <p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p>
                                             </div>
                                         </div>
+                                        <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|Mengukur KEKUATAN sebuah tren, bukan arahnya.<br><br><b>Kondisi:</b><br>• <b>0-25:</b> Tren Lemah / Sideways.<br>• <b>25-50:</b> Tren Kuat.<br>• <b>50-75:</b> Tren Sangat Kuat.<br>• <b>75-100:</b> Tren Ekstrem.">Kekuatan Tren (ADX 14)</span>
+                                                    <div>
+                                                        <span id="adx-value" class="font-mono font-semibold text-sm">-</span>
+                                                        <span class="text-xs positive" id="plus-di-value"></span> /
+                                                        <span class="text-xs negative" id="minus-di-value"></span>
+                                                    </div>
+                                                </div>
                                         <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                             <p class="text-sm text-gray-500">Menunggu data...</p>
                                         </div>
                                     </div>
                                 </div>
-                            </section>
-                            <section id="risk-management-section" class="card p-6">
-                                <button id="toggle-risk-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                    <h2 class="text-xl font-bold">📐 Manajemen Risiko</h2>
-                                    <svg id="toggle-risk-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </button>
-                                <div id="risk-content-wrapper" class="collapsible-content">
-                                    <div class="space-y-4 text-sm">
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label for="risk-amount-input" class="text-gray-400">Risiko per Trade ($)</label>
-                                                <input type="number" id="risk-amount-input" class="input-primary w-full text-center mt-1" value="100">
-                                            </div>
-                                            <div>
-                                                <label for="leverage-input" class="text-gray-400">Leverage</label>
-                                                <div class="relative">
-                                                    <input type="number" id="leverage-input" class="input-primary w-full text-center mt-1 pr-6" value="10">
-                                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">x</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-400">Rasio Risk/Reward (ke TP1)</span>
-                                            <span id="rr-ratio-display" class="font-mono font-semibold text-yellow-400">-</span>
-                                        </div>
-                                        <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-center">
-                                            <p class="text-xs text-gray-500">Saran Ukuran Posisi (Notional)</p>
-                                            <p id="position-size-display" class="text-2xl font-bold text-gray-800 dark:text-gray-200">-</p>
-                                            <p id="position-size-usd-display" class="text-xs font-mono text-gray-400">-</p>
-                                        </div>
-                                        <div class="p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-center border border-dashed border-blue-400/50">
-                                            <p class="text-xs text-blue-400">Margin yang Dibutuhkan</p>
-                                            <p id="margin-required-display" class="text-2xl font-bold text-blue-300">-</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-                            <section id="sentiment-display-container" class="card p-6">
-                                <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                    <h2 class="text-xl font-bold">🌡️ Sentimen Pasar (via AI)</h2>
-                                    <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </button>
-                                <div id="sentiment-content-wrapper" class="collapsible-content">
-                                    <p class="text-center text-gray-500">Data Tambahan Sentimen via "AI" belum dimuat.</p>
-                                </div>
-                            </section>
-                        
-                            <section id="current-state-section" class="card p-6">
-                                <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
+            </section>
+        <section id="current-state-section" class="card p-6">
+            <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
                                     <h2 id="current-state-title" class="text-xl font-semibold">Kondisi Pasar (CEX)</h2>
                                     <svg id="toggle-market-state-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
@@ -677,6 +639,9 @@
                                         <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
                                             <h2 class="text-xl font-bold mb-4">Live Order Book</h2>
                                             <div id="full-order-book-container" class="space-y-2 text-sm"><p class="text-center text-gray-500">Menunggu data order book...</p></div>
+                                            <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                                <span class="text-gray-500">Order Book Bias</span><span id="order-book-bias" class="font-mono">-</span>
+                                            </div>
                                         </div>
                                         
                                         <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -685,11 +650,57 @@
                                         </div>
                                     </div>
                                 </div>
-                            </section>
-                        
-                        <div class="flex flex-col gap-3">
-                            <section id="confluence-details-section" class="card p-6">
-                                <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
+            </section>
+        <section id="sentiment-display-container" class="card p-6">
+            <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                    <h2 class="text-xl font-bold">🌡️ Sentimen Pasar BITCOIN (via AI)</h2>
+                                    <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div id="sentiment-content-wrapper" class="collapsible-content">
+                                    <p class="text-center text-gray-500">Data Tambahan Sentimen via "AI" belum dimuat.</p>
+                                </div>
+            </section>
+        <section id="risk-management-section" class="card p-6">
+            <button id="toggle-risk-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                    <h2 class="text-xl font-bold">📐 Manajemen Risiko</h2>
+                                    <svg id="toggle-risk-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div id="risk-content-wrapper" class="collapsible-content">
+                                    <div class="space-y-4 text-sm">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label for="risk-amount-input" class="text-gray-400">Risiko per Trade ($)</label>
+                                                <input type="number" id="risk-amount-input" class="input-primary w-full text-center mt-1" value="100">
+                                            </div>
+                                            <div>
+                                                <label for="leverage-input" class="text-gray-400">Leverage</label>
+                                                <div class="relative">
+                                                    <input type="number" id="leverage-input" class="input-primary w-full text-center mt-1 pr-6" value="10">
+                                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">x</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-400">Rasio Risk/Reward (ke TP1)</span>
+                                            <span id="rr-ratio-display" class="font-mono font-semibold text-yellow-400">-</span>
+                                        </div>
+                                        <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-center">
+                                            <p class="text-xs text-gray-500">Saran Ukuran Posisi (Notional)</p>
+                                            <p id="position-size-display" class="text-2xl font-bold text-gray-800 dark:text-gray-200">-</p>
+                                            <p id="position-size-usd-display" class="text-xs font-mono text-gray-400">-</p>
+                                        </div>
+                                        <div class="p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-center border border-dashed border-blue-400/50">
+                                            <p class="text-xs text-blue-400">Margin yang Dibutuhkan</p>
+                                            <p id="margin-required-display" class="text-2xl font-bold text-blue-300">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+            </section>
+    </div>
+
+    <div class="flex flex-col gap-3">
+        <section id="confluence-details-section" class="card p-6">
+            <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
                                     <h2 class="text-lg font-bold">📊 Data Timeframe <span id="confluence-timeframe-display">1H</span></h2>
                                     <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
@@ -728,14 +739,7 @@
                                                     <span class="text-gray-500" data-tooltip="Ichimoku Bias|Sistem tren komprehensif yang melihat momentum dan level S/R dinamis.<br><br><b>Kondisi:</b><br>• <b>Bullish:</b> Harga di atas Awan (Kumo).<br>• <b>Bearish:</b> Harga di bawah Awan (Kumo).<br>• <b>Netral:</b> Harga di dalam Awan (Kumo).">Ichimoku Bias</span>
                                                     <span id="ichimoku-bias" class="font-mono font-semibold">-</span>
                                                 </div>
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-gray-500" data-tooltip="Kekuatan Tren (ADX)|Mengukur KEKUATAN sebuah tren, bukan arahnya.<br><br><b>Kondisi:</b><br>• <b>0-25:</b> Tren Lemah / Sideways.<br>• <b>25-50:</b> Tren Kuat.<br>• <b>50-75:</b> Tren Sangat Kuat.<br>• <b>75-100:</b> Tren Ekstrem.">Kekuatan Tren (ADX 14)</span>
-                                                    <div>
-                                                        <span id="adx-value" class="font-mono font-semibold">-</span>
-                                                        <span class="text-xs positive" id="plus-di-value"></span> /
-                                                        <span class="text-xs negative" id="minus-di-value"></span>
-                                                    </div>
-                                                </div>
+                                                
                                             </div>
                                         </div>
 
@@ -793,9 +797,7 @@
                                                     <span id="bb-lower-value">-</span>
                                                 </div>
                                             </div>
-                                            <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                                <span class="text-gray-500">Order Book Bias</span><span id="order-book-bias" class="font-mono">-</span>
-                                            </div>
+                                            
                                         </div>
                                     </div>
 
@@ -810,9 +812,9 @@
                                     </div>
                                 </div>
                             </div>
-                            </section>
-                                <section id="onchain-card" class="card p-6">
-                                    <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
+            </section>
+        <section id="onchain-card" class="card p-6">
+            <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
                                         <h2 class="text-xl font-bold">⛓️‍💥 Aktivitas On-Chain</h2>
                                         <svg id="toggle-onchain-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                     </button>
@@ -828,11 +830,11 @@
                                             </div>
                                         </div>
                                     </div>
-                                </section>
-                            </div>
-                        </div> 
-                        <section id="ai-analysis-section" class="card p-6 relative">
-                            <div class="flex justify-between items-center mb-4">
+            </section>
+    </div>
+
+    <section id="ai-analysis-section" class="card p-6 relative lg:col-span-2">
+        <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-xl font-bold">💡 Analisis AI</h2>
                             </div>
 
@@ -861,8 +863,8 @@
                                     </svg>
                                 </button>
                             </div>
-                        </section>             
-                    </div>
+        </section>
+</div>
                     
                     <div id="initial-placeholder" class="text-center py-20">
                         <p class="text-xs font-mono text-gray-500">Pilih Spot or Futures ERROR? REFRESH browser</p>
