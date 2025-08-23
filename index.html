@@ -506,38 +506,7 @@
                         </table>
                     </div>
                 </section>
-                <section id="top-movers-section" class="card p-6">
-                    <div class="flex justify-between items-center mb-4">
-            <h2 class="text-base font-semibold">Top Movers | M.O. Scanner | Pump & Dump Strength</h2>
-            <div id="top-movers-controls" class="flex gap-4 items-center">
-                <div id="top-movers-timeframe-selector" class="flex gap-2">
-                    <button data-timeframe="5m" class="top-movers-tf-btn px-2 py-1 text-xs font-mono rounded-md">5m</button>
-                    <button data-timeframe="15m" class="top-movers-tf-btn px-2 py-1 text-xs font-mono rounded-md">15m</button>
-                    <button data-timeframe="1h" class="top-movers-tf-btn px-2 py-1 text-xs font-mono rounded-md active">1H</button>
-                </div>
-                <div class="flex gap-2 items-center">
-                    <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
-                        <option value="5000">5s</option>
-                        <option value="10000">10s</option>
-                        <option value="30000">30s</option>
-                        <option value="60000">60s</option>
-                        <option value="120000" selected>120s</option>
-                    </select>
-                    <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
-                </div>
-            </div>
-        </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-400 mb-2">🟢 Gainers</h3>
-                            <div id="gainers-list" class="space-y-2"></div>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-400 mb-2">🔴 Losers</h3>
-                            <div id="losers-list" class="space-y-2"></div>
-                        </div>
-                    </div>
-                </section>
+                
                 
                 <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <div>
@@ -567,7 +536,38 @@
                         <button id="reset-btn" class="btn-secondary !w-auto">REFRESH</button>
                     </div>
                 </section>
-                
+                <section id="top-movers-section" class="card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-base font-semibold">Top Movers | M.O. Scanner | Pump & Dump Strength</h2>
+                    <div id="top-movers-controls" class="flex gap-4 items-center">
+                    <div id="top-movers-timeframe-selector" class="flex gap-2">
+                    <button data-timeframe="5m" class="top-movers-tf-btn px-2 py-1 text-xs font-mono rounded-md">5m</button>
+                    <button data-timeframe="15m" class="top-movers-tf-btn px-2 py-1 text-xs font-mono rounded-md">15m</button>
+                    <button data-timeframe="1h" class="top-movers-tf-btn px-2 py-1 text-xs font-mono rounded-md active">1H</button>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
+                        <option value="5000">5s</option>
+                        <option value="10000">10s</option>
+                        <option value="30000">30s</option>
+                        <option value="60000">60s</option>
+                        <option value="120000" selected>120s</option>
+                    </select>
+                    <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
+                </div>
+            </div>
+        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-400 mb-2">🟢 Gainers</h3>
+                            <div id="gainers-list" class="space-y-2"></div>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-400 mb-2">🔴 Losers</h3>
+                            <div id="losers-list" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <div id="dashboard-content" class="hidden">
@@ -2781,7 +2781,20 @@ function calculateAndDisplayScalpingSetup() {
     const slColorClass = 'negative';
 
     const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
-
+    
+    // --- START: KODE BARU UNTUK HYBRID BAR ---
+    const tickerData = analysisCache.tickerData;
+    const priceChange = parseFloat(tickerData.priceChangePercent);
+    const volume = parseFloat(tickerData.quoteVolume);
+    
+    // Skor kekuatan pump
+    const strengthScore = priceChange * Math.log10(volume + 1);
+    const isGainer = priceChange > 0;
+    const pumpStrength = isGainer ? Math.min(100, strengthScore) : 0;
+    
+    // Skor risiko dump dari analisis yang sudah ada
+    const dumpRiskScore = calculateShortConfluenceScore(analysisCache.binanceSymbol)?.score || 0;
+    
     container.innerHTML = `
         <div class="grid grid-cols-3 gap-4 text-center items-start">
             <div>
@@ -2799,6 +2812,21 @@ function calculateAndDisplayScalpingSetup() {
                 <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
             </div>
         </div>
+        
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+                <span>Kekuatan Pump</span>
+                <span>Risiko Dump</span>
+            </div>
+            <div class="confluence-bar-container w-full h-8 mt-2">
+                <div id="scalping-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: ${pumpStrength}%;"></div>
+                <div id="scalping-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: ${dumpRiskScore * 10}%;"></div>
+            </div>
+            <div class="flex items-center justify-between text-xs mt-1">
+                <span id="scalping-pump-score" class="positive font-bold">${pumpStrength.toFixed(0)}%</span>
+                <span id="scalping-dump-score" class="negative font-bold">${dumpRiskScore}/10</span>
+            </div>
+        </div>
         <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
             <div>
                 <p class="text-xs text-gray-500">TP 1 (Struktural)</p>
@@ -2812,7 +2840,7 @@ function calculateAndDisplayScalpingSetup() {
             </div>
             <div>
                 <p class="text-xs text-gray-500">TP 3 (Level Kunci)</p>
-                <p class="font-semibold text-sm ${tpColorClass}">${tp3Display}</p>
+                <p class="font-semibold text-sm ${tp3Display}</p>
             </div>
         </div>
     `;
@@ -2936,6 +2964,7 @@ document.getElementById('leverage-input').addEventListener('input', () => {
         trendingPoolsContent.innerHTML = html;
     }
 // =======================================================
+// GANTI SELURUH FUNGSI runFullAnalysis DENGAN KODE DI BAWAH INI
 async function runFullAnalysis(symbol = null) {
     // Bagian awal (setup)
     adaptIndicatorParamsToTimeframe(timeframeSelect.value);
@@ -2965,10 +2994,14 @@ async function runFullAnalysis(symbol = null) {
         }
 
         // Ambil input
-        const binanceSymbol = (symbol || assetInput.value.trim()).toUpperCase();
-if (symbol) { // Jika simbol diberikan dari klik, update juga kotak inputnya
-    assetInput.value = symbol;
-}
+        // PERBAIKAN: Gunakan nilai dari input jika symbol kosong atau tidak valid
+        const binanceSymbol = (symbol || assetInput.value.trim() || 'BTCUSDT').toUpperCase();
+        
+        // PERBAIKAN: Jika symbol dari klik, update juga kotak inputnya
+        if (symbol) { 
+            assetInput.value = symbol;
+        }
+        
         const correlationAsset = document.getElementById('correlation-asset-input').value.trim().toUpperCase() || 'BTCUSDT';
         const marketType = marketTypeSelect.value;
         const selectedTimeframe = timeframeSelect.value;
@@ -5155,7 +5188,7 @@ async function updateTopMovers(timeframe = "1h") {
         const gainersWithDetails = await Promise.all(top10Gainers.map(async (mover) => {
             const [klines1h, klines15m] = await Promise.all([
                 fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '1h', limit: 200 }, 'futures').catch(() => []),
-                fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '15m', limit: 2 }, 'futures').catch(() => null)
+                fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '15m', limit: 200 }, 'futures').catch(() => null)
             ]);
             const calculateChange = (kData) => {
                 if (!kData || kData.length < 2) return 'N/A';
@@ -5213,7 +5246,72 @@ function renderMoversList(containerId, moversData, isGainer) {
         container.appendChild(itemElement);
     });
 }
+// GANTI FUNGSI YANG ADA DENGAN INI
+function calculateShortConfluenceScore(symbol) {
+    // Cek dulu apakah data real-time Top Movers ada
+    const data = topMoversRealtimeData[symbol];
+    if (data && data.klines_1h && data.klines_1h.length >= 20) {
+        // Logika asli untuk Top Movers
+        let score = 0;
+        let breakdown = {};
+        const { klines_1h, aggTrades } = data;
+        const lookbackPeriod = 15;
+        const recentKlines = klines_1h.slice(-lookbackPeriod);
+        let peakIndex = 0;
+        for (let i = 1; i < recentKlines.length; i++) {
+            if (recentKlines[i].High > recentKlines[peakIndex].High) peakIndex = i;
+        }
+        if (peakIndex < lookbackPeriod - 3) return { score: 0, breakdown: {} };
+        const peakCandle = recentKlines[peakIndex];
+        const triggerCandle = recentKlines[peakIndex + 1];
+        if (!triggerCandle) return { score: 0, breakdown: {} };
 
+        if (triggerCandle.Close < triggerCandle.Open) { score += 3; breakdown.candleRed = true; }
+        
+        if(aggTrades && aggTrades.length > 0) {
+            const triggerTrades = aggTrades.filter(t => t.T > peakCandle.Close_time && t.T <= triggerCandle.Close_time);
+            const cvdAtTrigger = triggerTrades.reduce((delta, t) => delta + (parseFloat(t.q) * (t.m ? -1 : 1)), 0);
+            if (cvdAtTrigger < 0) { score += 2; breakdown.cvd = true; }
+        }
+        
+        const body = Math.abs(peakCandle.Close - peakCandle.Open);
+        const upperWick = peakCandle.High - Math.max(peakCandle.Open, peakCandle.Close);
+        if (body > 0 && upperWick > body * 2) { score += 1; breakdown.doji = true; }
+
+        return { score: Math.min(score, 10), breakdown };
+    } else {
+        // [LOGIKA FALLBACK] Gunakan data dari analysisCache
+        const { klines, calculatedData, cvdData } = analysisCache;
+        if (!klines || !calculatedData || !cvdData) return null;
+
+        let score = 0;
+        let breakdown = {};
+
+        // Gunakan indikator yang relevan untuk risiko "dump"
+        if (calculatedData.candlePattern.bias === 'BEARISH') {
+            score += 3;
+            breakdown.candlePattern = true;
+        }
+        if (calculatedData.macd.status === 'Bearish Cross') {
+            score += 2;
+            breakdown.macdCross = true;
+        }
+        if (calculatedData.rsi.status === 'Overbought') {
+            score += 2;
+            breakdown.rsiOverbought = true;
+        }
+        if (calculatedData.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
+            score += 3;
+            breakdown.bbRejection = true;
+        }
+        if (calculatedData.cvd?.trend === 'Turun' && calculatedData.cvd?.divergence.includes('Bearish')) {
+            score += 2;
+            breakdown.cvdDivergence = true;
+        }
+
+        return { score: Math.min(score, 10), breakdown };
+    }
+}
 function onNewMoverData(symbol, streamName, payload) {
     if (!topMoversRealtimeData[symbol]) return;
     if (streamName.includes('@kline_1h')) {
@@ -5232,36 +5330,71 @@ function onNewMoverData(symbol, streamName, payload) {
     if (scoreData !== null) updateShortScoreUI(symbol, scoreData.score, scoreData.breakdown);
 }
 
+// GANTI FUNGSI YANG ADA DENGAN INI
 function calculateShortConfluenceScore(symbol) {
+    // Cek dulu apakah data real-time Top Movers ada
     const data = topMoversRealtimeData[symbol];
-    if (!data || !data.klines_1h || data.klines_1h.length < 20) return null;
-    let score = 0;
-    let breakdown = {};
-    const { klines_1h, aggTrades } = data;
-    const lookbackPeriod = 15;
-    const recentKlines = klines_1h.slice(-lookbackPeriod);
-    let peakIndex = 0;
-    for (let i = 1; i < recentKlines.length; i++) {
-        if (recentKlines[i].High > recentKlines[peakIndex].High) peakIndex = i;
-    }
-    if (peakIndex < lookbackPeriod - 3) return { score: 0, breakdown: {} };
-    const peakCandle = recentKlines[peakIndex];
-    const triggerCandle = recentKlines[peakIndex + 1];
-    if (!triggerCandle) return { score: 0, breakdown: {} };
+    if (data && data.klines_1h && data.klines_1h.length >= 20) {
+        // Logika asli untuk Top Movers
+        let score = 0;
+        let breakdown = {};
+        const { klines_1h, aggTrades } = data;
+        const lookbackPeriod = 15;
+        const recentKlines = klines_1h.slice(-lookbackPeriod);
+        let peakIndex = 0;
+        for (let i = 1; i < recentKlines.length; i++) {
+            if (recentKlines[i].High > recentKlines[peakIndex].High) peakIndex = i;
+        }
+        if (peakIndex < lookbackPeriod - 3) return { score: 0, breakdown: {} };
+        const peakCandle = recentKlines[peakIndex];
+        const triggerCandle = recentKlines[peakIndex + 1];
+        if (!triggerCandle) return { score: 0, breakdown: {} };
 
-    if (triggerCandle.Close < triggerCandle.Open) { score += 3; breakdown.candleRed = true; }
-    
-    if(aggTrades && aggTrades.length > 0) {
-        const triggerTrades = aggTrades.filter(t => t.T > peakCandle.Close_time && t.T <= triggerCandle.Close_time);
-        const cvdAtTrigger = triggerTrades.reduce((delta, t) => delta + (parseFloat(t.q) * (t.m ? -1 : 1)), 0);
-        if (cvdAtTrigger < 0) { score += 2; breakdown.cvd = true; }
-    }
-    
-    const body = Math.abs(peakCandle.Close - peakCandle.Open);
-    const upperWick = peakCandle.High - Math.max(peakCandle.Open, peakCandle.Close);
-    if (body > 0 && upperWick > body * 2) { score += 1; breakdown.doji = true; }
+        if (triggerCandle.Close < triggerCandle.Open) { score += 3; breakdown.candleRed = true; }
+        
+        if(aggTrades && aggTrades.length > 0) {
+            const triggerTrades = aggTrades.filter(t => t.T > peakCandle.Close_time && t.T <= triggerCandle.Close_time);
+            const cvdAtTrigger = triggerTrades.reduce((delta, t) => delta + (parseFloat(t.q) * (t.m ? -1 : 1)), 0);
+            if (cvdAtTrigger < 0) { score += 2; breakdown.cvd = true; }
+        }
+        
+        const body = Math.abs(peakCandle.Close - peakCandle.Open);
+        const upperWick = peakCandle.High - Math.max(peakCandle.Open, peakCandle.Close);
+        if (body > 0 && upperWick > body * 2) { score += 1; breakdown.doji = true; }
 
-    return { score: Math.min(score, 10), breakdown };
+        return { score: Math.min(score, 10), breakdown };
+    } else {
+        // [LOGIKA FALLBACK] Gunakan data dari analysisCache
+        const { klines, calculatedData, cvdData } = analysisCache;
+        if (!klines || !calculatedData || !cvdData) return null;
+
+        let score = 0;
+        let breakdown = {};
+
+        // Gunakan indikator yang relevan untuk risiko "dump"
+        if (calculatedData.candlePattern.bias === 'BEARISH') {
+            score += 3;
+            breakdown.candlePattern = true;
+        }
+        if (calculatedData.macd.status === 'Bearish Cross') {
+            score += 2;
+            breakdown.macdCross = true;
+        }
+        if (calculatedData.rsi.status === 'Overbought') {
+            score += 2;
+            breakdown.rsiOverbought = true;
+        }
+        if (calculatedData.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
+            score += 3;
+            breakdown.bbRejection = true;
+        }
+        if (calculatedData.cvd?.trend === 'Turun' && calculatedData.cvd?.divergence.includes('Bearish')) {
+            score += 2;
+            breakdown.cvdDivergence = true;
+        }
+
+        return { score: Math.min(score, 10), breakdown };
+    }
 }
 
 function updateShortScoreUI(symbol, score, breakdown) {
@@ -5485,14 +5618,18 @@ document.addEventListener('DOMContentLoaded', () => {
     tooltipElement.id = 'custom-tooltip';
     document.body.appendChild(tooltipElement);
 
-    const debouncedRunAnalysis = debounce(runFullAnalysis, 500); 
-    analyzeBtn.addEventListener('click', debouncedRunAnalysis);
-    assetInput.addEventListener('keypress', (e) => { 
-        if (e.key === 'Enter') {
-            analyzeBtn.disabled = true; 
-            debouncedRunAnalysis();
-        } 
-    });
+    // GANTI event listener ini di bagian bawah skrip Anda
+const debouncedRunAnalysis = debounce(runFullAnalysis, 500); 
+analyzeBtn.addEventListener('click', () => {
+    analyzeBtn.disabled = true;
+    debouncedRunAnalysis();
+});
+assetInput.addEventListener('keypress', (e) => { 
+    if (e.key === 'Enter') {
+        analyzeBtn.disabled = true; 
+        debouncedRunAnalysis();
+    } 
+});
     
     const showTooltip = (e) => {
         const target = e.currentTarget;
