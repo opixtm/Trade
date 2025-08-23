@@ -998,6 +998,7 @@
     let klineCache = {};
     let latestBids = [];
     let latestAsks = [];
+    let liveAnalysisScores = {};
     let coinListCache = null;
     let exchangeInfoCache = { spot: null, futures: null };
     let analysisCache = {};
@@ -2724,77 +2725,54 @@ function calculateAndDisplayScalpingSetup() {
     const closes = klines.map(k => parseFloat(k[4]));
     const lastPrice = closes[closes.length - 1];
     
-    // [LOGIKA BARU] Tentukan Bias Sesaat (EMA 9 vs EMA 21)
     const ema9 = calculateEMA(closes, 9).pop();
     const ema21 = calculateEMA(closes, 21).pop();
     const bias = ema9 > ema21 ? 'LONG' : 'SHORT';
-
-    // [LOGIKA BARU] Temukan titik swing high/low terdekat dalam 15 candle terakhir
     const recentKlines = klines.slice(-15);
     let recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
     let recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-
-    // [LOGIKA BARU] Tentukan Saran Entri, SL, dan TP berdasarkan logika profesional
     let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
     const riskAmount = Math.abs(lastPrice - (bias === 'LONG' ? recentSwingLow : recentSwingHigh));
-
     if (bias === 'LONG') {
-        entryPrice = ema9; // Entri saat pullback ke EMA 9
-        stopLoss = recentSwingLow * 0.999; // SL sedikit di bawah swing low terakhir
-        takeProfit1 = recentSwingHigh; // TP1 di swing high terakhir
-        takeProfit2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5); // TP2 dengan R:R 1:1.5
-        
+        entryPrice = ema9; 
+        stopLoss = recentSwingLow * 0.999;
+        takeProfit1 = recentSwingHigh;
+        takeProfit2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
         const upperBB = calculatedData.bollingerBands.upper.filter(v=>v).pop();
         const dailyPivot = calculatedData.pivot.data?.P;
-        // Pilih target TP3 yang paling dekat dan realistis
         let potentialTP3s = [upperBB, dailyPivot].filter(p => p && p > takeProfit2);
         takeProfit3 = potentialTP3s.length > 0 ? Math.min(...potentialTP3s) : 'N/A';
-
-    } else { // BIAS SHORT
-        entryPrice = ema9; // Entri saat pullback ke EMA 9
-        stopLoss = recentSwingHigh * 1.001; // SL sedikit di atas swing high terakhir
-        takeProfit1 = recentSwingLow; // TP1 di swing low terakhir
-        takeProfit2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5); // TP2 dengan R:R 1:1.5
-
+    } else { 
+        entryPrice = ema9; 
+        stopLoss = recentSwingHigh * 1.001;
+        takeProfit1 = recentSwingLow;
+        takeProfit2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
         const lowerBB = calculatedData.bollingerBands.lower.filter(v=>v).pop();
         const dailyPivot = calculatedData.pivot.data?.P;
-        // Pilih target TP3 yang paling dekat dan realistis
         let potentialTP3s = [lowerBB, dailyPivot].filter(p => p && p < takeProfit2);
         takeProfit3 = potentialTP3s.length > 0 ? Math.max(...potentialTP3s) : 'N/A';
     }
     
-    // Fungsi bantuan untuk format persentase
     const calculatePercentage = (targetPrice, entry) => {
         if (typeof targetPrice !== 'number' || entry === 0) return '';
         const percentage = ((targetPrice - entry) / entry) * 100;
         return `(${percentage.toFixed(2)}%)`;
     };
-
     const entryPercent = `(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})`;
     const slPercent = calculatePercentage(stopLoss, entryPrice);
     const tp1Percent = calculatePercentage(takeProfit1, entryPrice);
     const tp2Percent = calculatePercentage(takeProfit2, entryPrice);
     const tp3Percent = calculatePercentage(takeProfit3, entryPrice);
-    
     const biasClass = bias === 'LONG' ? 'positive' : 'negative';
     const tpColorClass = 'positive';
     const slColorClass = 'negative';
-
     const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
     
     // --- START: KODE BARU UNTUK HYBRID BAR ---
-    const tickerData = analysisCache.tickerData;
-    const priceChange = parseFloat(tickerData.priceChangePercent);
-    const volume = parseFloat(tickerData.quoteVolume);
-    
-    // Skor kekuatan pump
-    const strengthScore = priceChange * Math.log10(volume + 1);
-    const isGainer = priceChange > 0;
-    const pumpStrength = isGainer ? Math.min(100, strengthScore) : 0;
-    
-    // Skor risiko dump dari analisis yang sudah ada
-    const dumpRiskScore = calculateShortConfluenceScore(analysisCache.binanceSymbol)?.score || 0;
-    
+    // AMBIL SKOR DARI OBJEK GLOBAL BARU liveAnalysisScores
+    const pumpStrength = liveAnalysisScores.pumpStrength !== undefined ? liveAnalysisScores.pumpStrength : 0;
+    const dumpRiskScore = liveAnalysisScores.dumpRisk !== undefined ? liveAnalysisScores.dumpRisk : (calculateShortConfluenceScore()?.score || 0);
+
     container.innerHTML = `
         <div class="grid grid-cols-3 gap-4 text-center items-start">
             <div>
@@ -2845,12 +2823,10 @@ function calculateAndDisplayScalpingSetup() {
         </div>
     `;
     
-    // Panggil kalkulator manajemen risiko
     calculatePositionSize({ entry: entryPrice, sl: stopLoss, tp1: takeProfit1 });
-
-    // [TAMBAHKAN BARIS INI] Simpan level terakhir ke cache untuk digunakan nanti
     analysisCache.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
 }
+
 // =======================================================
     // GANTI FUNGSI calculatePositionSize YANG LAMA DENGAN INI:
     function calculatePositionSize(levels) {
@@ -4667,105 +4643,125 @@ function loadWatchlist() {
         });
     }
 // =======================================================
-        const processQueues = () => {
-            // 1. Proses Antrian Kline (Candlestick) dengan aman
-            if (klineQueue.length > 0) {
-                try {
-                    const latestKlineMessage = klineQueue.pop();
-                    klineQueue = [];
-                    if (candlestickSeries && latestKlineMessage) {
-                        const candle = latestKlineMessage.k;
-                        const formattedCandle = {
-                            time: candle.t / 1000,
-                            open: parseFloat(candle.o), high: parseFloat(candle.h),
-                            low: parseFloat(candle.l), close: parseFloat(candle.c)
-                        };
-                        candlestickSeries.update(formattedCandle);
-                        if (candle.x) {
-                            analysisCache.klines.shift();
-                            analysisCache.klines.push([candle.t, candle.o, candle.h, candle.l, candle.c, candle.v, candle.T, candle.q, candle.n, candle.V, candle.Q, candle.B]);
-                            updateRealTimeIndicators(analysisCache.klines);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error saat memproses kline:", error);
-                }
-            }
-            // 2. Proses Antrian Trade (untuk CVD dan Harga Live) dengan aman
-            if (tradeQueue.length > 0) {
-                try {
-                    const tradesToProcess = tradeQueue.splice(0, tradeQueue.length);
-                    // <<< LOGIKA LENGKAP DIMASUKKAN DI SINI >>>
-                    tradesToProcess.forEach(trade => {
-                        const quantity = parseFloat(trade.q);
-                        const price = parseFloat(trade.p);
-                        const navPriceEl = document.getElementById('nav-price');
-                        const navIdrEl = document.getElementById('nav-price-idr');
-                        if (navPriceEl && navIdrEl) {
-                            navPriceEl.textContent = formatPrice(price);
-                            navIdrEl.textContent = `Rp ${(price * (analysisCache.usdToIdrRate || 0)).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-                        }
-                        if (cvdChartInstance) {
-                            if (isNaN(quantity) || quantity === 0) return;
-                            const sign = trade.m ? -1 : 1;
-                            liveCvdValue += quantity * sign;
-                            liveCvdValueUsdt += (quantity * price) * sign;
-                            const newPoint = { x: trade.T, y_coin: liveCvdValue, y_usdt: liveCvdValueUsdt };
-                            cvdChartInstance.data.datasets[0].data.push(newPoint);
-                            liveCvdData.push(newPoint);
-                            while (cvdChartInstance.data.datasets[0].data.length > 300) {
-                                cvdChartInstance.data.datasets[0].data.shift();
-                                liveCvdData.shift();
-                            }
-                            cvdChartInstance.update('none');
-                            updateCvdTableLive();
-                        }
-                    });
-                } catch (error) {
-                    console.error("Error saat memproses trade:", error);
-                }
-            }
+// GANTI SELURUH FUNGSI processQueues DENGAN KODE INI
+const processQueues = () => {
+    let shouldUpdateUI = false;
 
-            // 3. Proses Antrian Depth (Order Book) dengan aman
-            if (depthQueue.length > 0) {
-                try {
-                    const updatesToProcess = depthQueue.splice(0, depthQueue.length);
-                    // <<< LOGIKA LENGKAP DIMASUKKAN DI SINI >>>
-                    updatesToProcess.forEach(update => {
-                        if (update.b) {
-                            update.b.forEach(([price, qty]) => {
-                                const existingIndex = latestBids.findIndex(bid => bid[0] === price);
-                                if (parseFloat(qty) === 0) {
-                                    if (existingIndex !== -1) latestBids.splice(existingIndex, 1);
-                                } else {
-                                    if (existingIndex !== -1) latestBids[existingIndex] = [price, qty];
-                                    else latestBids.push([price, qty]);
-                                }
-                            });
-                        }
-                        if (update.a) {
-                            update.a.forEach(([price, qty]) => {
-                                const existingIndex = latestAsks.findIndex(ask => ask[0] === price);
-                                if (parseFloat(qty) === 0) {
-                                    if (existingIndex !== -1) latestAsks.splice(existingIndex, 1);
-                                } else {
-                                    if (existingIndex !== -1) latestAsks[existingIndex] = [price, qty];
-                                    else latestAsks.push([price, qty]);
-                                }
-                            });
-                        }
-                    });
-                    latestBids.sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
-                    latestAsks.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
-                    const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
-                    const precision = getPrecisionForAsset(parseFloat(latestPrice));
-                    const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
-                    renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
-                } catch (error) {
-                    console.error("Error saat memproses depth:", error);
+    // 1. Proses Antrian Kline (Candlestick) dengan aman
+    if (klineQueue.length > 0) {
+        try {
+            const latestKlineMessage = klineQueue.pop();
+            klineQueue = [];
+            if (candlestickSeries && latestKlineMessage) {
+                const candle = latestKlineMessage.k;
+                const formattedCandle = {
+                    time: candle.t / 1000,
+                    open: parseFloat(candle.o), high: parseFloat(candle.h),
+                    low: parseFloat(candle.l), close: parseFloat(candle.c)
+                };
+                candlestickSeries.update(formattedCandle);
+                if (candle.x) {
+                    analysisCache.klines.shift();
+                    analysisCache.klines.push([candle.t, candle.o, candle.h, candle.l, candle.c, candle.v, candle.T, candle.q, candle.n, candle.V, candle.Q, candle.B]);
+                    updateRealTimeIndicators(analysisCache.klines);
                 }
             }
-        };
+        } catch (error) {
+            console.error("Error saat memproses kline:", error);
+        }
+        shouldUpdateUI = true;
+    }
+    
+    // 2. Proses Antrian Trade (untuk CVD dan Harga Live) dengan aman
+    if (tradeQueue.length > 0) {
+        try {
+            const tradesToProcess = tradeQueue.splice(0, tradeQueue.length);
+            tradesToProcess.forEach(trade => {
+                const quantity = parseFloat(trade.q);
+                const price = parseFloat(trade.p);
+                const navPriceEl = document.getElementById('nav-price');
+                const navIdrEl = document.getElementById('nav-price-idr');
+                if (navPriceEl && navIdrEl) {
+                    navPriceEl.textContent = formatPrice(price);
+                    navIdrEl.textContent = `Rp ${(price * (analysisCache.usdToIdrRate || 0)).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                }
+                if (cvdChartInstance) {
+                    if (isNaN(quantity) || quantity === 0) return;
+                    const sign = trade.m ? -1 : 1;
+                    liveCvdValue += quantity * sign;
+                    liveCvdValueUsdt += (quantity * price) * sign;
+                    const newPoint = { x: trade.T, y_coin: liveCvdValue, y_usdt: liveCvdValueUsdt };
+                    cvdChartInstance.data.datasets[0].data.push(newPoint);
+                    liveCvdData.push(newPoint);
+                    while (cvdChartInstance.data.datasets[0].data.length > 300) {
+                        cvdChartInstance.data.datasets[0].data.shift();
+                        liveCvdData.shift();
+                    }
+                    cvdChartInstance.update('none');
+                    updateCvdTableLive();
+                }
+            });
+        } catch (error) {
+            console.error("Error saat memproses trade:", error);
+        }
+        shouldUpdateUI = true;
+    }
+
+    // 3. Proses Antrian Depth (Order Book) dengan aman
+    if (depthQueue.length > 0) {
+        try {
+            const updatesToProcess = depthQueue.splice(0, depthQueue.length);
+            updatesToProcess.forEach(update => {
+                if (update.b) {
+                    update.b.forEach(([price, qty]) => {
+                        const existingIndex = latestBids.findIndex(bid => bid[0] === price);
+                        if (parseFloat(qty) === 0) {
+                            if (existingIndex !== -1) latestBids.splice(existingIndex, 1);
+                        } else {
+                            if (existingIndex !== -1) latestBids[existingIndex] = [price, qty];
+                            else latestBids.push([price, qty]);
+                        }
+                    });
+                }
+                if (update.a) {
+                    update.a.forEach(([price, qty]) => {
+                        const existingIndex = latestAsks.findIndex(ask => ask[0] === price);
+                        if (parseFloat(qty) === 0) {
+                            if (existingIndex !== -1) latestAsks.splice(existingIndex, 1);
+                        } else {
+                            if (existingIndex !== -1) latestAsks[existingIndex] = [price, qty];
+                            else latestAsks.push([price, qty]);
+                        }
+                    });
+                }
+            });
+            latestBids.sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
+            latestAsks.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+            const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
+            const precision = getPrecisionForAsset(parseFloat(latestPrice));
+            const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
+            renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
+        } catch (error) {
+            console.error("Error saat memproses depth:", error);
+        }
+        shouldUpdateUI = true;
+    }
+
+    // Panggil fungsi pembaruan hanya jika ada data baru DAN analysisCache sudah diisi
+    if (shouldUpdateUI && analysisCache.calculatedData) {
+        // Perbarui data ticker 24h secara real-time
+        if (tradeQueue.length > 0) {
+            const latestTradePrice = parseFloat(tradeQueue[tradeQueue.length - 1].p);
+            if (analysisCache.tickerData) {
+                analysisCache.tickerData.lastPrice = latestTradePrice.toString();
+            }
+        }
+        
+        // Panggil fungsi pembaruan UI utama
+        calculateAndDisplayScalpingSetup();
+        updateQuickConfluenceWidget();
+    }
+};
 // =======================================================
     function populateCurrentStateWidget() {
         const { tickerData, coinGeckoData, usdToIdrRate, globalData, openInterestData, fundingRateData, binanceSymbol } = analysisCache;
@@ -5312,6 +5308,7 @@ function calculateShortConfluenceScore(symbol) {
         return { score: Math.min(score, 10), breakdown };
     }
 }
+// GANTI SELURUH FUNGSI onNewMoverData DENGAN KODE INI
 function onNewMoverData(symbol, streamName, payload) {
     if (!topMoversRealtimeData[symbol]) return;
     if (streamName.includes('@kline_1h')) {
@@ -5327,7 +5324,143 @@ function onNewMoverData(symbol, streamName, payload) {
         if (topMoversRealtimeData[symbol].aggTrades.length > 1000) topMoversRealtimeData[symbol].aggTrades.shift();
     }
     const scoreData = calculateShortConfluenceScore(symbol);
-    if (scoreData !== null) updateShortScoreUI(symbol, scoreData.score, scoreData.breakdown);
+    if (scoreData !== null) {
+        updateShortScoreUI(symbol, scoreData.score, scoreData.breakdown);
+
+        // BAGIAN BARU: JIKA SIMBOL INI ADALAH YANG SEDANG DIANALISIS, SINKRONKAN SKOR
+        if (analysisCache.binanceSymbol === symbol) {
+            // Hitung kembali pumpStrength dari data kline real-time
+            const klines1h = topMoversRealtimeData[symbol].klines_1h;
+            if (klines1h.length >= 2) {
+                const prevClose = klines1h[klines1h.length - 2].Close;
+                const lastClose = klines1h[klines1h.length - 1].Close;
+                const change1h = ((lastClose - prevClose) / prevClose) * 100;
+                const totalVolume = klines1h.reduce((sum, k) => sum + k.Volume, 0);
+                const strengthScore = change1h * Math.log10(totalVolume + 1);
+                const isGainer = change1h > 0;
+                const pumpStrength = isGainer ? Math.min(100, strengthScore) : 0;
+                liveAnalysisScores.pumpStrength = pumpStrength;
+            }
+            liveAnalysisScores.dumpRisk = scoreData.score;
+        }
+    }
+}
+
+// ...
+
+// GANTI SELURUH FUNGSI calculateAndDisplayScalpingSetup DENGAN KODE INI
+function calculateAndDisplayScalpingSetup() {
+    const { klines, calculatedData } = analysisCache;
+    if (!klines || klines.length < 50 || !calculatedData) {
+        document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup untuk setup scalping.</p>';
+        return;
+    }
+
+    const container = document.getElementById('scalping-setup-content');
+    document.getElementById('scalping-timeframe-display').textContent = timeframeSelect.value;
+    const closes = klines.map(k => parseFloat(k[4]));
+    const lastPrice = closes[closes.length - 1];
+    
+    const ema9 = calculateEMA(closes, 9).pop();
+    const ema21 = calculateEMA(closes, 21).pop();
+    const bias = ema9 > ema21 ? 'LONG' : 'SHORT';
+    const recentKlines = klines.slice(-15);
+    let recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+    let recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+    let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
+    const riskAmount = Math.abs(lastPrice - (bias === 'LONG' ? recentSwingLow : recentSwingHigh));
+    if (bias === 'LONG') {
+        entryPrice = ema9; 
+        stopLoss = recentSwingLow * 0.999;
+        takeProfit1 = recentSwingHigh;
+        takeProfit2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
+        const upperBB = calculatedData.bollingerBands.upper.filter(v=>v).pop();
+        const dailyPivot = calculatedData.pivot.data?.P;
+        let potentialTP3s = [upperBB, dailyPivot].filter(p => p && p > takeProfit2);
+        takeProfit3 = potentialTP3s.length > 0 ? Math.min(...potentialTP3s) : 'N/A';
+    } else { 
+        entryPrice = ema9; 
+        stopLoss = recentSwingHigh * 1.001;
+        takeProfit1 = recentSwingLow;
+        takeProfit2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
+        const lowerBB = calculatedData.bollingerBands.lower.filter(v=>v).pop();
+        const dailyPivot = calculatedData.pivot.data?.P;
+        let potentialTP3s = [lowerBB, dailyPivot].filter(p => p && p < takeProfit2);
+        takeProfit3 = potentialTP3s.length > 0 ? Math.max(...potentialTP3s) : 'N/A';
+    }
+    
+    const calculatePercentage = (targetPrice, entry) => {
+        if (typeof targetPrice !== 'number' || entry === 0) return '';
+        const percentage = ((targetPrice - entry) / entry) * 100;
+        return `(${percentage.toFixed(2)}%)`;
+    };
+    const entryPercent = `(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})`;
+    const slPercent = calculatePercentage(stopLoss, entryPrice);
+    const tp1Percent = calculatePercentage(takeProfit1, entryPrice);
+    const tp2Percent = calculatePercentage(takeProfit2, entryPrice);
+    const tp3Percent = calculatePercentage(takeProfit3, entryPrice);
+    const biasClass = bias === 'LONG' ? 'positive' : 'negative';
+    const tpColorClass = 'positive';
+    const slColorClass = 'negative';
+    const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
+    
+    // --- START: KODE BARU UNTUK HYBRID BAR ---
+    // AMBIL SKOR DARI OBJEK GLOBAL BARU liveAnalysisScores
+    const pumpStrength = liveAnalysisScores.pumpStrength !== undefined ? liveAnalysisScores.pumpStrength : 0;
+    const dumpRiskScore = liveAnalysisScores.dumpRisk !== undefined ? liveAnalysisScores.dumpRisk : (calculateShortConfluenceScore()?.score || 0);
+
+    container.innerHTML = `
+        <div class="grid grid-cols-3 gap-4 text-center items-start">
+            <div>
+                <p class="text-xs text-gray-500">Bias Sesaat</p>
+                <p class="font-bold blinking-text-animation ${biasClass}">${bias}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">Saran Entri</p>
+                <p class="font-semibold text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
+                <p class="text-xs font-mono text-yellow-500">${entryPercent}</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">SL (Struktural)</p>
+                <p class="font-semibold text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
+                <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
+            </div>
+        </div>
+        
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+                <span>Kekuatan Pump</span>
+                <span>Risiko Dump</span>
+            </div>
+            <div class="confluence-bar-container w-full h-8 mt-2">
+                <div id="scalping-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: ${pumpStrength}%;"></div>
+                <div id="scalping-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: ${dumpRiskScore * 10}%;"></div>
+            </div>
+            <div class="flex items-center justify-between text-xs mt-1">
+                <span id="scalping-pump-score" class="positive font-bold">${pumpStrength.toFixed(0)}%</span>
+                <span id="scalping-dump-score" class="negative font-bold">${dumpRiskScore}/10</span>
+            </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
+            <div>
+                <p class="text-xs text-gray-500">TP 1 (Struktural)</p>
+                <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit1)}</p>
+                <p class="text-xs font-mono ${tpColorClass}">${tp1Percent}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">TP 2 (R:R 1:1.5)</p>
+                <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit2)}</p>
+                <p class="text-xs font-mono ${tpColorClass}">${tp2Percent}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500">TP 3 (Level Kunci)</p>
+                <p class="font-semibold text-sm ${tp3Display}</p>
+            </div>
+        </div>
+    `;
+    
+    calculatePositionSize({ entry: entryPrice, sl: stopLoss, tp1: takeProfit1 });
+    analysisCache.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
 }
 
 // GANTI FUNGSI YANG ADA DENGAN INI
@@ -5396,6 +5529,7 @@ function calculateShortConfluenceScore(symbol) {
         return { score: Math.min(score, 10), breakdown };
     }
 }
+
 
 function updateShortScoreUI(symbol, score, breakdown) {
     const dumpRiskElement = document.querySelector(`#hybrid-bar-${symbol} .dump-risk`);
