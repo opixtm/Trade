@@ -3020,35 +3020,70 @@ async function runFullAnalysis(symbol = null) {
         // Validasi Simbol
         await validateBinanceSymbol(binanceSymbol, marketType);
 
-        // --- PENGAMBILAN DATA SEKUENSIAL (ANTI-CRASH) ---
-        showLoader(true, 'Mengambil data candle...');
-        const klines = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType);
-        klineCache[binanceSymbol + selectedTimeframe] = { data: klines, timestamp: Date.now() };
-
-        showLoader(true, 'Mengambil data pasar...');
-        const tickerData = await fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType);
-        const assetDailyKlines = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType);
-        const btcDailyKlines = await fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot');
-        const orderBookData = await fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType);
-        const usdToIdrRate = await fetchUsdToIdrRate();
-        const globalData = await fetch('https://api.coingecko.com/api/v3/global').then(res => res.json());
-
+        // --- PENGAMBILAN DATA PARALEL (CEPAT & AMAN) ---
+        showLoader(true, 'Mengambil semua data pasar...');
         const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
-        let coinGeckoData = null;
-        try {
-            showLoader(true, 'Mengambil data fundamental...');
-            const coinGeckoId = await getCoinGeckoId(baseAsset);
-            coinGeckoData = await fetchCoinGeckoData(coinGeckoId);
-        } catch (e) { console.warn(`Gagal mengambil data CoinGecko: ${e.message}`); }
 
-        let openInterestData, fundingRateData, lsRatioUmumData, lsRatioTopData;
+        // Siapkan semua 'janji' (Promise) untuk dijalankan bersamaan
+        let promisesToRun = [
+            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType),
+            fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType),
+            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType),
+            fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot'),
+            fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
+            fetchUsdToIdrRate(),
+            fetch('https://api.coingecko.com/api/v3/global').then(res => res.json()),
+            // Promise untuk mengambil data CoinGecko, dibungkus agar tidak menghentikan proses jika gagal
+            (async () => {
+                try {
+                    const coinGeckoId = await getCoinGeckoId(baseAsset);
+                    return await fetchCoinGeckoData(coinGeckoId);
+                } catch (e) {
+                    console.warn(`Gagal mengambil data CoinGecko: ${e.message}`);
+                    return null; // Kembalikan null jika gagal
+                }
+            })()
+        ];
+
+        // Jika pasar adalah futures, tambahkan promise khusus futures
         if (marketType === 'futures') {
-            showLoader(true, 'Mengambil data futures...');
-            openInterestData = await fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures');
-            fundingRateData = await fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures');
-            lsRatioUmumData = await fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json());
-            lsRatioTopData = await fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json());
+            promisesToRun.push(
+                fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures'),
+                fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures'),
+                fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json()),
+                fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json())
+            );
         }
+
+        // Jalankan semua promise secara paralel dan tunggu hasilnya
+        const results = await Promise.allSettled(promisesToRun);
+
+        // Ekstrak data dari hasil, periksa apakah berhasil atau gagal
+        const klines = results[0].status === 'fulfilled' ? results[0].value : null;
+        const tickerData = results[1].status === 'fulfilled' ? results[1].value : null;
+        const assetDailyKlines = results[2].status === 'fulfilled' ? results[2].value : null;
+        const btcDailyKlines = results[3].status === 'fulfilled' ? results[3].value : null;
+        const orderBookData = results[4].status === 'fulfilled' ? results[4].value : null;
+        const usdToIdrRate = results[5].status === 'fulfilled' ? results[5].value : 16200; // default value
+        const globalData = results[6].status === 'fulfilled' ? results[6].value : null;
+        const coinGeckoData = results[7].status === 'fulfilled' ? results[7].value : null;
+
+        // Ekstrak data futures jika ada
+        let openInterestData = null, fundingRateData = null, lsRatioUmumData = null, lsRatioTopData = null;
+        if (marketType === 'futures' && results.length > 8) {
+            openInterestData = results[8].status === 'fulfilled' ? results[8].value : null;
+            fundingRateData = results[9].status === 'fulfilled' ? results[9].value : null;
+            lsRatioUmumData = results[10].status === 'fulfilled' ? results[10].value : null;
+            lsRatioTopData = results[11].status === 'fulfilled' ? results[11].value : null;
+        }
+
+        // Validasi: Pastikan data paling penting berhasil dimuat
+        if (!klines || !tickerData) {
+            throw new Error("Gagal memuat data esensial (Kline & Ticker) dari Binance. Coba lagi.");
+        }
+
+        // Cache kline data setelah berhasil diambil
+        klineCache[binanceSymbol + selectedTimeframe] = { data: klines, timestamp: Date.now() };
 
         let correlationValue = null;
         if (binanceSymbol !== 'BTCUSDT' && assetDailyKlines && btcDailyKlines && assetDailyKlines.length === btcDailyKlines.length) {
