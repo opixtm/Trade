@@ -5227,6 +5227,7 @@ function renderTriggerBreakdown(breakdown) {
     
     html += renderTrigger('Candle Merah Paska-Puncak', 3, breakdown.candleRed, breakdown.candleRed ? 'Terdeteksi' : 'Tidak Ada');
     html += renderTrigger('Pola Candle Bearish', 1, breakdown.doji, breakdown.candlePattern, '(cth: Shooting Star)');
+    html += renderTrigger('CVD Menukik Tajam', 2, breakdown.cvdDip, breakdown.cvdDip ? 'Ya' : 'Tidak');
     html += renderTrigger('Divergensi / Arah CVD', 2, breakdown.cvdDivergence, breakdown.cvdStatus, '(Kondisi: Bearish)');
     html += renderTrigger('Rejection Bollinger Band', 3, breakdown.bbRejection, breakdown.bbStatus);
     html += renderTrigger('MACD Bearish Cross', 2, breakdown.macdCross, `Status: ${breakdown.macdStatus}`);
@@ -5526,12 +5527,18 @@ function onNewMoverData(symbol, streamName, payload) {
 
 // GANTI SELURUH FUNGSI calculateAndDisplayScalpingSetup DENGAN KODE INI
 // GANTI SELURUH FUNGSI calculateAndDisplayScalpingSetup DENGAN KODE INI
+// GANTI SELURUH FUNGSI DENGAN VERSI FINAL INI
 function calculateAndDisplayScalpingSetup() {
-    const { klines, calculatedData, symbol } = realtimeCache.main;
+    // [DIRAPIKAN] Ambil semua data yang dibutuhkan di awal
+    const { klines, calculatedData, symbol, selectedTimeframe } = realtimeCache.main;
+    
     if (!klines || klines.length < 50 || !calculatedData) {
         document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup.</p>';
         return;
     }
+
+    // [DIPERBAIKI] Hanya satu baris ini untuk mengatur judul
+    document.getElementById('scalping-timeframe-display').textContent = `${symbol} - ${selectedTimeframe}`;
 
     // --- BAGIAN 1: Mengisi Modul Hybrid Bar & Rincian Trigger ---
     const scoreData = calculateShortConfluenceScore(symbol) || { score: 0, breakdown: {} };
@@ -5539,18 +5546,14 @@ function calculateAndDisplayScalpingSetup() {
     const triggerBreakdown = scoreData.breakdown;
     const pumpStrength = realtimeCache.main.liveScores.pumpStrength || 0;
 
-    // Update Bar Utama
     document.getElementById('main-pump-bar').style.width = `${pumpStrength}%`;
     document.getElementById('main-dump-bar').style.width = `${dumpRiskScore * 10}%`;
     document.getElementById('main-pump-score').textContent = `${pumpStrength.toFixed(0)}%`;
     document.getElementById('main-dump-score').textContent = `${dumpRiskScore}/10`;
-
-    // Panggil fungsi baru kita untuk mengisi rincian trigger
     renderTriggerBreakdown(triggerBreakdown);
 
     // --- BAGIAN 2: Menghitung & Menampilkan Setup Scalping (Entri, SL, TP) ---
     const container = document.getElementById('scalping-setup-content');
-    document.getElementById('scalping-timeframe-display').textContent = realtimeCache.main.selectedTimeframe;
     const closes = klines.map(k => parseFloat(k[4]));
     const lastPrice = closes[closes.length - 1];
 
@@ -5568,20 +5571,15 @@ function calculateAndDisplayScalpingSetup() {
         stopLoss = recentSwingLow * 0.999;
         takeProfit1 = recentSwingHigh;
         takeProfit2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
-        const upperBB = calculatedData.bollingerBands.upper.filter(v=>v).pop();
-        const dailyPivot = calculatedData.pivot.data?.P;
-        let potentialTP3s = [upperBB, dailyPivot].filter(p => p && p > takeProfit2);
-        takeProfit3 = potentialTP3s.length > 0 ? Math.min(...potentialTP3s) : 'N/A';
     } else { 
         entryPrice = ema9; 
         stopLoss = recentSwingHigh * 1.001;
         takeProfit1 = recentSwingLow;
         takeProfit2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
-        const lowerBB = calculatedData.bollingerBands.lower.filter(v=>v).pop();
-        const dailyPivot = calculatedData.pivot.data?.P;
-        let potentialTP3s = [lowerBB, dailyPivot].filter(p => p && p < takeProfit2);
-        takeProfit3 = potentialTP3s.length > 0 ? Math.max(...potentialTP3s) : 'N/A';
     }
+    
+    const dailyPivot = calculatedData.pivot.data?.P;
+    takeProfit3 = dailyPivot ? dailyPivot : 'N/A';
 
     const calculatePercentage = (targetPrice, entry) => {
         if (typeof targetPrice !== 'number' || entry === 0) return '';
@@ -5589,41 +5587,39 @@ function calculateAndDisplayScalpingSetup() {
     };
 
     const biasClass = bias === 'LONG' ? 'positive' : 'negative';
-    const tpColorClass = 'positive';
-    const slColorClass = 'negative';
-    const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${calculatePercentage(takeProfit3, entryPrice)}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
+    const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono positive">${calculatePercentage(takeProfit3, entryPrice)}</span>` : '<span class.dark-mode="text-gray-400 dark:text-gray-600">N/A</span>';
 
     container.innerHTML = `
         <div class="grid grid-cols-3 gap-4 text-center items-start">
             <div>
                 <p class="text-xs text-gray-500">Bias Sesaat</p>
-                <p class="font-bold blinking-text-animation ${biasClass}">${bias}</p>
+                <p class="font-bold text-lg ${biasClass}">${bias}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-500">Saran Entri</p>
-                <p class="font-semibold text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
-                <p class="text-xs font-mono text-yellow-500">(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})</p>
+                <p class="font-semibold text-lg warning">${formatPrice(entryPrice)}</p>
+                <p class="text-xs text-gray-400">(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})</p>
             </div>
             <div>
                 <p class="text-sm text-gray-500">SL (Struktural)</p>
-                <p class="font-semibold text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
-                <p class="text-xs font-mono ${slColorClass}">${calculatePercentage(stopLoss, entryPrice)}</p>
+                <p class="font-semibold text-lg negative">${formatPrice(stopLoss)}</p>
+                <p class="text-xs text-gray-400">${calculatePercentage(stopLoss, entryPrice)}</p>
             </div>
         </div>
-        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
+        <div class="mt-4 pt-4 border-t border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
             <div>
                 <p class="text-xs text-gray-500">TP 1 (Struktural)</p>
-                <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit1)}</p>
-                <p class="text-xs font-mono ${tpColorClass}">${calculatePercentage(takeProfit1, entryPrice)}</p>
+                <p class="font-semibold positive">${formatPrice(takeProfit1)}</p>
+                <p class="text-xs text-gray-400">${calculatePercentage(takeProfit1, entryPrice)}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-500">TP 2 (R:R 1:1.5)</p>
-                <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit2)}</p>
-                <p class="text-xs font-mono ${tpColorClass}">${calculatePercentage(takeProfit2, entryPrice)}</p>
+                <p class="font-semibold positive">${formatPrice(takeProfit2)}</p>
+                <p class="text-xs text-gray-400">${calculatePercentage(takeProfit2, entryPrice)}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-500">TP 3 (Level Kunci)</p>
-                <p class="font-semibold text-sm ${tp3Display}</p>
+                <p class="font-semibold text-sm">${tp3Display}</p>
             </div>
         </div>
     `;
@@ -5666,7 +5662,8 @@ function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
         macdStatus: indicators.macd.status,
         bbStatus: indicators.bollingerBands.rejection,
         cvdStatus: indicators.cvd.divergence,
-        candlePattern: indicators.candlePattern.pattern
+        candlePattern: indicators.candlePattern.pattern,
+        cvdDip: false
     };
 
     const lookbackPeriod = 15;
@@ -5709,6 +5706,16 @@ function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
     if (lastRsiValue > 70) {
         score += 2;
         breakdown.rsiOverbought = true;
+    }
+    const cvdValues = calculateCVD(dataSource.aggTrades || []).map(d => d.cvd_usdt);
+    if (cvdValues.length > 5) {
+        const recentCvdSegment = cvdValues.slice(-5);
+        const startCvd = recentCvdSegment[0];
+        const endCvd = recentCvdSegment[4];
+        if (endCvd < startCvd) { // Jika ada penurunan dalam 5 candle terakhir
+            score += 2;
+            breakdown.cvdDip = true;
+        }
     }
 
     return { score: Math.min(score, 10), breakdown };
