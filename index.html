@@ -360,6 +360,23 @@
             top: 0;
             transition: width 0.3s ease-in-out;
         }
+        /* === CSS BARU UNTUK SKOR TENSI (MULAI) === */
+        .tension-bar-bg {
+            background-color: #374151; /* dark:bg-gray-700 */
+            border-radius: 9999px;
+            height: 8px;
+            width: 100%;
+            margin: 4px auto 0;
+            overflow: hidden;
+            border: 1px solid #4b5563;
+        }
+        .tension-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease-in-out;
+            background: linear-gradient(to right, #fcd34d, #f59e0b, #ef4444); /* yellow to orange to red */
+        }
+        /* === CSS BARU UNTUK SKOR TENSI (SELESAI) === */
     </style>
 </head>
 <body class="antialiased">
@@ -670,7 +687,11 @@
                                             </div>
                                             <div id="quick-finalBullishScore" class="text-2xl font-bold status-uptrend text-left w-1/5">0% 🐂</div>
                                         </div>
-                                        <p id="quick-finalVerdict" class="text-center font-semibold"></p>
+                                        <div id="verdict-container" class="text-center">
+                                            <p id="quick-finalVerdict" class="font-semibold"></p>
+                                            <div id="tension-score-container" class="mt-3 text-xs">
+                                                </div>
+                                        </div>
 
                                         <div id="confluence-breakdown-container" class="mt-4 text-xs text-center space-y-2 hidden">
                                             <div class="grid grid-cols-2 gap-2 text-left">
@@ -758,7 +779,7 @@
                                     <h2 class="text-lg font-bold">📊 Data Timeframe <span id="confluence-timeframe-display">1H</span></h2>
                                     <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
-                                <div id="confluence-content-wrapper" class="collapsible-content expanded">
+                                <div id="confluence-content-wrapper" class="collapsible-content">
                                     <div>
                                         <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
                                             <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">🌍 Konteks Pasar & Tren Utama</h3>
@@ -1575,9 +1596,33 @@ function determineMarketRegime(klines, closes) {
         const bullWidthPercentage = totalStrength > 0 ? (bullPercentage / totalStrength) * 100 : 50;
         document.getElementById('quick-confluenceBarBullish').style.width = `${bullWidthPercentage}%`;
         document.getElementById('quick-confluenceBarBearish').style.width = `${100 - bullWidthPercentage}%`;
+        // --- AWAL BLOK PERUBAHAN ---
+
+        // 1. Hitung Skor Tensi
+        const tensionScore = Math.min(100, bullPercentage + bearPercentage);
+        let tensionText = "Rendah";
+        if (tensionScore > 50) tensionText = "Sedang";
+        if (tensionScore > 75) tensionText = "Tinggi";
+        if (tensionScore > 90) tensionText = "Ekstrem";
+
+        // 2. Tampilkan Verdict Utama
         const verdictEl = document.getElementById('quick-finalVerdict');
         verdictEl.innerHTML = `${verdict} <span class="text-sm font-mono ${verdictClass}">(${(bullPercentage - bearPercentage).toFixed(0)})</span> ${mtfHtml}`;
-        verdictEl.className = `text-center font-semibold`;
+        // Hapus text-center karena sudah dihandle oleh div container baru
+        verdictEl.className = `font-semibold`;
+
+        // 3. Tampilkan Skor Tensi
+        const tensionContainer = document.getElementById('tension-score-container');
+        tensionContainer.innerHTML = `
+            <span class="text-gray-400">Tensi Pasar: <strong>${tensionText}</strong> (${tensionScore.toFixed(0)}/100)</span>
+            <div class="tension-bar-bg">
+                <div class="tension-bar-fill" style="width: ${tensionScore}%;"></div>
+            </div>
+        `;
+        
+        // --- AKHIR BLOK PERUBAHAN ---
+
+        analyzeAndDisplayConfluenceContributors();
         
         // Asumsi elemen span ada di dalam verdictEl dan bukan satu-satunya span
         const verdictSpan = verdictEl.querySelector(`.${verdictClass.split(' ')[0]}`);
@@ -1592,6 +1637,8 @@ function determineMarketRegime(klines, closes) {
             verdictEl.replaceChild(newSpan, textNode);
         }
         
+        
+
         analyzeAndDisplayConfluenceContributors();
     }
 // =======================================================   
@@ -2863,7 +2910,6 @@ function calculateAndDisplayScalpingSetup() {
 }
 
 // =======================================================
-    // GANTI FUNGSI calculatePositionSize YANG LAMA DENGAN INI:
     function calculatePositionSize(levels) {
         const riskAmountInput = document.getElementById('risk-amount-input');
         const leverageInput = document.getElementById('leverage-input'); // [BARU] Ambil input leverage
@@ -2905,11 +2951,11 @@ function calculateAndDisplayScalpingSetup() {
     }
 
 // [BARU] Tambahkan event listener untuk input leverage
-document.getElementById('leverage-input').addEventListener('input', () => {
-    if (realtimeCache.main.latestScalpingSetup) {
-        calculatePositionSize(realtimeCache.main.latestScalpingSetup);
-    }
-});
+    document.getElementById('leverage-input').addEventListener('input', () => {
+        if (realtimeCache.main.latestScalpingSetup) {
+            calculatePositionSize(realtimeCache.main.latestScalpingSetup);
+        }
+    });
 // =======================================================
     function calculateATRPercentage(klines, period = 14) {
         if (!klines || klines.length === 0) {
@@ -2976,322 +3022,332 @@ document.getElementById('leverage-input').addEventListener('input', () => {
     }
 // =======================================================
 // GANTI SELURUH FUNGSI runFullAnalysis DENGAN KODE DI BAWAH INI
-async function runFullAnalysis(symbol = null) {
-    // Bagian awal (setup)
-    adaptIndicatorParamsToTimeframe(timeframeSelect.value);
-    WebSocketManager.registerHandler('kline', (message) => klineQueue.push(message));
-    WebSocketManager.registerHandler('aggTrade', (trade) => tradeQueue.push(trade));
-    WebSocketManager.registerHandler('depthUpdate', (data) => depthQueue.push(data));
-    orderBookDOMElements = null;
-    hideError();
-    showLoader(true, 'Memulai Analisa...');
+// =======================================================
+    async function runFullAnalysis(symbol = null) {
+        // Bagian awal (setup)
+        adaptIndicatorParamsToTimeframe(timeframeSelect.value);
+        WebSocketManager.registerHandler('kline', (message) => klineQueue.push(message));
+        WebSocketManager.registerHandler('aggTrade', (trade) => tradeQueue.push(trade));
+        WebSocketManager.registerHandler('depthUpdate', (data) => depthQueue.push(data));
+        orderBookDOMElements = null;
+        hideError();
+        showLoader(true, 'Memulai Analisa...');
 
-    destroyCharts();
-    specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
-    specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Mencari data on-chain...</p>`;
-    trendingPoolsContent.innerHTML = `<div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div>`;
-    
-    try {
-        // Reset UI AI
-        const aiContentContainer = document.getElementById('ai-content-container');
-        if (aiContentContainer) aiContentContainer.classList.add('hidden');
-        const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
-        if (comprehensiveBtn) {
-            const btnText = comprehensiveBtn.querySelector('span');
-            const btnLoader = comprehensiveBtn.querySelector('.loader');
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-            comprehensiveBtn.disabled = false;
-        }
-
-        // Ambil input
-        // PERBAIKAN: Gunakan nilai dari input jika symbol kosong atau tidak valid
-        const binanceSymbol = (symbol || assetInput.value.trim() || 'BTCUSDT').toUpperCase();
+        destroyCharts();
+        specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
+        specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Mencari data on-chain...</p>`;
+        trendingPoolsContent.innerHTML = `<div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div>`;
         
-        // PERBAIKAN: Jika symbol dari klik, update juga kotak inputnya
-        if (symbol) { 
-            assetInput.value = symbol;
-        }
-        
-        const correlationAsset = document.getElementById('correlation-asset-input').value.trim().toUpperCase() || 'BTCUSDT';
-        const marketType = marketTypeSelect.value;
-        const selectedTimeframe = timeframeSelect.value;
-        
-        // Validasi Simbol
-        await validateBinanceSymbol(binanceSymbol, marketType);
+        try {
+            // Reset UI AI
+            const aiContentContainer = document.getElementById('ai-content-container');
+            if (aiContentContainer) aiContentContainer.classList.add('hidden');
+            const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
+            if (comprehensiveBtn) {
+                const btnText = comprehensiveBtn.querySelector('span');
+                const btnLoader = comprehensiveBtn.querySelector('.loader');
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+                comprehensiveBtn.disabled = false;
+            }
 
-        // --- PENGAMBILAN DATA PARALEL (CEPAT & AMAN) ---
-        showLoader(true, 'Mengambil semua data pasar...');
-        const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
+            // Ambil input
+            // PERBAIKAN: Gunakan nilai dari input jika symbol kosong atau tidak valid
+            const binanceSymbol = (symbol || assetInput.value.trim() || 'BTCUSDT').toUpperCase();
+            
+            // PERBAIKAN: Jika symbol dari klik, update juga kotak inputnya
+            if (symbol) { 
+                assetInput.value = symbol;
+            }
+            
+            const correlationAsset = document.getElementById('correlation-asset-input').value.trim().toUpperCase() || 'BTCUSDT';
+            const marketType = marketTypeSelect.value;
+            const selectedTimeframe = timeframeSelect.value;
+            
+            // Validasi Simbol
+            await validateBinanceSymbol(binanceSymbol, marketType);
 
-        // Siapkan semua 'janji' (Promise) untuk dijalankan bersamaan
-        let promisesToRun = [
-            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType),
-            fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType),
-            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType),
-            fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot'),
-            fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
-            fetchUsdToIdrRate(),
-            fetch('https://api.coingecko.com/api/v3/global').then(res => res.json()),
-            // Promise untuk mengambil data CoinGecko, dibungkus agar tidak menghentikan proses jika gagal
-            (async () => {
-                try {
-                    const coinGeckoId = await getCoinGeckoId(baseAsset);
-                    return await fetchCoinGeckoData(coinGeckoId);
-                } catch (e) {
-                    console.warn(`Gagal mengambil data CoinGecko: ${e.message}`);
-                    return null; // Kembalikan null jika gagal
-                }
-            })()
-        ];
+            // --- PENGAMBILAN DATA PARALEL (CEPAT & AMAN) ---
+            showLoader(true, 'Mengambil semua data pasar...');
+            const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
 
-        // Jika pasar adalah futures, tambahkan promise khusus futures
-        if (marketType === 'futures') {
-            promisesToRun.push(
-                fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures'),
-                fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures'),
-                fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json()),
-                fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json())
-            );
-        }
+            // Siapkan semua 'janji' (Promise) untuk dijalankan bersamaan
+            let promisesToRun = [
+                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType), // TF Pilihan
+                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1h', limit: 200 }, marketType), // <-- TAMBAHKAN INI (Kompas 1H)
+                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '15m', limit: 200 }, marketType), // <-- TAMBAHKAN INI (Kompas 15M)
+                fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType),
+                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType),
+                fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot'),
+                fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
+                fetchUsdToIdrRate(),
+                fetch('https://api.coingecko.com/api/v3/global').then(res => res.json()),
+                // Promise untuk mengambil data CoinGecko, dibungkus agar tidak menghentikan proses jika gagal
+                (async () => {
+                    try {
+                        const coinGeckoId = await getCoinGeckoId(baseAsset);
+                        return await fetchCoinGeckoData(coinGeckoId);
+                    } catch (e) {
+                        console.warn(`Gagal mengambil data CoinGecko: ${e.message}`);
+                        return null; // Kembalikan null jika gagal
+                    }
+                })()
+            ];
 
-        // Jalankan semua promise secara paralel dan tunggu hasilnya
+            // Jika pasar adalah futures, tambahkan promise khusus futures
+            if (marketType === 'futures') {
+                promisesToRun.push(
+                    fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures'),
+                    fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures'),
+                    fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json()),
+                    fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json())
+                );
+            }
+
+            // Jalankan semua promise secara paralel dan tunggu hasilnya
         const results = await Promise.allSettled(promisesToRun);
 
-        // Ekstrak data dari hasil, periksa apakah berhasil atau gagal
+        // ======================= AWAL BLOK PENGGANTI =======================
+        // Ekstrak data dari hasil dengan indeks yang sudah dikoreksi total
         const klines = results[0].status === 'fulfilled' ? results[0].value : null;
-        const tickerData = results[1].status === 'fulfilled' ? results[1].value : null;
-        const assetDailyKlines = results[2].status === 'fulfilled' ? results[2].value : null;
-        const btcDailyKlines = results[3].status === 'fulfilled' ? results[3].value : null;
-        const orderBookData = results[4].status === 'fulfilled' ? results[4].value : null;
-        const usdToIdrRate = results[5].status === 'fulfilled' ? results[5].value : 16200; // default value
-        const globalData = results[6].status === 'fulfilled' ? results[6].value : null;
-        const coinGeckoData = results[7].status === 'fulfilled' ? results[7].value : null;
+        const klines1h = results[1].status === 'fulfilled' ? results[1].value : null;
+        const klines15m = results[2].status === 'fulfilled' ? results[2].value : null;
+        const tickerData = results[3].status === 'fulfilled' ? results[3].value : null;
+        const assetDailyKlines = results[4].status === 'fulfilled' ? results[4].value : null;
+        const btcDailyKlines = results[5].status === 'fulfilled' ? results[5].value : null;
+        const orderBookData = results[6].status === 'fulfilled' ? results[6].value : null; // <-- INI YANG KRUSIAL
+        const usdToIdrRate = results[7].status === 'fulfilled' ? results[7].value : 16200;
+        const globalData = results[8].status === 'fulfilled' ? results[8].value : null;
+        const coinGeckoData = results[9].status === 'fulfilled' ? results[9].value : null;
 
         // Ekstrak data futures jika ada
         let openInterestData = null, fundingRateData = null, lsRatioUmumData = null, lsRatioTopData = null;
-        if (marketType === 'futures' && results.length > 8) {
-            openInterestData = results[8].status === 'fulfilled' ? results[8].value : null;
-            fundingRateData = results[9].status === 'fulfilled' ? results[9].value : null;
-            lsRatioUmumData = results[10].status === 'fulfilled' ? results[10].value : null;
-            lsRatioTopData = results[11].status === 'fulfilled' ? results[11].value : null;
+        if (marketType === 'futures' && results.length > 10) {
+            openInterestData = results[10].status === 'fulfilled' ? results[10].value : null;
+            fundingRateData = results[11].status === 'fulfilled' ? results[11].value : null;
+            lsRatioUmumData = results[12].status === 'fulfilled' ? results[12].value : null;
+            lsRatioTopData = results[13].status === 'fulfilled' ? results[13].value : null;
         }
+        // ======================= AKHIR BLOK PENGGANTI =======================
 
         // Validasi: Pastikan data paling penting berhasil dimuat
         if (!klines || !tickerData) {
             throw new Error("Gagal memuat data esensial (Kline & Ticker) dari Binance. Coba lagi.");
         }
 
-        // Cache kline data setelah berhasil diambil
-        klineCache[binanceSymbol + selectedTimeframe] = { data: klines, timestamp: Date.now() };
+            // Cache kline data setelah berhasil diambil
+            klineCache[binanceSymbol + selectedTimeframe] = { data: klines, timestamp: Date.now() };
 
-        let correlationValue = null;
-        if (binanceSymbol !== 'BTCUSDT' && assetDailyKlines && btcDailyKlines && assetDailyKlines.length === btcDailyKlines.length) {
-            correlationValue = calculateCorrelation(assetDailyKlines.map(k=>parseFloat(k[4])), btcDailyKlines.map(k=>parseFloat(k[4])));
-        }
-
-        // KODE LENGKAP & BENAR
-        realtimeCache.main = { 
-            symbol: binanceSymbol,
-            tickerData, 
-            klines, 
-            orderBookData, 
-            usdToIdrRate, 
-            globalData, 
-            coinGeckoData, 
-            openInterestData, 
-            fundingRateData, 
-            lsRatioUmumData, 
-            lsRatioTopData, 
-            binanceSymbol, 
-            selectedTimeframe, 
-            correlationData: correlationValue,
-            liveScores: { pumpStrength: 0, dumpRisk: 0 } // <-- INI YANG DITAMBAHKAN
-        };
-
-
-        showLoader(true, 'Menghitung indikator...');
-
-        const allTrades = await fetchBinanceAPIData('aggTrades', { symbol: binanceSymbol, limit: 1000 }, marketType);
-        const cvdData = calculateCVD(allTrades);
-        realtimeCache.main.cvdData = cvdData;
-
-        const closes = klines.map(k => parseFloat(k[4]));
-        const lastPrice = closes[closes.length - 1];
-        const rsiValues = calculateRSI(closes);
-        const ema21Values = calculateEMA(closes, 21);
-        const ema50Values = calculateEMA(closes, 50);
-        const lastEma21 = ema21Values.filter(v => v !== undefined).pop();
-        const lastEma50 = ema50Values.filter(v => v !== undefined).pop();
-
-        let trendStatus = 'Netral';
-        let trendClass = 'text-yellow-400';
-        if (lastEma21 > lastEma50) {
-            if (lastPrice > lastEma21) {
-                trendStatus = 'Uptrend Kuat';
-                trendClass = 'positive';
-            } else {
-                trendStatus = 'Koreksi dalam Uptrend';
-                trendClass = 'text-yellow-400';
+            let correlationValue = null;
+            if (binanceSymbol !== 'BTCUSDT' && assetDailyKlines && btcDailyKlines && assetDailyKlines.length === btcDailyKlines.length) {
+                correlationValue = calculateCorrelation(assetDailyKlines.map(k=>parseFloat(k[4])), btcDailyKlines.map(k=>parseFloat(k[4])));
             }
-        } else if (lastEma50 > lastEma21) {
-            if (lastPrice < lastEma21) {
-                trendStatus = 'Downtrend Kuat';
-                trendClass = 'negative';
-            } else {
-                trendStatus = 'Reli dalam Downtrend';
-                trendClass = 'text-yellow-400';
-            }
-        }
-        
-        const pivotPoints = calculatePivotPoints(assetDailyKlines[assetDailyKlines.length - 2]);
-        const ichimoku = calculateIchimokuCloud(klines);
-        const keltnerChannels = calculateKeltnerChannels(klines);
-        const activeMode = document.querySelector('.vwap-mode-btn.active')?.dataset.mode || 'rolling';
-        const vwapValue = calculateVWAP(klines, activeMode);
-        const vwapStatus = lastPrice > vwapValue ? 'Bullish' : 'Bearish';
 
-        realtimeCache.main.calculatedData = {
-            adx: calculateADX(klines), 
-            cvd: CVDanalyze(klines, cvdData), 
-            vpvr: calculateVPVR(klines),
-            ma: { status: trendStatus, class: trendClass, value21: lastEma21, value50: lastEma50 },
-            rsi: { values: rsiValues, last: rsiValues.filter(v => v !== undefined).pop()?.toFixed(2) || 50, status: (rsiValues.filter(v => v !== undefined).pop() || 50) > 70 ? 'Overbought' : ((rsiValues.filter(v => v !== undefined).pop() || 50) < 30 ? 'Oversold' : 'Netral'), class: (rsiValues.filter(v => v !== undefined).pop() || 50) > 70 ? 'tag-red' : ((rsiValues.filter(v => v !== undefined).pop() || 50) < 30 ? 'tag-green' : 'tag-yellow') },
-            rsiDivergence: detectRSIDivergence(closes, rsiValues), 
-            obvDivergence: detectOBVDivergence(closes, klines),
-            stoch: calculateStochasticRSI(closes), 
-            macd: calculateMACD(closes),
-            bollingerBands: calculateBollingerBands(closes), 
-            atr: calculateATR(klines),
-            atrPercent: calculateATRPercentage(klines), 
-            candlePattern: findCandlestickPatterns(klines),
-            chartPattern: findChartPatterns(klines), 
-            roc: calculateROC(closes), 
-            psar: calculateParabolicSAR(klines), 
-            linreg: calculateLinearRegressionChannel(closes),
-            vwap: { status: vwapStatus, value: vwapValue },
-            pivot: { status: (lastPrice > pivotPoints?.P) ? 'Bullish' : 'Bearish', data: pivotPoints },
-            ichimoku: { status: ichimoku?.status || 'Netral', data: ichimoku },
-            keltnerChannels: keltnerChannels,
-            fundingRate: realtimeCache.main.fundingRateData,
-            lsRatio: realtimeCache.main.lsRatioUmumData?.[0],
-            openInterest: { status: (realtimeCache.main.openInterestData?.openInterest > 0 && parseFloat(realtimeCache.main.tickerData.priceChangePercent) > 0) ? 'Bullish' : (realtimeCache.main.openInterestData?.openInterest > 0 && parseFloat(realtimeCache.main.tickerData.priceChangePercent) < 0) ? 'Bearish' : 'Netral' }
-        };
+            // KODE LENGKAP & BENAR
+            realtimeCache.main = { 
+                symbol: binanceSymbol,
+                tickerData, 
+                klines,
+                klines1h, // <-- TAMBAHKAN INI
+                klines15m, // <-- TAMBAHKAN INI
+                orderBookData, 
+                usdToIdrRate, 
+                globalData, 
+                coinGeckoData, 
+                openInterestData, 
+                fundingRateData, 
+                lsRatioUmumData, 
+                lsRatioTopData, 
+                binanceSymbol, 
+                selectedTimeframe, 
+                correlationData: correlationValue,
+                liveScores: { pumpStrength: 0, dumpRisk: 0 } // <-- INI YANG DITAMBAHKAN
+            };
 
-        const bbPriceAction = analyzeBollingerBandsPriceAction(klines, realtimeCache.main.calculatedData.bollingerBands);
-        realtimeCache.main.calculatedData.bollingerBands.rejection = bbPriceAction.rejection;
-        realtimeCache.main.calculatedData.bollingerBands.walkTheBands = bbPriceAction.walkTheBands;
-        const tfAlignmentSummary = await createTFAlignmentSummary(binanceSymbol, marketType);
-        realtimeCache.main.tfAlignmentSummary = tfAlignmentSummary;
-        const marketRegime = determineMarketRegime(klines, closes);
-        realtimeCache.main.marketRegime = marketRegime;
 
-        updateDashboardUI();
-        
-        const navPriceEl = document.getElementById('nav-price');
-        const navIdrEl = document.getElementById('nav-price-idr');
-        if(navPriceEl && navIdrEl) {
-            navPriceEl.textContent = formatPrice(parseFloat(tickerData.lastPrice));
-            navIdrEl.textContent = `Rp ${(parseFloat(tickerData.lastPrice) * (realtimeCache.main.usdToIdrRate || 0)).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-        }
-        
-        if (orderBookData) {
-            latestBids = orderBookData.bids;
-            latestAsks = orderBookData.asks;
-            const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
-            const precision = getPrecisionForAsset(parseFloat(latestPrice));
-            const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
-            renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
-        }
+            showLoader(true, 'Menghitung indikator...');
 
-        const symbolLower = binanceSymbol.toLowerCase();
-        const streamsToSub = [
-            `${symbolLower}@kline_${selectedTimeframe}`,
-            `${symbolLower}@aggTrade`,
-            `${symbolLower}@depth20@100ms`
-        ];
-        WebSocketManager.subscribe(streamsToSub);
+            const allTrades = await fetchBinanceAPIData('aggTrades', { symbol: binanceSymbol, limit: 1000 }, marketType);
+            const cvdData = calculateCVD(allTrades);
+            realtimeCache.main.cvdData = cvdData;
 
-        (async () => {
-            try {
-                const searchQuery = (await getCoinGeckoId(baseAsset).then(id => fetchCoinGeckoData(id)).catch(() => null))?.platforms?.ethereum || baseAsset;
-                specificTokenTitle.innerHTML = `Analisis Token: <span class="text-white">${baseAsset.toUpperCase()}</span>`;
-                const searchResult = await fetchGeckoTerminal(`search/pools?query=${searchQuery}`);
-                if (searchResult.data && searchResult.data.length > 0) {
-                    searchResult.data.sort((a, b) => parseFloat(b.attributes.reserve_in_usd) - parseFloat(a.attributes.reserve_in_usd));
-                    const topPool = searchResult.data[0];
-                    const attrs = topPool.attributes;
-                    const networkName = topPool.id.split('_')[0];
-                    const dexName = topPool.relationships?.dex?.data?.id.split('_').join(' ') || attrs.name.split(' ').pop();
-                    if (networkName.includes('sepolia')) {
-                        document.getElementById('onchain-card').style.display = 'none';
-                        return;
-                    } else {
-                        document.getElementById('onchain-card').style.display = 'block';
-                    }
-                    specificTokenTitle.innerHTML = `Analisis Token: <span class="text-white">${baseAsset.toUpperCase()}</span> <span class="text-xs text-gray-400 capitalize">(${networkName} / ${dexName})</span>`;
-                    const price = formatPrice(parseFloat(attrs.base_token_price_usd));
-                    const volume = (parseFloat(attrs.volume_usd.h24) / 1000000).toFixed(2);
-                    const liquidity = attrs.reserve_in_usd ? (parseFloat(attrs.reserve_in_usd) / 1000000).toFixed(2) : 'N/A';
-                    let staticContentHtml = `<div class="flex justify-between items-baseline"><span class="text-gray-500 capitalize">Harga DEX (${dexName})</span><span class="font-bold text-lg text-yellow-400">${price}</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Volume 24j DEX</span><span>$${volume}jt</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Likuiditas Pool</span><span>$${liquidity}jt</span></div>`;
-                    specificTokenContent.innerHTML = staticContentHtml;
-                    try {
-                        const poolAddress = attrs.address;
-                        const tradesData = await fetchGeckoTerminal(`networks/${networkName}/pools/${poolAddress}/trades`);
-                        const tradeEvents = tradesData.data.filter(trade => trade.attributes.kind === 'buy' || trade.attributes.kind === 'sell').map(trade => ({ kind: trade.attributes.kind, usd: parseFloat(trade.attributes.volume_in_usd), price: parseFloat(trade.attributes.price_in_usd || attrs.base_token_price_usd), time: new Date(trade.attributes.block_timestamp), trader: trade.attributes.tx_from_address, network: topPool.id.split('_')[0] })).filter(event => event.usd >= 5000).slice(0, 100);
-                        if (tradeEvents.length > 0) {
-                            let buyVolume = 0, sellVolume = 0;
-                            let buyCount = 0, sellCount = 0;
-                            tradeEvents.forEach(event => { if (event.kind === 'buy') { buyVolume += event.usd; buyCount++; } else { sellVolume += event.usd; sellCount++; } });
-                            realtimeCache.main.onChainSummary = { totalBuyVolume: buyVolume, totalSellVolume: sellVolume, buyTransactions: buyCount, sellTransactions: sellCount, sentiment: buyVolume > sellVolume ? 'Dominan Beli' : 'Dominan Jual', netVolume: buyVolume - sellVolume };
-                            let html = '<hr class="border-slate-700/50 my-3"/><h4 class="text-lg font-semibold mb-2">100 Trans Terbaru di DEX >$5000 </h4>';
-                            tradeEvents.forEach(event => {
-                                const category = getHolderCategory(event.usd);
-                                const timeAgo = getTimeAgo(event.time);
-                                const specificTime = event.time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                                const walletLink = `https://dexcheck.ai/app/wallet-analyzer/${event.trader}`;
-                                const bgColor = event.kind === 'buy' ? 'bg-green-900/40 dark:bg-green-800/20' : 'bg-red-900/40 dark:bg-red-800/20';
-                                const amountColor = event.kind === 'buy' ? 'text-green-400' : 'text-red-400';
-                                const icon = event.kind === 'buy' ? '🟢' : '🔴';
-                                const actionText = event.kind === 'buy' ? 'BELI' : 'JUAL';
-                                html += `<div class="p-2 rounded-md ${bgColor}"><div class="flex justify-between items-center font-semibold"><span>${icon} ${actionText}</span><span class="${amountColor}">$${event.usd.toLocaleString('en-US', {maximumFractionDigits: 0})}</span></div><div class="text-xs text-gray-400 flex justify-between items-center mt-1"><span class="${category.class} font-bold">[${category.name}]</span><span class="font-mono text-yellow-400">@ ${formatPrice(event.price)}</span><span>${timeAgo} <span class="text-gray-500">(${specificTime})</span></span><a href="${walletLink}" target="_blank" class="underline hover:text-white">Lihat Dompet 🔗</a></div></div>`;
-                            });
-                            specificTokenContent.innerHTML += html;
-                        } else {
-                           realtimeCache.main.onChainSummary = null;
-                           specificTokenContent.innerHTML += `<p class="text-xs text-gray-500 text-center pt-2">Tidak ada transaksi jual/beli signifikan baru-baru ini.</p>`;
-                        }
-                    } catch (tradeError) {
-                        specificTokenContent.innerHTML += `<p class="text-xs text-red-500 text-center pt-2">Gagal memuat jejak trader: ${tradeError.message}</p>`;
-                    }
+            const closes = klines.map(k => parseFloat(k[4]));
+            const lastPrice = closes[closes.length - 1];
+            const rsiValues = calculateRSI(closes);
+            const ema21Values = calculateEMA(closes, 21);
+            const ema50Values = calculateEMA(closes, 50);
+            const lastEma21 = ema21Values.filter(v => v !== undefined).pop();
+            const lastEma50 = ema50Values.filter(v => v !== undefined).pop();
+
+            let trendStatus = 'Netral';
+            let trendClass = 'text-yellow-400';
+            if (lastEma21 > lastEma50) {
+                if (lastPrice > lastEma21) {
+                    trendStatus = 'Uptrend Kuat';
+                    trendClass = 'positive';
                 } else {
-                     specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Tidak ditemukan pool on-chain untuk ${baseAsset.toUpperCase()}.</p>`;
+                    trendStatus = 'Koreksi dalam Uptrend';
+                    trendClass = 'text-yellow-400';
                 }
-            } catch (dexError) {
-                specificTokenContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data token spesifik: ${dexError.message}</p>`;
+            } else if (lastEma50 > lastEma21) {
+                if (lastPrice < lastEma21) {
+                    trendStatus = 'Downtrend Kuat';
+                    trendClass = 'negative';
+                } else {
+                    trendStatus = 'Reli dalam Downtrend';
+                    trendClass = 'text-yellow-400';
+                }
             }
-        })();
+            
+            const pivotPoints = calculatePivotPoints(assetDailyKlines[assetDailyKlines.length - 2]);
+            const ichimoku = calculateIchimokuCloud(klines);
+            const keltnerChannels = calculateKeltnerChannels(klines);
+            const activeMode = document.querySelector('.vwap-mode-btn.active')?.dataset.mode || 'rolling';
+            const vwapValue = calculateVWAP(klines, activeMode);
+            const vwapStatus = lastPrice > vwapValue ? 'Bullish' : 'Bearish';
 
-        (async () => {
-            try {
-                const trendingData = await fetchGeckoTerminal('networks/trending_pools');
-                renderTrendingPools(trendingData.data);
-            } catch (trendingError) {
-                trendingPoolsContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data trending: ${trendingError.message}</p>`;
+            realtimeCache.main.calculatedData = {
+                adx: calculateADX(klines), 
+                cvd: CVDanalyze(klines, cvdData), 
+                vpvr: calculateVPVR(klines),
+                ma: { status: trendStatus, class: trendClass, value21: lastEma21, value50: lastEma50 },
+                rsi: { values: rsiValues, last: rsiValues.filter(v => v !== undefined).pop()?.toFixed(2) || 50, status: (rsiValues.filter(v => v !== undefined).pop() || 50) > 70 ? 'Overbought' : ((rsiValues.filter(v => v !== undefined).pop() || 50) < 30 ? 'Oversold' : 'Netral'), class: (rsiValues.filter(v => v !== undefined).pop() || 50) > 70 ? 'tag-red' : ((rsiValues.filter(v => v !== undefined).pop() || 50) < 30 ? 'tag-green' : 'tag-yellow') },
+                rsiDivergence: detectRSIDivergence(closes, rsiValues), 
+                obvDivergence: detectOBVDivergence(closes, klines),
+                stoch: calculateStochasticRSI(closes), 
+                macd: calculateMACD(closes),
+                bollingerBands: calculateBollingerBands(closes), 
+                atr: calculateATR(klines),
+                atrPercent: calculateATRPercentage(klines), 
+                candlePattern: findCandlestickPatterns(klines),
+                chartPattern: findChartPatterns(klines), 
+                roc: calculateROC(closes), 
+                psar: calculateParabolicSAR(klines), 
+                linreg: calculateLinearRegressionChannel(closes),
+                vwap: { status: vwapStatus, value: vwapValue },
+                pivot: { status: (lastPrice > pivotPoints?.P) ? 'Bullish' : 'Bearish', data: pivotPoints },
+                ichimoku: { status: ichimoku?.status || 'Netral', data: ichimoku },
+                keltnerChannels: keltnerChannels,
+                fundingRate: realtimeCache.main.fundingRateData,
+                lsRatio: realtimeCache.main.lsRatioUmumData?.[0],
+                openInterest: { status: (realtimeCache.main.openInterestData?.openInterest > 0 && parseFloat(realtimeCache.main.tickerData.priceChangePercent) > 0) ? 'Bullish' : (realtimeCache.main.openInterestData?.openInterest > 0 && parseFloat(realtimeCache.main.tickerData.priceChangePercent) < 0) ? 'Bearish' : 'Netral' }
+            };
+
+            const bbPriceAction = analyzeBollingerBandsPriceAction(klines, realtimeCache.main.calculatedData.bollingerBands);
+            realtimeCache.main.calculatedData.bollingerBands.rejection = bbPriceAction.rejection;
+            realtimeCache.main.calculatedData.bollingerBands.walkTheBands = bbPriceAction.walkTheBands;
+            const tfAlignmentSummary = await createTFAlignmentSummary(binanceSymbol, marketType);
+            realtimeCache.main.tfAlignmentSummary = tfAlignmentSummary;
+            const marketRegime = determineMarketRegime(klines, closes);
+            realtimeCache.main.marketRegime = marketRegime;
+
+            updateDashboardUI();
+            
+            const navPriceEl = document.getElementById('nav-price');
+            const navIdrEl = document.getElementById('nav-price-idr');
+            if(navPriceEl && navIdrEl) {
+                navPriceEl.textContent = formatPrice(parseFloat(tickerData.lastPrice));
+                navIdrEl.textContent = `Rp ${(parseFloat(tickerData.lastPrice) * (realtimeCache.main.usdToIdrRate || 0)).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
             }
-        })();
-    } catch (error) {
-        console.error("Analisis Gagal:", error);
-        showError(error.message);
-    } finally {
-        showLoader(false);
-        if (periodicUpdateInterval) clearInterval(periodicUpdateInterval);
-        if (processingInterval) clearInterval(processingInterval);
-        periodicUpdateInterval = setInterval(updatePeriodicData, 300000);
-        processingInterval = setInterval(processQueues, 500);
+            
+            if (orderBookData) {
+                latestBids = orderBookData.bids;
+                latestAsks = orderBookData.asks;
+                const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
+                const precision = getPrecisionForAsset(parseFloat(latestPrice));
+                const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
+                renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
+            }
+
+            const symbolLower = binanceSymbol.toLowerCase();
+            const streamsToSub = [
+                `${symbolLower}@kline_${selectedTimeframe}`,
+                `${symbolLower}@aggTrade`,
+                `${symbolLower}@depth20@100ms`
+            ];
+            WebSocketManager.subscribe(streamsToSub);
+
+            (async () => {
+                try {
+                    const searchQuery = (await getCoinGeckoId(baseAsset).then(id => fetchCoinGeckoData(id)).catch(() => null))?.platforms?.ethereum || baseAsset;
+                    specificTokenTitle.innerHTML = `Analisis Token: <span class="text-white">${baseAsset.toUpperCase()}</span>`;
+                    const searchResult = await fetchGeckoTerminal(`search/pools?query=${searchQuery}`);
+                    if (searchResult.data && searchResult.data.length > 0) {
+                        searchResult.data.sort((a, b) => parseFloat(b.attributes.reserve_in_usd) - parseFloat(a.attributes.reserve_in_usd));
+                        const topPool = searchResult.data[0];
+                        const attrs = topPool.attributes;
+                        const networkName = topPool.id.split('_')[0];
+                        const dexName = topPool.relationships?.dex?.data?.id.split('_').join(' ') || attrs.name.split(' ').pop();
+                        if (networkName.includes('sepolia')) {
+                            document.getElementById('onchain-card').style.display = 'none';
+                            return;
+                        } else {
+                            document.getElementById('onchain-card').style.display = 'block';
+                        }
+                        specificTokenTitle.innerHTML = `Analisis Token: <span class="text-white">${baseAsset.toUpperCase()}</span> <span class="text-xs text-gray-400 capitalize">(${networkName} / ${dexName})</span>`;
+                        const price = formatPrice(parseFloat(attrs.base_token_price_usd));
+                        const volume = (parseFloat(attrs.volume_usd.h24) / 1000000).toFixed(2);
+                        const liquidity = attrs.reserve_in_usd ? (parseFloat(attrs.reserve_in_usd) / 1000000).toFixed(2) : 'N/A';
+                        let staticContentHtml = `<div class="flex justify-between items-baseline"><span class="text-gray-500 capitalize">Harga DEX (${dexName})</span><span class="font-bold text-lg text-yellow-400">${price}</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Volume 24j DEX</span><span>$${volume}jt</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Likuiditas Pool</span><span>$${liquidity}jt</span></div>`;
+                        specificTokenContent.innerHTML = staticContentHtml;
+                        try {
+                            const poolAddress = attrs.address;
+                            const tradesData = await fetchGeckoTerminal(`networks/${networkName}/pools/${poolAddress}/trades`);
+                            const tradeEvents = tradesData.data.filter(trade => trade.attributes.kind === 'buy' || trade.attributes.kind === 'sell').map(trade => ({ kind: trade.attributes.kind, usd: parseFloat(trade.attributes.volume_in_usd), price: parseFloat(trade.attributes.price_in_usd || attrs.base_token_price_usd), time: new Date(trade.attributes.block_timestamp), trader: trade.attributes.tx_from_address, network: topPool.id.split('_')[0] })).filter(event => event.usd >= 5000).slice(0, 100);
+                            if (tradeEvents.length > 0) {
+                                let buyVolume = 0, sellVolume = 0;
+                                let buyCount = 0, sellCount = 0;
+                                tradeEvents.forEach(event => { if (event.kind === 'buy') { buyVolume += event.usd; buyCount++; } else { sellVolume += event.usd; sellCount++; } });
+                                realtimeCache.main.onChainSummary = { totalBuyVolume: buyVolume, totalSellVolume: sellVolume, buyTransactions: buyCount, sellTransactions: sellCount, sentiment: buyVolume > sellVolume ? 'Dominan Beli' : 'Dominan Jual', netVolume: buyVolume - sellVolume };
+                                let html = '<hr class="border-slate-700/50 my-3"/><h4 class="text-lg font-semibold mb-2">100 Trans Terbaru di DEX >$5000 </h4>';
+                                tradeEvents.forEach(event => {
+                                    const category = getHolderCategory(event.usd);
+                                    const timeAgo = getTimeAgo(event.time);
+                                    const specificTime = event.time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                                    const walletLink = `https://dexcheck.ai/app/wallet-analyzer/${event.trader}`;
+                                    const bgColor = event.kind === 'buy' ? 'bg-green-900/40 dark:bg-green-800/20' : 'bg-red-900/40 dark:bg-red-800/20';
+                                    const amountColor = event.kind === 'buy' ? 'text-green-400' : 'text-red-400';
+                                    const icon = event.kind === 'buy' ? '🟢' : '🔴';
+                                    const actionText = event.kind === 'buy' ? 'BELI' : 'JUAL';
+                                    html += `<div class="p-2 rounded-md ${bgColor}"><div class="flex justify-between items-center font-semibold"><span>${icon} ${actionText}</span><span class="${amountColor}">$${event.usd.toLocaleString('en-US', {maximumFractionDigits: 0})}</span></div><div class="text-xs text-gray-400 flex justify-between items-center mt-1"><span class="${category.class} font-bold">[${category.name}]</span><span class="font-mono text-yellow-400">@ ${formatPrice(event.price)}</span><span>${timeAgo} <span class="text-gray-500">(${specificTime})</span></span><a href="${walletLink}" target="_blank" class="underline hover:text-white">Lihat Dompet 🔗</a></div></div>`;
+                                });
+                                specificTokenContent.innerHTML += html;
+                            } else {
+                            realtimeCache.main.onChainSummary = null;
+                            specificTokenContent.innerHTML += `<p class="text-xs text-gray-500 text-center pt-2">Tidak ada transaksi jual/beli signifikan baru-baru ini.</p>`;
+                            }
+                        } catch (tradeError) {
+                            specificTokenContent.innerHTML += `<p class="text-xs text-red-500 text-center pt-2">Gagal memuat jejak trader: ${tradeError.message}</p>`;
+                        }
+                    } else {
+                        specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Tidak ditemukan pool on-chain untuk ${baseAsset.toUpperCase()}.</p>`;
+                    }
+                } catch (dexError) {
+                    specificTokenContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data token spesifik: ${dexError.message}</p>`;
+                }
+            })();
+
+            (async () => {
+                try {
+                    const trendingData = await fetchGeckoTerminal('networks/trending_pools');
+                    renderTrendingPools(trendingData.data);
+                } catch (trendingError) {
+                    trendingPoolsContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data trending: ${trendingError.message}</p>`;
+                }
+            })();
+        } catch (error) {
+            console.error("Analisis Gagal:", error);
+            showError(error.message);
+        } finally {
+            showLoader(false);
+            if (periodicUpdateInterval) clearInterval(periodicUpdateInterval);
+            if (processingInterval) clearInterval(processingInterval);
+            periodicUpdateInterval = setInterval(updatePeriodicData, 300000);
+            processingInterval = setInterval(processQueues, 500);
+        }
     }
-}
-// =======================================================
+// ===========end of async function runFullAnalysis(symbol = null) {============================================
+// =============================================================================================================
     function saveWatchlist() {
         const symbols = watchlistInput.value.split(',')
             .map(s => s.trim().toUpperCase())
@@ -3414,7 +3470,7 @@ function loadWatchlist() {
     }
 
 // ========BLOK FUNGSI BARU UNTUK FITUR WATCHLIST (SELESAI) ========================
-    
+// =============================================================================================================    
 // ===BLOK KODE UPGRADE FINAL V2 UNTUK ANALISIS AI (TERMASUK KORELASI & RISIKO) ==masihh ada cache==
     async function runComprehensiveAIAnalysis() {
         if (!realtimeCache.main.tickerData) {
@@ -3494,7 +3550,7 @@ function loadWatchlist() {
             comprehensiveBtn.disabled = false;
         }
     }
-// =================================================================================
+// =============================================================================================================
     function constructHybridAIPrompt(symbol, singleTfData, multiTfData, volumeData, onChainSummary, correlationData) {
         const mainPriceContext = {
             current_price: formatPrice(parseFloat(realtimeCache.main.tickerData.lastPrice))
@@ -3645,7 +3701,7 @@ function loadWatchlist() {
             [ALASAN_BUYER_END]
             `;
     }
-// =================================================================================
+// =============================================================================================================
     function parseAIResponseWithTags(rawText) {
         const result = {};
         const tags = [
@@ -3676,8 +3732,9 @@ function loadWatchlist() {
         });
         return result;
     }
-
+// =============================================================================================================
 // ==================UI RENDERER (VERSI ULTIMATE v2)=================
+// =============================================================================================================
     function displayComprehensiveResults(data) {    
         const aiNarrativeEl = document.getElementById('ai-narrative-content');
         const projectionContainer = document.getElementById('projection-results-container');
@@ -3833,7 +3890,7 @@ function loadWatchlist() {
         document.getElementById('confluence-breakdown-container').classList.remove('hidden');
     }
 
-// =======================================================
+// =============================================================================================================
     async function createTFAlignmentSummary(symbol, marketType) {
         const timeframes = ['15m', '1h', '4h', '1d'];
         const summary = {};
@@ -4891,7 +4948,14 @@ const processQueues = () => {
         const price = parseFloat(tickerData.lastPrice);
         if (marketTypeSelect.value === 'futures' && openInterestData && fundingRateData) {
             futuresContainer.classList.remove('hidden');
-            document.getElementById('open-interest').textContent = `$${(parseFloat(openInterestData.openInterest) * price).toLocaleString('en-US', { notation: 'compact' })}`;
+            // [PERBAIKAN] Tambahkan pengecekan data Open Interest sebelum ditampilkan
+            if (openInterestData && parseFloat(openInterestData.openInterest) > 0) {
+                const oiValue = parseFloat(openInterestData.openInterest) * price;
+                document.getElementById('open-interest').textContent = `$${oiValue.toLocaleString('en-US', { notation: 'compact' })}`;
+            } else {
+                // Tampilkan strip jika data tidak ada atau nol
+                document.getElementById('open-interest').textContent = '-';
+            }
             document.getElementById('funding-rate').textContent = `${(parseFloat(fundingRateData.lastFundingRate) * 100).toFixed(4)}%`;
             if (fundingRateData.nextFundingTime) {
                 startFundingRateTimer(fundingRateData.nextFundingTime);
@@ -5303,6 +5367,13 @@ async function updateTopMovers(timeframe = "1h") {
         //topGainersList.innerHTML = `<div><div class="loader mx-auto"></div></div>`;
         //losersList.innerHTML = `<div><div class="loader mx-auto"></div></div>`;
 
+        // TAMBAHKAN INI UNTUK FEEDBACK INSTAN
+        const loaderHtml = `<div class="p-4 flex justify-center items-center"><div class="loader"></div></div>`;
+        if (topGainersList.innerHTML === "") { // Hanya tampilkan loader saat pertama kali
+             topGainersList.innerHTML = loaderHtml;
+             losersList.innerHTML = loaderHtml;
+        }
+
         if (!exchangeInfoCache.futures) {
             await initializeExchangeInfo('futures');
         }
@@ -5394,106 +5465,145 @@ function renderMoversList(containerId, moversData, isGainer) {
 }
 // GANTI FUNGSI YANG ADA DENGAN INI
 // GANTI DENGAN KODE FUNGSI LENGKAP INI
-function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
-    if (!symbol) return { score: 0, breakdown: {} };
+    function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
+        if (!symbol) return { score: 0, breakdown: {} };
 
-    // Langkah 1: Cerdas memilih sumber data yang paling relevan
-    const isMoverDataAvailable = realtimeCache.movers[symbol] && realtimeCache.movers[symbol].klines_1h && realtimeCache.movers[symbol].klines_1h.length > 20;
-    const dataSource = isMoverDataAvailable ? realtimeCache.movers[symbol] : realtimeCache.main;
+        // Langkah 1: Cerdas memilih sumber data yang paling relevan
+        const isMoverDataAvailable = realtimeCache.movers[symbol] && realtimeCache.movers[symbol].klines_1h && realtimeCache.movers[symbol].klines_1h.length > 20;
+        const dataSource = isMoverDataAvailable ? realtimeCache.movers[symbol] : realtimeCache.main;
 
-    // Jika tidak ada data sama sekali, hentikan
-    if (!dataSource || (!dataSource.klines && !dataSource.klines_1h)) {
-        return { score: 0, breakdown: {} };
-    }
-
-    // Langkah 2: Normalisasi data klines (karena formatnya sedikit beda)
-    // Ini memastikan sisa logika bisa berjalan untuk kedua sumber data
-    const klines = isMoverDataAvailable 
-        ? dataSource.klines_1h.map(k => [k.Open_time, k.Open, k.High, k.Low, k.Close, k.Volume, k.Close_time]) 
-        : dataSource.klines;
-    
-    const closes = klines.map(k => parseFloat(k[4]));
-
-    // Langkah 3: Hitung ulang semua indikator yang diperlukan secara on-the-fly
-    // Ini menjamin data selalu yang terbaru
-    const indicators = {
-        candlePattern: findCandlestickPatterns(klines),
-        macd: calculateMACD(closes),
-        rsi: { status: (calculateRSI(closes).pop() || 50) > 70 ? 'Overbought' : 'Normal' },
-        bollingerBands: analyzeBollingerBandsPriceAction(klines, calculateBollingerBands(closes)),
-        cvd: CVDanalyze(klines, dataSource.cvdData || calculateCVD(dataSource.aggTrades || [])),
-    };
-
-    // Langkah 4: Jalankan SEMUA 7 trigger pada data yang sudah dinormalisasi
-    let score = 0;
-    let breakdown = {};
-    const lookbackPeriod = 15;
-    const recentKlines = klines.slice(-lookbackPeriod);
-    
-    if (recentKlines.length >= 3) {
-        let peakIndex = 0;
-        for (let i = 1; i < recentKlines.length; i++) {
-            if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[peakIndex][2])) peakIndex = i;
+        // Jika tidak ada data sama sekali, hentikan
+        if (!dataSource || (!dataSource.klines && !dataSource.klines_1h)) {
+            return { score: 0, breakdown: {} };
         }
 
-        if (peakIndex < lookbackPeriod - 2) { // Puncak tidak terlalu lama
-            const peakCandleArr = recentKlines[peakIndex];
-            const triggerCandleArr = recentKlines[peakIndex + 1];
+        // Langkah 2: Normalisasi data klines (karena formatnya sedikit beda)
+        // Ini memastikan sisa logika bisa berjalan untuk kedua sumber data
+        const klines = isMoverDataAvailable 
+            ? dataSource.klines_1h.map(k => [k.Open_time, k.Open, k.High, k.Low, k.Close, k.Volume, k.Close_time]) 
+            : dataSource.klines;
+        
+        const closes = klines.map(k => parseFloat(k[4]));
 
-            if (triggerCandleArr) {
-                const peakCandle = { Open: parseFloat(peakCandleArr[1]), High: parseFloat(peakCandleArr[2]), Low: parseFloat(peakCandleArr[3]), Close: parseFloat(peakCandleArr[4]) };
-                const triggerCandle = { Open: parseFloat(triggerCandleArr[1]), Close: parseFloat(triggerCandleArr[4]) };
-                
-                // Trigger 1: Candle Merah Paska-Puncak (+3)
-                if (triggerCandle.Close < triggerCandle.Open) {
-                    score += 3;
-                    breakdown.candleRed = true;
-                }
-                
-                // Trigger 3: Pola Candle Bearish (Doji/Shooting Star) (+1)
-                const body = Math.abs(peakCandle.Close - peakCandle.Open);
-                const upperWick = peakCandle.High - Math.max(peakCandle.Open, peakCandle.Close);
-                if (body > 0 && upperWick > body * 2) {
-                    score += 1;
-                    breakdown.doji = true;
+        // Langkah 3: Hitung ulang semua indikator yang diperlukan secara on-the-fly
+        // Ini menjamin data selalu yang terbaru
+        const indicators = {
+            candlePattern: findCandlestickPatterns(klines),
+            macd: calculateMACD(closes),
+            rsi: { status: (calculateRSI(closes).pop() || 50) > 70 ? 'Overbought' : 'Normal' },
+            bollingerBands: analyzeBollingerBandsPriceAction(klines, calculateBollingerBands(closes)),
+            cvd: CVDanalyze(klines, dataSource.cvdData || calculateCVD(dataSource.aggTrades || [])),
+        };
+
+        // Langkah 4: Jalankan SEMUA 7 trigger pada data yang sudah dinormalisasi
+        let score = 0;
+        let breakdown = {};
+        const lookbackPeriod = 15;
+        const recentKlines = klines.slice(-lookbackPeriod);
+        
+        if (recentKlines.length >= 3) {
+            let peakIndex = 0;
+            for (let i = 1; i < recentKlines.length; i++) {
+                if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[peakIndex][2])) peakIndex = i;
+            }
+
+            if (peakIndex < lookbackPeriod - 2) { // Puncak tidak terlalu lama
+                const peakCandleArr = recentKlines[peakIndex];
+                const triggerCandleArr = recentKlines[peakIndex + 1];
+
+                if (triggerCandleArr) {
+                    const peakCandle = { Open: parseFloat(peakCandleArr[1]), High: parseFloat(peakCandleArr[2]), Low: parseFloat(peakCandleArr[3]), Close: parseFloat(peakCandleArr[4]) };
+                    const triggerCandle = { Open: parseFloat(triggerCandleArr[1]), Close: parseFloat(triggerCandleArr[4]) };
+                    
+                    // Trigger 1: Candle Merah Paska-Puncak (+3)
+                    if (triggerCandle.Close < triggerCandle.Open) {
+                        score += 3;
+                        breakdown.candleRed = true;
+                    }
+                    
+                    // Trigger 3: Pola Candle Bearish (Doji/Shooting Star) (+1)
+                    const body = Math.abs(peakCandle.Close - peakCandle.Open);
+                    const upperWick = peakCandle.High - Math.max(peakCandle.Open, peakCandle.Close);
+                    if (body > 0 && upperWick > body * 2) {
+                        score += 1;
+                        breakdown.doji = true;
+                    }
                 }
             }
         }
-    }
-    
-    // Trigger 2: CVD Menukik Tajam (+2)
-    if (indicators.cvd?.divergence?.includes('Bearish')) {
-        score += 2;
-        breakdown.cvdDivergence = true;
+        
+        // Trigger 2: CVD Menukik Tajam (+2)
+        if (indicators.cvd?.divergence?.includes('Bearish')) {
+            score += 2;
+            breakdown.cvdDivergence = true;
+        }
+
+        // Trigger 4: Rejection Bollinger Band (+3)
+        if (indicators.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
+            score += 3;
+            breakdown.bbRejection = true;
+        }
+        
+        // Trigger 5: MACD Bearish Cross (+2)
+        if (indicators.macd.status === 'Bearish Cross') {
+            score += 2;
+            breakdown.macdCross = true;
+        }
+        
+        // Trigger 6: RSI Overbought (+2)
+        if (indicators.rsi.status === 'Overbought') {
+            score += 2;
+            breakdown.rsiOverbought = true;
+        }
+
+        // Trigger 7: Divergensi CVD (+2) - ini double check dari Trigger 2
+        if (indicators.cvd?.trend === 'Turun' && indicators.cvd?.divergence?.includes('Bearish')) {
+            score += 2;
+            breakdown.cvdDivergence = true; // Bisa di-assign ulang, tidak masalah
+        }
+        
+        // Pastikan skor tidak lebih dari 10
+        return { score: Math.min(score, 10), breakdown };
     }
 
-    // Trigger 4: Rejection Bollinger Band (+3)
-    if (indicators.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
-        score += 3;
-        breakdown.bbRejection = true;
-    }
-    
-    // Trigger 5: MACD Bearish Cross (+2)
-    if (indicators.macd.status === 'Bearish Cross') {
-        score += 2;
-        breakdown.macdCross = true;
-    }
-    
-    // Trigger 6: RSI Overbought (+2)
-    if (indicators.rsi.status === 'Overbought') {
-        score += 2;
-        breakdown.rsiOverbought = true;
-    }
+    function getConfluenceAnalysis(klines) {
+        if (!klines || klines.length < 50) {
+            return { skorBullish: 0, skorBearish: 0 };
+        }
 
-    // Trigger 7: Divergensi CVD (+2) - ini double check dari Trigger 2
-    if (indicators.cvd?.trend === 'Turun' && indicators.cvd?.divergence?.includes('Bearish')) {
-        score += 2;
-        breakdown.cvdDivergence = true; // Bisa di-assign ulang, tidak masalah
+        let skorBullish = 0;
+        let skorBearish = 0;
+        const closes = klines.map(k => parseFloat(k[4]));
+
+        // --- Kalkulasi Indikator ---
+        const rsiValues = calculateRSI(closes);
+        const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
+        const macd = calculateMACD(closes);
+        const candlePattern = findCandlestickPatterns(klines);
+
+        // --- Logika Penilaian Bearish ---
+        if (candlePattern.bias === 'BEARISH') skorBearish += 2.0;
+        if (macd.status === 'Bearish Cross') skorBearish += 2.0;
+        if (lastRsi > 70) skorBearish += 1.5; // Overbought
+        const rsiDivergence = detectRSIDivergence(closes, rsiValues);
+        if (rsiDivergence.status === 'BEARISH') skorBearish += 2.5;
+
+        // --- Logika Penilaian Bullish ---
+        if (candlePattern.bias === 'BULLISH') skorBullish += 2.0;
+        if (macd.status === 'Bullish Cross') skorBullish += 2.0;
+        if (lastRsi < 30) skorBullish += 1.5; // Oversold
+        if (rsiDivergence.status === 'BULLISH') skorBullish += 2.5;
+        
+        // Normalisasi skor (contoh sederhana, bisa disesuaikan)
+        const totalSkor = skorBullish + skorBearish;
+        if (totalSkor === 0) return { skorBullish: 0, skorBearish: 0, detail: 'Netral' };
+
+        return { 
+            skorBullish: (skorBullish / 8) * 10, // Max 8 poin
+            skorBearish: (skorBearish / 8) * 10, // Max 8 poin
+            detail: `Bull (${skorBullish.toFixed(1)}) vs Bear (${skorBearish.toFixed(1)})`
+        };
     }
-    
-    // Pastikan skor tidak lebih dari 10
-    return { score: Math.min(score, 10), breakdown };
-}
 // GANTI SELURUH FUNGSI onNewMoverData DENGAN KODE INI
 // GANTI SELURUH FUNGSI onNewMoverData DENGAN KODE INI
 // GANTI SELURUH FUNGSI onNewMoverData DENGAN KODE LENGKAP INI
@@ -5557,22 +5667,16 @@ function onNewMoverData(symbol, streamName, payload) {
     }
 }
 
-
-// ...
-
-// GANTI SELURUH FUNGSI calculateAndDisplayScalpingSetup DENGAN KODE INI
-// GANTI SELURUH FUNGSI calculateAndDisplayScalpingSetup DENGAN KODE INI
-// GANTI SELURUH FUNGSI DENGAN VERSI FINAL INI
 function calculateAndDisplayScalpingSetup() {
     // [DIRAPIKAN] Ambil semua data yang dibutuhkan di awal
-    const { klines, calculatedData, symbol, selectedTimeframe } = realtimeCache.main;
+    const { klines, calculatedData, symbol, selectedTimeframe, klines1h } = realtimeCache.main;
     
     if (!klines || klines.length < 50 || !calculatedData) {
         document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup.</p>';
         return;
     }
 
-    // [DIPERBAIKI] Hanya satu baris ini untuk mengatur judul
+    // [DIPERBAIKI] Atur judul panel
     document.getElementById('scalping-timeframe-display').textContent = `${symbol} - ${selectedTimeframe}`;
 
     // --- BAGIAN 1: Mengisi Modul Hybrid Bar & Rincian Trigger ---
@@ -5592,16 +5696,63 @@ function calculateAndDisplayScalpingSetup() {
     const closes = klines.map(k => parseFloat(k[4]));
     const lastPrice = closes[closes.length - 1];
 
+    // === AWAL BLOK BARU UNTUK BIAS KONTEKSTUAL ===
+    let biasKontekstual = "NETRAL / CHOP";
+    let biasClass = "status-chop";
+    let biasDetail = "Menunggu sinyal...";
+
+    // 1. Dapatkan Analisis "Kompas" dari Timeframe 1H
+    let trenUtama = "CHOP";
+    if (klines1h && klines1h.length > 50) {
+        const closes1h = klines1h.map(k => parseFloat(k[4]));
+        const ema21_1h = calculateEMA(closes1h, 21).pop();
+        const ema50_1h = calculateEMA(closes1h, 50).pop();
+        if (ema21_1h > ema50_1h) trenUtama = "UPTREND";
+        if (ema50_1h > ema21_1h) trenUtama = "DOWNTREND";
+    }
+
+    // 2. Dapatkan Analisis "Trigger" dari Timeframe Pilihan
+    // Diasumsikan Anda sudah membuat fungsi getConfluenceAnalysis
+    const analisisTrigger = getConfluenceAnalysis(klines); 
+    const { skorBullish, skorBearish, detail } = analisisTrigger;
+    biasDetail = detail;
+
+    // 3. Sintesis & Keputusan
+    if (skorBullish > skorBearish + 1.5) { // Sinyal Bullish kuat
+        if (trenUtama === 'UPTREND') {
+            biasKontekstual = 'LONG (Follow Trend)';
+            biasClass = 'status-uptrend';
+        } else if (trenUtama === 'DOWNTREND') {
+            biasKontekstual = 'LONG (Counter Trend)';
+            biasClass = 'status-uptrend';
+        } else {
+            biasKontekstual = 'LONG (Range Trading)';
+            biasClass = 'status-uptrend';
+        }
+    } else if (skorBearish > skorBullish + 1.5) { // Sinyal Bearish kuat
+        if (trenUtama === 'DOWNTREND') {
+            biasKontekstual = 'SHORT (Follow Trend)';
+            biasClass = 'status-downtrend';
+        } else if (trenUtama === 'UPTREND') {
+            biasKontekstual = 'SHORT (Counter Trend)';
+            biasClass = 'status-downtrend';
+        } else {
+            biasKontekstual = 'SHORT (Range Trading)';
+            biasClass = 'status-downtrend';
+        }
+    }
+    
+    // Gunakan bias EMA sederhana HANYA untuk kalkulasi SL/TP struktural
     const ema9 = calculateEMA(closes, 9).pop();
     const ema21 = calculateEMA(closes, 21).pop();
-    const bias = ema9 > ema21 ? 'LONG' : 'SHORT';
+    const biasKalkulator = ema9 > ema21 ? 'LONG' : 'SHORT'; 
+    
+    let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
     const recentKlines = klines.slice(-15);
     const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
     const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
 
-    let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
-
-    if (bias === 'LONG') {
+    if (biasKalkulator === 'LONG') {
         entryPrice = ema9; 
         stopLoss = recentSwingLow * 0.999;
         takeProfit1 = recentSwingHigh;
@@ -5621,36 +5772,45 @@ function calculateAndDisplayScalpingSetup() {
         return `(${( (targetPrice - entry) / entry * 100).toFixed(2)}%)`;
     };
 
-    const biasClass = bias === 'LONG' ? 'positive' : 'negative';
-    const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono positive">${calculatePercentage(takeProfit3, entryPrice)}</span>` : '<span class.dark-mode="text-gray-400 dark:text-gray-600">N/A</span>';
+    const entryPercent = `(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})`;
+    const slPercent = calculatePercentage(stopLoss, entryPrice);
+    const tp1Percent = calculatePercentage(takeProfit1, entryPrice);
+    const tp2Percent = calculatePercentage(takeProfit2, entryPrice);
+    const tp3Percent = calculatePercentage(takeProfit3, entryPrice);
+    const slColorClass = 'negative';
+    const tpColorClass = 'positive';
+    const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
 
     container.innerHTML = `
         <div class="grid grid-cols-3 gap-4 text-center items-start">
-            <div>
-                <p class="text-xs text-gray-500">Bias Sesaat</p>
-                <p class="font-bold text-lg ${biasClass}">${bias}</p>
+            <div class="col-span-1">
+                 <p class="text-xs text-gray-500">Bias Kontekstual (TF: 1H)</p>
+                 <p class="font-bold text-lg blinking-text-animation ${biasClass}">${biasKontekstual}</p>
+                 <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
             </div>
-            <div>
-                <p class="text-xs text-gray-500">Saran Entri</p>
-                <p class="font-semibold text-lg warning">${formatPrice(entryPrice)}</p>
-                <p class="text-xs text-gray-400">(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">SL (Struktural)</p>
-                <p class="font-semibold text-lg negative">${formatPrice(stopLoss)}</p>
-                <p class="text-xs text-gray-400">${calculatePercentage(stopLoss, entryPrice)}</p>
+            <div class="col-span-2 grid grid-cols-2 gap-4">
+                 <div>
+                    <p class="text-xs text-gray-500">Saran Entri</p>
+                    <p class="font-semibold text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
+                    <p class="text-xs font-mono text-yellow-500">${entryPercent}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">SL (Struktural)</p>
+                    <p class="font-semibold text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
+                    <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
+                </div>
             </div>
         </div>
-        <div class="mt-4 pt-4 border-t border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
             <div>
                 <p class="text-xs text-gray-500">TP 1 (Struktural)</p>
-                <p class="font-semibold positive">${formatPrice(takeProfit1)}</p>
-                <p class="text-xs text-gray-400">${calculatePercentage(takeProfit1, entryPrice)}</p>
+                <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit1)}</p>
+                <p class="text-xs font-mono ${tpColorClass}">${tp1Percent}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-500">TP 2 (R:R 1:1.5)</p>
-                <p class="font-semibold positive">${formatPrice(takeProfit2)}</p>
-                <p class="text-xs text-gray-400">${calculatePercentage(takeProfit2, entryPrice)}</p>
+                <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit2)}</p>
+                <p class="text-xs font-mono ${tpColorClass}">${tp2Percent}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-500">TP 3 (Level Kunci)</p>
