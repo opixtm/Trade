@@ -2794,119 +2794,189 @@ function determineMarketRegime(klines, closes) {
         }
     }
     
-// =======================================================    
+// =================kalkulasi entri dan tp/sl======================================    
 function calculateAndDisplayScalpingSetup() {
-    const { klines, calculatedData } = realtimeCache.main;
+    // [DIRAPIKAN] Ambil semua data yang dibutuhkan di awal
+    const { klines, calculatedData, symbol, selectedTimeframe, klines1h } = realtimeCache.main;
+    
     if (!klines || klines.length < 50 || !calculatedData) {
-        document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup untuk setup scalping.</p>';
+        document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup.</p>';
         return;
     }
 
+    // [DIPERBAIKI] Atur judul panel
+    document.getElementById('scalping-timeframe-display').textContent = `${symbol} - ${selectedTimeframe}`;
+
+    // --- BAGIAN 1: Mengisi Modul Hybrid Bar & Rincian Trigger ---
+    const scoreData = calculateShortConfluenceScore(symbol) || { score: 0, breakdown: {} };
+    const dumpRiskScore = scoreData.score;
+    const triggerBreakdown = scoreData.breakdown;
+    const pumpStrength = realtimeCache.main.liveScores.pumpStrength || 0;
+
+    document.getElementById('main-pump-bar').style.width = `${pumpStrength}%`;
+    document.getElementById('main-dump-bar').style.width = `${dumpRiskScore * 10}%`;
+    document.getElementById('main-pump-score').textContent = `${pumpStrength.toFixed(0)}%`;
+    document.getElementById('main-dump-score').textContent = `${dumpRiskScore}/10`;
+    renderTriggerBreakdown(triggerBreakdown);
+
+    // --- BAGIAN 2: Menghitung & Menampilkan Setup Scalping (Entri, SL, TP) ---
     const container = document.getElementById('scalping-setup-content');
-    document.getElementById('scalping-timeframe-display').textContent = timeframeSelect.value;
     const closes = klines.map(k => parseFloat(k[4]));
     const lastPrice = closes[closes.length - 1];
-    
-    const ema9 = calculateEMA(closes, 9).pop();
-    const ema21 = calculateEMA(closes, 21).pop();
-    const bias = ema9 > ema21 ? 'LONG' : 'SHORT';
-    const recentKlines = klines.slice(-15);
-    let recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
-    let recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-    let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
-    const riskAmount = Math.abs(lastPrice - (bias === 'LONG' ? recentSwingLow : recentSwingHigh));
-    if (bias === 'LONG') {
-        entryPrice = ema9; 
-        stopLoss = recentSwingLow * 0.999;
-        takeProfit1 = recentSwingHigh;
-        takeProfit2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
-        const upperBB = calculatedData.bollingerBands.upper.filter(v=>v).pop();
-        const dailyPivot = calculatedData.pivot.data?.P;
-        let potentialTP3s = [upperBB, dailyPivot].filter(p => p && p > takeProfit2);
-        takeProfit3 = potentialTP3s.length > 0 ? Math.min(...potentialTP3s) : 'N/A';
-    } else { 
-        entryPrice = ema9; 
-        stopLoss = recentSwingHigh * 1.001;
-        takeProfit1 = recentSwingLow;
-        takeProfit2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
-        const lowerBB = calculatedData.bollingerBands.lower.filter(v=>v).pop();
-        const dailyPivot = calculatedData.pivot.data?.P;
-        let potentialTP3s = [lowerBB, dailyPivot].filter(p => p && p < takeProfit2);
-        takeProfit3 = potentialTP3s.length > 0 ? Math.max(...potentialTP3s) : 'N/A';
-    }
-    
-    const calculatePercentage = (targetPrice, entry) => {
-        if (typeof targetPrice !== 'number' || entry === 0) return '';
-        const percentage = ((targetPrice - entry) / entry) * 100;
-        return `(${percentage.toFixed(2)}%)`;
-    };
-    const entryPercent = `(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})`;
-    const slPercent = calculatePercentage(stopLoss, entryPrice);
-    const tp1Percent = calculatePercentage(takeProfit1, entryPrice);
-    const tp2Percent = calculatePercentage(takeProfit2, entryPrice);
-    const tp3Percent = calculatePercentage(takeProfit3, entryPrice);
-    const biasClass = bias === 'LONG' ? 'positive' : 'negative';
-    const tpColorClass = 'positive';
-    const slColorClass = 'negative';
-    const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
-    
-    // --- START: KODE BARU UNTUK HYBRID BAR ---
-    // AMBIL SKOR DARI OBJEK GLOBAL BARU liveAnalysisScores
-    const pumpStrength = realtimeCache.main.liveScores.pumpStrength !== undefined ? realtimeCache.main.liveScores.pumpStrength : 0;
-    const dumpRiskScore = realtimeCache.main.liveScores.dumpRisk !== undefined ? realtimeCache.main.liveScores.dumpRisk : (calculateShortConfluenceScore(realtimeCache.main.symbol)?.score || 0);
 
-    container.innerHTML = `
-        <div class="grid grid-cols-3 gap-4 text-center items-start">
-            <div>
-                <p class="text-xs text-gray-500">Bias Sesaat</p>
-                <p class="font-bold blinking-text-animation ${biasClass}">${bias}</p>
-            </div>
-            <div>
-                <p class="text-xs text-gray-500">Saran Entri</p>
-                <p class="font-semibold text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
-                <p class="text-xs font-mono text-yellow-500">${entryPercent}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">SL (Struktural)</p>
-                <p class="font-semibold text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
-                <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
-            </div>
-        </div>
+    // === Tentukan BIAS KONTEKSTUAL terlebih dahulu ===
+    let biasKontekstual = "NETRAL / CHOP";
+    let biasClass = "status-chop";
+    let biasDetail = "Menunggu sinyal...";
+
+    let trenUtama = "CHOP";
+    if (klines1h && klines1h.length > 50) {
+        const closes1h = klines1h.map(k => parseFloat(k[4]));
+        const ema21_1h = calculateEMA(closes1h, 21).pop();
+        const ema50_1h = calculateEMA(closes1h, 50).pop();
+        if (ema21_1h > ema50_1h) trenUtama = "UPTREND";
+        if (ema50_1h > ema21_1h) trenUtama = "DOWNTREND";
+    }
+
+    const analisisTrigger = getConfluenceAnalysis(klines); 
+    const { skorBullish, skorBearish, detail } = analisisTrigger;
+    biasDetail = detail;
+
+    if (skorBullish > skorBearish + 1.5) {
+        if (trenUtama === 'UPTREND') {
+            biasKontekstual = 'LONG (Follow Trend)';
+            biasClass = 'status-uptrend';
+        } else if (trenUtama === 'DOWNTREND') {
+            biasKontekstual = 'LONG (Counter Trend)';
+            biasClass = 'status-uptrend';
+        } else {
+            biasKontekstual = 'LONG (Range Trading)';
+            biasClass = 'status-uptrend';
+        }
+    } else if (skorBearish > skorBullish + 1.5) {
+        if (trenUtama === 'DOWNTREND') {
+            biasKontekstual = 'SHORT (Follow Trend)';
+            biasClass = 'status-downtrend';
+        } else if (trenUtama === 'UPTREND') {
+            biasKontekstual = 'SHORT (Counter Trend)';
+            biasClass = 'status-downtrend';
+        } else {
+            biasKontekstual = 'SHORT (Range Trading)';
+            biasClass = 'status-downtrend';
+        }
+    }
+
+    // === [FINAL] Gabungan perbaikan: Cek kondisi NETRAL terlebih dahulu ===
+    if (biasKontekstual !== "NETRAL / CHOP") {
+        // --- JIKA TIDAK NETRAL, LAKUKAN SEMUA KALKULASI SL/TP ---
+        const biasKalkulator = biasKontekstual.startsWith('LONG') ? 'LONG' : 'SHORT';
+        const ema9 = calculateEMA(closes, 9).pop();
         
-        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex items-center justify-between text-xs text-gray-400">
-                <span>Pump Strength</span>
-                <span>Risiko Dump</span>
+        let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
+        const recentKlines = klines.slice(-15);
+        const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+        const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+
+        if (biasKalkulator === 'LONG') {
+            entryPrice = ema9; 
+            stopLoss = recentSwingLow * 0.999;
+            takeProfit1 = recentSwingHigh;
+
+            const rrTarget2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
+            takeProfit2 = Math.max(rrTarget2, takeProfit1);
+
+            const upperBB = calculatedData.bollingerBands.upper.filter(v=>v).pop();
+            const dailyPivot = calculatedData.pivot.data?.P;
+            let potentialTP3s = [upperBB, dailyPivot].filter(p => p && p > takeProfit2);
+            takeProfit3 = potentialTP3s.length > 0 ? Math.min(...potentialTP3s) : 'N/A';
+
+        } else { // SHORT
+            entryPrice = ema9; 
+            stopLoss = recentSwingHigh * 1.001;
+            takeProfit1 = recentSwingLow;
+
+            const rrTarget2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
+            takeProfit2 = Math.min(rrTarget2, takeProfit1);
+
+            const lowerBB = calculatedData.bollingerBands.lower.filter(v=>v).pop();
+            const dailyPivot = calculatedData.pivot.data?.P;
+            let potentialTP3s = [lowerBB, dailyPivot].filter(p => p && p < takeProfit2);
+            takeProfit3 = potentialTP3s.length > 0 ? Math.max(...potentialTP3s) : 'N/A';
+        }
+
+        const calculatePercentage = (targetPrice, entry) => {
+            if (typeof targetPrice !== 'number' || entry === 0) return '';
+            return `(${( (targetPrice - entry) / entry * 100).toFixed(2)}%)`;
+        };
+
+        const entryPercent = `(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})`;
+        const slPercent = calculatePercentage(stopLoss, entryPrice);
+        const tp1Percent = calculatePercentage(takeProfit1, entryPrice);
+        const tp2Percent = calculatePercentage(takeProfit2, entryPrice);
+        const tp3Percent = calculatePercentage(takeProfit3, entryPrice);
+        const slColorClass = 'negative';
+        const tpColorClass = 'positive';
+        const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
+
+        container.innerHTML = `
+            <div class="grid grid-cols-3 gap-4 text-center items-start">
+                <div class="col-span-1">
+                     <p class="text-xs text-gray-500">Bias Kontekstual (TF: 1H)</p>
+                     <p class="font-bold text-lg blinking-text-animation ${biasClass}">${biasKontekstual}</p>
+                     <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
+                </div>
+                <div class="col-span-2 grid grid-cols-2 gap-4">
+                     <div>
+                        <p class="text-xs text-gray-500">Saran Entri</p>
+                        <p class="font-semibold text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
+                        <p class="text-xs font-mono text-yellow-500">${entryPercent}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">SL (Struktural)</p>
+                        <p class="font-semibold text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
+                        <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
+                    </div>
+                </div>
             </div>
-            <div class="confluence-bar-container w-full h-8 mt-2">
-                <div id="scalping-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: ${pumpStrength}%;"></div>
-                <div id="scalping-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: ${dumpRiskScore * 10}%;"></div>
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
+                <div>
+                    <p class="text-xs text-gray-500">TP 1 (Struktural)</p>
+                    <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit1)}</p>
+                    <p class="text-xs font-mono ${tpColorClass}">${tp1Percent}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">TP 2 (R:R 1:1.5)</p>
+                    <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit2)}</p>
+                    <p class="text-xs font-mono ${tpColorClass}">${tp2Percent}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500">TP 3 (Level Kunci)</p>
+                    <p class="font-semibold text-sm">${tp3Display}</p>
+                </div>
             </div>
-            <div class="flex items-center justify-between text-xs mt-1">
-                <span id="scalping-pump-score" class="positive font-bold">${pumpStrength.toFixed(0)}%</span>
-                <span id="scalping-dump-score" class="negative font-bold">${dumpRiskScore}/10</span>
+        `;
+        
+        calculatePositionSize({ entry: entryPrice, sl: stopLoss, tp1: takeProfit1 });
+        realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
+
+    } else { // --- JIKA NETRAL, TAMPILKAN PESAN PERINGATAN ---
+        container.innerHTML = `
+            <div class="grid grid-cols-3 gap-4 text-center items-start">
+                 <div class="col-span-3">
+                     <p class="text-xs text-gray-500">Bias Kontekstual (TF: 1H)</p>
+                     <p class="font-bold text-lg ${biasClass}">${biasKontekstual}</p>
+                     <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
+                </div>
             </div>
-        </div>
-        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
-            <div>
-                <p class="text-xs text-gray-500">TP 1 (Struktural)</p>
-                <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit1)}</p>
-                <p class="text-xs font-mono ${tpColorClass}">${tp1Percent}</p>
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
+                <p class="font-semibold text-yellow-400">PASAR SIDEWAYS</p>
+                <p class="text-sm text-gray-400 mt-1">Tidak ada setup Long/Short yang jelas. Disarankan untuk tidak masuk posisi.</p>
             </div>
-            <div>
-                <p class="text-xs text-gray-500">TP 2 (R:R 1:1.5)</p>
-                <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit2)}</p>
-                <p class="text-xs font-mono ${tpColorClass}">${tp2Percent}</p>
-            </div>
-            <div>
-                <p class="text-xs text-gray-500">TP 3 (Level Kunci)</p>
-                <p class="font-semibold text-sm ${tp3Display}</p>
-            </div>
-        </div>
-    `;
-    
-    calculatePositionSize({ entry: entryPrice, sl: stopLoss, tp1: takeProfit1 });
-    realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
+        `;
+        
+        calculatePositionSize(null);
+        realtimeCache.main.latestScalpingSetup = null;
+    }
 }
 
 // =======================================================
@@ -5745,7 +5815,7 @@ function calculateAndDisplayScalpingSetup() {
     // Gunakan bias EMA sederhana HANYA untuk kalkulasi SL/TP struktural
     const ema9 = calculateEMA(closes, 9).pop();
     const ema21 = calculateEMA(closes, 21).pop();
-    const biasKalkulator = ema9 > ema21 ? 'LONG' : 'SHORT'; 
+    const biasKalkulator = biasKontekstual.startsWith('LONG') ? 'LONG' : 'SHORT';
     
     let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
     const recentKlines = klines.slice(-15);
@@ -5753,19 +5823,35 @@ function calculateAndDisplayScalpingSetup() {
     const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
 
     if (biasKalkulator === 'LONG') {
-        entryPrice = ema9; 
-        stopLoss = recentSwingLow * 0.999;
-        takeProfit1 = recentSwingHigh;
-        takeProfit2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
-    } else { 
-        entryPrice = ema9; 
-        stopLoss = recentSwingHigh * 1.001;
-        takeProfit1 = recentSwingLow;
-        takeProfit2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
-    }
-    
-    const dailyPivot = calculatedData.pivot.data?.P;
-    takeProfit3 = dailyPivot ? dailyPivot : 'N/A';
+            entryPrice = ema9; 
+            stopLoss = recentSwingLow * 0.999;
+            takeProfit1 = recentSwingHigh;
+
+            // [PERBAIKAN 1] Hitung target R:R, lalu pastikan TP2 tidak lebih rendah dari TP1
+            const rrTarget2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
+            takeProfit2 = Math.max(rrTarget2, takeProfit1); // Ambil nilai yang lebih tinggi
+
+            // [PERBAIKAN 2] Logika TP3 yang benar untuk LONG
+            const upperBB = calculatedData.bollingerBands.upper.filter(v=>v).pop();
+            const dailyPivot = calculatedData.pivot.data?.P;
+            let potentialTP3s = [upperBB, dailyPivot].filter(p => p && p > takeProfit2); // Filter level DI ATAS TP2
+            takeProfit3 = potentialTP3s.length > 0 ? Math.min(...potentialTP3s) : 'N/A'; // Ambil yang terdekat (paling kecil)
+
+        } else { // SHORT
+            entryPrice = ema9; 
+            stopLoss = recentSwingHigh * 1.001;
+            takeProfit1 = recentSwingLow;
+
+            // [PERBAIKAN 1] Hitung target R:R, lalu pastikan TP2 tidak lebih tinggi dari TP1
+            const rrTarget2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
+            takeProfit2 = Math.min(rrTarget2, takeProfit1); // Ambil nilai yang lebih rendah
+
+            // [PERBAIKAN 2] Logika TP3 yang benar untuk SHORT
+            const lowerBB = calculatedData.bollingerBands.lower.filter(v=>v).pop();
+            const dailyPivot = calculatedData.pivot.data?.P;
+            let potentialTP3s = [lowerBB, dailyPivot].filter(p => p && p < takeProfit2); // Filter level DI BAWAH TP2
+            takeProfit3 = potentialTP3s.length > 0 ? Math.max(...potentialTP3s) : 'N/A'; // Ambil yang terdekat (paling besar)
+        }
 
     const calculatePercentage = (targetPrice, entry) => {
         if (typeof targetPrice !== 'number' || entry === 0) return '';
