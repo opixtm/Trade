@@ -5373,9 +5373,13 @@ function renderTriggerBreakdown(breakdown) {
     const container = document.getElementById('trigger-breakdown-list');
     if (!container) return;
 
-    const renderTrigger = (name, points, isTriggered, valueText, conditionText = '') => {
+    // [UPGRADE] Fungsi render sekarang menerima objek data trigger
+    const renderTrigger = (name, triggerData, valueText, conditionText = '') => {
+        const isTriggered = triggerData.triggered;
+        const points = triggerData.points;
         const icon = isTriggered ? '✅' : '❌';
-        const pointsText = isTriggered ? `+${points} Poin` : `0 Poin`;
+        // Tampilkan poin dengan 1 angka desimal jika perlu (cth: 1.5)
+        const pointsText = isTriggered ? `+${points.toFixed(1).replace('.0', '')} Poin` : `0 Poin`;
         const mainColor = isTriggered ? 'text-green-400' : 'text-gray-500';
         const pointColor = isTriggered ? 'text-green-400' : 'text-gray-500';
         
@@ -5394,13 +5398,14 @@ function renderTriggerBreakdown(breakdown) {
 
     let html = '<ul class="list-none">';
     
-    html += renderTrigger('Candle Merah Paska-Puncak', 3, breakdown.candleRed, breakdown.candleRed ? 'Terdeteksi' : 'Tidak Ada');
-    html += renderTrigger('Pola Candle Bearish', 1, breakdown.doji, breakdown.candlePattern, '(cth: Shooting Star)');
-    html += renderTrigger('CVD Menukik Tajam', 2, breakdown.cvdDip, breakdown.cvdDip ? 'Ya' : 'Tidak');
-    html += renderTrigger('Divergensi / Arah CVD', 2, breakdown.cvdDivergence, breakdown.cvdStatus, '(Kondisi: Bearish)');
-    html += renderTrigger('Rejection Bollinger Band', 3, breakdown.bbRejection, breakdown.bbStatus);
-    html += renderTrigger('MACD Bearish Cross', 2, breakdown.macdCross, `Status: ${breakdown.macdStatus}`);
-    html += renderTrigger('RSI Overbought', 2, breakdown.rsiOverbought, `Value: ${breakdown.rsiValue}`, '(Kondisi: > 70)');
+    // [UPGRADE] Panggil renderTrigger dengan objek data, bukan nilai hardcoded
+    html += renderTrigger('Candle Merah Paska-Puncak', breakdown.candleRed, breakdown.candleRed.triggered ? 'Terdeteksi' : 'Tidak Ada');
+    html += renderTrigger('Pola Candle Bearish', breakdown.doji, breakdown.candlePattern, '(cth: Shooting Star)');
+    html += renderTrigger('CVD Menukik Tajam', breakdown.cvdDip, breakdown.cvdDip.triggered ? 'Ya' : 'Tidak');
+    html += renderTrigger('Divergensi / Arah CVD', breakdown.cvdDivergence, breakdown.cvdStatus, '(Kondisi: Bearish)');
+    html += renderTrigger('Rejection Bollinger Band', breakdown.bbRejection, breakdown.bbStatus);
+    html += renderTrigger('MACD Bearish Cross', breakdown.macdCross, `Status: ${breakdown.macdStatus}`);
+    html += renderTrigger('RSI Overbought', breakdown.rsiOverbought, `Value: ${breakdown.rsiValue}`, '(Kondisi: > 70)');
 
     html += '</ul>';
     container.innerHTML = html;
@@ -5929,76 +5934,102 @@ function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
     const indicators = {
         candlePattern: findCandlestickPatterns(klines),
         macd: calculateMACD(closes),
-        rsi: calculateRSI(closes), // Ambil semua data RSI
+        rsi: calculateRSI(closes),
         bollingerBands: analyzeBollingerBandsPriceAction(klines, calculateBollingerBands(closes)),
         cvd: CVDanalyze(klines, dataSource.cvdData || calculateCVD(dataSource.aggTrades || [])),
+        atr: calculateATR(klines)
     };
     
-    const lastRsiValue = indicators.rsi.filter(v => v !== undefined).pop() || 50;
+    const atrStatus = indicators.atr.status;
+    let volatilityMultiplier = 1.0; 
 
+    if (atrStatus === 'Tinggi') {
+        volatilityMultiplier = 0.75;
+    } else if (atrStatus === 'Sangat Tinggi') {
+        volatilityMultiplier = 0.5;
+    }
+
+    const lastRsiValue = indicators.rsi.filter(v => v !== undefined).pop() || 50;
     let score = 0;
-    // [UPGRADE] 'breakdown' sekarang akan menyimpan nilai aktual
+    
+    // [UPGRADE] Breakdown sekarang menyimpan objek { triggered, points }
     let breakdown = {
         rsiValue: lastRsiValue.toFixed(2),
         macdStatus: indicators.macd.status,
         bbStatus: indicators.bollingerBands.rejection,
         cvdStatus: indicators.cvd.divergence,
         candlePattern: indicators.candlePattern.pattern,
-        cvdDip: false
+        candleRed: { triggered: false, points: 0 },
+        doji: { triggered: false, points: 0 },
+        cvdDip: { triggered: false, points: 0 },
+        cvdDivergence: { triggered: false, points: 0 },
+        rsiOverbought: { triggered: false, points: 0 },
+        bbRejection: { triggered: false, points: 0 },
+        macdCross: { triggered: false, points: 0 }
     };
 
     const lookbackPeriod = 15;
     const recentKlines = klines.slice(-lookbackPeriod);
     
+    // --- Perhitungan Skor dengan Multiplier ---
     if (recentKlines.length >= 3) {
         let peakIndex = 0;
         for (let i = 1; i < recentKlines.length; i++) {
             if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[peakIndex][2])) peakIndex = i;
         }
-
         if (peakIndex < lookbackPeriod - 2) {
             const triggerCandleArr = recentKlines[peakIndex + 1];
             if (triggerCandleArr) {
                 const triggerCandle = { Open: parseFloat(triggerCandleArr[1]), Close: parseFloat(triggerCandleArr[4]) };
                 if (triggerCandle.Close < triggerCandle.Open) {
-                    score += 3;
-                    breakdown.candleRed = true;
+                    const points = 3 * volatilityMultiplier;
+                    score += points;
+                    breakdown.candleRed = { triggered: true, points: points };
                 }
             }
         }
     }
     
     if (indicators.candlePattern.bias === 'BEARISH') {
-        score += 1;
-        breakdown.doji = true;
+        const points = 1 * volatilityMultiplier;
+        score += points;
+        breakdown.doji = { triggered: true, points: points };
     }
-    if (indicators.cvd.divergence.includes('Bearish')) {
-        score += 2;
-        breakdown.cvdDivergence = true;
-    }
-    if (indicators.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
-        score += 3;
-        breakdown.bbRejection = true;
-    }
-    if (indicators.macd.status === 'Bearish Cross') {
-        score += 2;
-        breakdown.macdCross = true;
-    }
-    if (lastRsiValue > 70) {
-        score += 2;
-        breakdown.rsiOverbought = true;
-    }
+    
     const cvdValues = calculateCVD(dataSource.aggTrades || []).map(d => d.cvd_usdt);
     if (cvdValues.length > 5) {
         const recentCvdSegment = cvdValues.slice(-5);
         const startCvd = recentCvdSegment[0];
         const endCvd = recentCvdSegment[4];
-        if (endCvd < startCvd) { // Jika ada penurunan dalam 5 candle terakhir
-            score += 2;
-            breakdown.cvdDip = true;
+        if (endCvd < startCvd) { 
+            const points = 2 * volatilityMultiplier;
+            score += points;
+            breakdown.cvdDip = { triggered: true, points: points };
         }
     }
 
+    if (indicators.cvd.divergence.includes('Bearish')) {
+        const points = 2 * volatilityMultiplier;
+        score += points;
+        breakdown.cvdDivergence = { triggered: true, points: points };
+    }
+    
+    if (lastRsiValue > 70) {
+        const points = 2 * volatilityMultiplier;
+        score += points;
+        breakdown.rsiOverbought = { triggered: true, points: points };
+    }
+
+    // --- Trigger Robust (Poin Tetap) ---
+    if (indicators.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
+        score += 3;
+        breakdown.bbRejection = { triggered: true, points: 3 };
+    }
+    if (indicators.macd.status === 'Bearish Cross') {
+        score += 2;
+        breakdown.macdCross = { triggered: true, points: 2 };
+    }
+    
     return { score: Math.min(score, 10), breakdown };
 }
 
