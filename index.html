@@ -518,37 +518,40 @@
                         </div>
                     </div>
                 </section>
-                <section id="watchlist-section" class="card p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-                        <h2 class="text-base font-senibold">📈 Watchlist</h2>
-                        <div class="w-full sm:w-auto flex items-center gap-2">
-                            <input type="text" id="watchlist-input" class="input-primary text-sm flex-grow uppercase" placeholder="BTCUSDT, ETHUSDT, SOLUSDT...">
-                            <button id="save-watchlist-btn" class="btn-primary !p-2" title="Simpan Watchlist">💾</button>
+            
+ 
+                
+                <section id="top-movers-section" class="card p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                        <h2 class="text-base font-semibold">Pump & Dump Strength</h2>
+                        <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                            <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
+                                <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
+                                <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
+                                <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
+                                <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
+                                <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
+                                <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
+                                    <option value="5000">5s</option>
+                                    <option value="10000">10s</option>
+                                    <option value="30000">30s</option>
+                                    <option value="60000">60s</option>
+                                    <option value="120000" selected>120s</option>
+                                </select>
+                                <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
+                            </div>
                         </div>
                     </div>
-                    <button id="scan-watchlist-btn" class="btn-yellow w-full mb-4">
-                        <span>🔍 Watchlist</span>
-                        <div class="loader w-5 h-5 hidden"></div>
-                    </button>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-800">
-                                <tr>
-                                    <th scope="col" ...>Aset</th>
-                                    <th scope="col" ...>Harga</th>
-                                    <th scope="col" ...>𝌡 24J </th>
-                                </tr>
-                            </thead>
-                            <tbody id="watchlist-results-body" ...>
-                                <tr>
-                                    <td colspan="3" ...>Jalankan pemindaian untuk melihat hasil.</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-400 mb-2">🟢 Gainers</h3>
+                            <div id="gainers-list" class="space-y-2"></div>
+                        </div>                       
                     </div>
                 </section>
-                
-                
                 <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <div>
                         <div class="flex flex-col sm:flex-row gap-4">
@@ -575,37 +578,6 @@
                         </button>
                         <p id="asset-error" class="text-red-600 text-sm mt-2 text-center hidden"></p>
                         <button id="reset-btn" class="btn-secondary !w-auto">RESET</button>
-                    </div>
-                </section>
-                <section id="top-movers-section" class="card p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-    <h2 class="text-base font-semibold">Pump & Dump Strength</h2>
-    <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-        <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
-            <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
-            <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
-            <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
-            <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
-            <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
-            <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
-        </div>
-        <div class="flex gap-2 items-center">
-            <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
-                <option value="5000">5s</option>
-                <option value="10000">10s</option>
-                <option value="30000">30s</option>
-                <option value="60000">60s</option>
-                <option value="120000" selected>120s</option>
-            </select>
-            <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
-        </div>
-    </div>
-</div>
-                    <div class="grid grid-cols-1 gap-4">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-400 mb-2">🟢 Gainers</h3>
-                            <div id="gainers-list" class="space-y-2"></div>
-                        </div>                       
                     </div>
                 </section>
             </div>
@@ -939,22 +911,22 @@
             </section>
         <section id="onchain-card" class="card p-6">
             <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                        <h2 class="text-xl font-bold">⛓️‍💥 Aktivitas On-Chain</h2>
-                                        <svg id="toggle-onchain-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                    </button>
-                                    <div id="onchain-content-wrapper" class="collapsible-content">
-                                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                                            <div id="specific-token-analysis" class="mb-4">
-                                                <h3 id="specific-token-title" class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Analisis Token Spesifik</h3>
-                                                <div id="specific-token-content" class="text-sm space-y-1"><p class="text-xs text-gray-500 text-center">Mencari data on-chain untuk aset yang dianalisa...</p></div>
-                                            </div>                                    
-                                            <div>
-                                                <h3 class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Pool Trending Teratas</h3>
-                                                <div id="trending-pools-content" class="text-sm space-y-2"><div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div></div>
-                                            </div>
-                                        </div>
-                                    </div>
-            </section>
+                <h2 class="text-xl font-bold">⛓️‍💥 Aktivitas On-Chain</h2>
+                <svg id="toggle-onchain-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </button>
+            <div id="onchain-content-wrapper" class="collapsible-content">
+            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                <div id="specific-token-analysis" class="mb-4">
+                <h3 id="specific-token-title" class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Analisis Token Spesifik</h3>
+                <div id="specific-token-content" class="text-sm space-y-1"><p class="text-xs text-gray-500 text-center">Mencari data on-chain untuk aset yang dianalisa...</p></div>
+            </div>                                    
+            <div>
+                <h3 class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Pool Trending Teratas</h3>
+                <div id="trending-pools-content" class="text-sm space-y-2"><div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div></div>
+                </div>
+                </div>
+                </div>
+        </section>
     </div>
 
     <section id="ai-analysis-section" class="card p-6 relative lg:col-span-2">
@@ -1038,10 +1010,6 @@
     const trendingPoolsContent = document.getElementById('trending-pools-content');
     const fullOrderBookContainer = document.getElementById('full-order-book-container');
     const tradeLink = document.getElementById('trade-link');
-    const watchlistInput = document.getElementById('watchlist-input');
-    const saveWatchlistBtn = document.getElementById('save-watchlist-btn');
-    const scanWatchlistBtn = document.getElementById('scan-watchlist-btn');
-    const watchlistResultsBody = document.getElementById('watchlist-results-body');
     const navVolume24h = document.getElementById('nav-volume-24h');
     const navAth = document.getElementById('nav-ath');
     const navAtl = document.getElementById('nav-atl');
@@ -1121,7 +1089,6 @@
     let klineQueue = [];
     let processingInterval = null;
     let fundingRateTimer = null;
-    let watchlist = [];
     let orderBookDOMElements = null;
     let orderBookHistory = {
         avgVolumes: [], 
@@ -3189,33 +3156,7 @@ function determineMarketRegime(klines, closes) {
         }
     }
 // ===========end of async function runFullAnalysis(symbol = null) {============================================
-// =============================================================================================================
-    function saveWatchlist() {
-        const symbols = watchlistInput.value.split(',')
-            .map(s => s.trim().toUpperCase())
-            .filter(s => s.length > 0);
-        
-        watchlist = [...new Set(symbols)]; // Hapus duplikat
-        localStorage.setItem('ultimateAppWatchlist', JSON.stringify(watchlist));
-        watchlistInput.value = watchlist.join(', ');
-        alert('Watchlist disimpan!');
-    }
 
-// =======================================================
-function loadWatchlist() {
-    const savedWatchlist = localStorage.getItem('ultimateAppWatchlist');
-
-    if (savedWatchlist && JSON.parse(savedWatchlist).length > 0) {
-        // Jika ada watchlist yang tersimpan, gunakan itu.
-        watchlist = JSON.parse(savedWatchlist);
-    } else {
-        // Jika tidak ada atau kosong, gunakan daftar default.
-        watchlist = ['BTCUSDT'];
-    }
-
-    // Tampilkan watchlist ke input box.
-    watchlistInput.value = watchlist.join(', ');
-}
 // =======================================================
     async function getConfluenceScoreForSymbol(symbol) {
         try {
@@ -3233,78 +3174,7 @@ function loadWatchlist() {
         }
     }
 // =======================================================
-    async function scanWatchlist() {
-        if (watchlist.length === 0) {
-            //alert('Harap isi dan simpan watchlist Anda terlebih dahulu.');
-            return;
-        }
 
-        setButtonState(scanWatchlistBtn, true);
-        
-        watchlistResultsBody.innerHTML = `<tr><td colspan="4" class="px-4 py-10 text-center"><div class="loader mx-auto"></div><p class="mt-2 text-sm text-gray-400">Memindai ${watchlist.length} aset...</p></td></tr>`;
-
-        try {
-            const results = [];
-            for (const symbol of watchlist) {
-                const result = await getConfluenceScoreForSymbol(symbol);
-                results.push(result);
-                // Tambahkan jeda 300ms untuk menghindari rate limit API
-                await new Promise(resolve => setTimeout(resolve, 300));
-            }
-    renderWatchlistTable(results);
-        } catch (error) {
-            watchlistResultsBody.innerHTML = `<tr><td colspan="4" class="px-4 py-4 text-center text-sm text-red-500">Terjadi kesalahan saat pemindaian: ${error.message}</td></tr>`;
-        } finally {
-            setButtonState(scanWatchlistBtn, false);
-        }
-    }
-// GANTI SELURUH FUNGSI renderWatchlistTable DENGAN INI:
-    function renderWatchlistTable(results) {
-        if (results.length === 0) {
-            watchlistResultsBody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-sm text-gray-400">Tidak ada hasil.</td></tr>`;
-            return;
-        }
-        
-        let tableHtml = '';
-        results.forEach(res => {
-            if (res.error) {
-                tableHtml += `
-                    <tr class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" data-symbol="${res.symbol}">
-                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">${res.symbol}</td>
-                        <td colspan="2" class="px-4 py-3 text-sm text-red-400">Error: ${res.error}</td>
-                    </tr>
-                `;
-            } else {
-                const priceFormatted = formatPrice(res.price);
-                const changeClass = getSignClass(res.change24h);
-
-                tableHtml += `
-                    <tr class="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800" data-symbol="${res.symbol}">
-                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">${res.symbol}</td>
-                        <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">${priceFormatted}</td>
-                        <td class="px-4 py-3 text-sm font-semibold ${changeClass}">${res.change24h.toFixed(2)}%</td>
-                    </tr>
-                `;
-            }
-        });
-        watchlistResultsBody.innerHTML = tableHtml;
-        attachWatchlistRowListeners();
-    }
-// =================================================================================
-    function attachWatchlistRowListeners() {
-        document.querySelectorAll('#watchlist-results-body tr').forEach(row => {
-            row.addEventListener('click', () => {
-                const symbol = row.dataset.symbol;
-                if (symbol) {
-                    assetInput.value = symbol;
-                    runFullAnalysis();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            });
-        });
-    }
-
-// ========BLOK FUNGSI BARU UNTUK FITUR WATCHLIST (SELESAI) ========================
 // =============================================================================================================    
 // ===BLOK KODE UPGRADE FINAL V2 UNTUK ANALISIS AI (TERMASUK KORELASI & RISIKO) ==masihh ada cache==
     async function runComprehensiveAIAnalysis() {
@@ -6063,13 +5933,9 @@ function startTopMoversAutoRefresh(timeframe = "1h", interval = 10000) {
 // =======================================================
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
-    loadWatchlist();
-    
-    // [FINAL] Inisialisasi semua fungsi Top Movers baru
     initTopMoversTimeframeSelector(); 
     initRefreshIntervalSelector();
     startTopMoversAutoRefresh("1h", 60000); // Default: 1H, refresh setiap 60 detik
-    scanWatchlist();
     adjustContentPadding();
     setupToggle('toggle-scalping-btn', 'scalping-content-wrapper', 'toggle-scalping-icon', false);
     setupToggle('toggle-risk-btn', 'risk-content-wrapper', 'toggle-risk-icon', false);
@@ -6160,8 +6026,6 @@ document.addEventListener('DOMContentLoaded', () => {
     marketTypeSelect.addEventListener('change', () => initializeExchangeInfo(marketTypeSelect.value).catch(err => showError(err.message)));
     initializeExchangeInfo(marketTypeSelect.value).catch(err => showError(err.message));
     toggleChartsBtn.addEventListener('click', () => toggleChartsVisibility());
-    saveWatchlistBtn.addEventListener('click', saveWatchlist);
-    scanWatchlistBtn.addEventListener('click', scanWatchlist);
     resetBtn.addEventListener('click', resetDashboard);
     const tooltipElement = document.createElement('div');
     tooltipElement.id = 'custom-tooltip';
