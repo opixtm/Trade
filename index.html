@@ -643,6 +643,16 @@
                         Trigger Potensi Dump ▾
                     </summary>
                     <div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1">
+                        <<li class="flex justify-between items-center py-2 border-b border-gray-700/50">
+    <span>▫️ Volume Exhaustion</span>
+    <div class="flex items-center gap-2 text-right text-xs">
+        <span id="volume-exhaustion-status" class="font-semibold text-gray-600">...</span>
+        <span class="font-mono font-bold text-gray-500">0 Poin</span>
+    </div>
+</li>
+<div class="tension-bar-bg mt-1">
+    <div id="volume-exhaustion-bar-fill" class="tension-bar-fill" style="width: 0%;"></div>
+</div>
                         <p class="text-xs text-center text-gray-600">Memuat rincian...</p>
                     </div>
                 </details>
@@ -5073,23 +5083,36 @@ function renderTriggerBreakdown(breakdown) {
     const container = document.getElementById('trigger-breakdown-list');
     if (!container) return;
 
-    const renderTrigger = (name, triggerData, valueText, conditionText = '') => {
-        // [BARU] Pengaman jika triggerData tidak ada
-        const safeTriggerData = triggerData || { triggered: false, points: 0 };
-        const isTriggered = safeTriggerData.triggered;
-        const points = safeTriggerData.points;
+    const renderTrigger = (name, triggerData, valueText, conditionText = '', showProgressBar = false, progressPercentage = 0) => {
+        const isTriggered = triggerData?.triggered;
+        const points = isTriggered ? triggerData.points : 0;
         const icon = isTriggered ? '✅' : '▫️';
         const pointsText = isTriggered ? `+${points.toFixed(1).replace('.0', '')} Poin` : `0 Poin`;
         const mainColor = isTriggered ? 'text-green-400' : 'text-gray-500';
         const pointColor = isTriggered ? 'text-green-400' : 'text-gray-500';
-        
+
+        let progressBarHtml = '';
+        if (showProgressBar) {
+            // Perbaikan logika: bilah hanya terisi penuh saat triggered = true
+            const clampedProgress = isTriggered ? 100 : Math.max(0, Math.min(100, progressPercentage));
+            
+            // Perbaikan logika: warna bar hanya berubah jika triggered
+            let barColorClass = isTriggered ? 'confluence-bar-fill-bullish' : 'confluence-bar-fill-gold';
+            
+            progressBarHtml = `
+                <div class="confluence-bar-bg w-24">
+                    <div class="${barColorClass}" style="width: ${clampedProgress}%;"></div>
+                </div>
+            `;
+        }
+
         return `
             <li class="flex justify-between items-center py-2 border-b border-gray-700/50 ${mainColor}">
                 <span>${icon} ${name}</span>
-                <div class="text-right text-xs">
+                <div class="text-right text-xs flex items-center gap-2">
                     <span class="font-semibold">${valueText}</span>
                     <span class="text-gray-600 ml-1">${conditionText}</span>
-                    <br>
+                    ${progressBarHtml}
                     <span class="font-mono font-bold ${pointColor}">${pointsText}</span>
                 </div>
             </li>
@@ -5097,11 +5120,45 @@ function renderTriggerBreakdown(breakdown) {
     };
 
     let html = '<ul class="list-none">';
+
+    const klines = realtimeCache.main.klines;
+    const lookbackPeriod = 15;
+    const recentKlines = klines.slice(-lookbackPeriod);
+    let peakIndex = -1;
+    if (recentKlines.length >= 5) {
+        let highestHigh = 0;
+        for (let i = 0; i < recentKlines.length; i++) {
+            const high = parseFloat(recentKlines[i][2]);
+            if (high > highestHigh) {
+                highestHigh = high;
+                peakIndex = i;
+            }
+        }
+    }
     
+    let progressPercentage = 0;
+    const pumpVolumeLookback = 5;
+    if (peakIndex >= pumpVolumeLookback) {
+        const pumpCandles = recentKlines.slice(peakIndex - pumpVolumeLookback, peakIndex);
+        const avgPumpVolume = pumpCandles.reduce((sum, k) => sum + parseFloat(k[5]), 0) / pumpCandles.length;
+        const peakVolume = parseFloat(recentKlines[peakIndex][5]);
+        if (avgPumpVolume > 0) {
+            progressPercentage = (peakVolume / avgPumpVolume) * (100 / 0.6);
+        }
+    }
+    
+    if (progressPercentage > 100) progressPercentage = 100;
+
     html += renderTrigger('Candle Merah Paska-Puncak', breakdown.candleRed, breakdown.candleRed?.triggered ? 'Terdeteksi' : 'Tidak Ada');
     html += renderTrigger('Pola Candle Bearish', breakdown.doji, breakdown.candlePattern, '(cth: Shooting Star)');
-    // [BARU] Tambahkan baris ini untuk Volume Exhaustion
-    html += renderTrigger('Volume Exhaustion', breakdown.volumeExhaustion, breakdown.volumeExhaustion?.triggered ? 'Terdeteksi' : 'Normal', '(Vol Puncak < 60% Avg)');
+    html += renderTrigger(
+        'Volume Exhaustion',
+        breakdown.volumeExhaustion,
+        breakdown.volumeExhaustion?.triggered ? 'Terdeteksi' : 'Normal',
+        '(Vol Puncak < 60% Avg)',
+        true,
+        progressPercentage
+    );
     html += renderTrigger('CVD Menukik Tajam', breakdown.cvdDip, breakdown.cvdDip?.triggered ? 'Ya' : 'Tidak');
     html += renderTrigger('Divergensi / Arah CVD', breakdown.cvdDivergence, breakdown.cvdStatus, '(Kondisi: Bearish)');
     html += renderTrigger('Rejection Bollinger Band', breakdown.bbRejection, breakdown.bbStatus);
@@ -5324,22 +5381,48 @@ function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
         rsiOverbought: { triggered: false, points: 0 },
         bbRejection: { triggered: false, points: 0 },
         macdCross: { triggered: false, points: 0 },
-        // [BARU] Tambahkan properti baru untuk volume exhaustion di breakdown
         volumeExhaustion: { triggered: false, points: 0 }
     };
 
     const lookbackPeriod = 15;
     const recentKlines = klines.slice(-lookbackPeriod);
     
-    if (recentKlines.length >= 3) {
-        let peakIndex = 0;
-        for (let i = 1; i < recentKlines.length; i++) {
-            if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[peakIndex][2])) peakIndex = i;
+    // --- Perbaikan Logika Volume Exhaustion ---
+    let peakIndex = -1;
+    if (recentKlines.length >= 5) {
+        let highestHigh = 0;
+        for (let i = 0; i < recentKlines.length; i++) {
+            const high = parseFloat(recentKlines[i][2]);
+            if (high > highestHigh) {
+                highestHigh = high;
+                peakIndex = i;
+            }
         }
+    }
+    
+    if (peakIndex >= 5) { // Hanya hitung jika ada 5 candle sebelum puncak
+        const pumpVolumeLookback = 5;
+        const pumpCandles = recentKlines.slice(peakIndex - pumpVolumeLookback, peakIndex);
+        if (pumpCandles.length === pumpVolumeLookback) {
+            const avgPumpVolume = pumpCandles.reduce((sum, k) => sum + parseFloat(k[5]), 0) / pumpCandles.length;
+            const peakVolume = parseFloat(recentKlines[peakIndex][5]);
 
-        // --- Perhitungan Skor dengan Multiplier ---
-        if (peakIndex < lookbackPeriod - 2) {
-            const triggerCandleArr = recentKlines[peakIndex + 1];
+            if (peakVolume < (avgPumpVolume * 0.6)) {
+                const points = 2;
+                score += points;
+                breakdown.volumeExhaustion = { triggered: true, points: points };
+            }
+        }
+    }
+    // --- Akhir Perbaikan Logika Volume Exhaustion ---
+
+    if (recentKlines.length >= 3) {
+        let currentPeakIndex = 0;
+        for (let i = 1; i < recentKlines.length; i++) {
+            if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[currentPeakIndex][2])) currentPeakIndex = i;
+        }
+        if (currentPeakIndex < lookbackPeriod - 2) {
+            const triggerCandleArr = recentKlines[currentPeakIndex + 1];
             if (triggerCandleArr) {
                 const triggerCandle = { Open: parseFloat(triggerCandleArr[1]), Close: parseFloat(triggerCandleArr[4]) };
                 if (triggerCandle.Close < triggerCandle.Open) {
@@ -5349,25 +5432,6 @@ function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
                 }
             }
         }
-        
-        // [BARU] BLOK LOGIKA UNTUK VOLUME EXHAUSTION
-        if (peakIndex > 4 && peakIndex < recentKlines.length - 1) { // Pastikan ada cukup data sebelum puncak
-            const pumpVolumeLookback = 5;
-            const pumpCandles = recentKlines.slice(peakIndex - pumpVolumeLookback, peakIndex);
-            
-            if (pumpCandles.length > 0) {
-                const avgPumpVolume = pumpCandles.reduce((sum, k) => sum + parseFloat(k[5]), 0) / pumpCandles.length;
-                const peakVolume = parseFloat(recentKlines[peakIndex][5]);
-
-                // Kondisi: Volume di puncak < 60% dari rata-rata volume pendorongnya
-                if (peakVolume < (avgPumpVolume * 0.6)) {
-                    const points = 2; // Poin tetap, karena ini sinyal kuat
-                    score += points;
-                    breakdown.volumeExhaustion = { triggered: true, points: points };
-                }
-            }
-        }
-        // [AKHIR BLOK BARU]
     }
     
     if (indicators.candlePattern.bias === 'BEARISH') {
@@ -5379,14 +5443,12 @@ function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
     const cvdValues = (dataSource.cvdData || calculateCVD(dataSource.aggTrades || [])).map(d => d.cvd_usdt);
     if (cvdValues.length > 5) {
         const recentCvdSegment = cvdValues.slice(-5);
-        if (recentCvdSegment.length === 5) {
-            const startCvd = recentCvdSegment[0];
-            const endCvd = recentCvdSegment[4];
-            if (endCvd < startCvd) { 
-                const points = 2 * volatilityMultiplier;
-                score += points;
-                breakdown.cvdDip = { triggered: true, points: points };
-            }
+        const startCvd = recentCvdSegment[0];
+        const endCvd = recentCvdSegment[4];
+        if (endCvd < startCvd) { 
+            const points = 2 * volatilityMultiplier;
+            score += points;
+            breakdown.cvdDip = { triggered: true, points: points };
         }
     }
 
@@ -5402,7 +5464,6 @@ function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
         breakdown.rsiOverbought = { triggered: true, points: points };
     }
 
-    // --- Trigger Robust (Poin Tetap) ---
     if (indicators.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
         score += 3;
         breakdown.bbRejection = { triggered: true, points: 3 };
