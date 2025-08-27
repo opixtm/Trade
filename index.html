@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate CEX_DEX</title>
+    <title>ULTIMATE</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -377,18 +377,31 @@
             background: linear-gradient(to right, #fcd34d, #f59e0b, #ef4444); /* yellow to orange to red */
         }
         /* === CSS BARU UNTUK SKOR TENSI (SELESAI) === */
-        .countdown-bar-container {
-            height: 6px;
-            background-color: #3e4946;
-            border-radius: 9999px;
+        .confluence-bar-bg {
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            height: 1rem;
             overflow: hidden;
-            margin-top: 0.5rem;
+            position: relative;
         }
-        .countdown-bar {
+        .dark .confluence-bar-bg { background-color: #374151; }
+
+        .confluence-bar-fill-bullish {
+            background: linear-gradient(to right, #22c55e, #86efac);
             height: 100%;
-            background-color: #f59e0b; /* yellow-500 */
-            transition: width 0.9s linear;
+            transition: width 0.5s ease-out;
         }
+        .confluence-bar-fill-bearish {
+            background: linear-gradient(to right, #ef4444, #fca5a5);
+            height: 100%;
+            transition: width 0.5s ease-out;
+        }
+        .confluence-bar-fill-gold {
+            background: linear-gradient(to right, #fcd34d, #f59e0b);
+            height: 100%;
+            transition: width 0.5s ease-out;
+        }
+        
     </style>
 </head>
 <body class="antialiased">
@@ -396,7 +409,6 @@
     <div id="sticky-nav-wrapper" class="sticky top-0 z-50 bg-[#FDFBF7]/80 dark:bg-[#121212]/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
         <div class="flex items-center justify-between py-2 px-4 sm:px-6 lg:px-8">
             <div class="flex items-center gap-3">
-                <a href="https://copilot.page.gd/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-lg transition-colors duration-300 text-sm">🏠</a>               
                 <div id="nav-info-container" class="items-center gap-2 hidden md:flex">
                     <div class="flex flex-col">
                         <span id="nav-symbol" class="text-base font-bold text-yellow-500 dark:text-yellow-500"></span>
@@ -411,7 +423,6 @@
                     </div>
                 </div>
             </div>
-
             <div id="nav-stats-container" class="items-center gap-4 font-mono text-[10px] hidden md:flex">
                 <div class="flex flex-col text-left">
                     <div>
@@ -432,11 +443,12 @@
         </div>
     </div>
 
+
     <div id="main-content-container" class="px-4 pb-8 sm:px-6 lg:px-8">
         <header class="py-4 flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold text-gray-800">ULTIMATE 🤑 FINAL</h1>
-                <p class="text-yellow-500 font-mono mt-1 text-sm">PATTERN FORMULA</p>
+                <h1 class="text-xl font-bold text-gray-800">ULTIMATE</h1>
+                <p class="text-yellow-500 font-mono mt-1 text-sm">-----</p>
             </div>
             <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none">
                 <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
@@ -562,7 +574,7 @@
                         </div>
                         </button>
                         <p id="asset-error" class="text-red-600 text-sm mt-2 text-center hidden"></p>
-                        <button id="reset-btn" class="btn-secondary !w-auto">REFRESH</button>
+                        <button id="reset-btn" class="btn-secondary !w-auto">RESET</button>
                     </div>
                 </section>
                 <section id="top-movers-section" class="card p-6">
@@ -574,8 +586,8 @@
             <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
             <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
             <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
-            <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1H</button>
-            <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">24H</button>
+            <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
+            <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
         </div>
         <div class="flex gap-2 items-center">
             <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
@@ -622,29 +634,41 @@
     <div class="flex flex-col gap-4">
         <section id="scalping-setup-section" class="card p-6">
             <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
-                <h2 class="text-xl font-bold">⚡ Setup Scalping Cepat (<span id="scalping-timeframe-display"></span>)</h2>
+                <h2 class="text-xl font-bold">⚡ Scalping (<span id="scalping-timeframe-display"></span>)</h2>
                 <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
             </button>
             <div class="border-b border-t border-gray-700/50 mb-4">
                 <p id="vwap-status-text" class="font-bold text-lg text-center py-2">-</p>
             </div>
             <div id="hybrid-breakdown-module" class="mb-4">
-                <div class="flex items-center justify-between text-xs text-gray-400">
+                <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
                     <span>Kekuatan Pump</span>
+                    <span id="pump-score-display" class="positive font-bold">0%</span>
+                </div>
+                <div id="pump-bar-container" class="confluence-bar-bg mb-2">
+                    <div id="pump-bar-fill" class="confluence-bar-fill-bullish" style="width: 0%;"></div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
+                    <span>Kekuatan Dump</span>
+                    <span id="dump-strength-score-display" class="negative font-bold">0%</span>
+                </div>
+                <div id="dump-strength-bar-container" class="confluence-bar-bg mb-2">
+                    <div id="dump-strength-bar-fill" class="confluence-bar-fill-bearish" style="width: 0%;"></div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
                     <span>Potensi Dump</span>
+                    <span id="dump-risk-score-display" class="negative font-bold">0/10</span>
                 </div>
-                <div class="confluence-bar-container w-full h-8 mt-1">
-                    <div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div>
-                    <div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div>
+                <div id="dump-risk-bar-container" class="confluence-bar-bg">
+                    <div id="dump-risk-bar-fill" class="confluence-bar-fill-gold" style="width: 0%;"></div>
                 </div>
-                <div class="flex items-center justify-between text-sm mt-1">
-                    <span id="main-pump-score" class="positive font-bold">0%</span>
-                    <span id="main-dump-score" class="negative font-bold">0/10</span>
-                </div>
+
                 <p class="text-center text-[10px] text-gray-500 mt-1">(Berdasarkan Timeframe 1 Jam)</p>
                 <details class="mt-3">
                     <summary class="cursor-pointer text-sm text-gray-400 hover:text-white transition-colors">
-                        Lihat Rincian Trigger Potensi Dump ▾
+                        Trigger Potensi Dump ▾
                     </summary>
                     <div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1">
                         <p class="text-xs text-center text-gray-600">Memuat rincian...</p>
@@ -653,12 +677,14 @@
             </div>
             <div id="scalping-content-wrapper" class="collapsible-content">
                 <div>
-                      <div id="scalping-resistance-info" class="flex justify-between items-center text-sm pt-2 mt-2 border-t border-dashed border-gray-700/50">
+                    <div id="scalping-resistance-info" class="flex justify-between items-center text-sm pt-2 mt-2 border-t border-dashed border-gray-700/50">
                         <span class="text-gray-500">Resistance Terdekat</span>
                         <span class="font-mono font-semibold text-red-400">-</span>
                     </div>
-                    <div id="scalping-wall-info" class="text-center text-xs pt-2 text-gray-400">
-                        </div>
+                    <div id="scalping-wall-info" class="text-xs pt-2 text-gray-400 space-y-1">
+                        <div id="buy-wall-info" class="hidden"></div>
+                        <div id="sell-wall-info" class="hidden"></div>
+                    </div>
                     <div id="futures-data-container" class="hidden space-y-1 text-sm">
                         <div class="flex justify-between items-center"><span class="text-gray-500">Open Interest</span><span id="open-interest">-</span></div>
                         <div class="flex justify-between items-center"><span class="text-yellow-500">Funding Rate</span><span id="funding-rate" class="font-mono text-yellow-500">-</span></div>
@@ -685,7 +711,7 @@
                         </div>
                     </div>
                     
-                  
+                
                     
                     <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <p class="text-sm text-gray-500">Menunggu data...</p>
@@ -727,13 +753,7 @@
                                         <div class="space-y-2 pt-6 border-t border-gray-200 dark:border-gray-700">
                                             <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
                                                 <p class="text-sm text-gray-500">Pola Candlestick</p>
-                                                <div id="countdown-bar-container" class="countdown-bar-container">
-                                                    <div id="countdown-bar" class="countdown-bar"></div>
-                                                </div>
-                                                <p id="countdown-text" class="text-xs font-mono text-gray-400 mt-1">--:--</p>
-                                                <div id="candlestick-pattern-content">
-                                                    <p id="candlestick-pattern" class="font-semibold">BELUM ADA</p>
-                                                </div>
+                                                <p id="candlestick-pattern" class="font-semibold">BELUM ADA</p>
                                             </div>
                                             <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
                                                 <p id="chart-pattern-label" class="text-xs text-gray-500">Pola Chart</p>
@@ -1042,7 +1062,7 @@
             tickerData: {},
             klines: [],
             calculatedData: {},
-            liveScores: { pumpStrength: 0, dumpRisk: 0 }
+            liveScores: { pumpStrength: 0, dumpRisk: 0, dumpStrength: 0 }
         },
         // Data real-time untuk aset Top Movers
         movers: {}
@@ -1113,7 +1133,6 @@
     let currentInterval = 60000; // default 10 detik
     let remainingTime = currentInterval / 1000;
     let isTooltipActive = false;
-    let countdownTimer = null;
 
 // =======================================================
 // BAGIAN 4.5: FUNGSI BANTU (HELPERS) BARU
@@ -2496,7 +2515,7 @@ function determineMarketRegime(klines, closes) {
                 content = createCandle(10, 50, 55, 15, 20, red) + createCandle(40, 15, 20, 5, 12, gray) + createCandle(70, 18, 50, 15, 45, green);
                 break;
             case 'THREE_WHITE_SOLDIERS':
-                content = createCandle(10, 45, 55, 42, 50, green) + createCandle(40, 50, 60, 52, 58, green) + createCandle(70, 58, 65, 60, 62, green);
+                content = createCandle(10, 25, 35, 10, 30, green) + createCandle(40, 32, 45, 28, 40, green) + createCandle(70, 42, 55, 38, 50, green);
                 break;
             case 'BULLISH_HARAMI':
                 content = createCandle(20, 50, 55, 10, 15, red) + createCandle(55, 25, 35, 20, 30, green);
@@ -2529,66 +2548,6 @@ function determineMarketRegime(klines, closes) {
 
         return svgHeader + content + svgFooter;
     }
-
-// --- FUNGSI BARU UNTUK COUNTDOWN BAR (MULAI) ---
-// --- FUNGSI BARU UNTUK COUNTDOWN BAR (MULAI) ---
-function startCountdownTimer(timeframe) {
-    if (countdownTimer) clearInterval(countdownTimer);
-    
-    let totalSeconds;
-    let unit = timeframe.slice(-1);
-    let value = parseInt(timeframe.slice(0, -1));
-
-    if (unit === 'm') {
-        totalSeconds = value * 60;
-    } else if (unit === 'h') {
-        totalSeconds = value * 3600;
-    } else if (unit === 'd') {
-        totalSeconds = 86400; // 24 jam
-    } else if (unit === 'w') {
-        totalSeconds = 604800; // 7 hari
-    } else {
-        totalSeconds = 300; // Default ke 5m
-    }
-
-    const countdownBar = document.getElementById('countdown-bar');
-    const countdownText = document.getElementById('countdown-text');
-
-    const updateCountdown = () => {
-        const now = new Date();
-        let startOfCandle;
-        
-        if (unit === 'd') {
-            // Hitung awal hari di waktu lokal
-            startOfCandle = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        } else if (unit === 'w') {
-            // Hitung awal minggu (Hari Minggu) di waktu lokal
-            const dayOfWeek = now.getDay(); // 0 = Minggu, 1 = Senin, dst.
-            const diffToSunday = dayOfWeek === 0 ? 0 : dayOfWeek; // Jika Minggu, diff = 0
-            const lastSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToSunday);
-            startOfCandle = lastSunday.getTime();
-        } else {
-            // Logika untuk m dan h tetap menggunakan siklus universal
-            startOfCandle = Math.floor(now.getTime() / (totalSeconds * 1000)) * (totalSeconds * 1000);
-        }
-        
-        const endOfCandle = startOfCandle + (totalSeconds * 1000);
-        const remainingMs = endOfCandle - now.getTime();
-
-        const remainingSeconds = Math.floor(remainingMs / 1000);
-        const minutes = Math.floor(remainingSeconds / 60);
-        const seconds = remainingSeconds % 60;
-        const remainingPercentage = (remainingMs / (totalSeconds * 1000)) * 100;
-
-        countdownBar.style.width = `${remainingPercentage}%`;
-        countdownText.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    };
-
-    updateCountdown();
-    countdownTimer = setInterval(updateCountdown, 1000);
-}
-// --- FUNGSI BARU UNTUK COUNTDOWN BAR (SELESAI) ---
-// --- FUNGSI BARU UNTUK COUNTDOWN BAR (SELESAI) ---
 // =======================================================
     function getTimeAgo(date) {
         if (!(date instanceof Date) || isNaN(date)) {
@@ -2841,191 +2800,7 @@ function startCountdownTimer(timeframe) {
     }
     
 // =================kalkulasi entri dan tp/sl======================================    
-function calculateAndDisplayScalpingSetup() {
-    // [DIRAPIKAN] Ambil semua data yang dibutuhkan di awal
-    const { klines, calculatedData, symbol, selectedTimeframe, klines1h } = realtimeCache.main;
-    
-    if (!klines || klines.length < 50 || !calculatedData) {
-        document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup.</p>';
-        return;
-    }
 
-    // [DIPERBAIKI] Atur judul panel
-    document.getElementById('scalping-timeframe-display').textContent = `${symbol} - ${selectedTimeframe}`;
-
-    // --- BAGIAN 1: Mengisi Modul Hybrid Bar & Rincian Trigger ---
-    const scoreData = calculateShortConfluenceScore(symbol) || { score: 0, breakdown: {} };
-    const dumpRiskScore = scoreData.score;
-    const triggerBreakdown = scoreData.breakdown;
-    const pumpStrength = realtimeCache.main.liveScores.pumpStrength || 0;
-
-    document.getElementById('main-pump-bar').style.width = `${pumpStrength}%`;
-    document.getElementById('main-dump-bar').style.width = `${dumpRiskScore * 10}%`;
-    document.getElementById('main-pump-score').textContent = `${pumpStrength.toFixed(0)}%`;
-    document.getElementById('main-dump-score').textContent = `${dumpRiskScore}/10`;
-    renderTriggerBreakdown(triggerBreakdown);
-
-    // --- BAGIAN 2: Menghitung & Menampilkan Setup Scalping (Entri, SL, TP) ---
-    const container = document.getElementById('scalping-setup-content');
-    const closes = klines.map(k => parseFloat(k[4]));
-    const lastPrice = closes[closes.length - 1];
-
-    // === Tentukan BIAS KONTEKSTUAL terlebih dahulu ===
-    let biasKontekstual = "NETRAL / CHOP";
-    let biasClass = "status-chop";
-    let biasDetail = "Menunggu sinyal...";
-
-    let trenUtama = "CHOP";
-    if (klines1h && klines1h.length > 50) {
-        const closes1h = klines1h.map(k => parseFloat(k[4]));
-        const ema21_1h = calculateEMA(closes1h, 21).pop();
-        const ema50_1h = calculateEMA(closes1h, 50).pop();
-        if (ema21_1h > ema50_1h) trenUtama = "UPTREND";
-        if (ema50_1h > ema21_1h) trenUtama = "DOWNTREND";
-    }
-
-    const analisisTrigger = getConfluenceAnalysis(klines); 
-    const { skorBullish, skorBearish, detail } = analisisTrigger;
-    biasDetail = detail;
-
-    if (skorBullish > skorBearish + 1.5) {
-        if (trenUtama === 'UPTREND') {
-            biasKontekstual = 'LONG (Follow Trend)';
-            biasClass = 'status-uptrend';
-        } else if (trenUtama === 'DOWNTREND') {
-            biasKontekstual = 'LONG (Counter Trend)';
-            biasClass = 'status-uptrend';
-        } else {
-            biasKontekstual = 'LONG (Range Trading)';
-            biasClass = 'status-uptrend';
-        }
-    } else if (skorBearish > skorBullish + 1.5) {
-        if (trenUtama === 'DOWNTREND') {
-            biasKontekstual = 'SHORT (Follow Trend)';
-            biasClass = 'status-downtrend';
-        } else if (trenUtama === 'UPTREND') {
-            biasKontekstual = 'SHORT (Counter Trend)';
-            biasClass = 'status-downtrend';
-        } else {
-            biasKontekstual = 'SHORT (Range Trading)';
-            biasClass = 'status-downtrend';
-        }
-    }
-
-    // === [FINAL] Gabungan perbaikan: Cek kondisi NETRAL terlebih dahulu ===
-    if (biasKontekstual !== "NETRAL / CHOP") {
-        // --- JIKA TIDAK NETRAL, LAKUKAN SEMUA KALKULASI SL/TP ---
-        const biasKalkulator = biasKontekstual.startsWith('LONG') ? 'LONG' : 'SHORT';
-        const ema9 = calculateEMA(closes, 9).pop();
-        
-        let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
-        const recentKlines = klines.slice(-15);
-        const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
-        const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-
-        if (biasKalkulator === 'LONG') {
-            entryPrice = ema9; 
-            stopLoss = recentSwingLow * 0.999;
-            takeProfit1 = recentSwingHigh;
-
-            const rrTarget2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
-            takeProfit2 = Math.max(rrTarget2, takeProfit1);
-
-            const upperBB = calculatedData.bollingerBands.upper.filter(v=>v).pop();
-            const dailyPivot = calculatedData.pivot.data?.P;
-            let potentialTP3s = [upperBB, dailyPivot].filter(p => p && p > takeProfit2);
-            takeProfit3 = potentialTP3s.length > 0 ? Math.min(...potentialTP3s) : 'N/A';
-
-        } else { // SHORT
-            entryPrice = ema9; 
-            stopLoss = recentSwingHigh * 1.001;
-            takeProfit1 = recentSwingLow;
-
-            const rrTarget2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
-            takeProfit2 = Math.min(rrTarget2, takeProfit1);
-
-            const lowerBB = calculatedData.bollingerBands.lower.filter(v=>v).pop();
-            const dailyPivot = calculatedData.pivot.data?.P;
-            let potentialTP3s = [lowerBB, dailyPivot].filter(p => p && p < takeProfit2);
-            takeProfit3 = potentialTP3s.length > 0 ? Math.max(...potentialTP3s) : 'N/A';
-        }
-
-        const calculatePercentage = (targetPrice, entry) => {
-            if (typeof targetPrice !== 'number' || entry === 0) return '';
-            return `(${( (targetPrice - entry) / entry * 100).toFixed(2)}%)`;
-        };
-
-        const entryPercent = `(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})`;
-        const slPercent = calculatePercentage(stopLoss, entryPrice);
-        const tp1Percent = calculatePercentage(takeProfit1, entryPrice);
-        const tp2Percent = calculatePercentage(takeProfit2, entryPrice);
-        const tp3Percent = calculatePercentage(takeProfit3, entryPrice);
-        const slColorClass = 'negative';
-        const tpColorClass = 'positive';
-        const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
-
-        
-
-        container.innerHTML = `
-            <div class="grid grid-cols-3 gap-4 text-center items-start">
-                <div class="col-span-1">
-                     <p class="text-xs text-gray-500">Bias Kontekstual (TF: 1H)</p>
-                     <p class="font-bold text-lg blinking-text-animation ${biasClass}">${biasKontekstual}</p>
-                     <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
-                </div>
-                <div class="col-span-2 grid grid-cols-2 gap-4">
-                     <div>
-                        <p class="text-xs text-gray-500">Saran Entri</p>
-                        <p class="font-semibold text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
-                        <p class="text-xs font-mono text-yellow-500">${entryPercent}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">SL (Struktural)</p>
-                        <p class="font-semibold text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
-                        <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
-                <div>
-                    <p class="text-xs text-gray-500">TP 1 (Struktural)</p>
-                    <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit1)}</p>
-                    <p class="text-xs font-mono ${tpColorClass}">${tp1Percent}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500">TP 2 (R:R 1:1.5)</p>
-                    <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit2)}</p>
-                    <p class="text-xs font-mono ${tpColorClass}">${tp2Percent}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500">TP 3 (Level Kunci)</p>
-                    <p class="font-semibold text-sm">${tp3Display}</p>
-                </div>
-            </div>
-        `;
-        
-        calculatePositionSize({ entry: entryPrice, sl: stopLoss, tp1: takeProfit1 });
-        realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
-
-    } else { // --- JIKA NETRAL, TAMPILKAN PESAN PERINGATAN ---
-        container.innerHTML = `
-            <div class="grid grid-cols-3 gap-4 text-center items-start">
-                 <div class="col-span-3">
-                     <p class="text-xs text-gray-500">Bias Kontekstual (TF: 1H)</p>
-                     <p class="font-bold text-lg ${biasClass}">${biasKontekstual}</p>
-                     <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
-                </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
-                <p class="font-semibold text-yellow-400">PASAR SIDEWAYS</p>
-                <p class="text-sm text-gray-400 mt-1">Tidak ada setup Long/Short yang jelas. Disarankan untuk tidak masuk posisi.</p>
-            </div>
-        `;
-        
-        calculatePositionSize(null);
-        realtimeCache.main.latestScalpingSetup = null;
-    }
-}
 
 // =======================================================
     function calculatePositionSize(levels) {
@@ -3150,10 +2925,6 @@ function calculateAndDisplayScalpingSetup() {
         orderBookDOMElements = null;
         hideError();
         showLoader(true, 'Memulai Analisa...');
-
-        if (countdownTimer) {
-            clearInterval(countdownTimer);
-        }
 
         destroyCharts();
         specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
@@ -3314,8 +3085,6 @@ function calculateAndDisplayScalpingSetup() {
 
             updateDashboardUI();
             
-            startCountdownTimer(selectedTimeframe);
-
             const navPriceEl = document.getElementById('nav-price');
             const navIdrEl = document.getElementById('nav-price-idr');
             if(navPriceEl && navIdrEl) {
@@ -4483,15 +4252,17 @@ function loadWatchlist() {
         }
 
         // Update Wall Info Text
-        let wallText = '';
-        if (wallInfo.buyWall) {
-            wallText += `<span class="text-green-500 font-bold">Dinding Beli ${wallInfo.buyWall.wallType.toUpperCase()}</span> terdeteksi dari ${formatPrice(wallInfo.buyWall.priceStart)} ke ${formatPrice(wallInfo.buyWall.priceEnd)} (Volume: $${(wallInfo.buyWall.totalVolume * parseFloat(bids[0][0])).toLocaleString('en-US', {notation: 'compact'})}) `;
-        }
-        if (wallInfo.sellWall) {
-            wallText += `<span class="text-red-500 font-bold">Dinding Jual ${wallInfo.sellWall.wallType.toUpperCase()}</span> terdeteksi dari ${formatPrice(wallInfo.sellWall.priceStart)} ke ${formatPrice(wallInfo.sellWall.priceEnd)} (Volume: $${(wallInfo.sellWall.totalVolume * parseFloat(asks[0][0])).toLocaleString('en-US', {notation: 'compact'})})`;
-        }
-        orderBookDOMElements.wallInfo.innerHTML = wallText;
-        document.getElementById('scalping-wall-info').innerHTML = wallText || 'Tidak ada wall signifikan terdeteksi.';
+        let buyWallHtml = '';
+if (wallInfo.buyWall) {
+    buyWallHtml = `<span class="text-green-400 font-bold">Dinding Beli ${wallInfo.buyWall.wallType.toUpperCase()}</span> terdeteksi dari ${formatPrice(wallInfo.buyWall.priceStart)} ke ${formatPrice(wallInfo.buyWall.priceEnd)} (Volume: $${(wallInfo.buyWall.totalVolume * parseFloat(bids[0][0])).toLocaleString('en-US', {notation: 'compact'})})`
+}
+let sellWallHtml = '';
+if (wallInfo.sellWall) {
+    sellWallHtml = `<span class="text-red-400 font-bold">Dinding Jual ${wallInfo.sellWall.wallType.toUpperCase()}</span> terdeteksi dari ${formatPrice(wallInfo.sellWall.priceStart)} ke ${formatPrice(wallInfo.sellWall.priceEnd)} (Volume: $${(wallInfo.sellWall.totalVolume * parseFloat(asks[0][0])).toLocaleString('en-US', {notation: 'compact'})})`
+}
+// Gunakan br untuk memisahkan baris jika kedua dinding terdeteksi
+const wallText = (buyWallHtml || sellWallHtml) ? (buyWallHtml + '<br>' + sellWallHtml) : 'Tidak ada wall signifikan terdeteksi.';
+document.getElementById('scalping-wall-info').innerHTML = wallText;
     }
 
 // --- 7. CHART RENDERING ENGINE (REBUILT) ---   
@@ -5637,7 +5408,7 @@ function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
     if (!symbol) return { score: 0, breakdown: {} };
 
     const isMoverDataAvailable = realtimeCache.movers[symbol] && realtimeCache.movers[symbol].klines_1h && realtimeCache.movers[symbol].klines_1h.length > 20;
-const dataSource = isMoverDataAvailable ? realtimeCache.movers[symbol] : realtimeCache.main;
+    const dataSource = isMoverDataAvailable ? realtimeCache.movers[symbol] : realtimeCache.main;
 
     if (!dataSource || (!dataSource.klines && !dataSource.klines_1h)) {
         return { score: 0, breakdown: {} };
@@ -5860,7 +5631,7 @@ function onNewMoverData(symbol, streamName, payload) {
                 const change1h = ((lastClose - prevClose) / prevClose) * 100;
                 const totalVolume = klines1h.reduce((sum, k) => sum + k.Volume, 0);
                 const strengthScore = change1h * Math.log10(totalVolume + 1);
-                realtimeCache.main.liveScores.pumpStrength = (change1h > 0) ? Math.min(100, strengthScore) : 0;
+                realtimeCache.main.liveScores.dumpStrength = (change1h < 0) ? Math.min(100, Math.abs(strengthScore)) : 0;
             } else {
                 realtimeCache.main.liveScores.pumpStrength = 0;
             }
@@ -5887,16 +5658,29 @@ function calculateAndDisplayScalpingSetup() {
     const dumpRiskScore = scoreData.score;
     const triggerBreakdown = scoreData.breakdown;
     const pumpStrength = realtimeCache.main.liveScores.pumpStrength || 0;
-    document.getElementById('main-pump-bar').style.width = `${pumpStrength}%`;
-    document.getElementById('main-dump-bar').style.width = `${dumpRiskScore * 10}%`;
-    document.getElementById('main-pump-score').textContent = `${pumpStrength.toFixed(0)}%`;
-    document.getElementById('main-dump-score').textContent = `${dumpRiskScore}/10`;
+    const dumpStrength = realtimeCache.main.liveScores.dumpStrength || 0; // Menggunakan skor yang baru kita hitung
+
+    // Perbarui bilah dan skor terpisah
+    document.getElementById('pump-bar-fill').style.width = `${pumpStrength}%`;
+    document.getElementById('dump-strength-bar-fill').style.width = `${dumpStrength}%`;
+    document.getElementById('dump-risk-bar-fill').style.width = `${dumpRiskScore * 10}%`;
+
+    document.getElementById('pump-score-display').textContent = `${pumpStrength.toFixed(0)}%`;
+    document.getElementById('dump-strength-score-display').textContent = `${dumpStrength.toFixed(0)}%`;
+    document.getElementById('dump-risk-score-display').textContent = `${dumpRiskScore}/10`;
+    
     renderTriggerBreakdown(triggerBreakdown);
 
     // Bagian penentuan Bias Kontekstual juga tetap sama
     const container = document.getElementById('scalping-setup-content');
     const closes = klines.map(k => parseFloat(k[4]));
     const lastPrice = closes[closes.length - 1];
+    const vwapStatus = calculatedData.vwap.status;
+    const vwapStatusEl = document.getElementById('vwap-status-text');
+    if (vwapStatusEl) {
+        vwapStatusEl.textContent = `Harga di ${vwapStatus === 'Bullish' ? 'Atas' : 'Bawah'} VWAP`;
+        vwapStatusEl.className = `font-bold text-lg text-center py-2 ${vwapStatus === 'Bullish' ? 'text-green-400' : 'text-red-400'}`;
+    }
     let biasKontekstual = "NETRAL / CHOP";
     let biasClass = "status-chop";
     let biasDetail = "Menunggu sinyal...";
@@ -5934,13 +5718,7 @@ function calculateAndDisplayScalpingSetup() {
             biasClass = 'status-downtrend';
         }
     }
-// --- [BARU] Mengisi Status VWAP ---
-const vwapStatus = calculatedData.vwap.status;
-const vwapStatusEl = document.getElementById('vwap-status-text');
-if (vwapStatusEl) {
-    vwapStatusEl.textContent = `Harga di ${vwapStatus === 'Bullish' ? 'Atas' : 'Bawah'} VWAP`;
-    vwapStatusEl.className = `font-bold text-lg text-center py-2 ${vwapStatus === 'Bullish' ? 'text-green-400' : 'text-red-400'}`;
-}
+
     // [PERBAIKAN KUNCI]
     // Logika pengecekan sekarang ada di sini, SEBELUM kalkulasi apapun.
     if (biasKontekstual !== "NETRAL / CHOP") {
@@ -5995,7 +5773,7 @@ if (vwapStatusEl) {
             <div class="grid grid-cols-3 gap-4 text-center items-start">
                 <div class="col-span-1">
                      <p class="text-xs text-gray-500">Bias Kontekstual (TF: 1H)</p>
-                     <p class="font-bold text-lg blinking-text-animation ${biasClass}">${biasKontekstual}</p>
+                     <p class="font-bold text-sm blinking-text-animation ${biasClass}">${biasKontekstual}</p>
                      <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
                 </div>
                 <div class="col-span-2 grid grid-cols-2 gap-4">
@@ -6052,7 +5830,6 @@ if (vwapStatusEl) {
         realtimeCache.main.latestScalpingSetup = null;
     }
 }
-// GANTI FUNGSI YANG ADA DENGAN INI
 // GANTI SELURUH FUNGSI DENGAN VERSI "CERDAS" INI
 function calculateShortConfluenceScore(symbol = realtimeCache.main.symbol) {
     if (!symbol) return { score: 0, breakdown: {} };
@@ -6281,7 +6058,6 @@ function startTopMoversAutoRefresh(timeframe = "1h", interval = 10000) {
     }, 1000);
 }
 
-// --- AKHIR BLOK FINAL ---
 // =======================================================
 // BAGIAN 5: EVENT LISTENER UTAMA
 // =======================================================
@@ -6292,15 +6068,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // [FINAL] Inisialisasi semua fungsi Top Movers baru
     initTopMoversTimeframeSelector(); 
     initRefreshIntervalSelector();
-    startTopMoversAutoRefresh("24h", 120000); // Default: 1H, refresh setiap  detik TOP MOVERS TIMEFRAME
-
-    // Sisa event listener Anda yang tidak berubah
+    startTopMoversAutoRefresh("1h", 60000); // Default: 1H, refresh setiap 60 detik
     scanWatchlist();
     adjustContentPadding();
-    setupToggle('toggle-scalping-btn', 'scalping-content-wrapper', 'toggle-scalping-icon', true);
+    setupToggle('toggle-scalping-btn', 'scalping-content-wrapper', 'toggle-scalping-icon', false);
     setupToggle('toggle-risk-btn', 'risk-content-wrapper', 'toggle-risk-icon', false);
     setupToggle('toggle-sentiment-btn', 'sentiment-content-wrapper', 'toggle-sentiment-icon', false);
-    setupToggle('toggle-market-state-btn', 'current-state-content-wrapper', 'toggle-market-state-icon', true);
+    setupToggle('toggle-market-state-btn', 'current-state-content-wrapper', 'toggle-market-state-icon', false);
     setupToggle('toggle-confluence-btn', 'confluence-content-wrapper', 'toggle-confluence-icon', false);
     setupToggle('toggle-onchain-btn', 'onchain-content-wrapper', 'toggle-onchain-icon', false);        
     setupToggle('toggle-settings-btn', 'settings-content-wrapper', 'toggle-settings-icon', false);
@@ -6475,4 +6249,4 @@ assetInput.addEventListener('keypress', (e) => {
 });
 </script>
 </body>
-</html
+</html>
