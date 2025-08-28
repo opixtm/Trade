@@ -364,8 +364,7 @@
 
     <div id="sticky-nav-wrapper" class="sticky top-0 z-50 bg-[#FDFBF7]/80 dark:bg-[#121212]/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
         <div class="flex items-center justify-between py-2 px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center gap-3">
-                <a href="https://copilot.page.gd/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-lg transition-colors duration-300 text-sm">🏠</a>               
+            <div class="flex items-center gap-3"> 
                 <div id="nav-info-container" class="items-center gap-2 hidden md:flex">
                     <div class="flex flex-col">
                         <span id="nav-symbol" class="text-base font-bold text-yellow-500 dark:text-yellow-500"></span>
@@ -396,7 +395,6 @@
             
             <a href="#" id="trade-link" class="text-right no-underline hidden">
                 <span id="nav-price" class="text-yellow-500 text-lg">-</span>
-                <span id="nav-price-idr" class="block text-[10px] text-gray-400"></span>
             </a>
         </div>
     </div>
@@ -1701,24 +1699,17 @@ function determineMarketRegime(klines, closes) {
         if (!coinId) return null;
         const url = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
         try {
-            const response = await fetch(url);
+            const response = await fetchWithTimeout(url, {}, 5000); // Timeout 5 detik
             if (!response.ok) return null;
             return response.json();
         } catch (error) { return null; }
     }
 // ===================================================================================================================================================================================================================================================================================
-    async function fetchUsdToIdrRate() {
-        try {
-            const response = await fetch('https://api.frankfurter.app/latest?from=USD&to=IDR');
-            if (!response.ok) return 16200;
-            const data = await response.json();
-            return (data && data.rates && data.rates.IDR) ? data.rates.IDR : 16200;
-        } catch (error) { return 16200; }
-    }
+   
 // ===================================================================================================================================================================================================================================================================================
     async function getCoinGeckoId(baseAssetSymbol) {
         if (!coinListCache) {
-            const response = await fetch('https://api.coingecko.com/api/v3/coins/list');
+            const response = await fetchWithTimeout('https://api.coingecko.com/api/v3/coins/list', {}, 8000); // Timeout 8 detik (karena file besar)
             if (!response.ok) throw new Error('Gagal unduh daftar koin CoinGecko.');
             coinListCache = await response.json();
         }
@@ -2814,7 +2805,6 @@ function determineMarketRegime(klines, closes) {
                 fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType),
                 fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot'),
                 fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
-                fetchUsdToIdrRate(),
                 fetch('https://api.coingecko.com/api/v3/global').then(res => res.json()),
                 
                 (async () => {
@@ -2825,7 +2815,7 @@ function determineMarketRegime(klines, closes) {
                         console.warn(`Gagal mengambil data CoinGecko: ${e.message}`);
                         return null; 
                     }
-                })()
+                })(),
             ];
 
             if (marketType === 'futures') {
@@ -2845,18 +2835,18 @@ function determineMarketRegime(klines, closes) {
         const tickerData = results[3].status === 'fulfilled' ? results[3].value : null;
         const assetDailyKlines = results[4].status === 'fulfilled' ? results[4].value : null;
         const btcDailyKlines = results[5].status === 'fulfilled' ? results[5].value : null;
-        const orderBookData = results[6].status === 'fulfilled' ? results[6].value : null; 
-        const usdToIdrRate = results[7].status === 'fulfilled' ? results[7].value : 16200;
-        const globalData = results[8].status === 'fulfilled' ? results[8].value : null;
-        const coinGeckoData = results[9].status === 'fulfilled' ? results[9].value : null;
+        const orderBookData = results[6].status === 'fulfilled' ? results[6].value : null;
+        // Indeks setelah ini disesuaikan karena fetchUsdToIdrRate (bekas indeks 7) telah dihapus
+        const globalData = results[7].status === 'fulfilled' ? results[7].value : null;      // <-- DIUBAH ke 7
+        const coinGeckoData = results[8].status === 'fulfilled' ? results[8].value : null;   // <-- DIUBAH ke 8
 
 
         let openInterestData = null, fundingRateData = null, lsRatioUmumData = null, lsRatioTopData = null;
-        if (marketType === 'futures' && results.length > 10) {
-            openInterestData = results[10].status === 'fulfilled' ? results[10].value : null;
-            fundingRateData = results[11].status === 'fulfilled' ? results[11].value : null;
-            lsRatioUmumData = results[12].status === 'fulfilled' ? results[12].value : null;
-            lsRatioTopData = results[13].status === 'fulfilled' ? results[13].value : null;
+      if (marketType === 'futures' && results.length > 9) { // <-- Ubah 10 menjadi 9
+            openInterestData = results[9].status === 'fulfilled' ? results[9].value : null;   // <-- Ubah 10 menjadi 9
+            fundingRateData = results[10].status === 'fulfilled' ? results[10].value : null;  // <-- Ubah 11 menjadi 10
+            lsRatioUmumData = results[11].status === 'fulfilled' ? results[11].value : null;  // <-- Ubah 12 menjadi 11
+            lsRatioTopData = results[12].status === 'fulfilled' ? results[12].value : null;   // <-- Ubah 13 menjadi 12
         }
 
         // ======================= AWAL BLOK PERBAIKAN =======================
@@ -2891,7 +2881,6 @@ function determineMarketRegime(klines, closes) {
                 klines1h,
                 klines15m, 
                 orderBookData, 
-                usdToIdrRate, 
                 globalData, 
                 coinGeckoData, 
                 openInterestData, 
@@ -2933,10 +2922,8 @@ function determineMarketRegime(klines, closes) {
             updateDashboardUI();
             
             const navPriceEl = document.getElementById('nav-price');
-            const navIdrEl = document.getElementById('nav-price-idr');
-            if(navPriceEl && navIdrEl) {
+            if (navPriceEl) {
                 navPriceEl.textContent = formatPrice(parseFloat(tickerData.lastPrice));
-                navIdrEl.textContent = `Rp ${(parseFloat(tickerData.lastPrice) * (realtimeCache.main.usdToIdrRate || 0)).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
             }
             
             if (orderBookData) {
@@ -4091,6 +4078,12 @@ WebSocketManager.subscribe(streamsToSub);
             tradesToProcess.forEach(trade => {
                 const quantity = parseFloat(trade.q);
                 const price = parseFloat(trade.p);
+
+                const navPriceEl = document.getElementById('nav-price');
+                if (navPriceEl) {
+                    navPriceEl.textContent = formatPrice(price);
+                }
+
                 const now = trade.T;
                 const bucketTimestamp = Math.floor(now / CVD_AGGREGATION_INTERVAL_MS) * CVD_AGGREGATION_INTERVAL_MS;
                 if (bucketTimestamp > cvdAggregator.currentBucketTimestamp) {
@@ -4108,12 +4101,7 @@ WebSocketManager.subscribe(streamsToSub);
                 }
                 const sign = trade.m ? -1 : 1;
                 cvdAggregator.currentBucketDelta += (quantity * price * sign);
-                const navPriceEl = document.getElementById('nav-price');
-                const navIdrEl = document.getElementById('nav-price-idr');
-                if (navPriceEl && navIdrEl) {
-                    navPriceEl.textContent = formatPrice(price);
-                    navIdrEl.textContent = `Rp ${(price * (realtimeCache.main.usdToIdrRate || 0)).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-                }
+                
                 if (cvdChartInstance) {
                     if (isNaN(quantity) || quantity === 0) return;
                     liveCvdValue += quantity * sign;
@@ -4184,7 +4172,7 @@ WebSocketManager.subscribe(streamsToSub);
 };
 // ===================================================================================================================================================================================================================================================================================
     function populateCurrentStateWidget() {
-        const { tickerData, coinGeckoData, usdToIdrRate, globalData, openInterestData, fundingRateData, binanceSymbol } = realtimeCache.main;
+        const { tickerData, coinGeckoData, globalData, openInterestData, fundingRateData, binanceSymbol } = realtimeCache.main;
         
         document.getElementById('nav-symbol').textContent = binanceSymbol;
         const navChange24hEl = document.getElementById('nav-change-24h');
