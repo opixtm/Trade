@@ -3154,7 +3154,7 @@ WebSocketManager.subscribe(streamsToSub);
             volatilitas_atr: singleTfData.atr,
             order_book_bias: realtimeCache.main.orderBookBias,
             bollinger_squeeze: singleTfData.bollingerBands.squeezeStatus,
-            pivot_harian_bias: singleTfData.pivot.status + ` (Pivot @ ${formatPrice(singleTfData.pivot.data.P)})`,
+            pivot_harian_bias: singleTfData.pivot.status + (singleTfData.pivot.data?.P ? ` (Pivot @ ${formatPrice(singleTfData.pivot.data.P)})` : ' (Data N/A)'),
             vwap_20d_bias: singleTfData.vwap.status,
             ichimoku_bias: singleTfData.ichimoku.status,
             squeeze_pro_bb_kc: (singleTfData.bollingerBands.width.slice(-1)[0] < singleTfData.keltnerChannels.width.slice(-1)[0]) ? 'Terdeteksi!' : 'Tidak Aktif'
