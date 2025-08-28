@@ -418,7 +418,7 @@
             <div class="space-y-6 mb-8">
                 <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <div>
-                        <input type="password" id="gemini-api-key" class="input-primary" placeholder="Tempel API Key dari Google AI Studio...">
+                        <input type="password" id="gemini-api-key" class="input-primary" placeholder="Your API Key...">
                         <p class="text-sm text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
                     </div>
                     
@@ -463,7 +463,7 @@
                             </div>
                             <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <div class="flex items-center justify-between">
-                                    <label for="preset-select" class="font-semibold text-gray-700 dark:text-gray-300">Trader Type</label>
+                                    <label for="preset-select" class="font-semibold text-gray-700 dark:text-gray-300">TradingStyle</label>
                                     <select id="preset-select" class="input-primary !w-auto text-sm">
                                         <option value="default">Default</option>
                                         <option value="scalper">Scalper</option>
@@ -477,20 +477,22 @@
                         </div>
                     </div>
                 </section>
-                <div id="initial-placeholder" class="text-center py-20">
-                        <p class="text-xs font-mono text-gray-500">Pilih SPOT or PERPETUAL</p>
+                <div id="initial-placeholder" class="text-center py-5">
+                        
                     </div>
                     <div id="loader-overlay" class="... flex-col ...">
                         <div class="loader">
                             <div class="dot"></div>
+                            <p class="text-4xl font-mono text-gray-500">SPOT</p>
                             <div class="dot"></div>
+                            <p class="text-4xl font-mono text-gray-500">PERPETUAL</p>
                             <div class="dot"></div>
                         </div>
-                        <p id="loader-text" class="text-white font-semibold mt-4">WAITING FOR YOU.................</p>
+                        <p id="loader-text" class="text-white font-semibold mt-4 text-center blinking-text-animation">Let's Go........</p>
                     </div>
                 <section id="top-movers-section" class="card p-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                        <h2 class="text-sm font-semibold">Pump Strength & Dump Potention</h2>
+                        <h2 class="text-sm font-semibold">Pump Strength & Dump Even</h2>
                         <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                             <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
                                 <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
@@ -514,7 +516,7 @@
                     </div>
                     <div class="grid grid-cols-1 gap-4">
                         <div>
-                            <h3 class="text-sm font-semibold text-gray-400 mb-2">Gainers Short by TF >>></h3>
+                            <h3 class="text-sm font-semibold text-gray-400 mb-2">Asset Short by TF >>></h3>
                             <div id="gainers-list" class="space-y-2"></div>
                         </div>                       
                     </div>
@@ -558,13 +560,13 @@
     <div class="flex flex-col gap-4">
         <section id="scalping-setup-section" class="card p-6">
             <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
-                <h2 class="text-xl font-bold">Scalping (<span id="scalping-timeframe-display"></span>)</h2>
+                <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
                 <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
             </button>
             <div id="hybrid-breakdown-module" class="mb-4">
                 <div class="flex items-center justify-between text-xs text-gray-400">
                     <span>Pump Strength</span>
-                    <span>Dump Potention</span>
+                    <span>Dump Even</span>
                 </div>
                 <div class="confluence-bar-container w-full h-8 mt-1">
                     <div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div>
@@ -574,10 +576,10 @@
                     <span id="main-pump-score" class="positive font-bold">0%</span>
                     <span id="main-dump-score" class="negative font-bold">0/10</span>
                 </div>
-                <p class="text-center text-[10px] text-gray-500 mt-1">STILL STUCK!</p>
+                <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">Flowing...</p>
                 <details class="mt-3">
                     <summary class="cursor-pointer text-sm text-gray-400 hover:text-white transition-colors flex justify-between items-center">
-                        <span>Trigger Potensi Dump ▾</span>
+                        <span>Dump Even Trigger▾</span>
                         <select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()">
                             <option value="1m">1m</option>
                             <option value="3m">3m</option>
@@ -595,17 +597,24 @@
             <div id="scalping-content-wrapper" class="collapsible-content">
                 <div>
                       <div id="scalping-resistance-info" class="flex justify-between items-center text-sm pt-2 mt-2 border-t border-dashed border-gray-700/50">
-                        <span class="text-gray-500">Resistance Terdekat</span>
+                        <span class="text-gray-500">Resistance (R1)</span>
                         <span class="font-mono font-semibold text-red-400">-</span>
                     </div>
                     <div id="scalping-wall-info" class="text-center text-xs pt-2 text-gray-400">
                         </div>
-                    <div id="futures-data-container" class="hidden space-y-1 text-sm">
-                        <div class="flex justify-between items-center"><span class="text-gray-500">Funding Interval</span><span id="funding-rate-interval" class="font-mono">-</span></div>
-                        <div class="flex justify-between items-center"><span class="text-yellow-500">Funding Rate</span><span id="funding-rate" class="font-mono text-yellow-500">-</span></div>
-                        <div class="flex justify-between items-center"><span class="text-gray-500">Open Interest</span><span id="open-interest">-</span></div>
-                    </div>
-                    <div id="ls-umum-container" class="flex justify-between items-center text-sm"><span class="text-gray-500">L/S Ratio</span><span id="ls-ratio-umum" class="font-mono">-</span></div>
+                        <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-gray-500">Tren (EMA 21/50)</span>
+                                                        <span id="ma-status" class="font-mono font-semibold">-</span>
+                                                    </div>
+                                                    <div class="text-right text-xs text-gray-400 font-mono">
+                                                        <span id="ema-21-value">-</span> / 
+                                                        <span id="ema-50-value">-</span>
+                                                    </div>
+                                                </div>
+                        <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50"><span class="text-gray-500">Parabolic SAR</span><span id="psar-status" class="font-mono">-</span></div>
+                                            <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Rate of Change (ROC)|Mengukur kecepatan perubahan harga dalam persentase.<br><br><b>Kondisi:</b><br>• <b>Positif (> 0):</b> Momentum Bullish.<br>• <b>Negatif (< 0):</b> Momentum Bearish.">Rate of Change (ROC)</span><span id="roc-status" class="font-mono">-</span></div>
+                                                <div id="ls-umum-container" class="flex justify-between items-center text-sm"><span class="text-gray-500">L/S Ratio</span><span id="ls-ratio-umum" class="font-mono">-</span></div>
                     <div id="ls-top-container" class="flex justify-between items-center text-sm"><span class="text-gray-500">L/S Ratio (Top)</span><span id="ls-ratio-top" class="font-mono">-</span></div>
                     <div class="flex justify-between items-start text-sm mt-1">
                         <div>
@@ -625,6 +634,12 @@
                             <span class="text-xs negative" id="minus-di-value"></span>
                         </div>
                     </div>
+                    <div id="futures-data-container" class="hidden space-y-1 text-sm">
+                        <div class="flex justify-between items-center"><span class="text-gray-500">Funding Interval</span><span id="funding-rate-interval" class="font-mono">-</span></div>
+                        <div class="flex justify-between items-center"><span class="text-yellow-500">Funding Rate</span><span id="funding-rate" class="font-mono text-yellow-500">-</span></div>
+                        <div class="flex justify-between items-center"><span class="text-gray-500">Open Interest</span><span id="open-interest">-</span></div>
+                    </div>
+                    
                     
                   
                     
@@ -667,12 +682,12 @@
                                         </div>
                                         <div class="space-y-2 pt-6 border-t border-gray-200 dark:border-gray-700">
                                             <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
-                                                <p class="text-sm text-gray-500">Pola Candlestick</p>
-                                                <p id="candlestick-pattern" class="font-semibold">BELUM ADA</p>
+                                                <p class="text-sm text-gray-500">Candlestick Pattern</p>
+                                                <p id="candlestick-pattern" class="font-semibold">NONE</p>
                                             </div>
                                             <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
-                                                <p id="chart-pattern-label" class="text-xs text-gray-500">Pola Chart</p>
-                                                <p id="chart-pattern" class="font-semibold">BELUM ADA</p>
+                                                <p id="chart-pattern-label" class="text-xs text-gray-500">Chart Pattern</p>
+                                                <p id="chart-pattern" class="font-semibold">NONE</p>
                                             </div>
                                         </div>
                                         <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -702,49 +717,12 @@
                                 <div id="confluence-content-wrapper" class="collapsible-content">
                                     <div>
                                         <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                                            <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">Konteks & Tren Utama</h3>
-                                            <div class="space-y-1 text-sm">
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-gray-500">Korelasi vs. BTC (30 Hari)</span>
-                                                    <div>
-                                                        <span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span>
-                                                        <span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span>
-                                                    </div>
-                                                </div>
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-gray-500">Dominasi BTC</span>
-                                                    <span id="btc-dominance" class="font-mono">-</span>
-                                                </div>
-                                                <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                                    <span class="text-gray-500">Market Cap</span>
-                                                    <span id="market-cap" class="font-mono">-</span>
-                                                </div>
-
-                                                <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                                    <div class="flex justify-between items-center">
-                                                        <span class="text-gray-500">Tren (EMA 21/50)</span>
-                                                        <span id="ma-status" class="font-mono font-semibold">-</span>
-                                                    </div>
-                                                    <div class="text-right text-xs text-gray-400 font-mono">
-                                                        <span id="ema-21-value">-</span> / 
-                                                        <span id="ema-50-value">-</span>
-                                                    </div>
-                                                </div>
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-gray-500" data-tooltip="Ichimoku Bias|Sistem tren komprehensif yang melihat momentum dan level S/R dinamis.<br><br><b>Kondisi:</b><br>• <b>Bullish:</b> Harga di atas Awan (Kumo).<br>• <b>Bearish:</b> Harga di bawah Awan (Kumo).<br>• <b>Netral:</b> Harga di dalam Awan (Kumo).">Ichimoku Bias</span>
-                                                    <span id="ichimoku-bias" class="font-mono font-semibold">-</span>
-                                                </div>
-                                                
-                                            </div>
-                                        </div>
-
-                                    <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
                                         <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">KEY LEVEL</h3>
                                         <div class="space-y-1 text-sm">
                                             <div class="flex justify-between"><span class="text-red-500">VAH</span><span id="vpvr-vah" class="font-mono">-</span></div>
                                             <div class="flex justify-between"><span class="font-bold text-blue-500" data-tooltip="Point of Control (POC)|Level harga dengan volume trading tertinggi pada periode terlihat. Bertindak sebagai magnet harga.<br><br><b>Kondisi:</b><br>• <b>Harga > POC:</b> Dianggap sebagai area support.<br>• <b>Harga < POC:</b> Dianggap sebagai area resistance.">Point of Control (POC)</span><span id="vpvr-poc" class="font-mono font-bold">-</span></div>
                                             <div class="flex justify-between"><span class="text-green-500">VAL</span><span id="vpvr-val" class="font-mono">-</span></div>
-                                            <div class="flex justify-between items-center"><span class="text-gray-500">24 Jam</span><span id="range-24h" class="font-mono font-semibold">-</span></div>
+                                            <div class="flex justify-between items-center"><span class="text-gray-500">24H</span><span id="range-24h" class="font-mono font-semibold">-</span></div>
                                             <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
                                                 <span class="text-gray-500" data-tooltip="Pivot Harian (P)|Level acuan sentral yang dihitung dari High, Low, Close hari sebelumnya.<br><br><b>Kondisi:</b><br>• <b>Harga > Pivot:</b> Sentimen Bullish Intraday.<br>• <b>Harga < Pivot:</b> Sentimen Bearish Intraday.">Pivot Harian (P)</span><span id="pivot-p" class="font-mono font-bold text-blue-500">-</span>
                                             </div>
@@ -761,8 +739,7 @@
                                             </div>
                                         </div>
                                     </div>
-            
-                                    <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
                                         <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">MOMENTUM</h3>
                                         <div class="space-y-1 text-sm">
                                             <div class="flex justify-between items-center"><span class="text-gray-500">RSI (14)</span><div><span id="rsi-value" class="font-mono text-xs">-</span> <span id="rsi-status" class="tag tag-gray"></span></div></div>
@@ -783,12 +760,43 @@
                                                 </div>
                                             </div>
                                             <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="RSI Divergence|Kondisi di mana harga dan indikator RSI bergerak ke arah berlawanan, menandakan potensi pembalikan tren.<br><br><b>Kondisi:</b><br>• <b>BULLISH:</b> Harga 'Lower Low', RSI 'Higher Low'.<br>• <b>BEARISH:</b> Harga 'Higher High', RSI 'Lower High'.">RSI Divergence</span><span id="rsi-divergence" class="font-mono font-semibold text-xs">-</span></div>
-                                            <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50"><span class="text-gray-500">Parabolic SAR</span><span id="psar-status" class="font-mono">-</span></div>
-                                            <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Rate of Change (ROC)|Mengukur kecepatan perubahan harga dalam persentase.<br><br><b>Kondisi:</b><br>• <b>Positif (> 0):</b> Momentum Bullish.<br>• <b>Negatif (< 0):</b> Momentum Bearish.">Rate of Change (ROC)</span><span id="roc-status" class="font-mono">-</span></div>
+                                            
                                             <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Linear Regression Channel|Kanal statistik yang menunjukkan tren utama harga dan deviasi normalnya.<br><br><b>Kondisi:</b><br>• <b>Upper Line:</b> Area overbought/resistance.<br>• <b>Lower Line:</b> Area oversold/support.<br>• <b>In Channel:</b> Harga bergerak dalam rentang normal.">LinReg Channel</span><span id="linreg-status" class="font-mono">-</span></div>
+                                            <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500" data-tooltip="Ichimoku Bias|Sistem tren komprehensif yang melihat momentum dan level S/R dinamis.<br><br><b>Kondisi:</b><br>• <b>Bullish:</b> Harga di atas Awan (Kumo).<br>• <b>Bearish:</b> Harga di bawah Awan (Kumo).<br>• <b>Netral:</b> Harga di dalam Awan (Kumo).">Ichimoku Bias</span>
+                                                    <span id="ichimoku-bias" class="font-mono font-semibold">-</span>
+                                                </div>
                                         </div>
                                     </div>
+                                    
+                                        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                            <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">Asset Info</h3>
+                                            <div class="space-y-1 text-sm">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500">BTC Correlation (30D)</span>
+                                                    <div>
+                                                        <span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span>
+                                                        <span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500">BTC Dominance</span>
+                                                    <span id="btc-dominance" class="font-mono">-</span>
+                                                </div>
+                                                <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                                    <span class="text-gray-500">Market Cap</span>
+                                                    <span id="market-cap" class="font-mono">-</span>
+                                                </div>
 
+                                                
+                                                
+                                                
+                                            </div>
+                                        </div>
+
+                                    
+            
+                                    
                                     <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
                                         <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">....</h3>
                                         <div class="space-y-1 text-sm">
@@ -811,11 +819,11 @@
             </section>
             <section id="sentiment-display-container" class="card p-6">
             <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                    <h2 class="text-xl font-bold">Sentimen BITCOIN (via AI)</h2>
+                                    <h2 class="text-xl font-bold">BTC Sentiment (via AI)</h2>
                                     <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
                                 <div id="sentiment-content-wrapper" class="collapsible-content">
-                                    <p class="text-center text-gray-500">Sentimen via "AI" belum dimuat.</p>
+                                    <p class="text-center text-gray-500">Ask AI first....</p>
                                 </div>
             </section>
         <section id="risk-management-section" class="card p-6">
@@ -864,7 +872,7 @@
                                         <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
                                             <div id="specific-token-analysis" class="mb-4">
                                                 <h3 id="specific-token-title" class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Analisis Token Spesifik</h3>
-                                                <div id="specific-token-content" class="text-sm space-y-1"><p class="text-xs text-gray-500 text-center">SESRCHING...</p></div>
+                                                <div id="specific-token-content" class="text-sm space-y-1"><p class="text-xs text-gray-500 text-center">SEARCHING...</p></div>
                                             </div>                                    
                                             <div>
                                                 <h3 class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Pool Trending Teratas</h3>
@@ -877,13 +885,13 @@
 
     <section id="ai-analysis-section" class="card p-6 relative lg:col-span-2">
         <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-bold">💡 ASK AI</h2>
+                                <h2 class="text-xl font-bold">AI ANALYZER</h2>
                             </div>
 
                             <div id="ai-verdict-content-wrapper" class="collapsible-content expanded">
                                 <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
                                     <button id="run-comprehensive-ai-btn" class="btn-primary w-full mb-4">
-                            <span>🚀 ANALISA</span>
+                            <span>ASK AI</span>
                             <div class="loader w-5 h-5 hidden">
                                 <div class="dot"></div>
                                 <div class="dot"></div>
@@ -1164,7 +1172,7 @@
         subscribeToMovers(symbols) {
             const newSubs = new Set(symbols);
             if (new Set([...newSubs]).size === this.moverSubscriptions.size && [...newSubs].every(s => this.moverSubscriptions.has(s))) {
-                return; // Tidak ada perubahan, tidak perlu reconnect
+                return; // NONE perubahan, tidak perlu reconnect
             }
             this.moverSubscriptions = newSubs;
             this.reconnect();
@@ -1548,7 +1556,7 @@ function determineMarketRegime(klines, closes) {
         
         const { text: verdict, class: verdictClass } = generateShortVerdict(bullPercentage, bearPercentage);
         const mtfScoreText = mtfAlignmentScore > 0 ? `+${mtfAlignmentScore}` : mtfAlignmentScore;
-        const mtfHtml = `<div class="text-xs text-center text-gray-400 mt-2">Kekuatan Tren Multi-TF: <span class="font-bold ${mtfAlignmentScore > 0 ? 'positive' : (mtfAlignmentScore < 0 ? 'negative' : '')}">${mtfScoreText}</span></div>`;
+        const mtfHtml = `<div class="text-xs text-center text-gray-400 mt-2">Multi-Timeframe Trend Confirmation: <span class="font-bold ${mtfAlignmentScore > 0 ? 'positive' : (mtfAlignmentScore < 0 ? 'negative' : '')}">${mtfScoreText}</span></div>`;
 
         document.getElementById('quick-confluence-timeframe').textContent = timeframeSelect.value;
         document.getElementById('quick-finalBullishScore').textContent = `${bullPercentage.toFixed(0)}% 🐂`;
@@ -1561,10 +1569,10 @@ function determineMarketRegime(klines, closes) {
 
         // 1. Hitung Skor Tensi
         const tensionScore = Math.min(100, bullPercentage + bearPercentage);
-        let tensionText = "Rendah";
-        if (tensionScore > 50) tensionText = "Sedang";
-        if (tensionScore > 75) tensionText = "Tinggi";
-        if (tensionScore > 90) tensionText = "Ekstrem";
+        let tensionText = "Low";
+        if (tensionScore > 50) tensionText = "Medium";
+        if (tensionScore > 75) tensionText = "High";
+        if (tensionScore > 90) tensionText = "Extreme";
 
         // 2. Tampilkan Verdict Utama
         const verdictEl = document.getElementById('quick-finalVerdict');
@@ -1574,7 +1582,7 @@ function determineMarketRegime(klines, closes) {
         // 3. Tampilkan Skor Tensi
         const tensionContainer = document.getElementById('tension-score-container');
         tensionContainer.innerHTML = `
-            <span class="text-gray-400">Tensi Pasar: <strong>${tensionText}</strong> (${tensionScore.toFixed(0)}/100)</span>
+            <span class="text-gray-400">Market Tension: <strong>${tensionText}</strong> (${tensionScore.toFixed(0)}/100)</span>
             <div class="tension-bar-bg">
                 <div class="tension-bar-fill" style="width: ${tensionScore}%;"></div>
             </div>
@@ -1909,11 +1917,11 @@ function determineMarketRegime(klines, closes) {
 
         let status;
         if (atrPercent > 5) {
-            status = 'Sangat Tinggi';
+            status = 'Very High';
         } else if (atrPercent > 2.5) {
-            status = 'Tinggi';
+            status = 'High';
         } else if (atrPercent < 1) {
-            status = 'Rendah';
+            status = 'Low';
         } else {
             status = 'Normal';
         }
@@ -2081,9 +2089,9 @@ function determineMarketRegime(klines, closes) {
         const lastLower = lower.filter(v => v !== undefined).pop();
         const lastWidth = width.filter(v => v !== undefined).pop();
 
-        let status = 'Dalam Band';
-        if (lastClose > lastUpper) status = 'Di Atas Band';
-        if (lastClose < lastLower) status = 'Di Bawah Band';
+        let status = 'INSIDE';
+        if (lastClose > lastUpper) status = 'Above';
+        if (lastClose < lastLower) status = 'Below';
 
         let squeezeStatus = 'Normal';
         if (width.length > 50) {
@@ -2150,7 +2158,7 @@ function determineMarketRegime(klines, closes) {
         const lastCvd = cvdData[cvdData.length - 1].cvd;
         const cvdTrend = lastCvd > firstCvd ? 'Naik' : (lastCvd < firstCvd ? 'Turun' : 'Datar');
 
-        let divergence = 'Tidak Ada';
+        let divergence = 'NONE';
         let summary = `Tren harga dan CVD bergerak selaras (${priceTrend}).`;
 
             if (priceTrend === 'Naik' && cvdTrend === 'Turun') {
@@ -2226,7 +2234,7 @@ function determineMarketRegime(klines, closes) {
 // ===================================================================================================================================================================================================================================================================================
     const findCandlestickPatterns = (klines) => {        
         if (!klines || klines.length < 3) {            
-            return { pattern: 'TIDAK ADA', class: 'text-gray-500', bias: 'NETRAL', svg: '', timestamp: null };
+            return { pattern: 'NONE', class: 'text-gray-500', bias: 'NETRAL', svg: '', timestamp: null };
         }
                
         const lastCandleTimestamp = klines[klines.length - 1][0];
@@ -2240,7 +2248,7 @@ function determineMarketRegime(klines, closes) {
         const c3 = getCandleDetails(klines[klines.length - 3]);
 
         
-        let result = { pattern: 'TIDAK ADA', class: 'text-gray-500', bias: 'NETRAL', svg: '', timestamp: lastCandleTimestamp };
+        let result = { pattern: 'NONE', class: 'text-gray-500', bias: 'NETRAL', svg: '', timestamp: lastCandleTimestamp };
 
         // Cek Pola 3-Candle
         if (c3.isGreen && c2.isGreen && c1.isGreen && c1.close > c2.close && c2.close > c3.close) {
@@ -2254,7 +2262,7 @@ function determineMarketRegime(klines, closes) {
         }
 
         // Jika belum ketemu, cek Pola 2-Candle
-        if (result.pattern === 'TIDAK ADA') {
+        if (result.pattern === 'NONE') {
             if (c2.isRed && c1.isGreen && c1.close > c2.open && c1.open < c2.close) {
                 result = { pattern: 'BULLISH ENGULFING', class: 'positive', bias: 'BULLISH', svg: getPatternSVG('BULLISH_ENGULFING'), timestamp: lastCandleTimestamp };
             } else if (c2.isGreen && c1.isRed && c1.close < c2.open && c1.open > c2.close) {
@@ -2275,7 +2283,7 @@ function determineMarketRegime(klines, closes) {
         }
 
         // Jika masih belum ketemu, cek Pola 1-Candle
-        if (result.pattern === 'TIDAK ADA') {
+        if (result.pattern === 'NONE') {
             const lowerWick = Math.min(c1.open, c1.close) - c1.low;
             const upperWick = c1.high - Math.max(c1.open, c1.close);
             if (lowerWick > c1.body * 2 && upperWick < c1.body * 0.5) {
@@ -2288,7 +2296,7 @@ function determineMarketRegime(klines, closes) {
         return result;
     };
     const detectRSIDivergence = (closes, rsiValues, lookback = 30) => {
-        if (!closes || closes.length < lookback || !rsiValues || rsiValues.length < lookback) return { status: 'TIDAK ADA', class: 'text-gray-500' };
+        if (!closes || closes.length < lookback || !rsiValues || rsiValues.length < lookback) return { status: 'NONE', class: 'text-gray-500' };
         const recentCloses = closes.slice(-lookback), recentRSI = rsiValues.slice(-lookback);
         const findPeaks = (data, isHigh) => {
             let peaks = [];
@@ -2311,11 +2319,11 @@ function determineMarketRegime(klines, closes) {
             const lastRsiHigh = rsiHighs.find(h => Math.abs(h.index - lastPriceHigh.index) < 3), prevRsiHigh = rsiHighs.find(h => Math.abs(h.index - prevPriceHigh.index) < 3);
             if (lastPriceHigh && prevPriceHigh && lastRsiHigh && prevRsiHigh && lastPriceHigh.value > prevPriceHigh.value && lastRsiHigh.value < prevRsiHigh.value) return { status: 'BEARISH', class: 'negative blinking-text-animation' };
         }
-        return { status: 'TIDAK ADA', class: 'text-gray-500' };
+        return { status: 'NONE', class: 'text-gray-500' };
     };
 
     const detectOBVDivergence = (closes, klines, lookback = 30) => {
-        if (!closes || closes.length < lookback || !klines || klines.length < lookback) return { status: 'TIDAK ADA', class: 'text-gray-500' };
+        if (!closes || closes.length < lookback || !klines || klines.length < lookback) return { status: 'NONE', class: 'text-gray-500' };
 
         const obvValues = calculateOBV(klines);
         const recentCloses = closes.slice(-lookback);
@@ -2344,7 +2352,7 @@ function determineMarketRegime(klines, closes) {
             const lastObvHigh = obvHighs.find(h => Math.abs(h.index - lastPriceHigh.index) < 3), prevObvHigh = obvHighs.find(h => Math.abs(h.index - prevPriceHigh.index) < 3);
             if (lastPriceHigh && prevPriceHigh && lastObvHigh && prevObvHigh && lastPriceHigh.value > prevPriceHigh.value && lastObvHigh.value < prevObvHigh.value) return { status: 'BEARISH', class: 'negative blinking-text-animation' };
         }
-        return { status: 'TIDAK ADA', class: 'text-gray-500' };
+        return { status: 'NONE', class: 'text-gray-500' };
     };
 // ===================================================================================================================================================================================================================================================================================  
     function getPatternSVG(patternName) {
@@ -2764,7 +2772,7 @@ function determineMarketRegime(klines, closes) {
         WebSocketManager.registerHandler('depthUpdate', (data) => depthQueue.push(data));
         orderBookDOMElements = null;
         hideError();
-        showLoader(true, 'Analyzing................');
+        showLoader(true, 'Please Wait! Analyzing.............');
 
         specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
         specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Mencari data on-chain...</p>`;
@@ -2899,7 +2907,7 @@ function determineMarketRegime(klines, closes) {
                 liveScores: { pumpStrength: 0, dumpRisk: 0 }
             };
 
-            showLoader(true, 'Menghitung indikator...');
+            showLoader(true, 'Calculating Data...');
             
             const allTrades = await fetchBinanceAPIData('aggTrades', { symbol: binanceSymbol, limit: 1000 }, marketType);
             const cvdData = calculateCVD(allTrades);
@@ -3006,7 +3014,7 @@ WebSocketManager.subscribe(streamsToSub);
                                 specificTokenContent.innerHTML += html;
                             } else {
                             realtimeCache.main.onChainSummary = null;
-                            specificTokenContent.innerHTML += `<p class="text-xs text-gray-500 text-center pt-2">Tidak ada transaksi jual/beli signifikan baru-baru ini.</p>`;
+                            specificTokenContent.innerHTML += `<p class="text-xs text-gray-500 text-center pt-2">NONE transaksi jual/beli signifikan baru-baru ini.</p>`;
                             }
                         } catch (tradeError) {
                             specificTokenContent.innerHTML += `<p class="text-xs text-red-500 text-center pt-2">Gagal memuat jejak trader: ${tradeError.message}</p>`;
@@ -3383,26 +3391,26 @@ WebSocketManager.subscribe(streamsToSub);
         }
 
         buyerSaranEl.textContent = data.saran_buyer || 'N/A';
-        buyerAlasanEl.innerHTML = (data.alasan_buyer || 'Tidak ada alasan spesifik.').replace(/\$([\d,.-]+)/g, '<span class="font-bold text-yellow-400">\$&</span>');
+        buyerAlasanEl.innerHTML = (data.alasan_buyer || 'NONE alasan spesifik.').replace(/\$([\d,.-]+)/g, '<span class="font-bold text-yellow-400">\$&</span>');
         holderSaranEl.textContent = data.saran_holder || 'N/A';
-        holderAlasanEl.innerHTML = (data.alasan_holder || 'Tidak ada alasan spesifik.').replace(/\$([\d,.-]+)/g, '<span class="font-bold text-yellow-400">\$&</span>');
+        holderAlasanEl.innerHTML = (data.alasan_holder || 'NONE alasan spesifik.').replace(/\$([\d,.-]+)/g, '<span class="font-bold text-yellow-400">\$&</span>');
     }
 // ===================================================================================================================================================================================================================================================================================
     function generateShortVerdict(bullPercentage, bearPercentage) {
-        let verdict = "NETRAL / KONSOLIDASI";
+        let verdict = "NETRAL / CONSOLIDATION";
         let verdictClass = "text-yellow-400";
         
         if (bullPercentage > bearPercentage * 1.8 && bullPercentage > 40) {
-            verdict = "BULLISH KUAT";
+            verdict = "STRONG BULLISH";
             verdictClass = "positive";
         } else if (bearPercentage > bullPercentage * 1.8 && bearPercentage > 40) {
-            verdict = "BEARISH KUAT";
+            verdict = "STRONG BEARISH";
             verdictClass = "negative";
         } else if (bullPercentage > bearPercentage) {
-            verdict = "BIAS BULLISH RINGAN";
+            verdict = "SLIGHTLY BULLISH";
             verdictClass = "positive";
         } else if (bearPercentage > bullPercentage) {
-            verdict = "BIAS BEARISH RINGAN";
+            verdict = "SLIGHTLY BEARISH";
             verdictClass = "negative";
         }
         return { text: verdict, class: verdictClass };
@@ -3438,7 +3446,7 @@ WebSocketManager.subscribe(streamsToSub);
                 bullishHtml += `<li class="flex justify-between"><span>• ${item.name}</span> <span class="font-mono text-xs positive">+${item.score.toFixed(2)}</span></li>`;
             });
         } else {
-            bullishHtml += '<li class="text-xs italic text-gray-600">Tidak ada.</li>';
+            bullishHtml += '<li class="text-xs italic text-gray-600">NONE.</li>';
         }
         bullishHtml += '</ul>';
         document.getElementById('top-bullish-contributors').innerHTML = bullishHtml;
@@ -3450,7 +3458,7 @@ WebSocketManager.subscribe(streamsToSub);
                 bearishHtml += `<li class="flex justify-between"><span>• ${item.name}</span> <span class="font-mono text-xs negative">${item.score.toFixed(2)}</span></li>`;
             });
         } else {
-            bearishHtml += '<li class="text-xs italic text-gray-600">Tidak ada.</li>';
+            bearishHtml += '<li class="text-xs italic text-gray-600">NONE.</li>';
         }
         bearishHtml += '</ul>';
         document.getElementById('top-bearish-contributors').innerHTML = bearishHtml;
@@ -3460,7 +3468,7 @@ WebSocketManager.subscribe(streamsToSub);
 
 // ===================================================================================================================================================================================================================================================================================
     async function createTFAlignmentSummary(symbol, marketType) {
-        const timeframes = ['15m', '1h', '4h', '1d'];
+        const timeframes = ['1m', '5m', '15m', '1h', '4h', '1d'];
         const summary = {};
         
         let score = 0; 
@@ -3491,7 +3499,7 @@ WebSocketManager.subscribe(streamsToSub);
 
         // Tampilkan juga di UI
         const alignmentContainer = document.getElementById('tf-alignment-summary');
-        let alignmentHtml = '<h4 class="font-bold text-gray-300 mt-2 mb-1">Keselarasan Tren (EMA 21/50)</h4><div class="flex justify-center gap-2">';
+        let alignmentHtml = '<h4 class="font-bold text-gray-300 mt-2 mb-1">Alignment (EMA 21/50)</h4><div class="flex justify-center gap-2">';
         for(const tf in summary){
             const colorClass = summary[tf] === 'BULLISH' ? 'positive' : (summary[tf] === 'BEARISH' ? 'negative' : 'text-gray-500');
             alignmentHtml += `<div class="text-center p-1 rounded-md bg-gray-800/50 flex-1"><span class="font-bold">${tf}</span><br><span class="text-xs ${colorClass}">${summary[tf]}</span></div>`;
@@ -3617,7 +3625,7 @@ WebSocketManager.subscribe(streamsToSub);
         document.getElementById('bb-lower-value').textContent = `L: ${formatPrice(lastLower)}`;
         const { atr, atrPercent } = calculatedData;
         const atrStatusBadge = document.getElementById('atr-status-badge');
-        const statusClassMap = { 'Rendah': 'tag-green', 'Normal': 'tag-yellow', 'Tinggi': 'tag-red', 'Sangat Tinggi': 'tag-red' };
+        const statusClassMap = { 'Low': 'tag-green', 'Normal': 'tag-yellow', 'High': 'tag-red', 'Very High': 'tag-red' };
         atrStatusBadge.textContent = atr.status;
         atrStatusBadge.className = `tag ${statusClassMap[atr.status] || 'tag-gray'} ml-2`;
         document.getElementById('atr-percent-value').textContent = `${atrPercent.toFixed(2)}%`;
@@ -3628,7 +3636,7 @@ WebSocketManager.subscribe(streamsToSub);
         if (candleResult.bias === 'BULLISH') biasClass = 'positive';
         if (candleResult.bias === 'BEARISH') biasClass = 'negative';
         const formattedTime = candleResult.timestamp ? new Date(candleResult.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
-        candlePatternContainer.innerHTML = `<div class="flex justify-between items-center mb-1"><p class="text-xs text-gray-500">Pola Candlestick</p><p class="text-xs text-gray-400 font-mono">${formattedTime}</p></div>${candleResult.svg}<p id="candlestick-pattern" class="font-semibold ${candleResult.class}">${candleResult.pattern}</p>${candleResult.bias !== 'NETRAL' ? `<p class="text-xs font-bold ${biasClass}">${candleResult.bias}</p>` : ''}`;
+        candlePatternContainer.innerHTML = `<div class="flex justify-between items-center mb-1"><p class="text-xs text-gray-500">Pola Candlestick</p><p class="text-xs text-gray-400 font-mono">${formattedTime}</p></div>${candleResult.svg}<p id="candlestick-pattern" class="font-semibold ${candleResult.class}">${candleResult.pattern}</p>${candleResult.bias !== 'NEUTRAL' ? `<p class="text-xs font-bold ${biasClass}">${candleResult.bias}</p>` : ''}`;
         const chartPatternEl = document.getElementById('chart-pattern');
         chartPatternEl.textContent = calculatedData.chartPattern.pattern;
         chartPatternEl.className = `font-semibold ${calculatedData.chartPattern.class}`;
@@ -3672,7 +3680,7 @@ WebSocketManager.subscribe(streamsToSub);
         if (orderBookData?.bids && orderBookData?.asks) {
             const totalBidQty = orderBookData.bids.reduce((s, b) => s + parseFloat(b[1]), 0);
             const totalAskQty = orderBookData.asks.reduce((s, a) => s + parseFloat(a[1]), 0);
-            let biasText = totalBidQty > totalAskQty * 1.2 ? 'Bullish (Banyak Beli)' : (totalAskQty > totalBidQty * 1.2 ? 'Bearish (Banyak Jual)' : 'Netral');
+            let biasText = totalBidQty > totalAskQty * 1.2 ? 'Bullish (BUYER LIMIT)' : (totalAskQty > totalBidQty * 1.2 ? 'Bearish (SELLER LIMIT)' : 'Netral');
             document.getElementById('order-book-bias').textContent = biasText;
             realtimeCache.main.orderBookBias = biasText;
         } else {
@@ -3915,13 +3923,13 @@ WebSocketManager.subscribe(streamsToSub);
 
         let wallText = '';
         if (wallInfo.buyWall) {
-            wallText += `<span class="text-green-500 font-bold">Dinding Beli ${wallInfo.buyWall.wallType.toUpperCase()}</span> terdeteksi dari ${formatPrice(wallInfo.buyWall.priceStart)} ke ${formatPrice(wallInfo.buyWall.priceEnd)} (Volume: $${(wallInfo.buyWall.totalVolume * parseFloat(bids[0][0])).toLocaleString('en-US', {notation: 'compact'})}) `;
+            wallText += `<span class="text-green-500 font-bold">BUY WALL ${wallInfo.buyWall.wallType.toUpperCase()}</span> DETECTED ${formatPrice(wallInfo.buyWall.priceStart)} TO ${formatPrice(wallInfo.buyWall.priceEnd)} (Vol: $${(wallInfo.buyWall.totalVolume * parseFloat(bids[0][0])).toLocaleString('en-US', {notation: 'compact'})}) `;
         }
         if (wallInfo.sellWall) {
-            wallText += `<span class="text-red-500 font-bold">Dinding Jual ${wallInfo.sellWall.wallType.toUpperCase()}</span> terdeteksi dari ${formatPrice(wallInfo.sellWall.priceStart)} ke ${formatPrice(wallInfo.sellWall.priceEnd)} (Volume: $${(wallInfo.sellWall.totalVolume * parseFloat(asks[0][0])).toLocaleString('en-US', {notation: 'compact'})})`;
+            wallText += `<span class="text-red-500 font-bold">SELL WALL ${wallInfo.sellWall.wallType.toUpperCase()}</span> DETECTED ${formatPrice(wallInfo.sellWall.priceStart)} TO ${formatPrice(wallInfo.sellWall.priceEnd)} (Vol: $${(wallInfo.sellWall.totalVolume * parseFloat(asks[0][0])).toLocaleString('en-US', {notation: 'compact'})})`;
         }
         orderBookDOMElements.wallInfo.innerHTML = wallText;
-        document.getElementById('scalping-wall-info').innerHTML = wallText || 'Tidak ada wall signifikan terdeteksi.';
+        document.getElementById('scalping-wall-info').innerHTML = wallText || 'NONE wall signifikan terdeteksi.';
     }
 // ===================================================================================================================================================================================================================================================================================
     
@@ -3994,7 +4002,7 @@ WebSocketManager.subscribe(streamsToSub);
 // ===================================================================================================================================================================================================================================================================================
     function analyzeBollingerBandsPriceAction(klines, bbData) {
         if (!klines || klines.length < 2 || !bbData || bbData.upper.length < 2) {
-            return { rejection: 'Tidak Ada', walkTheBands: 'Tidak Ada' };
+            return { rejection: 'NONE', walkTheBands: 'NONE' };
         }
 
         const lastKline = klines[klines.length - 1];
@@ -4006,7 +4014,7 @@ WebSocketManager.subscribe(streamsToSub);
         const lastClose = parseFloat(lastKline[4]);
         const prevClose = parseFloat(prevKline[4]);
 
-        let rejection = 'Tidak Ada';
+        let rejection = 'NONE';
         // Logika Rejection Bullish
         if (prevClose < prevLower && lastClose > lastLower && lastClose > prevClose) {
             rejection = 'Bullish Rejection (Lower BB)';
@@ -4016,7 +4024,7 @@ WebSocketManager.subscribe(streamsToSub);
             rejection = 'Bearish Rejection (Upper BB)';
         }
 
-        let walkTheBands = 'Tidak Ada';
+        let walkTheBands = 'NONE';
         // Logika Walk the Bands Bullish
         if (lastClose >= lastUpper && prevClose >= prevUpper) {
             walkTheBands = 'Bullish (Upper BB)';
@@ -4414,7 +4422,7 @@ WebSocketManager.subscribe(streamsToSub);
         } else if (mode === 'session') {
             const todayUTC = new Date().toISOString().slice(0, 10);
             const sessionKlines = klines.filter(k => new Date(k[0]).toISOString().slice(0, 10) === todayUTC);
-            if (sessionKlines.length === 0) return 0; // Tidak ada data untuk sesi hari ini
+            if (sessionKlines.length === 0) return 0; // NONE data untuk sesi hari ini
             
             sessionKlines.forEach(k => {
                 const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
@@ -4494,10 +4502,10 @@ WebSocketManager.subscribe(streamsToSub);
         let trendStatus = 'Netral';
         let trendClass = 'text-yellow-400';
         if (lastEma21 > lastEma50) {
-            trendStatus = (lastPrice > lastEma21) ? 'Uptrend Kuat' : 'Koreksi dalam Uptrend';
+            trendStatus = (lastPrice > lastEma21) ? 'Strong Uptrend' : 'Correction in Uptrend';
             trendClass = (lastPrice > lastEma21) ? 'positive' : 'text-yellow-400';
         } else if (lastEma50 > lastEma21) {
-            trendStatus = (lastPrice < lastEma21) ? 'Downtrend Kuat' : 'Reli dalam Downtrend';
+            trendStatus = (lastPrice < lastEma21) ? 'Strong Downtrend' : 'Downtrend Rally';
             trendClass = (lastPrice < lastEma21) ? 'negative' : 'text-yellow-400';
         }
 
@@ -4505,7 +4513,7 @@ WebSocketManager.subscribe(streamsToSub);
         if (orderBookData?.bids && orderBookData?.asks) {
             const totalBidQty = orderBookData.bids.reduce((s, b) => s + parseFloat(b[1]), 0);
             const totalAskQty = orderBookData.asks.reduce((s, a) => s + parseFloat(a[1]), 0);
-            orderBookBiasText = totalBidQty > totalAskQty * 1.2 ? 'Bullish (Banyak Beli)' : (totalAskQty > totalBidQty * 1.2 ? 'Bearish (Banyak Jual)' : 'Netral');
+            orderBookBiasText = totalBidQty > totalAskQty * 1.2 ? 'Bullish (Buyer Limit)' : (totalAskQty > totalBidQty * 1.2 ? 'Bearish (Seller Limit)' : 'Netral');
         }
 
         const openInterestStatus = (marketType === 'futures' && openInterestData?.openInterest > 0 && tickerData?.priceChangePercent)
@@ -4556,23 +4564,23 @@ WebSocketManager.subscribe(streamsToSub);
 
         if (correlationData === null || correlationData === undefined) {
             valueEl.textContent = '-';
-            textEl.textContent = 'Data tidak cukup untuk menghitung korelasi.';
-            valueEl.className = 'text-lg font-sbold text-gray-400 dark:text-gray-500';
+            textEl.textContent = 'NOT ENOUGH DATA TO CALCULATE.';
+            valueEl.className = 'text-base font-sbold text-gray-400 dark:text-gray-500';
             return;
         }
 
         const value = correlationData;
         valueEl.textContent = value.toFixed(2);
 
-        let text = 'Tidak Ada Korelasi';
+        let text = 'NONE';
         let colorClass = 'text-gray-400 dark:text-gray-500';
 
-        if (value >= 0.7) { text = 'Korelasi Positif Kuat'; colorClass = 'positive'; } 
-        else if (value >= 0.4) { text = 'Korelasi Positif Sedang'; colorClass = 'positive'; } 
-        else if (value >= 0.1) { text = 'Korelasi Positif Lemah'; colorClass = 'text-yellow-400'; } 
-        else if (value <= -0.7) { text = 'Korelasi Negatif Kuat'; colorClass = 'negative'; } 
-        else if (value <= -0.4) { text = 'Korelasi Negatif Sedang'; colorClass = 'negative'; } 
-        else if (value <= -0.1) { text = 'Korelasi Negatif Lemah'; colorClass = 'text-yellow-400'; }
+        if (value >= 0.7) { text = 'Positif Strong'; colorClass = 'positive'; } 
+        else if (value >= 0.4) { text = 'Positive Medium'; colorClass = 'positive'; } 
+        else if (value >= 0.1) { text = 'Positive Weak'; colorClass = 'text-yellow-400'; } 
+        else if (value <= -0.7) { text = 'Negative Strong'; colorClass = 'negative'; } 
+        else if (value <= -0.4) { text = 'Negative Medium'; colorClass = 'negative'; } 
+        else if (value <= -0.1) { text = 'Negative Weak'; colorClass = 'text-yellow-400'; }
         
         textEl.textContent = text;
         valueEl.className = `text-lg font-semibold ${colorClass}`;
@@ -4641,11 +4649,11 @@ WebSocketManager.subscribe(streamsToSub);
 
         let html = '<ul class="list-none">';
         
-        html += renderTrigger('Candle Merah Paska-Puncak', breakdown.candleRed, breakdown.candleRed?.triggered ? 'Terdeteksi' : 'Tidak Ada');
-        html += renderTrigger('Pola Candle Bearish', breakdown.doji, breakdown.candlePattern, '(cth: Shooting Star)');
-        html += renderTrigger('Volume Exhaustion', breakdown.volumeExhaustion, breakdown.volumeExhaustion?.triggered ? 'Terdeteksi' : 'Normal', '(Vol Puncak < 60% Avg)');
-        html += renderTrigger('CVD Menukik Tajam', breakdown.cvdDip, breakdown.cvdDip?.triggered ? 'Ya' : 'Tidak');
-        html += renderTrigger('Divergensi / Arah CVD', breakdown.cvdDivergence, breakdown.cvdStatus, '(Kondisi: Bearish)');
+        html += renderTrigger('Red Candlea after HH', breakdown.candleRed, breakdown.candleRed?.triggered ? 'Detected' : 'NONE');
+        html += renderTrigger('Bearish Candle', breakdown.doji, breakdown.candlePattern, '(ex: Shooting Star)');
+        html += renderTrigger('Volume Exhaustion', breakdown.volumeExhaustion, breakdown.volumeExhaustion?.triggered ? 'DETECTED!' : 'Normal', '(Vol Top < 60% Avg)');
+        html += renderTrigger('CVD Nose Dive', breakdown.cvdDip, breakdown.cvdDip?.triggered ? 'Yes' : 'No');
+        html += renderTrigger('CVD Divergence', breakdown.cvdDivergence, breakdown.cvdStatus, '');
         // Ganti baris lama dengan ini untuk menampilkan nilai U/M/L
         html += renderTrigger(
             'Rejection Bollinger Band', 
@@ -4654,7 +4662,7 @@ WebSocketManager.subscribe(streamsToSub);
             breakdown.bbStatus
         );
         html += renderTrigger('MACD Bearish Cross', breakdown.macdCross, `Status: ${breakdown.macdStatus}`);
-        html += renderTrigger('RSI Overbought', breakdown.rsiOverbought, `Value: ${breakdown.rsiValue}`, '(Kondisi: > 70)');
+        html += renderTrigger('RSI Overbought', breakdown.rsiOverbought, `Value: ${breakdown.rsiValue}`, '');
 
         html += '</ul>';
         container.innerHTML = html;
@@ -4780,8 +4788,8 @@ WebSocketManager.subscribe(streamsToSub);
             WebSocketManager.subscribeToMovers(gainersWithDetails.map(m => m.symbol));
             
         } catch (error) {
-            console.error("Gagal mengambil data Top Movers:", error);
-            document.getElementById('gainers-list').innerHTML = `<div class="text-red-500 text-xs p-2">Error: ${error.message}. Coba lagi nanti.</div>`;
+            console.error("Failed Getting Top Movers Data:", error);
+            document.getElementById('gainers-list').innerHTML = `<div class="text-red-500 text-xs p-2">Error: ${error.message}. Try Again Later...</div>`;
             const losersList = document.getElementById('losers-list');
             if (losersList) losersList.innerHTML = '';
         }
@@ -4790,7 +4798,7 @@ WebSocketManager.subscribe(streamsToSub);
 // ===================================================================================================================================================================================================================================================================================
     function renderMoversList(containerId, moversData, isGainer, timeframe) {
         const container = document.getElementById(containerId);
-        if (!container) return; // Pengaman jika kontainer tidak ada
+        if (!container) return; // Pengaman jika kontainer NONE
 
         let html = ""; 
         const maxStrengthScore = isGainer && moversData.length > 0 && moversData[0].strengthScore ? moversData[0].strengthScore : 1;
@@ -4829,7 +4837,7 @@ WebSocketManager.subscribe(streamsToSub);
             html += `<div class="flex flex-col bg-gray-800 p-2 rounded gap-2 mover-item" data-symbol="${item.symbol}">${headerHtml}${detailsHtml}</div>`;
         });
 
-        container.innerHTML = html || `<div class="text-xs text-gray-500 p-2">Tidak ada data.</div>`;
+        container.innerHTML = html || `<div class="text-xs text-gray-500 p-2">NONE data.</div>`;
     }
 // ===================================================================================================================================================================================================================================================================================
 // =================================================POSSIBLE DUPILICATE==============DUPLICATE REMOVED!!!====================================================================================================================================================================================================================
@@ -4852,7 +4860,7 @@ function calculateShortConfluenceScore(symbol, timeframe) {
         }
         aggTrades = realtimeCache.movers[symbol].aggTrades;
     } else {
-        console.error(`Tidak ada data cache yang ditemukan untuk simbol ${symbol}`);
+        console.error(`NONE data cache yang ditemukan untuk simbol ${symbol}`);
         return { score: 0, breakdown: {} };
     }
     
@@ -4890,9 +4898,9 @@ function calculateShortConfluenceScore(symbol, timeframe) {
     const atrStatus = indicators.atr.status;
     let volatilityMultiplier = 1.0; 
 
-    if (atrStatus === 'Tinggi') {
+    if (atrStatus === 'High') {
         volatilityMultiplier = 0.75;
-    } else if (atrStatus === 'Sangat Tinggi') {
+    } else if (atrStatus === 'Very High') {
         volatilityMultiplier = 0.5;
     }
 
@@ -4972,7 +4980,7 @@ function calculateShortConfluenceScore(symbol, timeframe) {
         lastCvdDipCalculationTime = now; 
         const cvdValues = cvdDataForAnalysis.map(d => d.cvd_usdt);
         const changeLookback = 50;
-        const stdDevMultiplier = 1.5;
+        const stdDevMultiplier = 1.3;
 
         if (cvdValues.length > changeLookback) {
             let cvdChanges = [];
@@ -4984,7 +4992,7 @@ function calculateShortConfluenceScore(symbol, timeframe) {
             const stdDev = Math.sqrt(variance);
             const lastChange = cvdChanges[cvdChanges.length - 1];
             if (lastChange < (avgChange - (stdDevMultiplier * stdDev))) {
-                const points = 4 * volatilityMultiplier;
+                const points = 0.09 * volatilityMultiplier;
                 lastCvdDipResult = { triggered: true, points: points }; 
             } else {
                 lastCvdDipResult = { triggered: false, points: 0 };
@@ -5025,7 +5033,7 @@ function calculateShortConfluenceScore(symbol, timeframe) {
 // ===================================================================================================================================================================================================================================================================================
     function getConfluenceAnalysis(klines) {
         if (!klines || klines.length < 50) {
-            return { skorBullish: 0, skorBearish: 0, detail: 'Data Kurang' };
+            return { skorBullish: 0, skorBearish: 0, detail: 'Not Enough Data' };
         }
 
         let skorBullish = 0;
@@ -5151,10 +5159,10 @@ function onNewMoverData(symbol, streamName, payload) {
         const selectedDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
         const { klines, calculatedData, symbol, selectedTimeframe, klines1h } = realtimeCache.main;
         if (!klines || klines.length < 50 || !calculatedData) {
-            document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Data tidak cukup.</p>';
+            document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Not Enough Data</p>';
             return;
         }
-        document.getElementById('scalping-timeframe-display').textContent = `${symbol} - ${selectedTimeframe}`;
+        document.getElementById('scalping-timeframe-display').textContent = `💲${symbol} at TF ${selectedTimeframe}`;
         const scoreData = calculateShortConfluenceScore(symbol, selectedDumpTf) || { score: 0, breakdown: {} };
         const dumpRiskScore = scoreData.score;
         const triggerBreakdown = scoreData.breakdown;
@@ -5170,7 +5178,7 @@ function onNewMoverData(symbol, streamName, payload) {
         const lastPrice = closes[closes.length - 1];
         let biasKontekstual = "NETRAL / CHOP";
         let biasClass = "status-chop";
-        let biasDetail = "Menunggu sinyal...";
+        let biasDetail = "Waiting Signal...";
         let trenUtama = "CHOP";
         if (klines1h && klines1h.length > 50) {
             const closes1h = klines1h.map(k => parseFloat(k[4]));
@@ -5243,7 +5251,7 @@ function onNewMoverData(symbol, streamName, payload) {
                 return `(${( (targetPrice - entry) / entry * 100).toFixed(2)}%)`;
             };
 
-            const entryPercent = `(Pullback ke ${calculatePercentage(entryPrice, lastPrice)})`;
+            const entryPercent = `(Pullback to ${calculatePercentage(entryPrice, lastPrice)})`;
             const slPercent = calculatePercentage(stopLoss, entryPrice);
             const tp1Percent = calculatePercentage(takeProfit1, entryPrice);
             const tp2Percent = calculatePercentage(takeProfit2, entryPrice);
@@ -5255,18 +5263,18 @@ function onNewMoverData(symbol, streamName, payload) {
             container.innerHTML = `
                 <div class="grid grid-cols-3 gap-4 text-center items-start">
                     <div class="col-span-1">
-                        <p class="text-xs text-gray-500">Bias Kontekstual (TF: 1H)</p>
+                        <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
                         <p class="font-bold text-lg blinking-text-animation ${biasClass}">${biasKontekstual}</p>
                         <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
                     </div>
                     <div class="col-span-2 grid grid-cols-2 gap-4">
                         <div>
-                            <p class="text-xs text-gray-500">Saran Entri</p>
+                            <p class="text-xs text-gray-500">Entry</p>
                             <p class="font-semibold text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
                             <p class="text-xs font-mono text-yellow-500">${entryPercent}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500">SL (Struktural)</p>
+                            <p class="text-sm text-gray-500">SL (Structural)</p>
                             <p class="font-semibold text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
                             <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
                         </div>
@@ -5274,7 +5282,7 @@ function onNewMoverData(symbol, streamName, payload) {
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
                     <div>
-                        <p class="text-xs text-gray-500">TP 1 (Struktural)</p>
+                        <p class="text-xs text-gray-500">TP 1 (Structural)</p>
                         <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit1)}</p>
                         <p class="text-xs font-mono ${tpColorClass}">${tp1Percent}</p>
                     </div>
@@ -5284,7 +5292,7 @@ function onNewMoverData(symbol, streamName, payload) {
                         <p class="text-xs font-mono ${tpColorClass}">${tp2Percent}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500">TP 3 (Level Kunci)</p>
+                        <p class="text-xs text-gray-500">TP 3 (Key Level)</p>
                         <p class="font-semibold text-sm">${tp3Display}</p>
                     </div>
                 </div>
@@ -5297,14 +5305,14 @@ function onNewMoverData(symbol, streamName, payload) {
             container.innerHTML = `
                 <div class="grid grid-cols-3 gap-4 text-center items-start">
                     <div class="col-span-3">
-                        <p class="text-xs text-gray-500">Bias Kontekstual (TF: 1H)</p>
+                        <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
                         <p class="font-bold text-lg ${biasClass}">${biasKontekstual}</p>
                         <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
                     </div>
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
-                    <p class="font-semibold text-yellow-400">PASAR SIDEWAYS / CHOP</p>
-                    <p class="text-sm text-gray-400 mt-1">Tidak ada setup Long/Short yang jelas. Disarankan untuk tidak masuk posisi.</p>
+                    <p class="font-semibold text-yellow-400">SIDEWAYS</p>
+                    <p class="text-sm text-gray-400 mt-1">No Feasible Long/Short Setup. Do Not Trade.</p>
                 </div>
             `;
             
@@ -5624,8 +5632,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Cek apakah data sudah ada di "wadah"
             if (!realtimeCache.main.multiTfKlines[selectedTf]) {
-                console.log(`Data ${selectedTf} tidak ada di cache. Mengambil dari API...`);
-                // Jika tidak ada, ambil data baru dari API
+                console.log(`Data ${selectedTf} NONE di cache. Mengambil dari API...`);
+                // Jika NONE, ambil data baru dari API
                 const newData = await fetchBinanceAPIData('klines', { symbol: symbol, interval: selectedTf, limit: 200 }, marketType);
                 // Simpan data baru ke "wadah" agar tidak perlu download lagi
                 realtimeCache.main.multiTfKlines[selectedTf] = newData;
@@ -5652,7 +5660,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             // Jika ada error (misal: internet), aplikasi TIDAK AKAN CRASH
             console.error(`Gagal mengambil data untuk ${selectedTf}:`, error);
-            triggerListDiv.innerHTML = `<p class="text-xs text-center text-red-500">Gagal memuat data ${selectedTf}.</p>`;
+            triggerListDiv.innerHTML = `<p class="text-xs text-center text-red-500">Failed Data Fetch.. ${selectedTf}.</p>`;
         } finally {
             // Apapun yang terjadi, aktifkan kembali dropdown
             dumpTfSelect.disabled = false;
