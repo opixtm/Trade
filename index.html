@@ -1699,7 +1699,7 @@ function determineMarketRegime(klines, closes) {
         if (!coinId) return null;
         const url = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
         try {
-            const response = await fetchWithTimeout(url, {}, 5000); // Timeout 5 detik
+            const response = await fetch(url);
             if (!response.ok) return null;
             return response.json();
         } catch (error) { return null; }
@@ -1709,7 +1709,7 @@ function determineMarketRegime(klines, closes) {
 // ===================================================================================================================================================================================================================================================================================
     async function getCoinGeckoId(baseAssetSymbol) {
         if (!coinListCache) {
-            const response = await fetchWithTimeout('https://api.coingecko.com/api/v3/coins/list', {}, 8000); // Timeout 8 detik (karena file besar)
+            const response = await fetch('https://api.coingecko.com/api/v3/coins/list');
             if (!response.ok) throw new Error('Gagal unduh daftar koin CoinGecko.');
             coinListCache = await response.json();
         }
@@ -2716,7 +2716,7 @@ function determineMarketRegime(klines, closes) {
         const baseUrl = 'https://api.geckoterminal.com/api/v2';
         const url = `${baseUrl}/${endpoint}`;
         try {
-            const response = await fetch(url);
+            const response = await fetchWithTimeout(url, {}, 5000); // <-- UBAH MENJADI INI
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`GeckoTerminal API error: ${errorData.errors?.[0]?.title || response.statusText}`);
