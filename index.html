@@ -2716,7 +2716,7 @@ function determineMarketRegime(klines, closes) {
         const baseUrl = 'https://api.geckoterminal.com/api/v2';
         const url = `${baseUrl}/${endpoint}`;
         try {
-            const response = await fetchWithTimeout(url, {}, 5000); // <-- UBAH MENJADI INI
+            const response = await fetch(url);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`GeckoTerminal API error: ${errorData.errors?.[0]?.title || response.statusText}`);
