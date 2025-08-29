@@ -364,38 +364,46 @@
 
     <div id="sticky-nav-wrapper" class="sticky top-0 z-50 bg-[#FDFBF7]/80 dark:bg-[#121212]/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
         <div class="flex items-center justify-between py-2 px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center gap-3"> 
-                <div id="nav-info-container" class="items-center gap-2 hidden md:flex">
-                    <div class="flex flex-col">
-                        <span id="nav-symbol" class="text-base font-bold text-yellow-500 dark:text-yellow-500"></span>
-                        <div class="font-mono text-[10px]">
-                            <span class="text-gray-400">VOL 24H:</span>
-                            <span id="nav-volume-24h" class="font-semibold text-gray-800 dark:text-gray-200">-</span>
+            
+            <div class="flex items-center gap-8">
+
+                <div class="flex items-center gap-3">
+                    <div id="nav-info-container" class="items-center gap-2 hidden md:flex">
+                        <div class="flex flex-col">
+                            <div class="font-mono text-[10px]">
+                                <span class="text-gray-400">VOL 24H:</span>
+                                <span id="nav-volume-24h" class="font-semibold text-gray-800 dark:text-gray-200">-</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col text-left text-xs">
+                            <span id="nav-change-24h" class="font-semibold positive">-</span>
+                            <span id="nav-change-1h" class="font-semibold positive">-</span>
                         </div>
                     </div>
-                    <div class="flex flex-col text-left text-xs">
-                        <span id="nav-change-24h" class="font-semibold positive">-</span>
-                        <span id="nav-change-1h" class="font-semibold positive">-</span>
-                    </div>
                 </div>
-            </div>
 
-            <div id="nav-stats-container" class="items-center gap-4 font-mono text-[10px] hidden md:flex">
-                <div class="flex flex-col text-left">
-                    <div>
-                        <span class="text-gray-400">ATH:</span>
-                        <span id="nav-ath" class="font-semibold text-gray-800 dark:text-gray-200">-</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-400">ATL:</span>
-                        <span id="nav-atl" class="font-semibold text-gray-800 dark:text-gray-200">-</span>
+                <div id="nav-stats-container" class="items-center gap-4 font-mono text-[10px] hidden md:flex">
+                    <div class="flex flex-col text-left">
+                        <div>
+                            <span class="text-gray-400">ATH:</span>
+                            <span id="nav-ath" class="font-semibold text-gray-800 dark:text-gray-200">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">ATL:</span>
+                            <span id="nav-atl" class="font-semibold text-gray-800 dark:text-gray-200">-</span>
+                        </div>
                     </div>
                 </div>
+
             </div>
-            
-            <a href="#" id="trade-link" class="text-right no-underline hidden">
+            <a href="#" id="trade-link" class="text-right no-underline hidden flex items-baseline gap-2">
+                <span id="nav-symbol" class="text-base font-bold text-blue-500 dark:text-green-500"></span>
                 <span id="nav-price" class="text-yellow-500 text-lg">-</span>
             </a>
+
+        </div>
+        <div id="candle-countdown-container" class="w-full h-1 bg-gray-200 dark:bg-gray-700 hidden">
+            <div id="candle-countdown-bar" class="h-full bg-yellow-500" style="width: 0%; transition: width 1s linear;"></div>
         </div>
     </div>
 
@@ -411,244 +419,237 @@
             </button>
         </header>
 
-        <main>
+            <main>
 
-            <div class="space-y-6 mb-8">
-                <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                    <div>
-                        <input type="password" id="gemini-api-key" class="input-primary" placeholder="Your API Key...">
-                        <p class="text-sm text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
-                    </div>
-                    
-                </section>
-                <section id="settings-card" class="card p-4">
-                    <button id="toggle-settings-btn" class="w-full flex justify-between items-center text-left">
-                        <h2 class="text-lg font-bold">Indicators Settings</h2>
-                        <svg id="toggle-settings-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>                                
-                    </button>
-                    <div id="settings-content-wrapper" class="collapsible-content">
-                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div class="space-y-6 mb-8">
+                            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                                 <div>
-                                    <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Parameter Indikator</h3>
-                                    <div class="space-y-2 text-sm">
-                                        <div class="flex items-center justify-between"><label for="setting-rsi-period" class="text-gray-500">Periode RSI</label><input type="number" id="setting-rsi-period" class="input-primary !w-20 text-center" value="14"></div>
-                                        <div class="flex items-center justify-between">
-                                            <label for="setting-stoch-rsi-period" class="text-gray-500">Stoch RSI (RSI/Stoch/K/D)</label>
-                                            <div class="flex gap-1">
-                                                <input type="number" id="setting-stoch-rsi-period" class="input-primary !w-12 text-center" value="14">
-                                                <input type="number" id="setting-stoch-stoch-period" class="input-primary !w-12 text-center" value="14">
-                                                <input type="number" id="setting-stoch-k-smooth" class="input-primary !w-12 text-center" value="3">
-                                                <input type="number" id="setting-stoch-d-smooth" class="input-primary !w-12 text-center" value="3">
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center justify-between"><label for="setting-macd-fast" class="text-gray-500">MACD Fast/Slow/Signal</label><div class="flex gap-1"><input type="number" id="setting-macd-fast" class="input-primary !w-16 text-center" value="12"><input type="number" id="setting-macd-slow" class="input-primary !w-16 text-center" value="26"><input type="number" id="setting-macd-signal" class="input-primary !w-16 text-center" value="9"></div></div>
-                                        <div class="flex items-center justify-between">
-                                            <label for="setting-weight-obv-divergence" class="text-gray-500">Bobot Divergensi OBV</label>
-                                            <input type="number" step="0.1" id="setting-weight-obv-divergence" class="input-primary !w-20 text-center" value="3.0">
-                                        </div>
-                                    </div>
+                                    <input type="password" id="gemini-api-key" class="input-primary" placeholder="Your API Key...">
+                                    <p class="text-sm text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
                                 </div>
                                 
-                                <div>
-                                    <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Bobot Skor Konfluensi</h3>
-                                    <div class="space-y-2 text-sm">
-                                        <div class="flex items-center justify-between"><label for="setting-weight-divergence" class="text-gray-500">Bobot Divergensi RSI</label><input type="number" step="0.1" id="setting-weight-divergence" class="input-primary !w-20 text-center" value="2.5"></div>
-                                        <div class="flex items-center justify-between"><label for="setting-weight-macd" class="text-gray-500">Bobot MACD Cross</label><input type="number" step="0.1" id="setting-weight-macd" class="input-primary !w-20 text-center" value="2.0"></div>
+                            </section>
+                            <section id="settings-card" class="card p-4">
+                                <button id="toggle-settings-btn" class="w-full flex justify-between items-center text-left">
+                                    <h2 class="text-lg font-bold">Indicators Settings</h2>
+                                    <svg id="toggle-settings-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>                                
+                                </button>
+                                <div id="settings-content-wrapper" class="collapsible-content">
+                                    <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                                            <div>
+                                                <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Parameter Indikator</h3>
+                                                <div class="space-y-2 text-sm">
+                                                    <div class="flex items-center justify-between"><label for="setting-rsi-period" class="text-gray-500">Periode RSI</label><input type="number" id="setting-rsi-period" class="input-primary !w-20 text-center" value="14"></div>
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="setting-stoch-rsi-period" class="text-gray-500">Stoch RSI (RSI/Stoch/K/D)</label>
+                                                        <div class="flex gap-1">
+                                                            <input type="number" id="setting-stoch-rsi-period" class="input-primary !w-12 text-center" value="14">
+                                                            <input type="number" id="setting-stoch-stoch-period" class="input-primary !w-12 text-center" value="14">
+                                                            <input type="number" id="setting-stoch-k-smooth" class="input-primary !w-12 text-center" value="3">
+                                                            <input type="number" id="setting-stoch-d-smooth" class="input-primary !w-12 text-center" value="3">
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center justify-between"><label for="setting-macd-fast" class="text-gray-500">MACD Fast/Slow/Signal</label><div class="flex gap-1"><input type="number" id="setting-macd-fast" class="input-primary !w-16 text-center" value="12"><input type="number" id="setting-macd-slow" class="input-primary !w-16 text-center" value="26"><input type="number" id="setting-macd-signal" class="input-primary !w-16 text-center" value="9"></div></div>
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="setting-weight-obv-divergence" class="text-gray-500">Bobot Divergensi OBV</label>
+                                                        <input type="number" step="0.1" id="setting-weight-obv-divergence" class="input-primary !w-20 text-center" value="3.0">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Bobot Skor Konfluensi</h3>
+                                                <div class="space-y-2 text-sm">
+                                                    <div class="flex items-center justify-between"><label for="setting-weight-divergence" class="text-gray-500">Bobot Divergensi RSI</label><input type="number" step="0.1" id="setting-weight-divergence" class="input-primary !w-20 text-center" value="2.5"></div>
+                                                    <div class="flex items-center justify-between"><label for="setting-weight-macd" class="text-gray-500">Bobot MACD Cross</label><input type="number" step="0.1" id="setting-weight-macd" class="input-primary !w-20 text-center" value="2.0"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                            <div class="flex items-center justify-between">
+                                                <label for="preset-select" class="font-semibold text-gray-700 dark:text-gray-300">TradingStyle</label>
+                                                <select id="preset-select" class="input-primary !w-auto text-sm">
+                                                    <option value="default">Default</option>
+                                                    <option value="scalper">Scalper</option>
+                                                    <option value="dayTrader">Day Trader</option>
+                                                    <option value="swingTrader">Swing Trader</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="text-right mt-4"><button id="save-settings-btn" class="btn-primary">💾</button></div>
+                                        <p id="settings-saved-msg" class="text-green-500 text-sm mt-2 text-center hidden">SAVED!</p>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <div class="flex items-center justify-between">
-                                    <label for="preset-select" class="font-semibold text-gray-700 dark:text-gray-300">TradingStyle</label>
-                                    <select id="preset-select" class="input-primary !w-auto text-sm">
-                                        <option value="default">Default</option>
-                                        <option value="scalper">Scalper</option>
-                                        <option value="dayTrader">Day Trader</option>
-                                        <option value="swingTrader">Swing Trader</option>
-                                    </select>
+                            </section>
+                                <div id="initial-placeholder" class="text-center py-5">
+                                
                                 </div>
+                            <div id="loader-overlay" class="... flex-col ...">
+                                <div class="loader">
+                                    <div class="dot"></div>
+                                    <p class="text-4xl font-mono text-gray-500">SPOT</p>
+                                    <div class="dot"></div>
+                                    <p class="text-4xl font-mono text-gray-500">PERPETUAL</p>
+                                    <div class="dot"></div>
+                                </div>
+                                <p id="loader-text" class="text-white font-semibold mt-4 text-center blinking-text-animation">Let's Go........</p>
                             </div>
-                            <div class="text-right mt-4"><button id="save-settings-btn" class="btn-primary">💾</button></div>
-                            <p id="settings-saved-msg" class="text-green-500 text-sm mt-2 text-center hidden">SAVED!</p>
-                        </div>
-                    </div>
-                </section>
-                <div id="initial-placeholder" class="text-center py-5">
-                        
-                    </div>
-                    <div id="loader-overlay" class="... flex-col ...">
-                        <div class="loader">
-                            <div class="dot"></div>
-                            <p class="text-4xl font-mono text-gray-500">SPOT</p>
-                            <div class="dot"></div>
-                            <p class="text-4xl font-mono text-gray-500">PERPETUAL</p>
-                            <div class="dot"></div>
-                        </div>
-                        <p id="loader-text" class="text-white font-semibold mt-4 text-center blinking-text-animation">Let's Go........</p>
-                    </div>
-                <section id="top-movers-section" class="card p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                        <h2 class="text-sm font-semibold">Pump Strength & Dump Even</h2>
-                        <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                            <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
-                                <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
-                                <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
-                                <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
-                                <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
-                                <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
-                                <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
-                            </div>
-                            <div class="flex gap-2 items-center">
-                                <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
-                                    <option value="5000">5s</option>
-                                    <option value="10000">10s</option>
-                                    <option value="30000">30s</option>
-                                    <option value="60000">60s</option>
-                                    <option value="120000" selected>120s</option>
-                                </select>
-                                <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 gap-4">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-400 mb-2">Asset Short by TF >>></h3>
-                            <div id="gainers-list" class="space-y-2"></div>
-                        </div>                       
-                    </div>
-                </section>
-                <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                    <div>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <input type="text" id="asset-input" list="asset-list" class="input-primary text-sm flex-grow uppercase" placeholder="Ketik Simbol Aset (cth: BTCUSDT)" value="BTCUSDT">
-                            <datalist id="asset-list"></datalist>
-                            <select id="market-type-select" class="input-primary text-sm !w-auto">
-                                <option value="spot">Spot</option>
-                                <option value="futures" selected>Perp</option>
-                            </select>
-                            <select id="timeframe-select" class="input-primary text-sm !w-auto">
-                                <option value="1m">1m</option><option value="3m">3m</option><option value="5m"selected>5m</option><option value="15m">15m</option><option value="30m">30m</option><option value="1h">1h</option><option value="2h">2h</option><option value="4h">4h</option><option value="1d">1d</option><option value="1w">W</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="md:col-span-2 flex gap-4">
-                         <button id="analyze-asset-btn" class="btn-primary w-full font-bold text-xl">
-                            <span id="button-text">GET DATA</span>
-                            <div id="button-loader" class="loader hidden">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            </div>
-                        </button>
-                        <p id="asset-error" class="text-red-600 text-sm mt-2 text-center hidden"></p>
-                        <button id="reset-btn" class="btn-secondary !w-auto">RESET</button>
-                    </div>
-                </section>
+                            <section id="top-movers-section" class="card p-6">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                                    <h2 class="text-sm font-semibold">Pump Strength & Dump Even</h2>
+                                    <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                                        <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
+                                            <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
+                                            <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
+                                            <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
+                                            <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
+                                            <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
+                                            <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
+                                        </div>
+                                        <div class="flex gap-2 items-center">
+                                            <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
+                                                <option value="5000">5s</option>
+                                                <option value="10000">10s</option>
+                                                <option value="30000">30s</option>
+                                                <option value="60000">60s</option>
+                                                <option value="120000" selected>120s</option>
+                                            </select>
+                                            <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Asset Short by TF >>></h3>
+                                        <div id="gainers-list" class="space-y-2"></div>
+                                    </div>                       
+                                </div>
+                            </section>
+                            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                                <div>
+                                    <div class="flex flex-col sm:flex-row gap-4">
+                                        <input type="text" id="asset-input" list="asset-list" class="input-primary text-sm flex-grow uppercase" placeholder="Ketik Simbol Aset (cth: BTCUSDT)" value="BTCUSDT">
+                                        <datalist id="asset-list"></datalist>
+                                        <select id="market-type-select" class="input-primary text-sm !w-auto">
+                                            <option value="spot">Spot</option>
+                                            <option value="futures" selected>Perp</option>
+                                        </select>
+                                        <select id="timeframe-select" class="input-primary text-sm !w-auto">
+                                            <option value="1m">1m</option><option value="3m">3m</option><option value="5m"selected>5m</option><option value="15m">15m</option><option value="30m">30m</option><option value="1h">1h</option><option value="2h">2h</option><option value="4h">4h</option><option value="1d">1d</option><option value="1w">W</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="md:col-span-2 flex gap-4">
+                                    <button id="analyze-asset-btn" class="btn-primary w-full font-bold text-xl">
+                                        <span id="button-text">GET DATA</span>
+                                        <div id="button-loader" class="loader hidden">
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                        </div>
+                                    </button>
+                                    <p id="asset-error" class="text-red-600 text-sm mt-2 text-center hidden"></p>
+                                    <button id="reset-btn" class="btn-secondary !w-auto">RESET</button>
+                                </div>
+                            </section>
 
-            </div>
+                        </div>
 
-            <div id="dashboard-content" class="hidden">
-                <div class="space-y-8">
+                                <div id="dashboard-content" class="hidden">
+                                    <div class="space-y-8">
                 
                     
                     
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-start">
-    <div class="flex flex-col gap-4">
-        <section id="scalping-setup-section" class="card p-6">
-            <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
-                <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
-                <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-            </button>
-            <div id="hybrid-breakdown-module" class="mb-4">
-                <div class="flex items-center justify-between text-xs text-gray-400">
-                    <span>Pump Strength</span>
-                    <span>Dump Even</span>
-                </div>
-                <div class="confluence-bar-container w-full h-8 mt-1">
-                    <div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div>
-                    <div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div>
-                </div>
-                <div class="flex items-center justify-between text-sm mt-1">
-                    <span id="main-pump-score" class="positive font-bold">0%</span>
-                    <span id="main-dump-score" class="negative font-bold">0/10</span>
-                </div>
-                <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">Flowing...</p>
-                <details class="mt-3">
-                    <summary class="cursor-pointer text-sm text-gray-400 hover:text-white transition-colors flex justify-between items-center">
-                        <span>Dump Even Trigger▾</span>
-                        <select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()">
-                            <option value="1m">1m</option>
-                            <option value="3m">3m</option>
-                            <option value="5m" selected>5m</option>
-                            <option value="15m">15m</option>
-                            <option value="30m">30m</option>
-                            <option value="1h">1h</option>
-                        </select>
-                        </summary>
-                    <div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1">
-                        <p class="text-xs text-center text-gray-600">Pilih timeframe...</p>
-                    </div>
-                </details>
-            </div>
-            <div id="scalping-content-wrapper" class="collapsible-content">
-                <div>
-                      <div id="scalping-resistance-info" class="flex justify-between items-center text-sm pt-2 mt-2 border-t border-dashed border-gray-700/50">
-                        <span class="text-gray-500">Resistance (R1)</span>
-                        <span class="font-mono font-semibold text-red-400">-</span>
-                    </div>
-                    <div id="scalping-wall-info" class="text-center text-xs pt-2 text-gray-400">
-                        </div>
-                        <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                                    <div class="flex justify-between items-center">
-                                                        <span class="text-gray-500">Tren (EMA 21/50)</span>
-                                                        <span id="ma-status" class="font-mono font-semibold">-</span>
-                                                    </div>
-                                                    <div class="text-right text-xs text-gray-400 font-mono">
-                                                        <span id="ema-21-value">-</span> / 
-                                                        <span id="ema-50-value">-</span>
-                                                    </div>
-                                                </div>
-                        <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50"><span class="text-gray-500">Parabolic SAR</span><span id="psar-status" class="font-mono">-</span></div>
-                                            <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Rate of Change (ROC)|Mengukur kecepatan perubahan harga dalam persentase.<br><br><b>Kondisi:</b><br>• <b>Positif (> 0):</b> Momentum Bullish.<br>• <b>Negatif (< 0):</b> Momentum Bearish.">Rate of Change (ROC)</span><span id="roc-status" class="font-mono">-</span></div>
-                                                <div id="ls-umum-container" class="flex justify-between items-center text-sm"><span class="text-gray-500">L/S Ratio</span><span id="ls-ratio-umum" class="font-mono">-</span></div>
-                    <div id="ls-top-container" class="flex justify-between items-center text-sm"><span class="text-gray-500">L/S Ratio (Top)</span><span id="ls-ratio-top" class="font-mono">-</span></div>
-                    <div class="flex justify-between items-start text-sm mt-1">
-                        <div>
-                            <span class="text-gray-500 text-sm">A T R</span>
-                            <span id="atr-status-badge" class="tag tag-gray ml-2">...</span>
-                        </div>
-                        <div class="text-right">
-                            <p id="atr-percent-value" class="font-mono text-blue-500 font-semibold">-</p>
-                            <p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|Mengukur KEKUATAN sebuah tren, bukan arahnya.<br><br><b>Kondisi:</b><br>• <b>0-25:</b> Tren Lemah / Sideways.<br>• <b>25-50:</b> Tren Kuat.<br>• <b>50-75:</b> Tren Sangat Kuat.<br>• <b>75-100:</b> Tren Ekstrem.">Kekuatan Tren (ADX 14)</span>
-                        <div>
-                            <span id="adx-value" class="font-mono font-semibold text-sm">-</span>
-                            <span class="text-xs positive" id="plus-di-value"></span> /
-                            <span class="text-xs negative" id="minus-di-value"></span>
-                        </div>
-                    </div>
-                    <div id="futures-data-container" class="hidden space-y-1 text-sm">
-                        <div class="flex justify-between items-center"><span class="text-gray-500">Funding Interval</span><span id="funding-rate-interval" class="font-mono">-</span></div>
-                        <div class="flex justify-between items-center"><span class="text-yellow-500">Funding Rate</span><span id="funding-rate" class="font-mono text-yellow-500">-</span></div>
-                        <div class="flex justify-between items-center"><span class="text-gray-500">Open Interest</span><span id="open-interest">-</span></div>
-                    </div>
-                    
-                    
-                  
-                    
-                    <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <p class="text-sm text-gray-500">FETCHING DATA...</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section id="current-state-section" class="card p-6">
-            <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-start">
+                        <div class="flex flex-col gap-4">
+                            <section id="scalping-setup-section" class="card p-6">
+                                <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                    <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
+                                    <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div id="hybrid-breakdown-module" class="mb-4">
+                                    <div class="flex items-center justify-between text-xs text-gray-400">
+                                        <span>Pump Strength</span>
+                                        <span>Dump Even</span>
+                                    </div>
+                                    <div class="confluence-bar-container w-full h-8 mt-1">
+                                        <div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div>
+                                        <div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm mt-1">
+                                        <span id="main-pump-score" class="positive font-bold">0%</span>
+                                        <span id="main-dump-score" class="negative font-bold">0/10</span>
+                                    </div>
+                                    <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">Flowing...</p>
+                                    <details class="mt-3">
+                                        <summary class="cursor-pointer text-sm text-gray-400 hover:text-white transition-colors flex justify-between items-center">
+                                            <span>Dump Even Trigger▾</span>
+                                            <select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()">
+                                                <option value="1m">1m</option>
+                                                <option value="3m">3m</option>
+                                                <option value="5m" selected>5m</option>
+                                                <option value="15m">15m</option>
+                                                <option value="30m">30m</option>
+                                                <option value="1h">1h</option>
+                                            </select>
+                                            </summary>
+                                        <div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1">
+                                            <p class="text-xs text-center text-gray-600">Pilih timeframe...</p>
+                                        </div>
+                                    </details>
+                                </div>
+                                <div id="scalping-content-wrapper" class="collapsible-content">
+                                    <div>
+                                        <div id="scalping-resistance-info" class="flex justify-between items-center text-sm pt-2 mt-2 border-t border-dashed border-gray-700/50">
+                                            <span class="text-gray-500">Resistance (R1)</span>
+                                            <span class="font-mono font-semibold text-red-400">-</span>
+                                        </div>
+                                        <div id="scalping-wall-info" class="text-center text-xs pt-2 text-gray-400">
+                                            </div>
+                                        <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                        <div class="flex justify-between items-center text-sm"><span class="text-gray-500">EMA 21/50</span><span id="ma-status" class="font-mono font-semibold">-</span>
+                                            </div>
+                                        <div class="text-right text-xs text-gray-400 font-mono"><span id="ema-21-value">-</span> / <span id="ema-50-value">-</span>
+                                            </div>
+                                            </div>
+                                        <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50 text-sm"><span class="text-gray-500">Parabolic SAR</span><span id="psar-status" class="font-mono text-sm">-</span></div>
+                                        <div class="flex justify-between items-center text-sm"><span class="text-gray-500" data-tooltip="Rate of Change (ROC)|Mengukur kecepatan perubahan harga dalam persentase.<br><br><b>Kondisi:</b><br>• <b>Positif (> 0):</b> Momentum Bullish.<br>• <b>Negatif (< 0):</b> Momentum Bearish.">Rate of Change (ROC)</span><span id="roc-status" class="font-mono text-sm">-</span></div>
+                                        <div id="ls-umum-container" class="flex justify-between items-center text-sm"><span class="text-gray-500">L/S Ratio</span><span id="ls-ratio-umum" class="font-mono">-</span></div>
+                                        <div id="ls-top-container" class="flex justify-between items-center text-sm"><span class="text-gray-500">L/S Ratio (Top)</span><span id="ls-ratio-top" class="font-mono">-</span></div>
+                                        <div class="flex justify-between items-start text-sm mt-1">
+                                            <div>
+                                                <span class="text-gray-500 text-sm">A T R</span>
+                                                <span id="atr-status-badge" class="tag tag-gray ml-2">...</span>
+                                            </div>
+                                            <div class="text-right">
+                                                <p id="atr-percent-value" class="font-mono text-blue-500 font-semibold">-</p>
+                                                <p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|Mengukur KEKUATAN sebuah tren, bukan arahnya.<br><br><b>Kondisi:</b><br>• <b>0-25:</b> Tren Lemah / Sideways.<br>• <b>25-50:</b> Tren Kuat.<br>• <b>50-75:</b> Tren Sangat Kuat.<br>• <b>75-100:</b> Tren Ekstrem.">ADX 14</span>
+                                            <div>
+                                                <span id="adx-value" class="font-mono font-semibold text-sm">-</span>
+                                                <span class="text-xs positive" id="plus-di-value"></span> /
+                                                <span class="text-xs negative" id="minus-di-value"></span>
+                                            </div>
+                                        </div>
+                                        <div id="futures-data-container" class="hidden space-y-1 text-sm">
+                                            <div class="flex justify-between items-center"><span class="text-gray-500">Funding Interval</span><span id="funding-rate-interval" class="font-mono">-</span></div>
+                                            <div class="flex justify-between items-center"><span class="text-yellow-500">Funding Rate</span><span id="funding-rate" class="font-mono text-yellow-500">-</span></div>
+                                            <div class="flex justify-between items-center"><span class="text-gray-500">Open Interest</span><span id="open-interest">-</span></div>
+                                        </div>
+
+                                        <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                            <p class="text-sm text-gray-500">FETCHING DATA...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section id="current-state-section" class="card p-6">
+                                <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
                                     <h2 id="current-state-title" class="text-xl font-semibold">CURRENT STATE</h2>
                                     <svg id="toggle-market-state-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
@@ -702,13 +703,12 @@
                                         </div>
                                     </div>
                                 </div>
-            </section>
-        
-    </div>
+                            </section>
+                        </div>
 
-    <div class="flex flex-col gap-3">
-        <section id="confluence-details-section" class="card p-6">
-            <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <div class="flex flex-col gap-3">
+                            <section id="confluence-details-section" class="card p-6">
+                                <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
                                     <h2 class="text-lg font-bold">Timeframe [NOW]<span id="confluence-timeframe-display">1H</span></h2>
                                     <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
@@ -784,85 +784,74 @@
                                                 <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
                                                     <span class="text-gray-500">Market Cap</span>
                                                     <span id="market-cap" class="font-mono">-</span>
-                                                </div>
-
-                                                
-                                                
-                                                
+                                                </div>   
                                             </div>
                                         </div>
 
-                                    
-            
-                                    
                                     <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
                                         <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">....</h3>
                                         <div class="space-y-1 text-sm">
-                                            
-                                            
                                         </div>
                                     </div>
 
-                                    <div class="hidden">
-                                        <div class="flex justify-between items-center">
-                                            <h2 class="text-base font-semibold">Korelasi Pasar</h2>
-                                            <div class="flex items-center justify-center gap-2">
-                                                <span class="text-sm text-gray-400">vs.</span>
-                                                <input type="text" id="correlation-asset-input" class="input-primary !w-32 text-center uppercase font-mono text-xs" value="BTCUSDT">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-            </section>
-            <section id="sentiment-display-container" class="card p-6">
-            <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                    <h2 class="text-xl font-bold">BTC Sentiment (via AI)</h2>
-                                    <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </button>
-                                <div id="sentiment-content-wrapper" class="collapsible-content">
-                                    <p class="text-center text-gray-500">Ask AI first....</p>
-                                </div>
-            </section>
-        <section id="risk-management-section" class="card p-6">
-            <button id="toggle-risk-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                    <h2 class="text-xl font-bold">CALC</h2>
-                                    <svg id="toggle-risk-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                                </button>
-                                <div id="risk-content-wrapper" class="collapsible-content">
-                                    <div class="space-y-4 text-sm">
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label for="risk-amount-input" class="text-gray-400">Risiko per Trade ($)</label>
-                                                <input type="number" id="risk-amount-input" class="input-primary w-full text-center mt-1" value="100">
-                                            </div>
-                                            <div>
-                                                <label for="leverage-input" class="text-gray-400">Leverage</label>
-                                                <div class="relative">
-                                                    <input type="number" id="leverage-input" class="input-primary w-full text-center mt-1 pr-6" value="10">
-                                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">x</span>
+                                        <div class="hidden">
+                                            <div class="flex justify-between items-center">
+                                                <h2 class="text-base font-semibold">Korelasi Pasar</h2>
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <span class="text-sm text-gray-400">vs.</span>
+                                                    <input type="text" id="correlation-asset-input" class="input-primary !w-32 text-center uppercase font-mono text-xs" value="BTCUSDT">
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-400">Rasio Risk/Reward (ke TP1)</span>
-                                            <span id="rr-ratio-display" class="font-mono font-semibold text-yellow-400">-</span>
-                                        </div>
-                                        <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-center">
-                                            <p class="text-xs text-gray-500">Saran Ukuran Posisi (Notional)</p>
-                                            <p id="position-size-display" class="text-2xl font-bold text-gray-800 dark:text-gray-200">-</p>
-                                            <p id="position-size-usd-display" class="text-xs font-mono text-gray-400">-</p>
-                                        </div>
-                                        <div class="p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-center border border-dashed border-blue-400/50">
-                                            <p class="text-xs text-blue-400">Margin yang Dibutuhkan</p>
-                                            <p id="margin-required-display" class="text-2xl font-bold text-blue-300">-</p>
-                                        </div>
                                     </div>
                                 </div>
-            </section>
+                                </section>
+                                <section id="sentiment-display-container" class="card p-6">
+                                    <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                        <h2 class="text-xl font-bold">BTC Sentiment (via AI)</h2>
+                                        <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                    </button>
+                                    <div id="sentiment-content-wrapper" class="collapsible-content">
+                                        <p class="text-center text-gray-500">Ask AI first....</p>
+                                    </div>
+                                </section>
+                                <section id="risk-management-section" class="card p-6">
+                                    <button id="toggle-risk-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                        <h2 class="text-xl font-bold">CALC</h2>
+                                        <svg id="toggle-risk-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                    </button>
+                                    <div id="risk-content-wrapper" class="collapsible-content">
+                                    <div class="space-y-4 text-sm">
+                                    <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                    <label for="risk-amount-input" class="text-gray-400">Risiko per Trade ($)</label>
+                                    <input type="number" id="risk-amount-input" class="input-primary w-full text-center mt-1" value="100">
+                                    </div>
+                                    <div>
+                                    <label for="leverage-input" class="text-gray-400">Leverage</label>
+                                    <div class="relative">
+                                    <input type="number" id="leverage-input" class="input-primary w-full text-center mt-1 pr-6" value="10">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">x</span>
+                                    </div>
+                                    </div>
+                                    </div>
+                                    <div class="flex justify-between items-center"><span class="text-gray-400">Rasio Risk/Reward (ke TP1)</span><span id="rr-ratio-display" class="font-mono font-semibold text-yellow-400">-</span>
+                                    </div>
+                                    <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-center">
+                                         <p class="text-xs text-gray-500">Saran Ukuran Posisi (Notional)</p>
+                                         <p id="position-size-display" class="text-2xl font-bold text-gray-800 dark:text-gray-200">-</p>
+                                         <p id="position-size-usd-display" class="text-xs font-mono text-gray-400">-</p>
+                                    </div>
+                                    <div class="p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-center border border-dashed border-blue-400/50">
+                                    <p class="text-xs text-blue-400">Margin yang Dibutuhkan</p>
+                                    <p id="margin-required-display" class="text-2xl font-bold text-blue-300">-</p>
+                                    </div>
+                                    </div>
+                                    </div>
+                                </section>
         
-            <section id="onchain-card" class="card p-6">
-            <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <section id="onchain-card" class="card p-6">
+                                    <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
                                         <h2 class="text-xl font-bold">On-Chain</h2>
                                         <svg id="toggle-onchain-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                     </button>
@@ -878,50 +867,46 @@
                                             </div>
                                         </div>
                                     </div>
-            </section>
-    </div>
+                                </section>
+                        </div>
 
-    <section id="ai-analysis-section" class="card p-6 relative lg:col-span-2">
-        <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-bold">AI ANALYZER</h2>
-                            </div>
+                                <section id="ai-analysis-section" class="card p-6 relative lg:col-span-2">
+                                    <div class="flex justify-between items-center mb-4">
+                                    <h2 class="text-xl font-bold">AI ANALYZER</h2>
+                                    </div>
 
-                            <div id="ai-verdict-content-wrapper" class="collapsible-content expanded">
-                                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <div id="ai-verdict-content-wrapper" class="collapsible-content expanded">
+                                    <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
                                     <button id="run-comprehensive-ai-btn" class="btn-primary w-full mb-4">
-                            <span>ASK AI</span>
-                            <div class="loader w-5 h-5 hidden">
-                                <div class="dot"></div>
-                                <div class="dot"></div>
-                                <div class="dot"></div>
-                            </div>
-                        </button>
+                                        <span>ASK AI</span>
+                                        <div class="loader w-5 h-5 hidden">
+                                            <div class="dot"></div>
+                                            <div class="dot"></div>
+                                            <div class="dot"></div>
+                                        </div>
+                                    </button>
                                     <div id="ai-content-container" class="hidden space-y-6">
                                         <div id="ai-narrative-content" class="prose prose-sm dark:prose-invert max-w-none text-gray-600 space-y-4"></div>
                                         <div><h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">🔮 Proyeksi Harga</h3><div id="projection-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
                                         <div><h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">♟️ Saran Strategis</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><h4 class="font-semibold text-green-500 mb-2">Untuk Calon Buyer</h4><p id="saran-buyer" class="text-lg font-bold"></p><p id="alasan-buyer" class="text-sm text-gray-500 mt-1"></p></div><div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><h4 class="font-semibold text-blue-500 mb-2">Untuk Holder</h4><p id="saran-holder" class="text-lg font-bold"></p><p id="alasan-holder" class="text-sm text-gray-500 mt-1"></p></div></div></div>
                                     </div>
-                                </div>
-                            </div>
+                                    </div>
+                                    </div>
 
-                            <div class="absolute bottom-2 right-2">
-                                <button id="toggle-ai-verdict-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none">
-                                    <svg id="toggle-ai-verdict-icon" class="w-5 h-5 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
-                            </div>
-        </section>
-</div>
-                    
-                    
-        </main>
-    </div>
-
+                                    <div class="absolute bottom-2 right-2">
+                                    <button id="toggle-ai-verdict-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none">
+                                        <svg id="toggle-ai-verdict-icon" class="w-5 h-5 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    </div>
+                                </section>
+                        </div>
+            </main>
 <script>
-    // =====================================================================================================================================================================
-    // BAGIAN 1: DEKLARASI SEMUA ELEMEN DOM
-    // =====================================================================================================================================================================
+// =====================================================================================================================================================================
+// BAGIAN 1: DEKLARASI SEMUA ELEMEN DOM
+// =====================================================================================================================================================================
     const gainersList = document.getElementById('gainers-list');
     const losersList = document.getElementById('losers-list');
     const navWrapper = document.getElementById('sticky-nav-wrapper');
@@ -956,16 +941,16 @@
     const resetBtn = document.getElementById('reset-btn');
 
 
-    // =====================================================================================================================================================================
-    // BAGIAN 2: KONSTANTA KONFIGURASI
-    // =====================================================================================================================================================================
+// =====================================================================================================================================================================
+// BAGIAN 2: KONSTANTA KONFIGURASI
+// =====================================================================================================================================================================
     const UI_UPDATE_INTERVAL = 500;
     const KLINE_CACHE_DURATION = 5 * 60 * 1000; // Cache berlaku 5 menit
     const CVD_DIP_DEBOUNCE_MS = 5000; // <-- TAMBAHKAN BARIS INI
 
-    // =====================================================================================================================================================================
-    // BAGIAN 3: DEKLARASI STATE & VARIABEL GLOBAL
-    // =====================================================================================================================================================================
+// =====================================================================================================================================================================
+// BAGIAN 3: DEKLARASI STATE & VARIABEL GLOBAL
+// =====================================================================================================================================================================
     const realtimeCache = {
         main: {
             symbol: null,
@@ -1010,6 +995,8 @@
         '1w': { rsi_period: 25, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 25, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 }
     };
 
+    let candleCountdownInterval = null;
+    let newCandleJustStarted = false;
     let klineCache = {};
     let latestBids = [];
     let latestAsks = [];
@@ -1055,22 +1042,7 @@
 // =====================================================================================================================================================================
 // BAGIAN 4.5: FUNGSI BANTU (HELPERS) BARU
 // =====================================================================================================================================================================
-    function setButtonState(button, isLoading, text = null) {
-        const btnText = button.querySelector('span');
-        const btnLoader = button.querySelector('.loader');
-        
-        button.disabled = isLoading;
-        if (btnText) btnText.classList.toggle('hidden', isLoading);
-        if (btnLoader) btnLoader.classList.toggle('hidden', !isLoading);
-        
-        if (text && btnText && !isLoading) {
-            btnText.textContent = text;
-        }
-    }
-// =====================================================================================================================================================================
-    function getSignClass(value, positiveClass = 'positive', negativeClass = 'negative') {
-        return value >= 0 ? positiveClass : negativeClass;
-    }    
+    
 // =====================================================================================================================================================================
 // OBJEK WEBSOCKET MANAGER HARUS DIDEKLARASIKAN DI AWAL
 // =====================================================================================================================================================================
@@ -1191,6 +1163,63 @@
 // =====================================================================================================================================================================
 // BAGIAN 4: DEFINISI FUNGSI-FUNGSI
 // =====================================================================================================================================================================
+    function setButtonState(button, isLoading, text = null) {
+        const btnText = button.querySelector('span');
+        const btnLoader = button.querySelector('.loader');
+        
+        button.disabled = isLoading;
+        if (btnText) btnText.classList.toggle('hidden', isLoading);
+        if (btnLoader) btnLoader.classList.toggle('hidden', !isLoading);
+        
+        if (text && btnText && !isLoading) {
+            btnText.textContent = text;
+        }
+    }
+// =====================================================================================================================================================================
+    function getSignClass(value, positiveClass = 'positive', negativeClass = 'negative') {
+        return value >= 0 ? positiveClass : negativeClass;
+    } 
+// =====================================================================================================================================================================       
+    function startCandleCountdown() {
+            // Hentikan timer lama jika ada yang berjalan
+            if (candleCountdownInterval) clearInterval(candleCountdownInterval);
+
+            const countdownContainer = document.getElementById('candle-countdown-container');
+            const countdownBar = document.getElementById('candle-countdown-bar');
+            const klines = realtimeCache.main.klines;
+
+            // Pastikan kita punya data candle
+            if (!klines || klines.length === 0) {
+                countdownContainer.classList.add('hidden');
+                return;
+            }
+
+            countdownContainer.classList.remove('hidden');
+
+            const lastCandle = klines[klines.length - 1];
+            const candleOpenTime = lastCandle[0];
+            const candleCloseTime = lastCandle[6];
+            const candleDuration = candleCloseTime - candleOpenTime;
+
+            // Set interval untuk update bar setiap detik
+            candleCountdownInterval = setInterval(() => {
+                const now = Date.now();
+
+                // Jika waktu saat ini sudah melewati waktu tutup candle
+                if (now > candleCloseTime) {
+                    countdownBar.style.width = '100%';
+                    clearInterval(candleCountdownInterval);
+                    return;
+                }
+
+                const elapsedTime = now - candleOpenTime;
+                const percentage = (elapsedTime / candleDuration) * 100;
+
+                countdownBar.style.width = `${Math.min(100, percentage)}%`;
+
+            }, 1000); // Update setiap 1 detik
+        }
+// =====================================================================================================================================================================
     function adaptIndicatorParamsToTimeframe(timeframe) {
         const params = timeframeParameterMap[timeframe] || timeframeParameterMap['15m'];
 
@@ -1229,27 +1258,27 @@
         };
     }
 // =====================================================================================================================================================================
-function determineMarketRegime(klines, closes) {
-    if (!klines || klines.length < 200) {
-        return { regime: 'RANGING', reason: 'Data kurang' };
-    }
-
-    const adxData = calculateADX(klines, 14);
-    const ema200 = calculateEMA(closes, 200).pop();
-    const lastPrice = closes[closes.length - 1];
-    
-    const isTrending = parseFloat(adxData.adx) > 25;
-
-    if (isTrending) {
-        if (lastPrice > ema200) {
-            return { regime: 'TRENDING_UP', reason: `ADX (${adxData.adx}) > 25 & Harga > EMA 200` };
-        } else {
-            return { regime: 'TRENDING_DOWN', reason: `ADX (${adxData.adx}) > 25 & Harga < EMA 200` };
+    function determineMarketRegime(klines, closes) {
+        if (!klines || klines.length < 200) {
+            return { regime: 'RANGING', reason: 'Data kurang' };
         }
-    } else {
-        return { regime: 'RANGING', reason: `ADX (${adxData.adx}) < 25` };
+
+        const adxData = calculateADX(klines, 14);
+        const ema200 = calculateEMA(closes, 200).pop();
+        const lastPrice = closes[closes.length - 1];
+        
+        const isTrending = parseFloat(adxData.adx) > 25;
+
+        if (isTrending) {
+            if (lastPrice > ema200) {
+                return { regime: 'TRENDING_UP', reason: `ADX (${adxData.adx}) > 25 & Harga > EMA 200` };
+            } else {
+                return { regime: 'TRENDING_DOWN', reason: `ADX (${adxData.adx}) > 25 & Harga < EMA 200` };
+            }
+        } else {
+            return { regime: 'RANGING', reason: `ADX (${adxData.adx}) < 25` };
+        }
     }
-}
 // =====================================================================================================================================================================
    function displaySentimentDataInDashboard(data) {
         const container = document.getElementById('sentiment-display-container');
@@ -1776,7 +1805,7 @@ function determineMarketRegime(klines, closes) {
 // ===================================================================================================================================================================================================================================================================================
     async function callGemini(parts, isJsonOutput = true) {
         const apiKey = apiKeyInput.value.trim();
-        if (!apiKey) throw new Error("API Key Google AI belum dimasukkan.");
+        if (!apiKey) throw new Error("PASTE API Key!!!!!!!");
         const model = 'gemini-2.5-flash-preview-05-20';
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const payload = { contents: [{ role: "user", parts }] };
@@ -2234,7 +2263,7 @@ function determineMarketRegime(klines, closes) {
             return { open, high, low, close, body: Math.abs(close - open), isGreen: close > open, isRed: close < open };
         };
 
-        const c1 = getCandleDetails(klines[klines.length - 1]); // Paling Baru
+        const c1 = getCandleDetails(klines[klines.length - 1]); 
         const c2 = getCandleDetails(klines[klines.length - 2]);
         const c3 = getCandleDetails(klines[klines.length - 3]);
 
@@ -2757,6 +2786,7 @@ function determineMarketRegime(klines, closes) {
 // runFullAnalysis 
 // ===================================================================================================================================================================================================================================================================================
     async function runFullAnalysis(symbol = null) {
+        if (candleCountdownInterval) clearInterval(candleCountdownInterval);
         adaptIndicatorParamsToTimeframe(timeframeSelect.value);
         WebSocketManager.registerHandler('kline', (message) => klineQueue.push(message));
         WebSocketManager.registerHandler('aggTrade', (trade) => tradeQueue.push(trade));
@@ -2850,6 +2880,7 @@ function determineMarketRegime(klines, closes) {
         }
 
         // ======================= AWAL BLOK PERBAIKAN =======================
+        realtimeCache.main.multiTfKlines = {};
         const defaultDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
         if (selectedTimeframe !== defaultDumpTf) {
             console.log(`Pre-fetching data untuk default dump TF: ${defaultDumpTf}`);
@@ -2920,6 +2951,8 @@ function determineMarketRegime(klines, closes) {
             realtimeCache.main.marketRegime = marketRegime;
 
             updateDashboardUI();
+            startCandleCountdown(); 
+            document.getElementById('scalping-setup-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
             
             const navPriceEl = document.getElementById('nav-price');
             if (navPriceEl) {
@@ -2936,23 +2969,23 @@ function determineMarketRegime(klines, closes) {
             }
 
             const symbolLower = binanceSymbol.toLowerCase();
-const mainTfStream = `${symbolLower}@kline_${selectedTimeframe}`;
-const dumpTf = document.getElementById('dump-trigger-timeframe-select').value;
-const dumpTfStream = `${symbolLower}@kline_${dumpTf}`;
+            const mainTfStream = `${symbolLower}@kline_${selectedTimeframe}`;
+            const dumpTf = document.getElementById('dump-trigger-timeframe-select').value;
+            const dumpTfStream = `${symbolLower}@kline_${dumpTf}`;
 
-// Siapkan stream dasar
-const streamsToSub = [
-    mainTfStream,
-    `${symbolLower}@aggTrade`,
-    `${symbolLower}@depth20@100ms`
-];
+            // Siapkan stream dasar
+            const streamsToSub = [
+                mainTfStream,
+                `${symbolLower}@aggTrade`,
+                `${symbolLower}@depth20@100ms`
+            ];
 
-// Tambahkan stream untuk dump TF HANYA JIKA berbeda dari main TF
-if (mainTfStream !== dumpTfStream) {
-    streamsToSub.push(dumpTfStream);
-}
+            // Tambahkan stream untuk dump TF HANYA JIKA berbeda dari main TF
+            if (mainTfStream !== dumpTfStream) {
+                streamsToSub.push(dumpTfStream);
+            }
 
-WebSocketManager.subscribe(streamsToSub);
+            WebSocketManager.subscribe(streamsToSub);
 
             (async () => {
                 try {
@@ -3168,115 +3201,100 @@ WebSocketManager.subscribe(streamsToSub);
 
         return `Sebagai seorang analis kuantitatif (Quant Analyst) senior, berikan analisis pasar yang komprehensif untuk ${symbol}.
 
-            TUGAS UTAMA:
-            1.  **CARI DATA EKSTERNAL TERBARU:** Sebelum melakukan analisis, cari data sentimen pasar TERBARU (tidak lebih dari 24 jam terakhir) untuk BITCOIN dari sumber on-chain (Glassnode, CryptoQuant, Coinglass). Sertakan data-data berikut:
-                a.  **MVRV Z-Score:** Cari nilai Z-Score terbaru.
-                b.  **Data Sentimen Coinglass:** Cari data Netflow, Perubahan OI, Funding Rate, Rasio L/S 24 jam, dan Likuidasi.
-                c.  **Format hasilnya HANYA dalam bentuk JSON** di dalam tag [SENTIMEN_DATA_JSON_START]. Strukturnya harus: {\"mvrv_z_score\":1.23, \"netflow\":-57.82, \"oiChange\":-0.89, \"fundingRate\":0.0050, \"lsRatio24h\":\"50.9% / 49.1%\", \"liquidations\":\"215.30M vs 89.10M\"}
-            2.  **ANALISIS SEMUA DATA:** Lanjutkan dengan menganalisis SEMUA data yang diberikan di bawah ini untuk mengisi sisa tag output.
-            3.  **GUNAKAN JANGKAR HARGA:** Gunakan 'current_price' dari DATA #0 sebagai satu-satunya titik acuan untuk SEMUA PROYEKSI HARGA.
+        TUGAS UTAMA:
+        1.  **CARI DATA EKSTERNAL TERBARU:** Sebelum melakukan analisis, cari data sentimen pasar TERBARU (tidak lebih dari 24 jam terakhir) untuk BITCOIN dari sumber on-chain (Glassnode, CryptoQuant, Coinglass). Sertakan data-data berikut:
+            a.  **MVRV Z-Score:** Cari nilai Z-Score terbaru.
+            b.  **Data Sentimen Coinglass:** Cari data Netflow, Perubahan OI, Funding Rate, Rasio L/S 24 jam, dan Likuidasi.
+            c.  **Format hasilnya HANYA dalam bentuk JSON** di dalam tag [SENTIMEN_DATA_JSON_START]. Strukturnya harus: {\"mvrv_z_score\":1.23, \"netflow\":-57.82, \"oiChange\":-0.89, \"fundingRate\":0.0050, \"lsRatio24h\":\"50.9% / 49.1%\", \"liquidations\":\"215.30M vs 89.10M\"}
+        2.  **ANALISIS SEMUA DATA:** Lanjutkan dengan menganalisis SEMUA data yang diberikan di bawah ini untuk mengisi sisa tag output.
+        3.  **GUNAKAN JANGKAR HARGA:** Gunakan 'current_price' dari DATA #0 sebagai satu-satunya titik acuan untuk SEMUA PROYEKSI HARGA.
+        4.  **GAYA PENULISAN:** Gunakan bahasa yang padat, fokus pada data kunci, dan hindari kalimat berlebihan. Buat dalam bentuk poin-poin.
 
+        **DATA #0: KONTEKS HARGA UTAMA (JANGKAR)**
+        ${JSON.stringify(mainPriceContext, null, 2)}
 
-            **DATA #0: KONTEKS HARGA UTAMA (JANGKAR)**
-            ${JSON.stringify(mainPriceContext, null, 2)}
+        **DATA #1: Analisis Detail Timeframe Utama (${cleanSingleTfData.timeframe})**
+        ${JSON.stringify(cleanSingleTfData, null, 2)}
 
-            **DATA #1: Analisis Detail Timeframe Utama (${cleanSingleTfData.timeframe})**
-            ${JSON.stringify(cleanSingleTfData, null, 2)}
+        **DATA #2: Ringkasan Keselarasan Tren Multi-Timeframe (EMA 21/50)**
+        ${JSON.stringify(multiTfData, null, 2)}
 
-            **DATA #2: Ringkasan Keselarasan Tren Multi-Timeframe (EMA 21/50)**
-            ${JSON.stringify(multiTfData, null, 2)}
+        **DATA #3: Analisis Berbasis Volume (CEX - Harian)**
+        ${JSON.stringify(volumeData, null, 2)}
 
-            **DATA #3: Analisis Berbasis Volume (CEX - Harian)**
-            ${JSON.stringify(volumeData, null, 2)}
+        **DATA #4: Data Fundamental Dasar**
+        ${JSON.stringify(fundamentalData, null, 2)}
 
-            **DATA #4: Data Fundamental Dasar**
-            ${JSON.stringify(fundamentalData, null, 2)}
+        **DATA #5: Ringkasan Aktivitas On-Chain (DEX - Transaksi >$5000)**
+        ${onChainSummary ? JSON.stringify(onChainSummary, null, 2) : '"Data on-chain tidak tersedia untuk aset ini."'}
 
-            **DATA #5: Ringkasan Aktivitas On-Chain (DEX - Transaksi >$5000)**
-            ${onChainSummary ? JSON.stringify(onChainSummary, null, 2) : '"Data on-chain tidak tersedia untuk aset ini."'}
+        **DATA #6: Korelasi Pasar (vs. BTCUSDT 30 Hari)**
+        ${JSON.stringify({ correlation_coefficient: correlationText }, null, 2)}
 
-            **DATA #6: Korelasi Pasar (vs. BTCUSDT 30 Hari)**
-            ${JSON.stringify({ correlation_coefficient: correlationText }, null, 2)}
+        **DATA #7: Metrik Makro On-Chain (MVRV Z-Score)**
+        ${JSON.stringify(mvrvPromptData, null, 2)}
 
-            **DATA #7: Metrik Makro On-Chain (MVRV Z-Score)**
-            ${JSON.stringify(mvrvPromptData, null, 2)}
+        INSTRUKSI OUTPUT (WAJIB IKUTI FORMAT TAG DAN STRUKTUR MARKDOWN DI BAWAH INI):
 
-            INSTRUKSI OUTPUT (WAJIB IKUTI FORMAT TAG DAN STRUKTUR MARKDOWN DI BAWAH INI):
+        [SENTIMEN_DATA_JSON_START]
+        (Letakkan hasil pencarian data sentimen Coinglass dalam format JSON murni di sini)
+        [SENTIMEN_DATA_JSON_END]
+        
+        [NARASI_PASAR_START]
+        (Berikan analisis narasi pasar. WAJIB GUNAKAN FORMAT MARKDOWN BERIKUT. Setiap poin harus berupa kalimat singkat dan padat berisi data.
+        ### 🟥 Argumen Bearish (Jangka Pendek)
+        * ### 🟩 Argumen Bullish (Tersembunyi)
+        * ### ⚖️ Kesimpulan Narasi
+        * )
+        [NARASI_PASAR_END]
 
-            [SENTIMEN_DATA_JSON_START]
-            (Letakkan hasil pencarian data sentimen Coinglass dalam format JSON murni di sini)
-            [SENTIMEN_DATA_JSON_END]
-            
-            // ... (Sisa tag dari ANALISIS_SCALPING hingga TINGKAT_KEYAKINAN tetap sama) ...
+        [ANALISIS_RISIKO_START]
+        (Berikan analisis risiko dalam 1-2 kalimat singkat.)
+        [ANALISIS_RISIKO_END]
 
-            [NARASI_PASAR_START]
-            (Berikan analisis narasi pasar. WAJIB GUNAKAN FORMAT MARKDOWN BERIKUT:
-            ### 🟥 Argumen Bearish (Jangka Pendek)
-            * Poin 1...
-            * Poin 2...
+        [SMC_NARRATIVE_START]
+        (Berikan analisis struktur pasar (SMC) dalam poin-poin singkat.
+        ### 🟥 Sinyal Bearish (Distribusi)
+        * ### 🟩 Sinyal Bullish (Akumulasi)
+        * ### 🎯 Target & Konfirmasi Berikutnya
+        * )
+        [SMC_NARRATIVE_END]
 
-            ### 🟩 Argumen Bullish (Tersembunyi)
-            * Poin 1...
-            * Poin 2...
+        [SMC_POI_BULLISH_START]
+        (Sebutkan TIPE dan rentang harga zona POI bullish terdekat. Contoh: 'Order Block H4 di $50000 - $51000')
+        [SMC_POI_BULLISH_END]
 
-            ### ⚖️ Kesimpulan Narasi
-            * Ringkasan kesimpulan...)
-            [NARASI_PASAR_END]
+        [SMC_POI_BEARISH_START]
+        (Sebutkan TIPE dan rentang harga zona POI bearish terdekat. Contoh: 'Supply zone H1 di $60000 - $61000')
+        [SMC_POI_BEARISH_END]
 
-            [ANALISIS_RISIKO_START]
-            (Berikan analisis risiko singkat... // Instruksi ini tetap sama)
-            [ANALISIS_RISIKO_END]
+        [PROYEKSI_LENGKAP_JSON_START]
+        [
+            { "periode": "Micro Scalp (1-4 jam)", "target_harga": "...", "alasan": "..." },
+            { "periode": "Sangat Pendek (24-48 jam)", "target_harga": "...", "alasan": "..." },
+            { "periode": "Jangka Pendek (1-7 hari)", "target_harga": "...", "alasan": "..." },
+            { "periode": "Jangka Menengah (1-4 minggu)", "target_harga": "...", "alasan": "..." },
+            { "periode": "Jangka Panjang (6-12 bulan)", "target_harga": "...", "alasan": "..." },
+            { "periode": "Siklus Makro (1-3 tahun)", "target_harga": "...", "alasan": "..." }
+        ]
+        [PROYEKSI_LENGKAP_JSON_END]
 
-            [SMC_NARRATIVE_START]
-            (Berikan analisis struktur pasar (SMC). WAJIB GUNAKAN FORMAT MARKDOWN BERIKUT:
-            ### 🟥 Sinyal Bearish (Distribusi)
-            * Poin 1...
-            * Poin 2...
+        [SARAN_HOLDER_START]
+        (Pilih salah satu: TAHAN, JUAL, TAMBAH, KURANGI SEBAGIAN)
+        [SARAN_HOLDER_END]
 
-            ### 🟩 Sinyal Bullish (Akumulasi)
-            * Poin 1...
-            * Poin 2...
+        [ALASAN_HOLDER_START]
+        (Berikan 2-3 poin alasan teknikal singkat.)
+        [ALASAN_HOLDER_END]
 
-            ### 🎯 Target & Konfirmasi Berikutnya
-            * Poin 1...
-            * Poin 2...)
-            [SMC_NARRATIVE_END]
+        [SARAN_BUYER_START]
+        (Pilih salah satu: BELI SEKARANG, TUNGGU DI AREA, JANGAN MASUK)
+        [SARAN_BUYER_END]
 
-            [SMC_POI_BULLISH_START]
-            (Sebutkan TIPE dan rentang harga zona POI bullish terdekat. Contoh: 'Order Block H4 di $50000 - $51000')
-            [SMC_POI_BULLISH_END]
-
-            [SMC_POI_BEARISH_START]
-            (Sebutkan TIPE dan rentang harga zona POI bearish terdekat. Contoh: 'Supply zone H1 di $60000 - $61000')
-            [SMC_POI_BEARISH_END]
-
-            [PROYEKSI_LENGKAP_JSON_START]
-            [
-                { "periode": "Micro Scalp (1-12 jam)", "target_harga": "...", "alasan": "..." },
-                { "periode": "Sangat Pendek (24-48 jam)", "target_harga": "...", "alasan": "..." },
-                { "periode": "Jangka Pendek (1-7 hari)", "target_harga": "...", "alasan": "..." },
-                { "periode": "Jangka Menengah (1-4 minggu)", "target_harga": "...", "alasan": "..." },
-                { "periode": "Jangka Panjang (6-12 bulan)", "target_harga": "...", "alasan": "..." },
-                { "periode": "Siklus Makro (1-3 tahun)", "target_harga": "...", "alasan": "..." }
-            ]
-            [PROYEKSI_LENGKAP_JSON_END]
-
-            [SARAN_HOLDER_START]
-            (Pilih salah satu: TAHAN, JUAL, TAMBAH, KURANGI SEBAGIAN)
-            [SARAN_HOLDER_END]
-
-            [ALASAN_HOLDER_START]
-            (Jelaskan alasan teknikal untuk saran di atas)
-            [ALASAN_HOLDER_END]
-
-            [SARAN_BUYER_START]
-            (Pilih salah satu: BELI SEKARANG, TUNGGU DI AREA, JANGAN MASUK)
-            [SARAN_BUYER_END]
-
-            [ALASAN_BUYER_START]
-            (Jelaskan alasan teknikal. Jika TUNGGU, berikan rentang harga ideal berdasarkan POI)
-            [ALASAN_BUYER_END]
-            `;
+        [ALASAN_BUYER_START]
+        (Berikan 2-3 poin alasan teknikal singkat. Jika TUNGGU, berikan rentang harga ideal.)
+        [ALASAN_BUYER_END]
+        `;
     }
 // ===================================================================================================================================================================================================================================================================================
     function parseAIResponseWithTags(rawText) {
@@ -3579,60 +3597,75 @@ WebSocketManager.subscribe(streamsToSub);
             ichiBiasEl.textContent = calculatedData.ichimoku.status;
             ichiBiasEl.className = `font-mono font-semibold ${calculatedData.ichimoku.status === 'Bullish' ? 'positive' : (calculatedData.ichimoku.status === 'Bearish' ? 'negative' : 'text-gray-500')}`;
         }
+
         document.getElementById('confluence-timeframe-display').textContent = timeframeSelect.value;
         document.getElementById('vpvr-vah').textContent = formatPrice(calculatedData.vpvr.vah);
         document.getElementById('vpvr-poc').textContent = formatPrice(calculatedData.vpvr.poc);
         document.getElementById('vpvr-val').textContent = formatPrice(calculatedData.vpvr.val);
+        
         const maStatusEl = document.getElementById('ma-status');
         maStatusEl.textContent = calculatedData.ma.status;
         maStatusEl.className = `font-mono font-semibold ${calculatedData.ma.class}`;
+        
         document.getElementById('ema-21-value').textContent = `EMA21: ${formatPrice(calculatedData.ma.value21)}`;
         document.getElementById('ema-50-value').textContent = `EMA50: ${formatPrice(calculatedData.ma.value50)}`;
         document.getElementById('rsi-value').textContent = calculatedData.rsi.last;
+        
         const rsiStatusEl = document.getElementById('rsi-status');
         rsiStatusEl.textContent = calculatedData.rsi.status;
         rsiStatusEl.className = `tag ${calculatedData.rsi.class}`;
         const rsiDivergenceEl = document.getElementById('rsi-divergence');
         rsiDivergenceEl.textContent = calculatedData.rsiDivergence.status;
         rsiDivergenceEl.className = `font-mono font-semibold ${calculatedData.rsiDivergence.class}`;
+        
         document.getElementById('stoch-value').textContent = `${calculatedData.stoch.k}/${calculatedData.stoch.d}`;
+        
         const stochStatusEl = document.getElementById('stoch-status');
         stochStatusEl.textContent = calculatedData.stoch.status;
         stochStatusEl.className = `tag ${calculatedData.stoch.class}`;
+        
         document.getElementById('macd-status').textContent = calculatedData.macd.status;
         document.getElementById('macd-status').className = `font-mono font-semibold ${calculatedData.macd.class}`;
         document.getElementById('macd-hist').textContent = calculatedData.macd.hist;
         document.getElementById('bollinger-bands-status').textContent = calculatedData.bollingerBands.status;
+        
         const bbData = calculatedData.bollingerBands;
         const lastUpper = bbData.upper.filter(v => v !== undefined).pop();
         const lastMiddle = bbData.middle.filter(v => v !== undefined).pop();
         const lastLower = bbData.lower.filter(v => v !== undefined).pop();
+        
         document.getElementById('bb-upper-value').textContent = `U: ${formatPrice(lastUpper)}`;
         document.getElementById('bb-middle-value').textContent = `M: ${formatPrice(lastMiddle)}`;
         document.getElementById('bb-lower-value').textContent = `L: ${formatPrice(lastLower)}`;
+        
         const { atr, atrPercent } = calculatedData;
         const atrStatusBadge = document.getElementById('atr-status-badge');
         const statusClassMap = { 'Low': 'tag-green', 'Normal': 'tag-yellow', 'High': 'tag-red', 'Very High': 'tag-red' };
         atrStatusBadge.textContent = atr.status;
         atrStatusBadge.className = `tag ${statusClassMap[atr.status] || 'tag-gray'} ml-2`;
+        
         document.getElementById('atr-percent-value').textContent = `${atrPercent.toFixed(2)}%`;
         document.getElementById('atr-absolute-value').textContent = atr.value.toFixed(6);
+        
         const candlePatternContainer = document.getElementById('candlestick-pattern').parentElement;
         const candleResult = calculatedData.candlePattern;
         let biasClass = '';
         if (candleResult.bias === 'BULLISH') biasClass = 'positive';
         if (candleResult.bias === 'BEARISH') biasClass = 'negative';
         const formattedTime = candleResult.timestamp ? new Date(candleResult.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
-        candlePatternContainer.innerHTML = `<div class="flex justify-between items-center mb-1"><p class="text-xs text-gray-500">Pola Candlestick</p><p class="text-xs text-gray-400 font-mono">${formattedTime}</p></div>${candleResult.svg}<p id="candlestick-pattern" class="font-semibold ${candleResult.class}">${candleResult.pattern}</p>${candleResult.bias !== 'NEUTRAL' ? `<p class="text-xs font-bold ${biasClass}">${candleResult.bias}</p>` : ''}`;
+        candlePatternContainer.innerHTML = `<div class="flex justify-between items-center mb-1"><p class="text-xs text-gray-500">Candlestick Pattern</p><p class="text-xs text-gray-400 font-mono">${formattedTime}</p></div>${candleResult.svg}<p id="candlestick-pattern" class="font-semibold ${candleResult.class}">${candleResult.pattern}</p>${candleResult.bias !== 'NEUTRAL' ? `<p class="text-xs font-bold ${biasClass}">${candleResult.bias}</p>` : ''}`;
         const chartPatternEl = document.getElementById('chart-pattern');
         chartPatternEl.textContent = calculatedData.chartPattern.pattern;
         chartPatternEl.className = `font-semibold ${calculatedData.chartPattern.class}`;
         const psarStatusEl = document.getElementById('psar-status');
+        
         psarStatusEl.textContent = calculatedData.psar.status;
         psarStatusEl.className = `font-mono font-semibold ${calculatedData.psar.status === 'Bullish' ? 'positive' : 'negative'}`;
+        
         const rocStatusEl = document.getElementById('roc-status');
         rocStatusEl.textContent = `${calculatedData.roc.value.toFixed(2)}% (${calculatedData.roc.status})`;
         rocStatusEl.className = `font-mono font-semibold ${calculatedData.roc.status === 'Positif' ? 'positive' : 'negative'}`;
+        
         document.getElementById('linreg-status').textContent = calculatedData.linreg.status;
         const bbWidth = calculatedData.bollingerBands.width.slice(-1)[0];
         const kcWidth = calculatedData.keltnerChannels.width.slice(-1)[0];
@@ -3647,6 +3680,7 @@ WebSocketManager.subscribe(streamsToSub);
             bbSqueezeEl.textContent = 'Normal';
             bbSqueezeEl.className = 'font-mono text-gray-500';
         }
+        
         document.getElementById('bollinger-rejection-status').textContent = calculatedData.bollingerBands.rejection;
         document.getElementById('bollinger-walk-status').textContent = calculatedData.bollingerBands.walkTheBands;
         if (calculatedData.adx) {
@@ -4028,148 +4062,154 @@ WebSocketManager.subscribe(streamsToSub);
 // ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
     const processQueues = () => {
-    let shouldUpdateMainUI = false;
-    let shouldUpdateScalpingUI = false;
+        let shouldUpdateMainUI = false;
+        let shouldUpdateScalpingUI = false;
 
-    // 1. Proses antrean KLINE (Logika Baru)
-    if (klineQueue.length > 0) {
-        const klinesToProcess = klineQueue.splice(0, klineQueue.length);
+        // 1. Proses antrean KLINE (Logika Baru)
+        if (klineQueue.length > 0) {
+            const klinesToProcess = klineQueue.splice(0, klineQueue.length);
 
-        klinesToProcess.forEach(message => {
-            const candle = message.k;
-            const timeframe = candle.i; // Timeframe dari pesan (cth: '5m', '1h')
-            const mainTimeframe = timeframeSelect.value;
-            const dumpTimeframe = document.getElementById('dump-trigger-timeframe-select').value;
+            klinesToProcess.forEach(message => {
+                const candle = message.k;
+                const timeframe = candle.i; // Timeframe dari pesan (cth: '5m', '1h')
+                const mainTimeframe = timeframeSelect.value;
+                const dumpTimeframe = document.getElementById('dump-trigger-timeframe-select').value;
 
-            const formattedCandle = [
-                candle.t, candle.o, candle.h, candle.l, candle.c, candle.v,
-                candle.T, candle.q, candle.n, candle.V, candle.Q, candle.B
-            ];
+                const formattedCandle = [
+                    candle.t, candle.o, candle.h, candle.l, candle.c, candle.v,
+                    candle.T, candle.q, candle.n, candle.V, candle.Q, candle.B
+                ];
 
-            // Cek apakah ini untuk timeframe utama
-            if (timeframe === mainTimeframe && realtimeCache.main.klines) {
-                const klinesCache = realtimeCache.main.klines;
-                if (candle.x) { // Jika candle final
-                    klinesCache.shift();
-                    klinesCache.push(formattedCandle);
-                } else { // Jika candle live
-                    klinesCache[klinesCache.length - 1] = formattedCandle;
+                // Cek apakah ini untuk timeframe utama
+                if (timeframe === mainTimeframe && realtimeCache.main.klines) {
+                    const klinesCache = realtimeCache.main.klines;
+                    if (candle.x) { // Jika candle final (candle LAMA baru saja selesai)
+                        klinesCache.shift();
+                        klinesCache.push(formattedCandle);
+                        newCandleJustStarted = true; // <-- Set penanda bahwa candle BARU akan segera dimulai
+                    } else { // Jika candle live (ini adalah tick pertama atau selanjutnya dari candle BARU)
+                        klinesCache[klinesCache.length - 1] = formattedCandle;
+                        // Cek apakah ini tick pertama dari candle baru
+                        if (newCandleJustStarted) {
+                            startCandleCountdown(); // <-- Panggil countdown di sini, di waktu yang TEPAT!
+                            newCandleJustStarted = false; // <-- Reset penanda agar tidak dipanggil terus
+                        }
+                    }
+                    shouldUpdateMainUI = true;
                 }
-                shouldUpdateMainUI = true;
+                // Cek apakah ini untuk timeframe scalping
+                else if (timeframe === dumpTimeframe && realtimeCache.main.multiTfKlines[dumpTimeframe]) {
+                    const klinesCache = realtimeCache.main.multiTfKlines[dumpTimeframe];
+                    if (candle.x) { // Jika candle final
+                        klinesCache.shift();
+                        klinesCache.push(formattedCandle);
+                    } else { // Jika candle live
+                        klinesCache[klinesCache.length - 1] = formattedCandle;
+                    }
+                    shouldUpdateScalpingUI = true;
+                }
+            });
+        }
+
+        // 2. Proses antrean TRADE (Logika Lama yang Dikembalikan)
+        if (tradeQueue.length > 0) {
+            try {
+                const tradesToProcess = tradeQueue.splice(0, tradeQueue.length);
+                tradesToProcess.forEach(trade => {
+                    const quantity = parseFloat(trade.q);
+                    const price = parseFloat(trade.p);
+
+                    const navPriceEl = document.getElementById('nav-price');
+                    if (navPriceEl) {
+                        navPriceEl.textContent = formatPrice(price);
+                    }
+
+                    const now = trade.T;
+                    const bucketTimestamp = Math.floor(now / CVD_AGGREGATION_INTERVAL_MS) * CVD_AGGREGATION_INTERVAL_MS;
+                    if (bucketTimestamp > cvdAggregator.currentBucketTimestamp) {
+                        if (cvdAggregator.currentBucketTimestamp > 0) {
+                            cvdAggregator.history.push({ 
+                                time: cvdAggregator.currentBucketTimestamp, 
+                                delta: cvdAggregator.currentBucketDelta 
+                            });
+                            if (cvdAggregator.history.length > CVD_HISTORY_LENGTH) {
+                                cvdAggregator.history.shift();
+                            }
+                        }
+                        cvdAggregator.currentBucketTimestamp = bucketTimestamp;
+                        cvdAggregator.currentBucketDelta = 0;
+                    }
+                    const sign = trade.m ? -1 : 1;
+                    cvdAggregator.currentBucketDelta += (quantity * price * sign);
+                    
+                    if (cvdChartInstance) {
+                        if (isNaN(quantity) || quantity === 0) return;
+                        liveCvdValue += quantity * sign;
+                        liveCvdValueUsdt += (quantity * price) * sign;
+                        const newPoint = { x: trade.T, y_coin: liveCvdValue, y_usdt: liveCvdValueUsdt };
+                        cvdChartInstance.data.datasets[0].data.push(newPoint);
+                        liveCvdData.push(newPoint);
+                        while (cvdChartInstance.data.datasets[0].data.length > 300) {
+                            cvdChartInstance.data.datasets[0].data.shift();
+                            liveCvdData.shift();
+                        }
+                        cvdChartInstance.update('none');
+                        updateCvdTableLive();
+                    }
+                });
+            } catch (error) {
+                console.error("Error saat memproses trade:", error);
             }
-            // Cek apakah ini untuk timeframe scalping
-            else if (timeframe === dumpTimeframe && realtimeCache.main.multiTfKlines[dumpTimeframe]) {
-                const klinesCache = realtimeCache.main.multiTfKlines[dumpTimeframe];
-                 if (candle.x) { // Jika candle final
-                    klinesCache.shift();
-                    klinesCache.push(formattedCandle);
-                } else { // Jika candle live
-                    klinesCache[klinesCache.length - 1] = formattedCandle;
-                }
-                shouldUpdateScalpingUI = true;
-            }
-        });
-    }
+        }
 
-    // 2. Proses antrean TRADE (Logika Lama yang Dikembalikan)
-    if (tradeQueue.length > 0) {
-        try {
-            const tradesToProcess = tradeQueue.splice(0, tradeQueue.length);
-            tradesToProcess.forEach(trade => {
-                const quantity = parseFloat(trade.q);
-                const price = parseFloat(trade.p);
-
-                const navPriceEl = document.getElementById('nav-price');
-                if (navPriceEl) {
-                    navPriceEl.textContent = formatPrice(price);
-                }
-
-                const now = trade.T;
-                const bucketTimestamp = Math.floor(now / CVD_AGGREGATION_INTERVAL_MS) * CVD_AGGREGATION_INTERVAL_MS;
-                if (bucketTimestamp > cvdAggregator.currentBucketTimestamp) {
-                    if (cvdAggregator.currentBucketTimestamp > 0) {
-                        cvdAggregator.history.push({ 
-                            time: cvdAggregator.currentBucketTimestamp, 
-                            delta: cvdAggregator.currentBucketDelta 
+        // 3. Proses antrean DEPTH/Order Book (Logika Lama yang Dikembalikan)
+        if (depthQueue.length > 0) {
+            try {
+                const updatesToProcess = depthQueue.splice(0, depthQueue.length);
+                updatesToProcess.forEach(update => {
+                    if (update.b) {
+                        update.b.forEach(([price, qty]) => {
+                            const existingIndex = latestBids.findIndex(bid => bid[0] === price);
+                            if (parseFloat(qty) === 0) {
+                                if (existingIndex !== -1) latestBids.splice(existingIndex, 1);
+                            } else {
+                                if (existingIndex !== -1) latestBids[existingIndex] = [price, qty];
+                                else latestBids.push([price, qty]);
+                            }
                         });
-                        if (cvdAggregator.history.length > CVD_HISTORY_LENGTH) {
-                            cvdAggregator.history.shift();
-                        }
                     }
-                    cvdAggregator.currentBucketTimestamp = bucketTimestamp;
-                    cvdAggregator.currentBucketDelta = 0;
-                }
-                const sign = trade.m ? -1 : 1;
-                cvdAggregator.currentBucketDelta += (quantity * price * sign);
-                
-                if (cvdChartInstance) {
-                    if (isNaN(quantity) || quantity === 0) return;
-                    liveCvdValue += quantity * sign;
-                    liveCvdValueUsdt += (quantity * price) * sign;
-                    const newPoint = { x: trade.T, y_coin: liveCvdValue, y_usdt: liveCvdValueUsdt };
-                    cvdChartInstance.data.datasets[0].data.push(newPoint);
-                    liveCvdData.push(newPoint);
-                    while (cvdChartInstance.data.datasets[0].data.length > 300) {
-                        cvdChartInstance.data.datasets[0].data.shift();
-                        liveCvdData.shift();
+                    if (update.a) {
+                        update.a.forEach(([price, qty]) => {
+                            const existingIndex = latestAsks.findIndex(ask => ask[0] === price);
+                            if (parseFloat(qty) === 0) {
+                                if (existingIndex !== -1) latestAsks.splice(existingIndex, 1);
+                            } else {
+                                if (existingIndex !== -1) latestAsks[existingIndex] = [price, qty];
+                                else latestAsks.push([price, qty]);
+                            }
+                        });
                     }
-                    cvdChartInstance.update('none');
-                    updateCvdTableLive();
-                }
-            });
-        } catch (error) {
-            console.error("Error saat memproses trade:", error);
+                });
+                latestBids.sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
+                latestAsks.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+                const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
+                const precision = getPrecisionForAsset(parseFloat(latestPrice));
+                const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
+                renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
+            } catch (error) {
+                console.error("Error saat memproses depth:", error);
+            }
         }
-    }
 
-    // 3. Proses antrean DEPTH/Order Book (Logika Lama yang Dikembalikan)
-    if (depthQueue.length > 0) {
-        try {
-            const updatesToProcess = depthQueue.splice(0, depthQueue.length);
-            updatesToProcess.forEach(update => {
-                if (update.b) {
-                    update.b.forEach(([price, qty]) => {
-                        const existingIndex = latestBids.findIndex(bid => bid[0] === price);
-                        if (parseFloat(qty) === 0) {
-                            if (existingIndex !== -1) latestBids.splice(existingIndex, 1);
-                        } else {
-                            if (existingIndex !== -1) latestBids[existingIndex] = [price, qty];
-                            else latestBids.push([price, qty]);
-                        }
-                    });
-                }
-                if (update.a) {
-                    update.a.forEach(([price, qty]) => {
-                        const existingIndex = latestAsks.findIndex(ask => ask[0] === price);
-                        if (parseFloat(qty) === 0) {
-                            if (existingIndex !== -1) latestAsks.splice(existingIndex, 1);
-                        } else {
-                            if (existingIndex !== -1) latestAsks[existingIndex] = [price, qty];
-                            else latestAsks.push([price, qty]);
-                        }
-                    });
-                }
-            });
-            latestBids.sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
-            latestAsks.sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
-            const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
-            const precision = getPrecisionForAsset(parseFloat(latestPrice));
-            const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
-            renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
-        } catch (error) {
-            console.error("Error saat memproses depth:", error);
+        // 4. Panggil fungsi update UI berdasarkan data mana yang baru (Logika Baru)
+        if (shouldUpdateMainUI) {
+            // Jika data utama berubah, hitung ulang & update semua panel terkait
+            updateRealTimeIndicators(realtimeCache.main.klines);
+        } else if (shouldUpdateScalpingUI) {
+            // Jika hanya data scalping yang berubah, cukup update panel scalping
+            calculateAndDisplayScalpingSetup();
         }
-    }
-
-    // 4. Panggil fungsi update UI berdasarkan data mana yang baru (Logika Baru)
-    if (shouldUpdateMainUI) {
-        // Jika data utama berubah, hitung ulang & update semua panel terkait
-        updateRealTimeIndicators(realtimeCache.main.klines);
-    } else if (shouldUpdateScalpingUI) {
-        // Jika hanya data scalping yang berubah, cukup update panel scalping
-        calculateAndDisplayScalpingSetup();
-    }
-};
+    };
 // ===================================================================================================================================================================================================================================================================================
     function populateCurrentStateWidget() {
         const { tickerData, coinGeckoData, globalData, openInterestData, fundingRateData, binanceSymbol } = realtimeCache.main;
@@ -4373,6 +4413,7 @@ WebSocketManager.subscribe(streamsToSub);
         }
         return sarData;
     }
+// =====================================================================================================================================================================
     const calculateOBV = (klines) => {
         if (!klines || klines.length < 2) return [];
         let obv = [0]; 
@@ -4575,6 +4616,7 @@ WebSocketManager.subscribe(streamsToSub);
     }
 // ===================================================================================================================================================================================================================================================================================
     function resetDashboard() {
+         if (candleCountdownInterval) clearInterval(candleCountdownInterval);
         WebSocketManager.resetSubscriptions();
         if (periodicUpdateInterval) clearInterval(periodicUpdateInterval);
         if (fundingRateTimer) clearInterval(fundingRateTimer);
@@ -4637,7 +4679,7 @@ WebSocketManager.subscribe(streamsToSub);
 
         let html = '<ul class="list-none">';
         
-        html += renderTrigger('Red Candlea after HH', breakdown.candleRed, breakdown.candleRed?.triggered ? 'Detected' : 'NONE');
+        html += renderTrigger('Red Candle after HH', breakdown.candleRed, breakdown.candleRed?.triggered ? 'Detected' : 'NONE');
         html += renderTrigger('Bearish Candle', breakdown.doji, breakdown.candlePattern, '(ex: Shooting Star)');
         html += renderTrigger('Volume Exhaustion', breakdown.volumeExhaustion, breakdown.volumeExhaustion?.triggered ? 'DETECTED!' : 'Normal', '(Vol Top < 60% Avg)');
         html += renderTrigger('CVD Nose Dive', breakdown.cvdDip, breakdown.cvdDip?.triggered ? 'Yes' : 'No');
@@ -4793,7 +4835,8 @@ WebSocketManager.subscribe(streamsToSub);
 
         moversData.forEach(item => {
             const priceChange24h = parseFloat(item.priceChangePercent);
-            let headerHtml = `<div class="flex justify-between items-center text-sm font-semibold"><span class="font-bold text-white cursor-pointer" onclick="runFullAnalysis('${item.symbol}')">${item.symbol}</span><span class="font-mono text-white" id="price-${item.symbol}">${formatPrice(parseFloat(item.lastPrice))}</span></div>`;
+            // Ganti text-white menjadi text-gray-800 dark:text-white
+            let headerHtml = `<div class="flex justify-between items-center text-sm font-semibold"><span class="font-bold text-gray-800 dark:text-white cursor-pointer" onclick="runFullAnalysis('${item.symbol}')">${item.symbol}</span><span class="font-mono text-gray-800 dark:text-white" id="price-${item.symbol}">${formatPrice(parseFloat(item.lastPrice))}</span></div>`;
             let detailsHtml = '';
 
             if (isGainer) {
@@ -4822,201 +4865,200 @@ WebSocketManager.subscribe(streamsToSub);
             } else {
             }
             
-            html += `<div class="flex flex-col bg-gray-800 p-2 rounded gap-2 mover-item" data-symbol="${item.symbol}">${headerHtml}${detailsHtml}</div>`;
-        });
+            html += `<div class="flex flex-col bg-gray-100 dark:bg-gray-800 p-2 rounded gap-2 mover-item" data-symbol="${item.symbol}">${headerHtml}${detailsHtml}</div>`;
+            });
 
         container.innerHTML = html || `<div class="text-xs text-gray-500 p-2">NONE data.</div>`;
     }
 // ===================================================================================================================================================================================================================================================================================
 // =================================================POSSIBLE DUPILICATE==============DUPLICATE REMOVED!!!====================================================================================================================================================================================================================
-// GANTI SELURUH FUNGSI LAMA DENGAN INI
-function calculateShortConfluenceScore(symbol, timeframe) {
-    if (!symbol) return { score: 0, breakdown: {} };
+    function calculateShortConfluenceScore(symbol, timeframe) {
+        if (!symbol) return { score: 0, breakdown: {} };
 
-    // ================== LOGIKA PEMILIHAN DATA (TETAP SAMA) ==================
-    let klines;
-    let aggTrades;
+        // ================== LOGIKA PEMILIHAN DATA (TETAP SAMA) ==================
+        let klines;
+        let aggTrades;
 
-    if (symbol === realtimeCache.main.symbol) {
-        klines = realtimeCache.main.multiTfKlines[timeframe];
-        aggTrades = realtimeCache.main.cvdData ? null : realtimeCache.main.aggTrades;
-    } else if (realtimeCache.movers[symbol]) {
-        if (timeframe === '5m') {
-            klines = realtimeCache.movers[symbol].klines_5m;
+        if (symbol === realtimeCache.main.symbol) {
+            klines = realtimeCache.main.multiTfKlines[timeframe];
+            aggTrades = realtimeCache.main.cvdData ? null : realtimeCache.main.aggTrades;
+        } else if (realtimeCache.movers[symbol]) {
+            if (timeframe === '5m') {
+                klines = realtimeCache.movers[symbol].klines_5m;
+            } else {
+                klines = realtimeCache.movers[symbol].klines_1h;
+            }
+            aggTrades = realtimeCache.movers[symbol].aggTrades;
         } else {
-            klines = realtimeCache.movers[symbol].klines_1h;
+            console.error(`NONE data cache yang ditemukan untuk simbol ${symbol}`);
+            return { score: 0, breakdown: {} };
         }
-        aggTrades = realtimeCache.movers[symbol].aggTrades;
-    } else {
-        console.error(`NONE data cache yang ditemukan untuk simbol ${symbol}`);
-        return { score: 0, breakdown: {} };
-    }
-    
-    if (!klines || klines.length < 50) {
-        return { score: 0, breakdown: {} };
-    }
-
-    const closes = klines.map(k => parseFloat(k[4]));
-    const cvdDataForAnalysis = (symbol === realtimeCache.main.symbol && realtimeCache.main.cvdData) 
-        ? realtimeCache.main.cvdData 
-        : calculateCVD(aggTrades || []);
-
-    // ==========================================================
-    // === AWAL BLOK PERUBAHAN & TAMBAHAN UNTUK BOLLINGER BANDS ===
-    // ==========================================================
-    
-    // 1. Hitung data BB lengkap sekali saja untuk efisiensi
-    const bbData = calculateBollingerBands(closes);
-    
-    // 2. Ekstrak nilai terakhir dari Upper, Middle, dan Lower band
-    const lastUpper = bbData.upper.filter(v => v !== undefined).pop() || 0;
-    const lastMiddle = bbData.middle.filter(v => v !== undefined).pop() || 0;
-    const lastLower = bbData.lower.filter(v => v !== undefined).pop() || 0;
-
-    const indicators = {
-        candlePattern: findCandlestickPatterns(klines),
-        macd: calculateMACD(closes),
-        rsi: calculateRSI(closes),
-        // 3. Gunakan bbData yang sudah dihitung untuk analisis rejection
-        bollingerBands: analyzeBollingerBandsPriceAction(klines, bbData), 
-        cvd: CVDanalyze(klines, cvdDataForAnalysis),
-        atr: calculateATR(klines)
-    };
-    
-    const atrStatus = indicators.atr.status;
-    let volatilityMultiplier = 1.0; 
-
-    if (atrStatus === 'High') {
-        volatilityMultiplier = 0.75;
-    } else if (atrStatus === 'Very High') {
-        volatilityMultiplier = 0.5;
-    }
-
-    const lastRsiValue = indicators.rsi.filter(v => v !== undefined).pop() || 50;
-    let score = 0;
-    
-    let breakdown = {
-        rsiValue: lastRsiValue.toFixed(2),
-        macdStatus: indicators.macd.status,
-        bbStatus: indicators.bollingerBands.rejection,
-        // 4. Tambahkan nilai U/M/L yang sudah diformat ke objek breakdown
-        bbUpper: formatPrice(lastUpper),
-        bbMiddle: formatPrice(lastMiddle),
-        bbLower: formatPrice(lastLower),
-        cvdStatus: indicators.cvd.divergence,
-        candlePattern: indicators.candlePattern.pattern,
-        candleRed: { triggered: false, points: 0 },
-        doji: { triggered: false, points: 0 },
-        cvdDip: { triggered: false, points: 0 },
-        cvdDivergence: { triggered: false, points: 0 },
-        rsiOverbought: { triggered: false, points: 0 },
-        bbRejection: { triggered: false, points: 0 },
-        macdCross: { triggered: false, points: 0 },
-        volumeExhaustion: { triggered: false, points: 0 }
-    };
-
-    // ========================================================
-    // === AKHIR BLOK PERUBAHAN & TAMBAHAN ===
-    // ========================================================
-
-    const lookbackPeriod = 15;
-    const recentKlines = klines.slice(-lookbackPeriod);
-    
-    if (recentKlines.length >= 3) {
-        let peakIndex = 0;
-        for (let i = 1; i < recentKlines.length; i++) {
-            if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[peakIndex][2])) peakIndex = i;
+        
+        if (!klines || klines.length < 50) {
+            return { score: 0, breakdown: {} };
         }
 
-        if (peakIndex < lookbackPeriod - 2) {
-            const triggerCandleArr = recentKlines[peakIndex + 1];
-            if (triggerCandleArr) {
-                const triggerCandle = { Open: parseFloat(triggerCandleArr[1]), Close: parseFloat(triggerCandleArr[4]) };
-                if (triggerCandle.Close < triggerCandle.Open) {
-                    const points = 3 * volatilityMultiplier;
-                    score += points;
-                    breakdown.candleRed = { triggered: true, points: points };
+        const closes = klines.map(k => parseFloat(k[4]));
+        const cvdDataForAnalysis = (symbol === realtimeCache.main.symbol && realtimeCache.main.cvdData) 
+            ? realtimeCache.main.cvdData 
+            : calculateCVD(aggTrades || []);
+
+        // ==========================================================
+        // === AWAL BLOK PERUBAHAN & TAMBAHAN UNTUK BOLLINGER BANDS ===
+        // ==========================================================
+        
+        // 1. Hitung data BB lengkap sekali saja untuk efisiensi
+        const bbData = calculateBollingerBands(closes);
+        
+        // 2. Ekstrak nilai terakhir dari Upper, Middle, dan Lower band
+        const lastUpper = bbData.upper.filter(v => v !== undefined).pop() || 0;
+        const lastMiddle = bbData.middle.filter(v => v !== undefined).pop() || 0;
+        const lastLower = bbData.lower.filter(v => v !== undefined).pop() || 0;
+
+        const indicators = {
+            candlePattern: findCandlestickPatterns(klines),
+            macd: calculateMACD(closes),
+            rsi: calculateRSI(closes),
+            // 3. Gunakan bbData yang sudah dihitung untuk analisis rejection
+            bollingerBands: analyzeBollingerBandsPriceAction(klines, bbData), 
+            cvd: CVDanalyze(klines, cvdDataForAnalysis),
+            atr: calculateATR(klines)
+        };
+        
+        const atrStatus = indicators.atr.status;
+        let volatilityMultiplier = 1.0; 
+
+        if (atrStatus === 'High') {
+            volatilityMultiplier = 0.75;
+        } else if (atrStatus === 'Very High') {
+            volatilityMultiplier = 0.5;
+        }
+
+        const lastRsiValue = indicators.rsi.filter(v => v !== undefined).pop() || 50;
+        let score = 0;
+        
+        let breakdown = {
+            rsiValue: lastRsiValue.toFixed(2),
+            macdStatus: indicators.macd.status,
+            bbStatus: indicators.bollingerBands.rejection,
+            // 4. Tambahkan nilai U/M/L yang sudah diformat ke objek breakdown
+            bbUpper: formatPrice(lastUpper),
+            bbMiddle: formatPrice(lastMiddle),
+            bbLower: formatPrice(lastLower),
+            cvdStatus: indicators.cvd.divergence,
+            candlePattern: indicators.candlePattern.pattern,
+            candleRed: { triggered: false, points: 0 },
+            doji: { triggered: false, points: 0 },
+            cvdDip: { triggered: false, points: 0 },
+            cvdDivergence: { triggered: false, points: 0 },
+            rsiOverbought: { triggered: false, points: 0 },
+            bbRejection: { triggered: false, points: 0 },
+            macdCross: { triggered: false, points: 0 },
+            volumeExhaustion: { triggered: false, points: 0 }
+        };
+
+        // ========================================================
+        // === AKHIR BLOK PERUBAHAN & TAMBAHAN ===
+        // ========================================================
+
+        const lookbackPeriod = 15;
+        const recentKlines = klines.slice(-lookbackPeriod);
+        
+        if (recentKlines.length >= 3) {
+            let peakIndex = 0;
+            for (let i = 1; i < recentKlines.length; i++) {
+                if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[peakIndex][2])) peakIndex = i;
+            }
+
+            if (peakIndex < lookbackPeriod - 2) {
+                const triggerCandleArr = recentKlines[peakIndex + 1];
+                if (triggerCandleArr) {
+                    const triggerCandle = { Open: parseFloat(triggerCandleArr[1]), Close: parseFloat(triggerCandleArr[4]) };
+                    if (triggerCandle.Close < triggerCandle.Open) {
+                        const points = 3 * volatilityMultiplier;
+                        score += points;
+                        breakdown.candleRed = { triggered: true, points: points };
+                    }
+                }
+            }
+            
+            if (peakIndex > 4 && peakIndex < recentKlines.length - 1) {
+                const pumpVolumeLookback = 5;
+                const pumpCandles = recentKlines.slice(peakIndex - pumpVolumeLookback, peakIndex);
+                
+                if (pumpCandles.length > 0) {
+                    const avgPumpVolume = pumpCandles.reduce((sum, k) => sum + parseFloat(k[5]), 0) / pumpCandles.length;
+                    const peakVolume = parseFloat(recentKlines[peakIndex][5]);
+
+                    if (peakVolume < (avgPumpVolume * 0.6)) {
+                        const points = 2;
+                        score += points;
+                        breakdown.volumeExhaustion = { triggered: true, points: points };
+                    }
                 }
             }
         }
         
-        if (peakIndex > 4 && peakIndex < recentKlines.length - 1) {
-            const pumpVolumeLookback = 5;
-            const pumpCandles = recentKlines.slice(peakIndex - pumpVolumeLookback, peakIndex);
-            
-            if (pumpCandles.length > 0) {
-                const avgPumpVolume = pumpCandles.reduce((sum, k) => sum + parseFloat(k[5]), 0) / pumpCandles.length;
-                const peakVolume = parseFloat(recentKlines[peakIndex][5]);
-
-                if (peakVolume < (avgPumpVolume * 0.6)) {
-                    const points = 2;
-                    score += points;
-                    breakdown.volumeExhaustion = { triggered: true, points: points };
-                }
-            }
+        if (indicators.candlePattern.bias === 'BEARISH') {
+            const points = 1 * volatilityMultiplier;
+            score += points;
+            breakdown.doji = { triggered: true, points: points };
         }
-    }
-    
-    if (indicators.candlePattern.bias === 'BEARISH') {
-        const points = 1 * volatilityMultiplier;
-        score += points;
-        breakdown.doji = { triggered: true, points: points };
-    }
 
-    const now = Date.now();
-    if (now - lastCvdDipCalculationTime > CVD_DIP_DEBOUNCE_MS) {
-        lastCvdDipCalculationTime = now; 
-        const cvdValues = cvdDataForAnalysis.map(d => d.cvd_usdt);
-        const changeLookback = 50;
-        const stdDevMultiplier = 1.3;
+        const now = Date.now();
+        if (now - lastCvdDipCalculationTime > CVD_DIP_DEBOUNCE_MS) {
+            lastCvdDipCalculationTime = now; 
+            const cvdValues = cvdDataForAnalysis.map(d => d.cvd_usdt);
+            const changeLookback = 50;
+            const stdDevMultiplier = 1.3;
 
-        if (cvdValues.length > changeLookback) {
-            let cvdChanges = [];
-            for (let i = cvdValues.length - changeLookback; i < cvdValues.length; i++) {
-                cvdChanges.push(cvdValues[i] - cvdValues[i - 1]);
-            }
-            const avgChange = cvdChanges.reduce((sum, val) => sum + val, 0) / changeLookback;
-            const variance = cvdChanges.reduce((sum, val) => sum + Math.pow(val - avgChange, 2), 0) / changeLookback;
-            const stdDev = Math.sqrt(variance);
-            const lastChange = cvdChanges[cvdChanges.length - 1];
-            if (lastChange < (avgChange - (stdDevMultiplier * stdDev))) {
-                const points = 0.09 * volatilityMultiplier;
-                lastCvdDipResult = { triggered: true, points: points }; 
+            if (cvdValues.length > changeLookback) {
+                let cvdChanges = [];
+                for (let i = cvdValues.length - changeLookback; i < cvdValues.length; i++) {
+                    cvdChanges.push(cvdValues[i] - cvdValues[i - 1]);
+                }
+                const avgChange = cvdChanges.reduce((sum, val) => sum + val, 0) / changeLookback;
+                const variance = cvdChanges.reduce((sum, val) => sum + Math.pow(val - avgChange, 2), 0) / changeLookback;
+                const stdDev = Math.sqrt(variance);
+                const lastChange = cvdChanges[cvdChanges.length - 1];
+                if (lastChange < (avgChange - (stdDevMultiplier * stdDev))) {
+                    const points = 0.09 * volatilityMultiplier;
+                    lastCvdDipResult = { triggered: true, points: points }; 
+                } else {
+                    lastCvdDipResult = { triggered: false, points: 0 };
+                }
             } else {
                 lastCvdDipResult = { triggered: false, points: 0 };
             }
-        } else {
-            lastCvdDipResult = { triggered: false, points: 0 };
         }
-    }
-    
-    if(lastCvdDipResult.triggered) {
-        score += lastCvdDipResult.points;
-    }
-    breakdown.cvdDip = lastCvdDipResult;
+        
+        if(lastCvdDipResult.triggered) {
+            score += lastCvdDipResult.points;
+        }
+        breakdown.cvdDip = lastCvdDipResult;
 
-    if (indicators.cvd.divergence.includes('Bearish')) {
-        const points = 2 * volatilityMultiplier;
-        score += points;
-        breakdown.cvdDivergence = { triggered: true, points: points };
-    }
-    
-    if (lastRsiValue > 70) {
-        const points = 2 * volatilityMultiplier;
-        score += points;
-        breakdown.rsiOverbought = { triggered: true, points: points };
-    }
+        if (indicators.cvd.divergence.includes('Bearish')) {
+            const points = 2 * volatilityMultiplier;
+            score += points;
+            breakdown.cvdDivergence = { triggered: true, points: points };
+        }
+        
+        if (lastRsiValue > 70) {
+            const points = 2 * volatilityMultiplier;
+            score += points;
+            breakdown.rsiOverbought = { triggered: true, points: points };
+        }
 
-    if (indicators.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
-        score += 3;
-        breakdown.bbRejection = { triggered: true, points: 3 };
+        if (indicators.bollingerBands.rejection === 'Bearish Rejection (Upper BB)') {
+            score += 3;
+            breakdown.bbRejection = { triggered: true, points: 3 };
+        }
+        if (indicators.macd.status === 'Bearish Cross') {
+            score += 2;
+            breakdown.macdCross = { triggered: true, points: 2 };
+        }   
+        return { score: Math.min(score, 10), breakdown };
     }
-    if (indicators.macd.status === 'Bearish Cross') {
-        score += 2;
-        breakdown.macdCross = { triggered: true, points: 2 };
-    }   
-    return { score: Math.min(score, 10), breakdown };
-}
 // ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
     function getConfluenceAnalysis(klines) {
@@ -5057,91 +5099,91 @@ function calculateShortConfluenceScore(symbol, timeframe) {
         };
     }
 // ===================================================================================================================================================================================================================================================================================
-function onNewMoverData(symbol, streamName, payload) {
-    if (!realtimeCache.movers[symbol]) {
-        realtimeCache.movers[symbol] = { klines_1h: [], aggTrades: [], orderBook: { bids: [], asks: [] } };
-    }
-    const moverData = realtimeCache.movers[symbol];
+    function onNewMoverData(symbol, streamName, payload) {
+        if (!realtimeCache.movers[symbol]) {
+            realtimeCache.movers[symbol] = { klines_1h: [], aggTrades: [], orderBook: { bids: [], asks: [] } };
+        }
+        const moverData = realtimeCache.movers[symbol];
 
-    // Blok untuk memproses update kline 1 jam
-    if (streamName.includes('@kline_1h')) {
-        const k = payload.k;
-        // Format kline baru sebagai ARRAY agar konsisten dengan data awal
-        const newKlineArray = [
-            k.t, k.o, k.h, k.l, k.c, k.v, k.T, 
-            k.q, k.n, k.V, k.Q, k.B
-        ];
+        // Blok untuk memproses update kline 1 jam
+        if (streamName.includes('@kline_1h')) {
+            const k = payload.k;
+            // Format kline baru sebagai ARRAY agar konsisten dengan data awal
+            const newKlineArray = [
+                k.t, k.o, k.h, k.l, k.c, k.v, k.T, 
+                k.q, k.n, k.V, k.Q, k.B
+            ];
 
-        // Cek kline terakhir berdasarkan timestamp di indeks [0]
-        if (moverData.klines_1h && moverData.klines_1h.length > 0 && moverData.klines_1h[moverData.klines_1h.length - 1][0] === k.t) {
-            // Update kline terakhir jika timestamp sama
-            moverData.klines_1h[moverData.klines_1h.length - 1] = newKlineArray;
-        } else {
-            // Tambahkan kline baru jika ini candle baru
-            moverData.klines_1h.push(newKlineArray);
+            // Cek kline terakhir berdasarkan timestamp di indeks [0]
+            if (moverData.klines_1h && moverData.klines_1h.length > 0 && moverData.klines_1h[moverData.klines_1h.length - 1][0] === k.t) {
+                // Update kline terakhir jika timestamp sama
+                moverData.klines_1h[moverData.klines_1h.length - 1] = newKlineArray;
+            } else {
+                // Tambahkan kline baru jika ini candle baru
+                moverData.klines_1h.push(newKlineArray);
+            }
+            
+            // Jaga agar panjang array tidak melebihi batas
+            if (moverData.klines_1h.length > 200) {
+                moverData.klines_1h.shift();
+            }
+        } 
+        // Blok untuk memproses update trade
+        else if (streamName.includes('@aggTrade')) {
+            moverData.aggTrades.push(payload);
+            if (moverData.aggTrades.length > 1000) moverData.aggTrades.shift();
+        } 
+        // Blok untuk memproses update order book
+        else if (streamName.includes('@depth20')) {
+            moverData.orderBook = { bids: payload.bids, asks: payload.asks };
         }
         
-        // Jaga agar panjang array tidak melebihi batas
-        if (moverData.klines_1h.length > 200) {
-            moverData.klines_1h.shift();
+        // ================== AWAL BLOK PERBAIKAN FINAL ==================
+        // Menghitung dan memperbarui "Pump Strength" bar secara real-time untuk setiap mover
+        let pumpStrengthPercentage = 0;
+        const klines1h = moverData.klines_1h;
+        if (klines1h && klines1h.length >= 2) {
+            const prevClose = parseFloat(klines1h[klines1h.length - 2][4]);
+            const lastClose = parseFloat(klines1h[klines1h.length - 1][4]);
+            const change1h = prevClose > 0 ? ((lastClose - prevClose) / prevClose) * 100 : 0;
+            // Kalkulasi sederhana: persentase kenaikan dikali 2, maks 100%
+            pumpStrengthPercentage = Math.max(0, change1h > 0 ? Math.min(100, change1h * 2) : 0);
         }
-    } 
-    // Blok untuk memproses update trade
-    else if (streamName.includes('@aggTrade')) {
-        moverData.aggTrades.push(payload);
-        if (moverData.aggTrades.length > 1000) moverData.aggTrades.shift();
-    } 
-    // Blok untuk memproses update order book
-    else if (streamName.includes('@depth20')) {
-        moverData.orderBook = { bids: payload.bids, asks: payload.asks };
-    }
-    
-    // ================== AWAL BLOK PERBAIKAN FINAL ==================
-    // Menghitung dan memperbarui "Pump Strength" bar secara real-time untuk setiap mover
-    let pumpStrengthPercentage = 0;
-    const klines1h = moverData.klines_1h;
-    if (klines1h && klines1h.length >= 2) {
-        const prevClose = parseFloat(klines1h[klines1h.length - 2][4]);
-        const lastClose = parseFloat(klines1h[klines1h.length - 1][4]);
-        const change1h = prevClose > 0 ? ((lastClose - prevClose) / prevClose) * 100 : 0;
-        // Kalkulasi sederhana: persentase kenaikan dikali 2, maks 100%
-        pumpStrengthPercentage = Math.max(0, change1h > 0 ? Math.min(100, change1h * 2) : 0);
-    }
-    
-    // Update langsung elemen UI (bar) untuk mover yang bersangkutan
-    const pumpBarElement = document.querySelector(`#hybrid-bar-${symbol} .pump-strength`);
-    if (pumpBarElement) {
-        pumpBarElement.style.width = `${pumpStrengthPercentage}%`;
-    }
-    // =================== AKHIR BLOK PERBAIKAN FINAL ===================
+        
+        // Update langsung elemen UI (bar) untuk mover yang bersangkutan
+        const pumpBarElement = document.querySelector(`#hybrid-bar-${symbol} .pump-strength`);
+        if (pumpBarElement) {
+            pumpBarElement.style.width = `${pumpStrengthPercentage}%`;
+        }
+        // =================== AKHIR BLOK PERBAIKAN FINAL ===================
 
-    // Menghitung skor Dump Potention
-    const scoreData = calculateShortConfluenceScore(symbol, '5m');
+        // Menghitung skor Dump Potention
+        const scoreData = calculateShortConfluenceScore(symbol, '5m');
 
-    if (scoreData !== null) {
-        // Memperbarui UI skor Dump Potention
-        updateShortScoreUI(symbol, scoreData.score, scoreData.breakdown);
+        if (scoreData !== null) {
+            // Memperbarui UI skor Dump Potention
+            updateShortScoreUI(symbol, scoreData.score, scoreData.breakdown);
 
-        // Sinkronisasi dengan panel utama jika mover yang diupdate adalah aset yang sedang dianalisis
-        if (realtimeCache.main.symbol === symbol) {
-            const klines1h_sync = moverData.klines_1h;
-            
-            // Perbarui skor pump/dump di cache utama
-            if (klines1h_sync.length >= 2) {
-                 // Anda bisa menambahkan logika skor pump yang lebih kompleks di sini jika perlu
-                 // Untuk sekarang, kita akan sinkronkan skor pump & dump
+            // Sinkronisasi dengan panel utama jika mover yang diupdate adalah aset yang sedang dianalisis
+            if (realtimeCache.main.symbol === symbol) {
+                const klines1h_sync = moverData.klines_1h;
+                
+                // Perbarui skor pump/dump di cache utama
+                if (klines1h_sync.length >= 2) {
+                    // Anda bisa menambahkan logika skor pump yang lebih kompleks di sini jika perlu
+                    // Untuk sekarang, kita akan sinkronkan skor pump & dump
+                }
+                realtimeCache.main.liveScores.pumpStrength = pumpStrengthPercentage;
+                realtimeCache.main.liveScores.dumpRisk = scoreData.score;
+                
+                // Sinkronkan data kline 1 jam terbaru ke cache utama SEBELUM render ulang
+                realtimeCache.main.klines1h = klines1h_sync;
+
+                // Panggil ulang render panel scalping dengan data terbaru
+                calculateAndDisplayScalpingSetup();
             }
-            realtimeCache.main.liveScores.pumpStrength = pumpStrengthPercentage;
-            realtimeCache.main.liveScores.dumpRisk = scoreData.score;
-            
-            // Sinkronkan data kline 1 jam terbaru ke cache utama SEBELUM render ulang
-            realtimeCache.main.klines1h = klines1h_sync;
-
-            // Panggil ulang render panel scalping dengan data terbaru
-            calculateAndDisplayScalpingSetup();
         }
     }
-}
 // ===================================================================================================================================================================================================================================================================================
     function calculateAndDisplayScalpingSetup() {
         const selectedDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
@@ -5252,18 +5294,18 @@ function onNewMoverData(symbol, streamName, payload) {
                 <div class="grid grid-cols-3 gap-4 text-center items-start">
                     <div class="col-span-1">
                         <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
-                        <p class="font-bold text-lg blinking-text-animation ${biasClass}">${biasKontekstual}</p>
+                        <p class="font-bold text-base blinking-text-animation ${biasClass}">${biasKontekstual}</p>
                         <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
                     </div>
                     <div class="col-span-2 grid grid-cols-2 gap-4">
                         <div>
                             <p class="text-xs text-gray-500">Entry</p>
-                            <p class="font-semibold text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
+                            <p class="font-normal text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
                             <p class="text-xs font-mono text-yellow-500">${entryPercent}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">SL (Structural)</p>
-                            <p class="font-semibold text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
+                            <p class="font-normal text-sm ${slColorClass}">${formatPrice(stopLoss)}</p>
                             <p class="text-xs font-mono ${slColorClass}">${slPercent}</p>
                         </div>
                     </div>
@@ -5271,12 +5313,12 @@ function onNewMoverData(symbol, streamName, payload) {
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
                     <div>
                         <p class="text-xs text-gray-500">TP 1 (Structural)</p>
-                        <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit1)}</p>
+                        <p class="font-normal ${tpColorClass}">${formatPrice(takeProfit1)}</p>
                         <p class="text-xs font-mono ${tpColorClass}">${tp1Percent}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">TP 2 (R:R 1:1.5)</p>
-                        <p class="font-semibold ${tpColorClass}">${formatPrice(takeProfit2)}</p>
+                        <p class="font-normal ${tpColorClass}">${formatPrice(takeProfit2)}</p>
                         <p class="text-xs font-mono ${tpColorClass}">${tp2Percent}</p>
                     </div>
                     <div>
@@ -5309,18 +5351,15 @@ function onNewMoverData(symbol, streamName, payload) {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-// ===================================================================================================================================================================================================================================================================================
-// ===================================================================================================================================================================================================================================================================================
-// ===================================================================================================================================================================================================================================================================================
-function updateShortScoreUI(symbol, score, breakdown) {
-    const dumpRiskElement = document.querySelector(`#hybrid-bar-${symbol} .dump-risk`);
-    if (dumpRiskElement) dumpRiskElement.style.width = `${score * 10}%`;
-    const moverItem = document.querySelector(`.mover-item[data-symbol="${symbol}"]`);
-    if (moverItem) {
-        moverItem.dataset.dumpRiskScore = score;
-        moverItem.dataset.breakdown = JSON.stringify(breakdown || {});
+    function updateShortScoreUI(symbol, score, breakdown) {
+        const dumpRiskElement = document.querySelector(`#hybrid-bar-${symbol} .dump-risk`);
+        if (dumpRiskElement) dumpRiskElement.style.width = `${score * 10}%`;
+        const moverItem = document.querySelector(`.mover-item[data-symbol="${symbol}"]`);
+        if (moverItem) {
+            moverItem.dataset.dumpRiskScore = score;
+            moverItem.dataset.breakdown = JSON.stringify(breakdown || {});
+        }
     }
-}
 // ===================================================================================================================================================================================================================================================================================
     function attachTopMoversListeners() {
         document.querySelectorAll("#gainers-list .mover-item").forEach(el => {
@@ -5385,7 +5424,6 @@ function updateShortScoreUI(symbol, score, breakdown) {
         });
     }
 // ===================================================================================================================================================================================================================================================================================
-
     function initRefreshIntervalSelector() {
         const select = document.getElementById("refresh-interval-select");
         select.addEventListener("change", () => {
@@ -5421,9 +5459,6 @@ function updateShortScoreUI(symbol, score, breakdown) {
             }
         }, 1000);
     }
-// ===================================================================================================================================================================================================================================================================================
-
-
 // =====================================================================================================================================================================
 // BAGIAN 5: EVENT LISTENER UTAMA
 // =====================================================================================================================================================================
@@ -5656,7 +5691,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 // ===================================================================================================================================================================================================================================================================================
-
+// ===================================================================================================================================================================================================================================================================================
 </script>
 </body>
 </html>
