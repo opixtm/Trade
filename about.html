@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Trailing Stop Binance</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --primary-text-color: #e0e0e0;
+            --secondary-text-color: #b0b0b0;
+            --input-bg-color: #2c2c2c;
+            --border-color: #3a3a3a;
+            --accent-color: #f0b90b;
+            --success-color: #2ebd85;
+            --error-color: #f6465d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .calculator-container {
+            background-color: var(--card-color);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--secondary-text-color);
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--primary-text-color);
+            font-size: 1em;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.2);
+        }
+
+        .position-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .position-type label {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .position-type input[type="radio"] {
+            display: none;
+        }
+
+        .position-type input[type="radio"]:checked + label {
+            border-color: var(--accent-color);
+            background-color: rgba(240, 185, 11, 0.1);
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        #long:checked + label {
+             border-color: var(--success-color);
+             background-color: rgba(46, 189, 133, 0.1);
+             color: var(--success-color);
+        }
+        
+        #short:checked + label {
+             border-color: var(--error-color);
+             background-color: rgba(246, 70, 93, 0.1);
+             color: var(--error-color);
+        }
+
+        .results-container {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .result-item span:first-child {
+            color: var(--secondary-text-color);
+        }
+
+        .result-item span:last-child {
+            font-weight: bold;
+        }
+
+        #status {
+            font-style: italic;
+        }
+
+        .profit { color: var(--success-color); }
+        .loss { color: var(--error-color); }
+        .neutral { color: var(--primary-text-color); }
+
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h1>Kalkulator Trailing Stop</h1>
+
+        <div class="position-type">
+            <input type="radio" id="long" name="position" value="long" checked>
+            <label for="long">📈 LONG</label>
+
+            <input type="radio" id="short" name="position" value="short">
+            <label for="short">📉 SHORT</label>
+        </div>
+
+        <div class="form-group">
+            <label for="entryPrice">Harga Beli / Entry Price ($)</label>
+            <input type="number" id="entryPrice" placeholder="Contoh: 50000">
+        </div>
+
+        <div class="form-group">
+            <label for="callbackRate">Callback Rate (%)</label>
+            <input type="number" id="callbackRate" placeholder="Contoh: 2">
+        </div>
+
+        <div class="form-group">
+            <label for="activationPrice">Harga Aktivasi / Activation Price ($)</label>
+            <input type="number" id="activationPrice" placeholder="Contoh: 51000">
+        </div>
+
+        <div class="form-group">
+            <label for="marketPrice" id="marketPriceLabel">Harga Tertinggi Tercapai ($)</label>
+            <input type="number" id="marketPrice" placeholder="Harga pasar tertinggi setelah aktivasi">
+        </div>
+
+        <div class="results-container">
+            <div class="result-item">
+                <span>Status:</span>
+                <span id="status">-</span>
+            </div>
+            <div class="result-item">
+                <span>Harga Stop Loss Saat Ini:</span>
+                <span id="stopLossPrice">-</span>
+            </div>
+            <div class="result-item">
+                <span>Potensi Profit/Loss:</span>
+                <span id="pnl" class="neutral">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ambil semua elemen yang dibutuhkan dari DOM
+        const entryPriceEl = document.getElementById('entryPrice');
+        const callbackRateEl = document.getElementById('callbackRate');
+        const activationPriceEl = document.getElementById('activationPrice');
+        const marketPriceEl = document.getElementById('marketPrice');
+        const marketPriceLabelEl = document.getElementById('marketPriceLabel');
+        
+        const longRadio = document.getElementById('long');
+        const shortRadio = document.getElementById('short');
+
+        const statusEl = document.getElementById('status');
+        const stopLossPriceEl = document.getElementById('stopLossPrice');
+        const pnlEl = document.getElementById('pnl');
+
+        // Kumpulan elemen input untuk event listener
+        const inputs = [entryPriceEl, callbackRateEl, activationPriceEl, marketPriceEl, longRadio, shortRadio];
+
+        // Fungsi utama untuk kalkulasi
+        function calculateTrailingStop() {
+            // 1. Baca dan konversi semua nilai input menjadi angka
+            const entryPrice = parseFloat(entryPriceEl.value);
+            const callbackRate = parseFloat(callbackRateEl.value) / 100; // Ubah persen ke desimal
+            const activationPrice = parseFloat(activationPriceEl.value);
+            const marketPrice = parseFloat(marketPriceEl.value);
+            const positionType = document.querySelector('input[name="position"]:checked').value;
+
+            // 2. Reset tampilan jika ada input yang tidak valid
+            if (isNaN(entryPrice) || isNaN(callbackRate) || isNaN(activationPrice) || isNaN(marketPrice) || callbackRate <= 0) {
+                statusEl.textContent = '-';
+                stopLossPriceEl.textContent = '-';
+                pnlEl.textContent = '-';
+                pnlEl.className = 'neutral';
+                return;
+            }
+
+            let isActive = false;
+            let stopLossPrice = 0;
+
+            // 3. Logika perhitungan berdasarkan tipe posisi
+            if (positionType === 'long') {
+                // Untuk posisi LONG, trailing stop aktif jika harga pasar MENCAPAI atau MELEBIHI harga aktivasi.
+                isActive = marketPrice >= activationPrice;
+                if (isActive) {
+                    // Stop loss dihitung dari harga pasar TERTINGGI
+                    stopLossPrice = marketPrice * (1 - callbackRate);
+                    statusEl.textContent = 'Aktif ✅';
+                } else {
+                    statusEl.textContent = 'Belum Aktif';
+                }
+            } else { // positionType === 'short'
+                // Untuk posisi SHORT, trailing stop aktif jika harga pasar MENCAPAI atau LEBIH RENDAH dari harga aktivasi.
+                isActive = marketPrice <= activationPrice;
+                if (isActive) {
+                    // Stop loss dihitung dari harga pasar TERENDAH
+                    stopLossPrice = marketPrice * (1 + callbackRate);
+                    statusEl.textContent = 'Aktif ✅';
+                } else {
+                    statusEl.textContent = 'Belum Aktif';
+                }
+            }
+            
+            // 4. Tampilkan hasil perhitungan
+            if (isActive) {
+                stopLossPriceEl.textContent = `$${stopLossPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                // Hitung Profit/Loss
+                const pnl = (positionType === 'long') ? (stopLossPrice - entryPrice) : (entryPrice - stopLossPrice);
+                const pnlPercentage = (pnl / entryPrice) * 100;
+
+                pnlEl.textContent = `$${pnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${pnlPercentage.toFixed(2)}%)`;
+                
+                // Beri warna pada P/L
+                if (pnl > 0) {
+                    pnlEl.className = 'profit';
+                } else if (pnl < 0) {
+                    pnlEl.className = 'loss';
+                } else {
+                    pnlEl.className = 'neutral';
+                }
+
+            } else {
+                stopLossPriceEl.textContent = '-';
+                pnlEl.textContent = '-';
+                pnlEl.className = 'neutral';
+            }
+        }
+        
+        // Fungsi untuk mengubah label berdasarkan tipe posisi
+        function updateLabels() {
+            const positionType = document.querySelector('input[name="position"]:checked').value;
+            if (positionType === 'long') {
+                marketPriceLabelEl.textContent = 'Harga Tertinggi Tercapai ($)';
+                marketPriceEl.placeholder = 'Harga pasar tertinggi setelah aktivasi';
+            } else {
+                marketPriceLabelEl.textContent = 'Harga Terendah Tercapai ($)';
+                 marketPriceEl.placeholder = 'Harga pasar terendah setelah aktivasi';
+            }
+            // Panggil kalkulasi ulang saat label berubah
+            calculateTrailingStop();
+        }
+
+        // Tambahkan event listener ke setiap input
+        // 'input' event akan berjalan setiap kali nilai berubah
+        inputs.forEach(input => input.addEventListener('input', calculateTrailingStop));
+        
+        // Tambahkan event listener khusus untuk radio button untuk mengubah label
+        document.querySelectorAll('input[name="position"]').forEach(radio => {
+            radio.addEventListener('change', updateLabels);
+        });
+        
+        // Panggil fungsi updateLabels saat halaman pertama kali dimuat
+        updateLabels();
+
+    </script>
+</body>
+</html>
