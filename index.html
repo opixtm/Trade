@@ -4808,6 +4808,54 @@
                 };
             }));
 
+            // >>> AWAL BLOK PENAMBAHAN ASET PIN <<<
+    const pinnedAssets = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'SOLUSDT'];
+    
+    // Filter aset pin yang belum ada di daftar top movers untuk menghindari duplikat
+    const existingSymbols = new Set(gainersWithDetails.map(m => m.symbol));
+    const assetsToFetch = pinnedAssets.filter(symbol => !existingSymbols.has(symbol));
+
+    if (assetsToFetch.length > 0) {
+        // Ambil data ticker untuk aset yang di-pin dari data yang sudah di-fetch
+        const pinnedTickers = usdtPairs.filter(d => assetsToFetch.includes(d.symbol));
+
+        // Ambil detail klines untuk aset yang di-pin (logika sama seperti top movers)
+        const pinnedAssetsWithDetails = await Promise.all(pinnedTickers.map(async (mover) => {
+            const [klines1h, klines15m, klines5m, aggTrades] = await Promise.all([
+                fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '1h', limit: 200 }, 'futures').catch(() => []),
+                fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '15m', limit: 2 }, 'futures').catch(() => null),
+                fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '5m', limit: 200 }, 'futures').catch(() => []),
+                fetchBinanceAPIData('aggTrades', { symbol: mover.symbol, limit: 1000 }, 'futures').catch(() => [])
+            ]);
+
+            realtimeCache.movers[mover.symbol] = { 
+                klines_1h: klines1h,
+                klines_5m: klines5m,
+                aggTrades: aggTrades,
+            };
+
+            // Dapatkan kembali fungsi helper 'calculateChange' jika tidak tersedia secara global
+            const calculateChange = (kData) => {
+                if (!kData || kData.length < 2) return 'N/A';
+                const prevClose = parseFloat(kData[0][4]);
+                const currentClose = parseFloat(kData[1][4]);
+                return prevClose > 0 ? (((currentClose - prevClose) / prevClose) * 100).toFixed(2) : '0.00';
+            };
+
+            return { 
+                ...mover, 
+                change1h: calculateChange(klines1h.slice(-2)), 
+                change15m: calculateChange(klines15m),
+                dynamicPriceChange: parseFloat(mover.priceChangePercent)
+            };
+        }));
+        
+        // Gabungkan daftar top movers dengan daftar aset yang di-pin
+        gainersWithDetails.push(...pinnedAssetsWithDetails);
+    }
+    // >>> AKHIR BLOK PENAMBAHAN ASET PIN <<<
+
+    
             renderMoversList('gainers-list', gainersWithDetails, true, timeframe);
             
             if (losersList) {
