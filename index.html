@@ -358,6 +358,41 @@
             background: linear-gradient(to right, #fcd34d, #f59e0b, #ef4444); /* yellow to orange to red */
         }
         /* === CSS BARU UNTUK SKOR TENSI (SELESAI) === */
+        /* =============================================================== */
+/* === BLOK PERBAIKAN WARNA FINAL (LIGHT & DARK MODE) === */
+/* =============================================================== */
+:root {
+    --bg-light-panel: #f9fafb;
+    --text-light-strong: #111827;
+    --text-light-medium: #374151;
+    --border-light: #e5e7eb;
+}
+.dark {
+    --bg-dark-panel: #1f2937;
+    --text-dark-strong: #f9fafb;
+    --text-dark-medium: #d1d5db;
+    --border-dark: #374151;
+}
+
+/* --- LIGHT MODE DEFAULTS --- */
+.adaptive-panel { background-color: var(--bg-light-panel); border: 1px solid var(--border-light); }
+.adaptive-text-strong { color: var(--text-light-strong); }
+.adaptive-text-medium { color: var(--text-light-medium); }
+.positive { color: #15803d; }
+.negative { color: #b91c1c; }
+.status-chop { color: #92400e; }
+.text-yellow-500 { color: #713f12; }
+.text-blue-500 { color: #172554; }
+
+/* --- DARK MODE OVERRIDES --- */
+.dark .adaptive-panel { background-color: var(--bg-dark-panel); border-color: var(--border-dark); }
+.dark .adaptive-text-strong { color: var(--text-dark-strong); }
+.dark .adaptive-text-medium { color: var(--text-dark-medium); }
+.dark .positive { color: #4ade80; }
+.dark .negative { color: #f87171; }
+.dark .status-chop { color: #fcd34d; }
+.dark .text-yellow-500 { color: #f59e0b; }
+.dark .text-blue-500 { color: #3b82f6; }
     </style>
 </head>
 <body class="antialiased">
@@ -1719,26 +1754,47 @@
         }
     }
 // ===================================================================================================================================================================================================================================================================================
+    async function fetchWithTimeout(url, options = {}, timeout = 8000) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(id);
+            if (!response.ok) {
+                const errorBody = await response.text().catch(() => 'Unknown API Error');
+                try {
+                    const errorJson = JSON.parse(errorBody);
+                    throw new Error(`API Error (${response.status}): ${errorJson.errors?.[0]?.title || errorJson.error?.message || errorBody}`);
+                } catch (e) {
+                     throw new Error(`API Error (${response.status}): ${errorBody}`);
+                }
+            }
+            return response;
+        } catch (error) {
+            clearTimeout(id);
+            if (error.name === 'AbortError') {
+                throw new Error(`Request timed out after ${timeout / 1000} seconds.`);
+            }
+            throw error;
+        }
+    }
+// ===================================================================================================================================================================================================================================================================================
     async function fetchAllAggregateTrades(symbol, marketType, startTime, endTime) {
         const params = { symbol, startTime, endTime, limit: 1000 };
         return await fetchBinanceAPIData('aggTrades', params, marketType);
     }
 // ===================================================================================================================================================================================================================================================================================
-    async function fetchCoinGeckoData(coinId) {
-        if (!coinId) return null;
-        const url = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
-        try {
-            const response = await fetch(url);
-            if (!response.ok) return null;
-            return response.json();
-        } catch (error) { return null; }
-    }
+
 // ===================================================================================================================================================================================================================================================================================
    
 // ===================================================================================================================================================================================================================================================================================
     async function getCoinGeckoId(baseAssetSymbol) {
         if (!coinListCache) {
-            const response = await fetch('https://api.coingecko.com/api/v3/coins/list');
+            // DIUBAH: Menggunakan fetchWithTimeout
+            const response = await fetchWithTimeout('https://api.coingecko.com/api/v3/coins/list', {}, 8000); 
             if (!response.ok) throw new Error('Gagal unduh daftar koin CoinGecko.');
             coinListCache = await response.json();
         }
@@ -1766,6 +1822,16 @@
         } catch (e) { console.error("Pencarian cerdas gagal:", e); }
 
         throw new Error(`Simbol "${baseAssetSymbol}" tidak ditemukan di CoinGecko.`);
+    }
+    async function fetchCoinGeckoData(coinId) {
+        if (!coinId) return null;
+        const url = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
+        try {
+            // DIUBAH: Menggunakan fetchWithTimeout
+            const response = await fetchWithTimeout(url, {}, 5000); 
+            if (!response.ok) return null;
+            return response.json();
+        } catch (error) { return null; }
     }
 // ===================================================================================================================================================================================================================================================================================
     async function initializeExchangeInfo(marketType) {
@@ -2745,7 +2811,8 @@
         const baseUrl = 'https://api.geckoterminal.com/api/v2';
         const url = `${baseUrl}/${endpoint}`;
         try {
-            const response = await fetch(url);
+            // DIUBAH: Menggunakan fetchWithTimeout
+            const response = await fetchWithTimeout(url, {}, 5000);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`GeckoTerminal API error: ${errorData.errors?.[0]?.title || response.statusText}`);
@@ -2785,77 +2852,85 @@
 // ===================================================================================================================================================================================================================================================================================
 // runFullAnalysis 
 // ===================================================================================================================================================================================================================================================================================
-    async function runFullAnalysis(symbol = null) {
-        if (candleCountdownInterval) clearInterval(candleCountdownInterval);
-        adaptIndicatorParamsToTimeframe(timeframeSelect.value);
-        WebSocketManager.registerHandler('kline', (message) => klineQueue.push(message));
-        WebSocketManager.registerHandler('aggTrade', (trade) => tradeQueue.push(trade));
-        WebSocketManager.registerHandler('depthUpdate', (data) => depthQueue.push(data));
-        orderBookDOMElements = null;
-        hideError();
-        showLoader(true, 'Please Wait! Analyzing.............');
+async function runFullAnalysis(symbol = null) {
+    if (candleCountdownInterval) clearInterval(candleCountdownInterval);
+    adaptIndicatorParamsToTimeframe(timeframeSelect.value);
+    WebSocketManager.registerHandler('kline', (message) => klineQueue.push(message));
+    WebSocketManager.registerHandler('aggTrade', (trade) => tradeQueue.push(trade));
+    WebSocketManager.registerHandler('depthUpdate', (data) => depthQueue.push(data));
+    orderBookDOMElements = null;
+    hideError();
+    showLoader(true, 'Please Wait! Analyzing.............');
 
-        specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
-        specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Mencari data on-chain...</p>`;
-        trendingPoolsContent.innerHTML = `<div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div>`;
+    specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
+    specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Mencari data on-chain...</p>`;
+    trendingPoolsContent.innerHTML = `<div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div>`;
+    
+    try {
+        const aiContentContainer = document.getElementById('ai-content-container');
+        if (aiContentContainer) aiContentContainer.classList.add('hidden');
+        const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
+        if (comprehensiveBtn) {
+            const btnText = comprehensiveBtn.querySelector('span');
+            const btnLoader = comprehensiveBtn.querySelector('.loader');
+            btnText.classList.remove('hidden');
+            btnLoader.classList.add('hidden');
+            comprehensiveBtn.disabled = false;
+        }
+
+        const binanceSymbol = (symbol || assetInput.value.trim() || 'BTCUSDT').toUpperCase();
+        if (symbol) { assetInput.value = symbol; }
         
-        try {
-            const aiContentContainer = document.getElementById('ai-content-container');
-            if (aiContentContainer) aiContentContainer.classList.add('hidden');
-            const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
-            if (comprehensiveBtn) {
-                const btnText = comprehensiveBtn.querySelector('span');
-                const btnLoader = comprehensiveBtn.querySelector('.loader');
-                btnText.classList.remove('hidden');
-                btnLoader.classList.add('hidden');
-                comprehensiveBtn.disabled = false;
+        const correlationAsset = document.getElementById('correlation-asset-input').value.trim().toUpperCase() || 'BTCUSDT';
+        const marketType = marketTypeSelect.value;
+        const selectedTimeframe = timeframeSelect.value;
+        
+        await validateBinanceSymbol(binanceSymbol, marketType);
+        showLoader(true, 'Fetching Market Data...');
+        const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
+
+        // PERBAIKAN ALUR DATA #1: Inisialisasi 'wadah' jika belum ada
+        if (!realtimeCache.main.multiTfKlines) {
+            realtimeCache.main.multiTfKlines = {};
+        }
+        const defaultDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
+        if (selectedTimeframe !== defaultDumpTf) {
+            try {
+                const dumpTfKlines = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: defaultDumpTf, limit: 200 }, marketType);
+                realtimeCache.main.multiTfKlines[defaultDumpTf] = dumpTfKlines;
+            } catch (e) {
+                console.warn(`Gagal pre-fetch data untuk ${defaultDumpTf}:`, e);
             }
+        }
 
-            const binanceSymbol = (symbol || assetInput.value.trim() || 'BTCUSDT').toUpperCase();
+        let promisesToRun = [
+            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType), 
+            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1h', limit: 200 }, marketType), 
+            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '15m', limit: 200 }, marketType), 
+            fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType),
+            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType),
+            fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot'),
+            fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
+            fetchWithTimeout('https://api.coingecko.com/api/v3/global', {}, 5000).then(res => res.json()),
+            (async () => {
+                try {
+                    const coinGeckoId = await getCoinGeckoId(baseAsset);
+                    return await fetchCoinGeckoData(coinGeckoId);
+                } catch (e) {
+                    console.warn(`Gagal mengambil data CoinGecko: ${e.message}`);
+                    return null; 
+                }
+            })(),
+        ];
 
-            if (symbol) { 
-                assetInput.value = symbol;
-            }
-            
-            const correlationAsset = document.getElementById('correlation-asset-input').value.trim().toUpperCase() || 'BTCUSDT';
-            const marketType = marketTypeSelect.value;
-            const selectedTimeframe = timeframeSelect.value;
-            
-            // Validasi Simbol
-            await validateBinanceSymbol(binanceSymbol, marketType);
-
-            showLoader(true, 'Fetching Market Data...');
-            const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
-
-            let promisesToRun = [
-                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType), 
-                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1h', limit: 200 }, marketType), 
-                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '15m', limit: 200 }, marketType), 
-                fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType),
-                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType),
-                fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot'),
-                fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
-                fetch('https://api.coingecko.com/api/v3/global').then(res => res.json()),
-                
-                (async () => {
-                    try {
-                        const coinGeckoId = await getCoinGeckoId(baseAsset);
-                        return await fetchCoinGeckoData(coinGeckoId);
-                    } catch (e) {
-                        console.warn(`Gagal mengambil data CoinGecko: ${e.message}`);
-                        return null; 
-                    }
-                })(),
-            ];
-
-            if (marketType === 'futures') {
-                promisesToRun.push(
-                    fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures'),
-                    fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures'),
-                    fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json()),
-                    fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json())
-                );
-            }
+        if (marketType === 'futures') {
+            promisesToRun.push(
+                fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures'),
+                fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures'),
+                fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json()),
+                fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json())
+            );
+        }
 
         const results = await Promise.allSettled(promisesToRun);
 
@@ -2866,206 +2941,160 @@
         const assetDailyKlines = results[4].status === 'fulfilled' ? results[4].value : null;
         const btcDailyKlines = results[5].status === 'fulfilled' ? results[5].value : null;
         const orderBookData = results[6].status === 'fulfilled' ? results[6].value : null;
-        // Indeks setelah ini disesuaikan karena fetchUsdToIdrRate (bekas indeks 7) telah dihapus
-        const globalData = results[7].status === 'fulfilled' ? results[7].value : null;      // <-- DIUBAH ke 7
-        const coinGeckoData = results[8].status === 'fulfilled' ? results[8].value : null;   // <-- DIUBAH ke 8
-
-
+        const globalData = results[7].status === 'fulfilled' ? results[7].value : null;
+        const coinGeckoData = results[8].status === 'fulfilled' ? results[8].value : null;
         let openInterestData = null, fundingRateData = null, lsRatioUmumData = null, lsRatioTopData = null;
-      if (marketType === 'futures' && results.length > 9) { // <-- Ubah 10 menjadi 9
-            openInterestData = results[9].status === 'fulfilled' ? results[9].value : null;   // <-- Ubah 10 menjadi 9
-            fundingRateData = results[10].status === 'fulfilled' ? results[10].value : null;  // <-- Ubah 11 menjadi 10
-            lsRatioUmumData = results[11].status === 'fulfilled' ? results[11].value : null;  // <-- Ubah 12 menjadi 11
-            lsRatioTopData = results[12].status === 'fulfilled' ? results[12].value : null;   // <-- Ubah 13 menjadi 12
+        
+        if (marketType === 'futures' && results.length > 9) {
+            openInterestData = results[9].status === 'fulfilled' ? results[9].value : null;
+            fundingRateData = results[10].status === 'fulfilled' ? results[10].value : null;
+            lsRatioUmumData = results[11].status === 'fulfilled' ? results[11].value : null;
+            lsRatioTopData = results[12].status === 'fulfilled' ? results[12].value : null;
         }
-
-        // ======================= AWAL BLOK PERBAIKAN =======================
-        realtimeCache.main.multiTfKlines = {};
-        const defaultDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
-        if (selectedTimeframe !== defaultDumpTf) {
-            console.log(`Pre-fetching data untuk default dump TF: ${defaultDumpTf}`);
-            try {
-                const dumpTfKlines = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: defaultDumpTf, limit: 200 }, marketType);
-                // Simpan data ini ke dalam "wadah" multi-timeframe
-                realtimeCache.main.multiTfKlines[defaultDumpTf] = dumpTfKlines;
-            } catch (e) {
-                console.warn(`Gagal pre-fetch data untuk ${defaultDumpTf}:`, e);
-            }
-        }
-        // ======================= AKHIR BLOK PERBAIKAN =======================
 
         if (!klines || !tickerData) {
             throw new Error("Gagal memuat data esensial (Kline & Ticker) dari Binance. Coba lagi.");
         }
-
-            klineCache[binanceSymbol + selectedTimeframe] = { data: klines, timestamp: Date.now() };
-
-            let correlationValue = null;
-            if (binanceSymbol !== 'BTCUSDT' && assetDailyKlines && btcDailyKlines && assetDailyKlines.length === btcDailyKlines.length) {
-                correlationValue = calculateCorrelation(assetDailyKlines.map(k=>parseFloat(k[4])), btcDailyKlines.map(k=>parseFloat(k[4])));
-            }
-
-            realtimeCache.main = { 
-                symbol: binanceSymbol,
-                tickerData, 
-                klines,
-                klines1h,
-                klines15m, 
-                orderBookData, 
-                globalData, 
-                coinGeckoData, 
-                openInterestData, 
-                fundingRateData, 
-                lsRatioUmumData, 
-                lsRatioTopData, 
-                binanceSymbol, 
-                selectedTimeframe, 
-                correlationData: correlationValue,
-                multiTfKlines: {
-                    [selectedTimeframe]: klines 
-                },
-                liveScores: { pumpStrength: 0, dumpRisk: 0 }
-            };
-
-            showLoader(true, 'Calculating Data...');
-            
-            const allTrades = await fetchBinanceAPIData('aggTrades', { symbol: binanceSymbol, limit: 1000 }, marketType);
-            const cvdData = calculateCVD(allTrades);
-            realtimeCache.main.cvdData = cvdData;
-
-            realtimeCache.main.calculatedData = recalculateAllIndicators(
-                klines,
-                tickerData,
-                assetDailyKlines[assetDailyKlines.length - 2],
-                marketType,
-                cvdData,
-                orderBookData,
-                fundingRateData,
-                lsRatioUmumData,
-                openInterestData
-            );
-
-            const tfAlignmentSummary = await createTFAlignmentSummary(binanceSymbol, marketType);
-            realtimeCache.main.tfAlignmentSummary = tfAlignmentSummary;
-            const marketRegime = determineMarketRegime(klines, klines.map(k => parseFloat(k[4])));
-            realtimeCache.main.marketRegime = marketRegime;
-
-            updateDashboardUI();
-            startCandleCountdown(); 
-            document.getElementById('scalping-setup-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            const navPriceEl = document.getElementById('nav-price');
-            if (navPriceEl) {
-                navPriceEl.textContent = formatPrice(parseFloat(tickerData.lastPrice));
-            }
-            
-            if (orderBookData) {
-                latestBids = orderBookData.bids;
-                latestAsks = orderBookData.asks;
-                const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
-                const precision = getPrecisionForAsset(parseFloat(latestPrice));
-                const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
-                renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
-            }
-
-            const symbolLower = binanceSymbol.toLowerCase();
-            const mainTfStream = `${symbolLower}@kline_${selectedTimeframe}`;
-            const dumpTf = document.getElementById('dump-trigger-timeframe-select').value;
-            const dumpTfStream = `${symbolLower}@kline_${dumpTf}`;
-
-            // Siapkan stream dasar
-            const streamsToSub = [
-                mainTfStream,
-                `${symbolLower}@aggTrade`,
-                `${symbolLower}@depth20@100ms`
-            ];
-
-            // Tambahkan stream untuk dump TF HANYA JIKA berbeda dari main TF
-            if (mainTfStream !== dumpTfStream) {
-                streamsToSub.push(dumpTfStream);
-            }
-
-            WebSocketManager.subscribe(streamsToSub);
-
-            (async () => {
-                try {
-                    const searchQuery = (await getCoinGeckoId(baseAsset).then(id => fetchCoinGeckoData(id)).catch(() => null))?.platforms?.ethereum || baseAsset;
-                    specificTokenTitle.innerHTML = `Analisis Token: <span class="text-white">${baseAsset.toUpperCase()}</span>`;
-                    const searchResult = await fetchGeckoTerminal(`search/pools?query=${searchQuery}`);
-                    if (searchResult.data && searchResult.data.length > 0) {
-                        searchResult.data.sort((a, b) => parseFloat(b.attributes.reserve_in_usd) - parseFloat(a.attributes.reserve_in_usd));
-                        const topPool = searchResult.data[0];
-                        const attrs = topPool.attributes;
-                        const networkName = topPool.id.split('_')[0];
-                        const dexName = topPool.relationships?.dex?.data?.id.split('_').join(' ') || attrs.name.split(' ').pop();
-                        if (networkName.includes('sepolia')) {
-                            document.getElementById('onchain-card').style.display = 'none';
-                            return;
-                        } else {
-                            document.getElementById('onchain-card').style.display = 'block';
-                        }
-                        specificTokenTitle.innerHTML = `Analisis Token: <span class="text-white">${baseAsset.toUpperCase()}</span> <span class="text-xs text-gray-400 capitalize">(${networkName} / ${dexName})</span>`;
-                        const price = formatPrice(parseFloat(attrs.base_token_price_usd));
-                        const volume = (parseFloat(attrs.volume_usd.h24) / 1000000).toFixed(2);
-                        const liquidity = attrs.reserve_in_usd ? (parseFloat(attrs.reserve_in_usd) / 1000000).toFixed(2) : 'N/A';
-                        let staticContentHtml = `<div class="flex justify-between items-baseline"><span class="text-gray-500 capitalize">Harga DEX (${dexName})</span><span class="font-bold text-lg text-yellow-400">${price}</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Volume 24j DEX</span><span>$${volume}jt</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Likuiditas Pool</span><span>$${liquidity}jt</span></div>`;
-                        specificTokenContent.innerHTML = staticContentHtml;
-                        try {
-                            const poolAddress = attrs.address;
-                            const tradesData = await fetchGeckoTerminal(`networks/${networkName}/pools/${poolAddress}/trades`);
-                            const tradeEvents = tradesData.data.filter(trade => trade.attributes.kind === 'buy' || trade.attributes.kind === 'sell').map(trade => ({ kind: trade.attributes.kind, usd: parseFloat(trade.attributes.volume_in_usd), price: parseFloat(trade.attributes.price_in_usd || attrs.base_token_price_usd), time: new Date(trade.attributes.block_timestamp), trader: trade.attributes.tx_from_address, network: topPool.id.split('_')[0] })).filter(event => event.usd >= 5000).slice(0, 100);
-                            if (tradeEvents.length > 0) {
-                                let buyVolume = 0, sellVolume = 0;
-                                let buyCount = 0, sellCount = 0;
-                                tradeEvents.forEach(event => { if (event.kind === 'buy') { buyVolume += event.usd; buyCount++; } else { sellVolume += event.usd; sellCount++; } });
-                                realtimeCache.main.onChainSummary = { totalBuyVolume: buyVolume, totalSellVolume: sellVolume, buyTransactions: buyCount, sellTransactions: sellCount, sentiment: buyVolume > sellVolume ? 'Dominan Beli' : 'Dominan Jual', netVolume: buyVolume - sellVolume };
-                                let html = '<hr class="border-slate-700/50 my-3"/><h4 class="text-lg font-semibold mb-2">100 Trans Terbaru di DEX >$5000 </h4>';
-                                tradeEvents.forEach(event => {
-                                    const category = getHolderCategory(event.usd);
-                                    const timeAgo = getTimeAgo(event.time);
-                                    const specificTime = event.time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                                    const walletLink = `https://dexcheck.ai/app/wallet-analyzer/${event.trader}`;
-                                    const bgColor = event.kind === 'buy' ? 'bg-green-900/40 dark:bg-green-800/20' : 'bg-red-900/40 dark:bg-red-800/20';
-                                    const amountColor = event.kind === 'buy' ? 'text-green-400' : 'text-red-400';
-                                    const icon = event.kind === 'buy' ? '🟢' : '🔴';
-                                    const actionText = event.kind === 'buy' ? 'BELI' : 'JUAL';
-                                    html += `<div class="p-2 rounded-md ${bgColor}"><div class="flex justify-between items-center font-semibold"><span>${icon} ${actionText}</span><span class="${amountColor}">$${event.usd.toLocaleString('en-US', {maximumFractionDigits: 0})}</span></div><div class="text-xs text-gray-400 flex justify-between items-center mt-1"><span class="${category.class} font-bold">[${category.name}]</span><span class="font-mono text-yellow-400">@ ${formatPrice(event.price)}</span><span>${timeAgo} <span class="text-gray-500">(${specificTime})</span></span><a href="${walletLink}" target="_blank" class="underline hover:text-white">Lihat Dompet 🔗</a></div></div>`;
-                                });
-                                specificTokenContent.innerHTML += html;
-                            } else {
-                            realtimeCache.main.onChainSummary = null;
-                            specificTokenContent.innerHTML += `<p class="text-xs text-gray-500 text-center pt-2">NONE transaksi jual/beli signifikan baru-baru ini.</p>`;
-                            }
-                        } catch (tradeError) {
-                            specificTokenContent.innerHTML += `<p class="text-xs text-red-500 text-center pt-2">Gagal memuat jejak trader: ${tradeError.message}</p>`;
-                        }
-                    } else {
-                        specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Tidak ditemukan pool on-chain untuk ${baseAsset.toUpperCase()}.</p>`;
-                    }
-                } catch (dexError) {
-                    specificTokenContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data token spesifik: ${dexError.message}</p>`;
-                }
-            })();
-
-            (async () => {
-                try {
-                    const trendingData = await fetchGeckoTerminal('networks/trending_pools');
-                    renderTrendingPools(trendingData.data);
-                } catch (trendingError) {
-                    trendingPoolsContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data trending: ${trendingError.message}</p>`;
-                }
-            })();
-        } catch (error) {
-            console.error("Analisis Gagal:", error);
-            showError(error.message);
-        } finally {
-            showLoader(false);
-            if (periodicUpdateInterval) clearInterval(periodicUpdateInterval);
-            if (processingInterval) clearInterval(processingInterval);
-            periodicUpdateInterval = setInterval(updatePeriodicData, 300000);
-            processingInterval = setInterval(processQueues, 500);
+        
+        klineCache[binanceSymbol + selectedTimeframe] = { data: klines, timestamp: Date.now() };
+        let correlationValue = null;
+        if (binanceSymbol !== 'BTCUSDT' && assetDailyKlines && btcDailyKlines && assetDailyKlines.length === btcDailyKlines.length) {
+            correlationValue = calculateCorrelation(assetDailyKlines.map(k=>parseFloat(k[4])), btcDailyKlines.map(k=>parseFloat(k[4])));
         }
+
+        // PERBAIKAN ALUR DATA #2: Simpan data pre-fetch, buat cache baru, lalu gabungkan
+        const preFetchedKlines = realtimeCache.main.multiTfKlines || {};
+        realtimeCache.main = { 
+            symbol: binanceSymbol, tickerData, klines, klines1h, klines15m, orderBookData, 
+            globalData, coinGeckoData, openInterestData, fundingRateData, lsRatioUmumData, 
+            lsRatioTopData, binanceSymbol, selectedTimeframe, correlationData: correlationValue,
+            liveScores: { pumpStrength: 0, dumpRisk: 0 }
+        };
+        realtimeCache.main.multiTfKlines = {
+            ...preFetchedKlines,
+            [selectedTimeframe]: klines
+        };
+
+        showLoader(true, 'Calculating Data...');
+        const allTrades = await fetchBinanceAPIData('aggTrades', { symbol: binanceSymbol, limit: 1000 }, marketType);
+        const cvdData = calculateCVD(allTrades);
+        realtimeCache.main.cvdData = cvdData;
+
+        realtimeCache.main.calculatedData = recalculateAllIndicators(
+            klines, tickerData, assetDailyKlines?.[assetDailyKlines.length - 2], marketType,
+            cvdData, orderBookData, fundingRateData, lsRatioUmumData, openInterestData
+        );
+
+        const tfAlignmentSummary = await createTFAlignmentSummary(binanceSymbol, marketType);
+        realtimeCache.main.tfAlignmentSummary = tfAlignmentSummary;
+        const marketRegime = determineMarketRegime(klines, klines.map(k => parseFloat(k[4])));
+        realtimeCache.main.marketRegime = marketRegime;
+
+        updateDashboardUI();
+        startCandleCountdown(); 
+        document.getElementById('scalping-setup-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        const navPriceEl = document.getElementById('nav-price');
+        if (navPriceEl) {
+            navPriceEl.textContent = formatPrice(parseFloat(tickerData.lastPrice));
+        }
+        
+        if (orderBookData) {
+            latestBids = orderBookData.bids;
+            latestAsks = orderBookData.asks;
+            const latestPrice = latestBids?.[0]?.[0] || latestAsks?.[0]?.[0] || 0;
+            const precision = getPrecisionForAsset(parseFloat(latestPrice));
+            const wallInfo = detectAndDisplayWall(latestBids, latestAsks);
+            renderFullOrderBook(latestBids, latestAsks, wallInfo, precision);
+        }
+
+        const symbolLower = binanceSymbol.toLowerCase();
+        const mainTfStream = `${symbolLower}@kline_${selectedTimeframe}`;
+        const dumpTf = document.getElementById('dump-trigger-timeframe-select').value;
+        const dumpTfStream = `${symbolLower}@kline_${dumpTf}`;
+        const streamsToSub = [ mainTfStream, `${symbolLower}@aggTrade`, `${symbolLower}@depth20@100ms` ];
+        if (mainTfStream !== dumpTfStream) { streamsToSub.push(dumpTfStream); }
+        WebSocketManager.subscribe(streamsToSub);
+
+        (async () => {
+            try {
+                const searchQuery = (await getCoinGeckoId(baseAsset).then(id => fetchCoinGeckoData(id)).catch(() => null))?.platforms?.ethereum || baseAsset;
+                specificTokenTitle.innerHTML = `Analisis Token: <span class="text-white">${baseAsset.toUpperCase()}</span>`;
+                const searchResult = await fetchGeckoTerminal(`search/pools?query=${searchQuery}`);
+                if (searchResult.data && searchResult.data.length > 0) {
+                    searchResult.data.sort((a, b) => parseFloat(b.attributes.reserve_in_usd) - parseFloat(a.attributes.reserve_in_usd));
+                    const topPool = searchResult.data[0];
+                    const attrs = topPool.attributes;
+                    const networkName = topPool.id.split('_')[0];
+                    const dexName = topPool.relationships?.dex?.data?.id.split('_').join(' ') || attrs.name.split(' ').pop();
+                    if (networkName.includes('sepolia')) {
+                        document.getElementById('onchain-card').style.display = 'none';
+                        return;
+                    } else {
+                        document.getElementById('onchain-card').style.display = 'block';
+                    }
+                    specificTokenTitle.innerHTML = `Analisis Token: <span class="text-white">${baseAsset.toUpperCase()}</span> <span class="text-xs text-gray-400 capitalize">(${networkName} / ${dexName})</span>`;
+                    const price = formatPrice(parseFloat(attrs.base_token_price_usd));
+                    const volume = (parseFloat(attrs.volume_usd.h24) / 1000000).toFixed(2);
+                    const liquidity = attrs.reserve_in_usd ? (parseFloat(attrs.reserve_in_usd) / 1000000).toFixed(2) : 'N/A';
+                    let staticContentHtml = `<div class="flex justify-between items-baseline"><span class="text-gray-500 capitalize">Harga DEX (${dexName})</span><span class="font-bold text-lg text-yellow-400">${price}</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Volume 24j DEX</span><span>$${volume}jt</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Likuiditas Pool</span><span>$${liquidity}jt</span></div>`;
+                    specificTokenContent.innerHTML = staticContentHtml;
+                    try {
+                        const poolAddress = attrs.address;
+                        const tradesData = await fetchGeckoTerminal(`networks/${networkName}/pools/${poolAddress}/trades`);
+                        const tradeEvents = tradesData.data.filter(trade => trade.attributes.kind === 'buy' || trade.attributes.kind === 'sell').map(trade => ({ kind: trade.attributes.kind, usd: parseFloat(trade.attributes.volume_in_usd), price: parseFloat(trade.attributes.price_in_usd || attrs.base_token_price_usd), time: new Date(trade.attributes.block_timestamp), trader: trade.attributes.tx_from_address, network: topPool.id.split('_')[0] })).filter(event => event.usd >= 5000).slice(0, 100);
+                        if (tradeEvents.length > 0) {
+                            let buyVolume = 0, sellVolume = 0;
+                            let buyCount = 0, sellCount = 0;
+                            tradeEvents.forEach(event => { if (event.kind === 'buy') { buyVolume += event.usd; buyCount++; } else { sellVolume += event.usd; sellCount++; } });
+                            realtimeCache.main.onChainSummary = { totalBuyVolume: buyVolume, totalSellVolume: sellVolume, buyTransactions: buyCount, sellTransactions: sellCount, sentiment: buyVolume > sellVolume ? 'Dominan Beli' : 'Dominan Jual', netVolume: buyVolume - sellVolume };
+                            let html = '<hr class="border-slate-700/50 my-3"/><h4 class="text-lg font-semibold mb-2">100 Trans Terbaru di DEX >$5000 </h4>';
+                            tradeEvents.forEach(event => {
+                                const category = getHolderCategory(event.usd);
+                                const timeAgo = getTimeAgo(event.time);
+                                const specificTime = event.time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                                const walletLink = `https://dexcheck.ai/app/wallet-analyzer/${event.trader}`;
+                                const bgColor = event.kind === 'buy' ? 'bg-green-100 dark:bg-green-800/20' : 'bg-red-100 dark:bg-red-800/20';
+                                const amountColor = event.kind === 'buy' ? 'text-green-400' : 'text-red-400';
+                                const icon = event.kind === 'buy' ? '🟢' : '🔴';
+                                const actionText = event.kind === 'buy' ? 'BELI' : 'JUAL';
+                                html += `<div class="p-2 rounded-md ${bgColor}"><div class="flex justify-between items-center font-semibold"><span>${icon} ${actionText}</span><span class="${amountColor}">$${event.usd.toLocaleString('en-US', {maximumFractionDigits: 0})}</span></div><div class="text-xs text-gray-400 flex justify-between items-center mt-1"><span class="${category.class} font-bold">[${category.name}]</span><span class="font-mono text-yellow-400">@ ${formatPrice(event.price)}</span><span>${timeAgo} <span class="text-gray-500">(${specificTime})</span></span><a href="${walletLink}" target="_blank" class="underline hover:text-white">Lihat Dompet 🔗</a></div></div>`;
+                            });
+                            specificTokenContent.innerHTML += html;
+                        } else {
+                        realtimeCache.main.onChainSummary = null;
+                        specificTokenContent.innerHTML += `<p class="text-xs text-gray-500 text-center pt-2">NONE transaksi jual/beli signifikan baru-baru ini.</p>`;
+                        }
+                    } catch (tradeError) {
+                        specificTokenContent.innerHTML += `<p class="text-xs text-red-500 text-center pt-2">Gagal memuat jejak trader: ${tradeError.message}</p>`;
+                    }
+                } else {
+                    specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Tidak ditemukan pool on-chain untuk ${baseAsset.toUpperCase()}.</p>`;
+                }
+            } catch (dexError) {
+                specificTokenContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data token spesifik: ${dexError.message}</p>`;
+            }
+        })();
+
+        (async () => {
+            try {
+                const trendingData = await fetchGeckoTerminal('networks/trending_pools');
+                renderTrendingPools(trendingData.data);
+            } catch (trendingError) {
+                trendingPoolsContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data trending: ${trendingError.message}</p>`;
+            }
+        })();
+    } catch (error) {
+        console.error("Analisis Gagal:", error);
+        showError(error.message);
+    } finally {
+        showLoader(false);
+        if (periodicUpdateInterval) clearInterval(periodicUpdateInterval);
+        if (processingInterval) clearInterval(processingInterval);
+        periodicUpdateInterval = setInterval(updatePeriodicData, 300000);
+        processingInterval = setInterval(processQueues, 500);
     }
+}
 // ===========end of async function runFullAnalysis(symbol = null) {====================================================================================================
 // ===================================================================================================================================================================================================================================================================================
     async function getConfluenceScoreForSymbol(symbol) {
@@ -3955,71 +3984,11 @@
 // ===================================================================================================================================================================================================================================================================================
     
 // ===================================================================================================================================================================================================================================================================================
-    function calculateBollingerBands_forPlot(closes, period = 20, stdDev = 2, klines) {
-        if (closes.length < period) return { upper: [], middle: [], lower: [] };
-        const middle = calculateSMA(closes, period);
-        const upper = [], middleData = [], lower = [];
-        for (let i = period - 1; i < closes.length; i++) {
-            if (middle[i] === undefined) {
-                upper.push(undefined);
-                lower.push(undefined);
-                continue;
-            }
-            const slice = closes.slice(i - period + 1, i + 1);
-            const sumSquaredDiff = slice.reduce((a, b) => a + Math.pow(b - middle[i], 2), 0);
-            const stdev = Math.sqrt(sumSquaredDiff / period);
-            const time = klines[i][0] / 1000;
-            upper.push({ time, value: middle[i] + (stdev * stdDev) });
-            lower.push({ time, value: middle[i] - (stdev * stdDev) });
-            middleData.push({ time, value: middle[i] });
-        }
-        return { upper: upper.filter(d => d), middle: middleData.filter(d => d.value !== undefined), lower: lower.filter(d => d) };
-    }
+    
 // ===================================================================================================================================================================================================================================================================================
-    function calculateROC_forPlot(closes, period = 12) {
-        if (closes.length < period + 1) return [];
-        const rocData = [];
-        for (let i = period; i < closes.length; i++) {
-            const currentClose = closes[i];
-            const pastClose = closes[i - period];
-            if (pastClose !== 0) {
-                const roc = ((currentClose - pastClose) / pastClose) * 100;
-                rocData.push({ time: realtimeCache.main.klines[i][0] / 1000, value: roc });
-            }
-        }
-        return rocData;
-    }
+    
 // ===================================================================================================================================================================================================================================================================================
-    function calculateLinearRegressionChannel_forPlot(klines, period = 14, stdDev = 2) {
-        const closes = klines.map(k => parseFloat(k[4]));
-        if (closes.length < period) return { upper: [], middle: [], lower: [] };
-        const upper = [], middle = [], lower = [];
-        for (let i = period - 1; i < closes.length; i++) {
-            const y = closes.slice(i - period + 1, i + 1);
-            const n = period; 
-            const sumX = (n * (n - 1)) / 2;
-            const sumY = y.reduce((a, b) => a + b, 0);
-            const sumXY = y.reduce((acc, val, j) => acc + val * j, 0);
-            const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
-            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-            const intercept = (sumY - slope * sumX) / n;
-            
-            // Calculate Standard Deviation from regression error
-            let sumErrSq = 0;
-            for (let j = 0; j < n; j++) {
-                const predictedY = intercept + slope * j;
-                sumErrSq += Math.pow(y[j] - predictedY, 2);
-            }
-            const stdErr = Math.sqrt(sumErrSq / (n - 2));
-
-            const middleValue = intercept + slope * (n - 1);
-            middle.push({ time: klines[i][0] / 1000, value: middleValue });
-            upper.push({ time: klines[i][0] / 1000, value: middleValue + (stdDev * stdErr) });
-            lower.push({ time: klines[i][0] / 1000, value: middleValue - (stdDev * stdErr) }); 
-        }
-        return { upper, middle, lower };
-    }
-
+    
 // ===================================================================================================================================================================================================================================================================================
     function analyzeBollingerBandsPriceAction(klines, bbData) {
         if (!klines || klines.length < 2 || !bbData || bbData.upper.length < 2) {
@@ -4368,51 +4337,7 @@
         return { upper, middle, lower, status };
     }
 // ===================================================================================================================================================================================================================================================================================
-    function calculateParabolicSAR_forPlot(klines, step = 0.02, max = 0.2) {
-        if (klines.length < 2) return [];
-        let sar = parseFloat(klines[0][3]);
-        let ep = parseFloat(klines[0][2]);
-        let af = step;
-        let isUptrend = true;
-        const sarData = [];
-
-        for (let i = 1; i < klines.length; i++) {
-            const time = klines[i][0] / 1000;
-            const high = parseFloat(klines[i][2]);
-            const low = parseFloat(klines[i][3]);
-            const prevSar = sar;
-
-            if (isUptrend) {
-                sar = prevSar + af * (ep - prevSar);
-                if (low < sar) {
-                    isUptrend = false;
-                    sar = ep;
-                    ep = low;
-                    af = step;
-                } else {
-                    if (high > ep) {
-                        ep = high;
-                        af = Math.min(max, af + step);
-                    }
-                }
-            } else { // Downtrend
-                sar = prevSar - af * (prevSar - ep);
-                if (high > sar) {
-                    isUptrend = true;
-                    sar = ep;
-                    ep = high;
-                    af = step;
-                } else {
-                    if (low < ep) {
-                        ep = low;
-                        af = Math.min(max, af + step);
-                    }
-                }
-            }
-            sarData.push({ time, value: sar });
-        }
-        return sarData;
-    }
+    
 // =====================================================================================================================================================================
     const calculateOBV = (klines) => {
         if (!klines || klines.length < 2) return [];
@@ -4779,7 +4704,7 @@
                 finalSortedGainers.forEach(d => d.dynamicPriceChange = parseFloat(d.priceChangePercent));
             }
 
-            // FUNGSI HELPER DIPINDAHKAN KE LUAR LOOP UNTUK EFISIENSI
+            // FUNGSI HELPER DIPINDAHKAN KE SINI AGAR LEBIH EFISIEN
             const calculateChange = (kData) => {
                 if (!kData || kData.length < 2) return 'N/A';
                 const prevClose = parseFloat(kData[0][4]);
@@ -4808,58 +4733,30 @@
                 };
             }));
 
-            // >>> AWAL BLOK PENAMBAHAN ASET PIN <<<
-    const pinnedAssets = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'SOLUSDT'];
-    
-    // Filter aset pin yang belum ada di daftar top movers untuk menghindari duplikat
-    const existingSymbols = new Set(gainersWithDetails.map(m => m.symbol));
-    const assetsToFetch = pinnedAssets.filter(symbol => !existingSymbols.has(symbol));
+            // BLOK PENAMBAHAN ASET PIN
+            const pinnedAssets = ['BTCUSDT', 'ETHUSDT', 'XRPUSDT', 'SOLUSDT'];
+            const existingSymbols = new Set(gainersWithDetails.map(m => m.symbol));
+            const assetsToFetch = pinnedAssets.filter(symbol => !existingSymbols.has(symbol));
 
-    if (assetsToFetch.length > 0) {
-        // Ambil data ticker untuk aset yang di-pin dari data yang sudah di-fetch
-        const pinnedTickers = usdtPairs.filter(d => assetsToFetch.includes(d.symbol));
-
-        // Ambil detail klines untuk aset yang di-pin (logika sama seperti top movers)
-        const pinnedAssetsWithDetails = await Promise.all(pinnedTickers.map(async (mover) => {
-            const [klines1h, klines15m, klines5m, aggTrades] = await Promise.all([
-                fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '1h', limit: 200 }, 'futures').catch(() => []),
-                fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '15m', limit: 2 }, 'futures').catch(() => null),
-                fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '5m', limit: 200 }, 'futures').catch(() => []),
-                fetchBinanceAPIData('aggTrades', { symbol: mover.symbol, limit: 1000 }, 'futures').catch(() => [])
-            ]);
-
-            realtimeCache.movers[mover.symbol] = { 
-                klines_1h: klines1h,
-                klines_5m: klines5m,
-                aggTrades: aggTrades,
-            };
-
-            // Dapatkan kembali fungsi helper 'calculateChange' jika tidak tersedia secara global
-            const calculateChange = (kData) => {
-                if (!kData || kData.length < 2) return 'N/A';
-                const prevClose = parseFloat(kData[0][4]);
-                const currentClose = parseFloat(kData[1][4]);
-                return prevClose > 0 ? (((currentClose - prevClose) / prevClose) * 100).toFixed(2) : '0.00';
-            };
-
-            return { 
-                ...mover, 
-                change1h: calculateChange(klines1h.slice(-2)), 
-                change15m: calculateChange(klines15m),
-                dynamicPriceChange: parseFloat(mover.priceChangePercent)
-            };
-        }));
-        
-        // Gabungkan daftar top movers dengan daftar aset yang di-pin
-        gainersWithDetails.push(...pinnedAssetsWithDetails);
-    }
-    // >>> AKHIR BLOK PENAMBAHAN ASET PIN <<<
-
-    
+            if (assetsToFetch.length > 0) {
+                const pinnedTickers = usdtPairs.filter(d => assetsToFetch.includes(d.symbol));
+                const pinnedAssetsWithDetails = await Promise.all(pinnedTickers.map(async (mover) => {
+                    const [klines1h, klines15m, klines5m, aggTrades] = await Promise.all([
+                        fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '1h', limit: 200 }, 'futures').catch(() => []),
+                        fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '15m', limit: 2 }, 'futures').catch(() => null),
+                        fetchBinanceAPIData('klines', { symbol: mover.symbol, interval: '5m', limit: 200 }, 'futures').catch(() => []),
+                        fetchBinanceAPIData('aggTrades', { symbol: mover.symbol, limit: 1000 }, 'futures').catch(() => [])
+                    ]);
+                    realtimeCache.movers[mover.symbol] = { klines_1h: klines1h, klines_5m: klines5m, aggTrades: aggTrades };
+                    return { ...mover, change1h: calculateChange(klines1h.slice(-2)), change15m: calculateChange(klines15m), dynamicPriceChange: parseFloat(mover.priceChangePercent) };
+                }));
+                gainersWithDetails.push(...pinnedAssetsWithDetails);
+            }
+            
             renderMoversList('gainers-list', gainersWithDetails, true, timeframe);
             
             if (losersList) {
-                // Logika untuk losers tetap di sini jika elemennya ada
+                // Logika untuk losers bisa ditambahkan di sini jika diperlukan
             }
 
             attachTopMoversListeners();
@@ -5410,21 +5307,41 @@
     }
 // ===================================================================================================================================================================================================================================================================================
     function attachTopMoversListeners() {
-        document.querySelectorAll("#gainers-list .mover-item").forEach(el => {
-            el.addEventListener("mouseenter", e => { showCustomTooltip(e.currentTarget); });
-            el.addEventListener("mouseleave", () => { hideCustomTooltip(); });
-            el.addEventListener("click", e => {
-                if (!el.classList.contains("tooltip-active")) {
+        const gainersList = document.getElementById('gainers-list');
+        if (!gainersList) return;
+
+        // Hapus listener lama untuk mencegah penumpukan (jika ada)
+        gainersList.replaceWith(gainersList.cloneNode(true));
+
+        // Pasang listener baru di induknya
+        document.getElementById('gainers-list').addEventListener('mouseover', (e) => {
+            const target = e.target.closest('.mover-item');
+            if (target) showCustomTooltip(target);
+        });
+
+        document.getElementById('gainers-list').addEventListener('mouseout', (e) => {
+            const target = e.target.closest('.mover-item');
+            if (target) hideCustomTooltip();
+        });
+
+        document.getElementById('gainers-list').addEventListener('click', (e) => {
+            const target = e.target.closest('.mover-item');
+            if (!target) return;
+
+            const symbolSpan = e.target.closest('span[onclick]');
+            if (symbolSpan) { // Jika yang diklik adalah nama simbol
+                runFullAnalysis(target.dataset.symbol);
+            } else { // Jika yang diklik adalah area lain di item
+                if (!target.classList.contains("tooltip-active")) {
                     document.querySelectorAll('.mover-item.tooltip-active').forEach(activeEl => activeEl.classList.remove('tooltip-active'));
-                    el.classList.add("tooltip-active");
-                    showCustomTooltip(e.currentTarget);
+                    target.classList.add("tooltip-active");
+                    showCustomTooltip(target);
                     e.stopPropagation();
                 } else {
-                    el.classList.remove("tooltip-active");
+                    target.classList.remove("tooltip-active");
                     hideCustomTooltip();
-                    runFullAnalysis(el.dataset.symbol);
                 }
-            });
+            }
         });
     }
 // ===================================================================================================================================================================================================================================================================================
