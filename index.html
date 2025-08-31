@@ -5572,39 +5572,28 @@ function tsHandleModeChange() {
 }
 
 // FUNGSI BARU UNTUK AUTO-FILL
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
 function autofillTrailingStopCalculator() {
     const setup = realtimeCache.main.latestScalpingSetup;
     const ticker = realtimeCache.main.tickerData;
     
+    // Logika utama: Jika tidak ada setup (NETRAL/CHOP), tampilkan peringatan dan berhenti.
     if (!setup || !ticker) {
-        alert("Harap jalankan 'GET DATA' dan dapatkan sinyal setup Long/Short terlebih dahulu.");
+        alert("JANGAN TRADING PASAR SIDEWAYS"); // <-- PERINGATAN BARU SESUAI PERMINTAAN
         return;
     }
 
-    // Tentukan apakah setupnya LONG atau SHORT dari setup scalping
+    // Kode di bawah ini hanya akan berjalan jika ada sinyal LONG/SHORT yang valid.
     const isLong = setup.entry < setup.tp1;
     
-    if (isLong) {
-        document.getElementById('ts-long').checked = true;
-    } else {
-        document.getElementById('ts-short').checked = true;
-    }
+    document.getElementById(isLong ? 'ts-long' : 'ts-short').checked = true;
     
-    // PERBAIKAN: Hapus baris yang memanggil kalkulator lama
-    // Kita akan auto-fill harga, sisanya bisa diisi manual oleh pengguna
     document.getElementById('ts-entryPrice').value = setup.entry.toFixed(4);
-    
-    // Auto-suggestion cerdas untuk harga aktivasi -> kita gunakan TP1 dari setup
     document.getElementById('ts-activationPrice').value = setup.tp1.toFixed(4);
-    
-    // Isi harga pasar saat ini
     document.getElementById('ts-marketPrice').value = parseFloat(ticker.lastPrice).toFixed(4);
     
-    // Beri fokus ke input Initial Margin agar pengguna tahu harus mengisi apa selanjutnya
     document.getElementById('ts-initialMargin').focus();
     
-    // Panggil fungsi kalkulasi untuk langsung menampilkan hasilnya
     tsHandleModeChange();
 }
 // ==============================================================
