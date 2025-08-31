@@ -358,6 +358,113 @@
             background: linear-gradient(to right, #fcd34d, #f59e0b, #ef4444); /* yellow to orange to red */
         }
         /* === CSS BARU UNTUK SKOR TENSI (SELESAI) === */
+        /* === CSS UNTUK KALKULATOR TRAILING STOP (MULAI) === */
+.calculator-container {
+    background-color: var(--card-color);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 600px;
+}
+.mode-selectors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+.selector-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border: 1px solid var(--border-color, #3a3f4a);
+    border-radius: 8px;
+    padding: 5px;
+}
+.selector-group label {
+    padding: 10px;
+    text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    font-weight: 500;
+    margin: 0;
+    font-size: 0.9em;
+}
+.selector-group input[type="radio"] {
+    display: none;
+}
+#ts-long:checked + label { background-color: var(--success-color, #2ebd85); color: white; }
+#ts-short:checked + label { background-color: var(--error-color, #f6465d); color: white; }
+#ts-isolated:checked + label, #ts-cross:checked + label { background-color: var(--accent-color, #f0b90b); color: var(--bg-color, #14151a); }
+.dark #ts-isolated:checked + label, .dark #ts-cross:checked + label { color: #1f2937; }
+
+.inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-group label { /* Menargetkan label di dalam form-group */
+    margin-bottom: 8px;
+    color: var(--secondary-text-color, #848e9c);
+    font-size: 0.9em;
+}
+.results-container {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border-color, #3a3f4a);
+}
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    font-size: 1.05em;
+    border-bottom: 1px solid var(--border-color, #3a3f4a);
+}
+.result-item:last-child { border-bottom: none; }
+.result-item span:first-child { color: var(--secondary-text-color, #848e9c); }
+.result-item span:last-child { font-weight: 600; }
+.dark .result-item span:first-child { color: #848e9c; }
+/* === CSS UNTUK KALKULATOR TRAILING STOP (SELESAI) === */
+/* --- PERBAIKAN WARNA TEKS INPUT FIELDS --- */
+/* Target semua input type number atau text di dalam form-group */
+.form-group input[type="number"],
+.form-group input[type="text"] {
+    color: var(--primary-text-color, #f0f4f8); /* Warna teks default (putih/light-gray) */
+    background-color: var(--input-bg-color, #272a31); /* Background input default */
+    border: 1px solid var(--border-color, #3a3f4a); /* Border default */
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 1em;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+
+/* Override untuk mode terang, jika ada */
+body.light .form-group input[type="number"],
+body.light .form-group input[type="text"] {
+    color: var(--dark-text-color, #1a202c); /* Teks gelap di mode terang */
+    background-color: var(--light-input-bg-color, #ffffff); /* Background putih di mode terang */
+    border: 1px solid var(--light-border-color, #e2e8f0); /* Border light di mode terang */
+}
+
+/* Placeholder text */
+.form-group input::placeholder {
+    color: var(--secondary-text-color, #848e9c);
+    opacity: 0.7; /* Sedikit lebih transparan */
+}
+
+/* Focus state */
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent-color, #f0b90b); /* Warna border saat fokus */
+    box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.2);
+}
     </style>
 </head>
 <body class="antialiased">
@@ -843,38 +950,89 @@
                                         <p class="text-center text-gray-500">Ask AI first....</p>
                                     </div>
                                 </section>
-                                <section id="risk-management-section" class="card p-6">
-                                    <button id="toggle-risk-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                        <h2 class="text-xl font-bold">CALC</h2>
-                                        <svg id="toggle-risk-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                <section id="trailing-stop-calc-section" class="card p-6">
+                                    <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                        <h2 class="text-xl font-bold">Kalkulator Trailing Stop</h2>
+                                        <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                     </button>
-                                    <div id="risk-content-wrapper" class="collapsible-content">
-                                    <div class="space-y-4 text-sm">
-                                    <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                    <label for="risk-amount-input" class="text-gray-400">Risiko per Trade ($)</label>
-                                    <input type="number" id="risk-amount-input" class="input-primary w-full text-center mt-1" value="100">
-                                    </div>
-                                    <div>
-                                    <label for="leverage-input" class="text-gray-400">Leverage</label>
-                                    <div class="relative">
-                                    <input type="number" id="leverage-input" class="input-primary w-full text-center mt-1 pr-6" value="10">
-                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">x</span>
-                                    </div>
-                                    </div>
-                                    </div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-400">Rasio Risk/Reward (ke TP1)</span><span id="rr-ratio-display" class="font-mono font-semibold text-yellow-400">-</span>
-                                    </div>
-                                    <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-center">
-                                         <p class="text-xs text-gray-500">Saran Ukuran Posisi (Notional)</p>
-                                         <p id="position-size-display" class="text-2xl font-bold text-gray-800 dark:text-gray-200">-</p>
-                                         <p id="position-size-usd-display" class="text-xs font-mono text-gray-400">-</p>
-                                    </div>
-                                    <div class="p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-center border border-dashed border-blue-400/50">
-                                    <p class="text-xs text-blue-400">Margin yang Dibutuhkan</p>
-                                    <p id="margin-required-display" class="text-2xl font-bold text-blue-300">-</p>
-                                    </div>
-                                    </div>
+                                    
+                                    <div id="ts-calc-content-wrapper" class="collapsible-content">
+                                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                                            
+                                            <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
+                                                ⚡️ Auto-fill dari Setup Scalping
+                                            </button>
+
+                                            <div class="mode-selectors">
+                                                <div class="selector-group">
+                                                    <input type="radio" id="ts-long" name="ts-position" value="long" checked>
+                                                    <label for="ts-long">📈 LONG</label>
+                                                    <input type="radio" id="ts-short" name="ts-position" value="short">
+                                                    <label for="ts-short">📉 SHORT</label>
+                                                </div>
+                                                <div class="selector-group">
+                                                    <input type="radio" id="ts-cross" name="ts-marginMode" value="cross" checked>
+                                                    <label for="ts-cross">CROSS</label>
+                                                    <input type="radio" id="ts-isolated" name="ts-marginMode" value="isolated">
+                                                    <label for="ts-isolated">ISOLATED</label>
+                                                </div>
+                                            </div>
+
+                                            <div class="inputs-grid">
+                                                <div class="form-group">
+                                                    <label for="ts-entryPrice">Harga Entry ($)</label>
+                                                    <input type="number" id="ts-entryPrice" placeholder="60000">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="ts-initialMargin">Initial Margin / Modal ($)</label>
+                                                    <input type="number" id="ts-initialMargin" placeholder="100">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="ts-leverage">Leverage (x)</label>
+                                                    <input type="number" id="ts-leverage" placeholder="20">
+                                                </div>
+                                                <div class="form-group" id="ts-funding-group" style="display: none;">
+                                                    <label for="ts-funding">Total Dana Wallet / Fund ($)</label>
+                                                    <input type="number" id="ts-funding" placeholder="1000">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="ts-callbackRate">Callback Rate (%)</label>
+                                                    <input type="number" id="ts-callbackRate" placeholder="2">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="ts-activationPrice">Harga Aktivasi ($)</label>
+                                                    <input type="number" id="ts-activationPrice" placeholder="61000">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="ts-marketPrice" id="ts-marketPriceLabel">Harga Pasar Tertinggi ($)</label>
+                                                    <input type="number" id="ts-marketPrice" placeholder="Harga saat ini">
+                                                </div>
+                                            </div>
+
+                                            <div class="results-container">
+                                                <div class="result-item">
+                                                    <span>Total Ukuran Posisi:</span>
+                                                    <span id="ts-positionSize">-</span>
+                                                </div>
+                                                <div class="result-item">
+                                                    <span>Estimasi Harga Likuidasi:</span>
+                                                    <span id="ts-liquidationPrice" class="warning">-</span>
+                                                </div>
+                                                <hr style="border-color: var(--border-color); opacity: 0.5; margin: 5px 0;">
+                                                <div class="result-item">
+                                                    <span>Status Trailing Stop:</span>
+                                                    <span id="ts-status">-</span>
+                                                </div>
+                                                <div class="result-item">
+                                                    <span>Harga Stop Loss Saat Ini:</span>
+                                                    <span id="ts-stopLossPrice">-</span>
+                                                </div>
+                                                <div class="result-item">
+                                                    <span>Potensi ROE:</span>
+                                                    <span id="ts-roe" class="neutral">-</span>
+                                                </div>
+                                            </div>
+                                            </div>
                                     </div>
                                 </section>
         
@@ -2711,46 +2869,7 @@
         }
     } 
 // ===================================================================================================================================================================================================================================================================================
-    
-// ===================================================================================================================================================================================================================================================================================
-    function calculatePositionSize(levels) {
-        const riskAmountInput = document.getElementById('risk-amount-input');
-        const leverageInput = document.getElementById('leverage-input'); 
-        const riskAmount = parseFloat(riskAmountInput.value);
-        const leverage = parseFloat(leverageInput.value) || 1; 
 
-        const positionSizeEl = document.getElementById('position-size-display');
-        const positionSizeUsdEl = document.getElementById('position-size-usd-display');
-        const rrRatioEl = document.getElementById('rr-ratio-display');
-        const marginRequiredEl = document.getElementById('margin-required-display'); 
-
-        if (!levels || !riskAmount || isNaN(riskAmount) || riskAmount <= 0) {
-            positionSizeEl.textContent = '-';
-            positionSizeUsdEl.textContent = '-';
-            rrRatioEl.textContent = '-';
-            marginRequiredEl.textContent = '-'; // [BARU] Reset margin
-            return;
-        }
-
-        const { entry, sl, tp1 } = levels;
-        const stopLossDistance = Math.abs(entry - sl);
-        const takeProfitDistance = Math.abs(tp1 - entry);
-        if (stopLossDistance === 0) return;
-        const positionSizeCoin = riskAmount / stopLossDistance;
-        const positionSizeUsd = positionSizeCoin * entry;
-        positionSizeEl.textContent = positionSizeCoin.toFixed(4);
-        positionSizeUsdEl.textContent = `($${positionSizeUsd.toLocaleString('en-US', {maximumFractionDigits: 0})})`;
-        const marginRequired = positionSizeUsd / leverage;
-        marginRequiredEl.textContent = `$${marginRequired.toLocaleString('en-US', {maximumFractionDigits: 2})}`;
-        const rrRatio = takeProfitDistance / stopLossDistance;
-        rrRatioEl.textContent = `1 : ${rrRatio.toFixed(2)}`;
-    }
-
-    document.getElementById('leverage-input').addEventListener('input', () => {
-        if (realtimeCache.main.latestScalpingSetup) {
-            calculatePositionSize(realtimeCache.main.latestScalpingSetup);
-        }
-    });
 // ===================================================================================================================================================================================================================================================================================
     function calculateATRPercentage(klines, period = 14) {
         if (!klines || klines.length === 0) {
@@ -3681,7 +3800,19 @@
         if (candleResult.bias === 'BULLISH') biasClass = 'positive';
         if (candleResult.bias === 'BEARISH') biasClass = 'negative';
         const formattedTime = candleResult.timestamp ? new Date(candleResult.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
-        candlePatternContainer.innerHTML = `<div class="flex justify-between items-center mb-1"><p class="text-xs text-gray-500">Candlestick Pattern</p><p class="text-xs text-gray-400 font-mono">${formattedTime}</p></div>${candleResult.svg}<p id="candlestick-pattern" class="font-semibold ${candleResult.class}">${candleResult.pattern}</p>${candleResult.bias !== 'NEUTRAL' ? `<p class="text-xs font-bold ${biasClass}">${candleResult.bias}</p>` : ''}`;
+        candlePatternContainer.innerHTML = `
+            <div class="flex justify-between items-center mb-1">
+                <p class="text-xs text-gray-500">Candlestick Pattern</p>
+                <p class="text-xs text-gray-400 font-mono">${formattedTime}</p>
+            </div>
+            
+            <div class="h-16 flex items-center justify-center my-2">
+                ${candleResult.svg || ''}
+            </div>
+            
+            <p id="candlestick-pattern" class="font-semibold ${candleResult.class}">${candleResult.pattern}</p>
+            ${candleResult.bias !== 'NETRAL' ? `<p class="text-xs font-bold ${biasClass}">${candleResult.bias}</p>` : ''}
+        `;
         const chartPatternEl = document.getElementById('chart-pattern');
         chartPatternEl.textContent = calculatedData.chartPattern.pattern;
         chartPatternEl.className = `font-semibold ${calculatedData.chartPattern.class}`;
@@ -5429,7 +5560,6 @@ function calculateAndDisplayScalpingSetup() {
             </div>
         `;
         
-        calculatePositionSize({ entry: entryPrice, sl: stopLoss, tp1: takeProfit1 });
         realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
 
     } else { 
@@ -5446,7 +5576,7 @@ function calculateAndDisplayScalpingSetup() {
         </div>
     `;
         
-        calculatePositionSize(null);
+       
         realtimeCache.main.latestScalpingSetup = null;
     }
 }
@@ -5559,6 +5689,155 @@ function calculateAndDisplayScalpingSetup() {
             }
         }, 1000);
     }
+// ================================================================
+// === BLOK LOGIKA UNTUK KALKULATOR TRAILING STOP (MULAI) ===
+// ================================================================
+
+// Definisikan elemen-elemen untuk kalkulator Trailing Stop
+const tsElements = {
+    fundingGroup: document.getElementById('ts-funding-group'),
+    inputs: document.querySelectorAll('#trailing-stop-calc-section input'),
+    marketPriceLabel: document.getElementById('ts-marketPriceLabel'),
+    positionSize: document.getElementById('ts-positionSize'),
+    liquidationPrice: document.getElementById('ts-liquidationPrice'),
+    status: document.getElementById('ts-status'),
+    stopLossPrice: document.getElementById('ts-stopLossPrice'),
+    roe: document.getElementById('ts-roe'),
+};
+
+function tsFormatCurrency(value) {
+    if (isNaN(value) || value === null) return '-';
+    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+}
+
+function tsResetOutputs() {
+    tsElements.positionSize.textContent = '-';
+    tsElements.liquidationPrice.textContent = '-';
+    tsElements.status.textContent = '-';
+    tsElements.stopLossPrice.textContent = '-';
+    tsElements.roe.textContent = '-';
+    tsElements.roe.className = 'neutral';
+}
+
+function tsCalculateAll() {
+    const values = {};
+    tsElements.inputs.forEach(input => {
+        if (input.type === 'radio' && input.checked) {
+            values[input.name.replace('ts-', '')] = input.value;
+        } else if (input.type === 'number') {
+            values[input.id.replace('ts-', '')] = parseFloat(input.value);
+        }
+    });
+
+    const { initialMargin, leverage, entryPrice, marginMode, funding, position: positionType } = values;
+
+    if (isNaN(initialMargin) || isNaN(leverage) || isNaN(entryPrice) || initialMargin <= 0 || leverage <= 0 || entryPrice <= 0) {
+        tsResetOutputs();
+        return;
+    }
+
+    const positionSize = initialMargin * leverage;
+    const quantity = positionSize / entryPrice;
+    tsElements.positionSize.textContent = tsFormatCurrency(positionSize);
+
+    let liquidationPrice = 0;
+    if (marginMode === 'isolated') {
+        const marginToLose = initialMargin * 0.92;
+        liquidationPrice = positionType === 'long' ? entryPrice - (marginToLose / quantity) : entryPrice + (marginToLose / quantity);
+    } else { // cross
+        if (isNaN(funding) || funding <= 0) {
+            tsElements.liquidationPrice.textContent = 'Masukkan Fund';
+            return;
+        }
+        const marginToLose = (funding - initialMargin) + (initialMargin * 0.92);
+        liquidationPrice = positionType === 'long' ? entryPrice - (marginToLose / quantity) : entryPrice + (marginToLose / quantity);
+    }
+    tsElements.liquidationPrice.textContent = tsFormatCurrency(Math.max(0, liquidationPrice));
+
+    const { callbackRate, activationPrice, marketPrice } = values;
+    if (isNaN(callbackRate) || isNaN(activationPrice) || isNaN(marketPrice) || callbackRate <= 0) {
+        tsElements.status.textContent = '-';
+        tsElements.stopLossPrice.textContent = '-';
+        tsElements.roe.textContent = '-';
+        tsElements.roe.className = 'neutral';
+        return;
+    }
+    
+    let isActive = false;
+    let stopLossPrice = 0;
+    if (positionType === 'long' ? marketPrice >= activationPrice : marketPrice <= activationPrice) {
+        isActive = true;
+        const rate = callbackRate / 100;
+        stopLossPrice = positionType === 'long' ? marketPrice * (1 - rate) : marketPrice * (1 + rate);
+        tsElements.status.textContent = 'Aktif ✅';
+        tsElements.status.className = 'positive';
+    } else {
+        tsElements.status.textContent = 'Belum Aktif';
+        tsElements.status.className = 'neutral';
+    }
+
+    if (isActive) {
+        tsElements.stopLossPrice.textContent = tsFormatCurrency(stopLossPrice);
+        const pnl = (positionType === 'long') ? (stopLossPrice - entryPrice) * quantity : (entryPrice - stopLossPrice) * quantity;
+        const roe = (pnl / initialMargin) * 100;
+        tsElements.roe.textContent = `${roe.toFixed(2)}%`;
+        tsElements.roe.className = pnl > 0 ? 'profit' : 'loss';
+    } else {
+        tsElements.stopLossPrice.textContent = '-';
+        tsElements.roe.textContent = '-';
+        tsElements.roe.className = 'neutral';
+    }
+}
+
+function tsHandleModeChange() {
+    const marginMode = document.querySelector('input[name="ts-marginMode"]:checked').value;
+    const positionType = document.querySelector('input[name="ts-position"]:checked').value;
+
+    tsElements.fundingGroup.style.display = marginMode === 'cross' ? 'flex' : 'none';
+    tsElements.marketPriceLabel.textContent = `Harga Pasar ${positionType === 'long' ? 'Tertinggi' : 'Terendah'} ($)`;
+    
+    tsCalculateAll();
+}
+
+// FUNGSI BARU UNTUK AUTO-FILL
+// GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
+function autofillTrailingStopCalculator() {
+    const setup = realtimeCache.main.latestScalpingSetup;
+    const ticker = realtimeCache.main.tickerData;
+    
+    if (!setup || !ticker) {
+        alert("Harap jalankan 'GET DATA' dan dapatkan sinyal setup Long/Short terlebih dahulu.");
+        return;
+    }
+
+    // Tentukan apakah setupnya LONG atau SHORT dari setup scalping
+    const isLong = setup.entry < setup.tp1;
+    
+    if (isLong) {
+        document.getElementById('ts-long').checked = true;
+    } else {
+        document.getElementById('ts-short').checked = true;
+    }
+    
+    // PERBAIKAN: Hapus baris yang memanggil kalkulator lama
+    // Kita akan auto-fill harga, sisanya bisa diisi manual oleh pengguna
+    document.getElementById('ts-entryPrice').value = setup.entry.toFixed(4);
+    
+    // Auto-suggestion cerdas untuk harga aktivasi -> kita gunakan TP1 dari setup
+    document.getElementById('ts-activationPrice').value = setup.tp1.toFixed(4);
+    
+    // Isi harga pasar saat ini
+    document.getElementById('ts-marketPrice').value = parseFloat(ticker.lastPrice).toFixed(4);
+    
+    // Beri fokus ke input Initial Margin agar pengguna tahu harus mengisi apa selanjutnya
+    document.getElementById('ts-initialMargin').focus();
+    
+    // Panggil fungsi kalkulasi untuk langsung menampilkan hasilnya
+    tsHandleModeChange();
+}
+// ==============================================================
+// === BLOK LOGIKA UNTUK KALKULATOR TRAILING STOP (SELESAI) ===
+// ==============================================================
 // =====================================================================================================================================================================
 // BAGIAN 5: EVENT LISTENER UTAMA
 // =====================================================================================================================================================================
@@ -5569,7 +5848,6 @@ document.addEventListener('DOMContentLoaded', () => {
     startTopMoversAutoRefresh("1h", 60000); // Default: 1H, refresh setiap 60 detik
     adjustContentPadding();
     setupToggle('toggle-scalping-btn', 'scalping-content-wrapper', 'toggle-scalping-icon', true);
-    setupToggle('toggle-risk-btn', 'risk-content-wrapper', 'toggle-risk-icon', false);
     setupToggle('toggle-sentiment-btn', 'sentiment-content-wrapper', 'toggle-sentiment-icon', false);
     setupToggle('toggle-market-state-btn', 'current-state-content-wrapper', 'toggle-market-state-icon', true);
     setupToggle('toggle-confluence-btn', 'confluence-content-wrapper', 'toggle-confluence-icon', false);
@@ -5615,12 +5893,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     presetSelect.addEventListener('change', (e) => {
         applyPreset(e.target.value);
-    });
-
-    document.getElementById('risk-amount-input').addEventListener('input', () => {
-        if (realtimeCache.main.latestScalpingSetup) {
-            calculatePositionSize(realtimeCache.main.latestScalpingSetup);
-        }
     });
 
     document.getElementById('vwap-mode-buttons').addEventListener('click', (e) => {
@@ -5789,6 +6061,10 @@ document.addEventListener('DOMContentLoaded', () => {
             dumpTfSelect.disabled = false;
         }
     });
+    setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', false);
+    tsElements.inputs.forEach(input => input.addEventListener('input', tsHandleModeChange));
+    document.getElementById('autofill-ts-btn').addEventListener('click', autofillTrailingStopCalculator);
+    tsHandleModeChange();
 });
 // ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
