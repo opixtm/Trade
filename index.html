@@ -5181,10 +5181,9 @@ body.light .form-group input[type="text"] {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-    // GANTI SELURUH FUNGSI LAMA ANDA DENGAN YANG INI
 function calculateAndDisplayScalpingSetup() {
     const selectedDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
-    const { klines, calculatedData, symbol, selectedTimeframe, klines1h } = realtimeCache.main;
+    const { klines, calculatedData, symbol, selectedTimeframe, tfAlignmentSummary } = realtimeCache.main;
     if (!klines || klines.length < 50 || !calculatedData) {
         document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Not Enough Data</p>';
         return;
@@ -5207,22 +5206,18 @@ function calculateAndDisplayScalpingSetup() {
     let biasClass = "status-chop";
     let biasDetail = "Waiting Signal...";
     
-    // === PERBAIKAN LOGIKA JAVASCRIPT DIMULAI DI SINI ===
     let trenUtama = "CHOP";
     let trenUtamaClass = "status-chop";
-    if (klines1h && klines1h.length > 50) {
-        const closes1h = klines1h.map(k => parseFloat(k[4]));
-        const ema21_1h = calculateEMA(closes1h, 21).pop();
-        const ema50_1h = calculateEMA(closes1h, 50).pop();
-        if (ema21_1h > ema50_1h) {
+    if (tfAlignmentSummary && tfAlignmentSummary.summary['1h']) {
+        const trend1h = tfAlignmentSummary.summary['1h'];
+        if (trend1h === 'UPTREND') {
             trenUtama = "UPTREND";
             trenUtamaClass = "status-uptrend";
-        }
-        if (ema50_1h > ema21_1h) {
+        } else if (trend1h === 'DOWNTREND') {
             trenUtama = "DOWNTREND";
             trenUtamaClass = "status-downtrend";
         }
-    } // <-- PERBAIKAN 1: KURUNG KURAWAL YANG HILANG SUDAH DITAMBAHKAN
+    }
 
     const analisisTrigger = getConfluenceAnalysis(klines); 
     const { skorBullish, skorBearish, detail } = analisisTrigger;
@@ -5250,7 +5245,6 @@ function calculateAndDisplayScalpingSetup() {
             biasClass = 'status-downtrend';
         }
     }
-
 
     if (biasKontekstual !== "NETRAL / CHOP") {
         const biasKalkulator = biasKontekstual.startsWith('LONG') ? 'LONG' : 'SHORT';
@@ -5296,12 +5290,12 @@ function calculateAndDisplayScalpingSetup() {
         const tpColorClass = 'positive';
         const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
 
-        // === PERBAIKAN TAMPILAN HTML DI SINI ===
         container.innerHTML = `
             <div class="grid grid-cols-3 gap-4 text-center items-start">
                 <div class="col-span-1">
                     <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
-                    <p class="text-[10px] font-mono ${trenUtamaClass}">1H Trend: ${trenUtama}</p> <p class="font-bold text-base blinking-text-animation ${biasClass}">${biasKontekstual}</p>
+                    <p class="text-[10px] font-mono ${trenUtamaClass}">1H Trend: ${trenUtama}</p> 
+                    <p class="font-bold text-base blinking-text-animation ${biasClass}">${biasKontekstual}</p>
                     <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
                 </div>
                 <div class="col-span-2 grid grid-cols-2 gap-4">
@@ -5338,20 +5332,19 @@ function calculateAndDisplayScalpingSetup() {
         realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
 
     } else { 
-    container.innerHTML = `
-        <div class="text-center">
-            <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
-            <p class="text-[10px] font-mono ${trenUtamaClass}">1H Trend: ${trenUtama}</p> 
-            <p class="font-bold text-base blinking-text-animation ${biasClass}">${biasKontekstual}</p>
-            <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
-        </div>
-        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
-            <p class="font-semibold text-yellow-400">SIDEWAYS</p>
-            <p class="text-sm text-gray-400 mt-1">No Feasible Long/Short Setup. Do Not Trade.</p>
-        </div>
-    `;
+        container.innerHTML = `
+            <div class="text-center">
+                <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
+                <p class="text-[10px] font-mono ${trenUtamaClass}">1H Trend: ${trenUtama}</p> 
+                <p class="font-bold text-base blinking-text-animation ${biasClass}">${biasKontekstual}</p>
+                <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
+                <p class="font-semibold text-yellow-400">SIDEWAYS</p>
+                <p class="text-sm text-gray-400 mt-1">No Feasible Long/Short Setup. Do Not Trade.</p>
+            </div>
+        `;
         
-       
         realtimeCache.main.latestScalpingSetup = null;
     }
 }
