@@ -3770,27 +3770,25 @@ body.light .form-group input[type="text"] {
     function renderFullOrderBook(bids, asks, wallInfo, precision) {
         const numLevels = 10;
         if (!orderBookDOMElements) {
-            let asksHtml = '';
-            for (let i = 0; i < numLevels; i++) {
-                asksHtml += `
-                    <div class="flex items-center text-xs mt-1 relative z-0">
-                        <div class="ask-bar absolute inset-0 bg-red-500/10 z-[-1] transition-all duration-300" style="width: 0%;"></div>
-                        <span class="ask-price w-1/2 text-left font-mono"></span>
-                        <span class="ask-qty w-1/2 text-right font-mono"></span>
-                    </div>
-                `;
-            }
-            let bidsHtml = '';
-            for (let i = 0; i < numLevels; i++) {
-                bidsHtml += `
-                    <div class="flex items-center text-xs mt-1 relative z-0">
-                        <div class="bid-bar absolute inset-0 bg-green-500/10 z-[-1] transition-all duration-300" style="width: 0%;"></div>
-                        <span class="bid-qty w-1/2 text-left font-mono"></span>
-                        <span class="bid-price w-1/2 text-right font-mono"></span>
-                    </div>
-                `;
-            }
+            let asksHtml = Array.from({ length: numLevels }).map(() => `
+                <div class="flex items-center text-xs mt-1 relative z-0">
+                    <div class="ask-bar absolute inset-0 bg-red-500/10 z-[-1] transition-all duration-300" style="width: 0%;"></div>
+                    <span class="ask-price w-1/2 text-left font-mono"></span>
+                    <span class="ask-qty w-1/2 text-right font-mono"></span>
+                </div>
+            `).join('');
 
+            let bidsHtml = Array.from({ length: numLevels }).map(() => `
+                <div class="flex items-center text-xs mt-1 relative z-0">
+                    <div class="bid-bar absolute inset-0 bg-green-500/10 z-[-1] transition-all duration-300" style="width: 0%;"></div>
+                    <span class="bid-qty w-1/2 text-left font-mono"></span>
+                    <span class="bid-price w-1/2 text-right font-mono"></span>
+                </div>
+            `).join('');
+
+            // ==========================================================
+            // === PERBAIKAN 1: UBAH STRUKTUR HTML YANG DIBUAT DI SINI ===
+            // ==========================================================
             fullOrderBookContainer.innerHTML = `
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -3802,9 +3800,11 @@ body.light .form-group input[type="text"] {
                         <div id="bids-container">${bidsHtml}</div>
                     </div>
                 </div>
-                <p id="wall-info-text" class="text-center text-xs mt-4 text-gray-500"></p>
+                <div id="main-ob-wall-container" class="text-center text-xs mt-4 space-y-1">
+                    <div id="main-ob-buy-wall" class="h-4 flex items-center justify-center"></div>
+                    <div id="main-ob-sell-wall" class="h-4 flex items-center justify-center"></div>
+                </div>
             `;
-            
             
             orderBookDOMElements = {
                 asks: Array.from(document.querySelectorAll('#asks-container > div')).map(row => ({
@@ -3813,9 +3813,12 @@ body.light .form-group input[type="text"] {
                 bids: Array.from(document.querySelectorAll('#bids-container > div')).map(row => ({
                     row, bar: row.querySelector('.bid-bar'), price: row.querySelector('.bid-price'), qty: row.querySelector('.bid-qty')
                 })),
-                wallInfo: document.getElementById('wall-info-text')
+                // PERBAIKAN: Tambahkan elemen baru untuk ditarget
+                mainObBuyWall: document.getElementById('main-ob-buy-wall'),
+                mainObSellWall: document.getElementById('main-ob-sell-wall')
             };
         }
+
         const topLevels = [...bids.slice(0, 15), ...asks.slice(0, 15)];
         if (topLevels.length > 0) {
             const currentAvgVolume = topLevels.reduce((sum, level) => sum + parseFloat(level[1]), 0) / topLevels.length;
