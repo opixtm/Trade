@@ -242,13 +242,13 @@
             gap: 0.5rem;
         }
         .btn-secondary:hover {
-            background-color: #ff0a0a; /* gray-600 */
+            background-color: #226756; /* gray-600 */
         }
         .dark .btn-secondary {
-            background-color: #bb3103; /* gray-600 */
+            background-color: lab(42.97% -24.5 -10.46); /* gray-600 */
         }
         .dark .btn-secondary:hover {
-            background-color: #a21000; /* gray-700 */
+            background-color: hsl(189, 95%, 25%); /* gray-700 */
         }   
         .tooltip-trigger {
             cursor: help;
@@ -1025,11 +1025,18 @@
                             </div>
 
                             <div>
-                                <h3 class="font-semibold text-gray-400 mb-2">Trade History</h3>
-                                <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
-                                    <p class="text-center text-gray-600">No trade history yet.</p>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="font-semibold text-gray-400">Trade History</h3>
+                                <div class="flex gap-2">
+                                    <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
+                                    <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
+                                    <input type="file" id="sim-import-input" class="hidden" accept=".csv">
                                 </div>
                             </div>
+                            <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
+                                <p class="text-center text-gray-600">No trade history yet.</p>
+                            </div>
+                        </div>
                         </div>
                     </div>
                 </section>
@@ -1839,22 +1846,28 @@ const formatPrice = (price) => {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-    async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
-        const baseUrl = marketType === 'futures' ? 'https://fapi.binance.com/fapi/v1' : 'https://api.binance.com/api/v3';
-        const query = new URLSearchParams(params).toString();
-        const url = `${baseUrl}/${endpoint}?${query}`;
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Binance API error (${marketType}): ${errorData.msg || response.statusText}`);
-            }
-            return response.json();
-        } catch (error) {
-            console.error(`Network Error fetching from Binance ${endpoint}: ${error.message}`);
-            throw new Error(`Gagal mengambil data dari Binance ${marketType.toUpperCase()}.`);
+    // GANTI FUNGSI LAMA DENGAN VERSI BARU INI
+async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
+    const baseUrl = marketType === 'futures' ? 'https://fapi.binance.com/fapi/v1' : 'https://api.binance.com/api/v3';
+    const query = new URLSearchParams(params).toString();
+    const url = `${baseUrl}/${endpoint}?${query}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            const errorData = await response.json();
+            // **PERBAIKAN UTAMA ADA DI SINI**
+            // Membuat pesan error lebih spesifik
+            const errorMessage = `Binance API error for ${endpoint} (${marketType}): ${errorData.msg || response.statusText}`;
+            throw new Error(errorMessage);
         }
+        return response.json();
+    } catch (error) {
+        // **PERBAIKAN UTAMA KEDUA**
+        // Melemparkan error yang lebih informatif, bukan pesan umum
+        console.error(`Network Error fetching from ${url}: ${error.message}`);
+        throw new Error(`Gagal mengambil data untuk ${endpoint} dari Binance ${marketType.toUpperCase()}.`);
     }
+}
 // ===================================================================================================================================================================================================================================================================================
     async function fetchAllAggregateTrades(symbol, marketType, startTime, endTime) {
         const params = { symbol, startTime, endTime, limit: 1000 };
@@ -5680,33 +5693,50 @@ if (pivotData && pivotData.P) {
         });
     }
 
-    function startTopMoversAutoRefresh(timeframe = "1h", interval = 10000) {
-        currentTimeframe = timeframe;
-        currentInterval = interval;
-        remainingTime = interval / 1000;
-        if (topMoversInterval) clearInterval(topMoversInterval);
-        if (topMoversCountdown) clearInterval(topMoversCountdown);
-        
-        updateTopMovers(timeframe);
-        
-        topMoversInterval = setInterval(() => {
-            if (!isTooltipActive) {
-                updateTopMovers(timeframe);
+    async function startTopMoversAutoRefresh(timeframe = "1H", interval = 120000) {
+    currentTimeframe = timeframe;
+    currentInterval = interval;
+    remainingTime = interval / 1000;
+
+    if (topMoversInterval) clearInterval(topMoversInterval);
+    if (topMoversCountdown) clearInterval(topMoversCountdown);
+    
+    // FUNGSI UTAMA UNTUK REFRESH
+    const refreshMovers = async () => {
+        if (!isTooltipActive) {
+            try {
+                // PENGECEKAN KUNCI: Pastikan info bursa sudah ada
+                if (!exchangeInfoCache.futures) {
+                    console.log("Menunggu info bursa futures untuk Top Movers...");
+                    await initializeExchangeInfo('futures');
+                }
+                await updateTopMovers(timeframe);
                 remainingTime = interval / 1000;
+            } catch (error) {
+                console.error("Gagal refresh Top Movers:", error);
+                const gainersList = document.getElementById('gainers-list');
+                if(gainersList) gainersList.innerHTML = `<div class="text-red-500 text-xs p-2">Error: ${error.message}</div>`;
             }
-        }, interval);
-        
-        topMoversCountdown = setInterval(() => {
-            if (!isTooltipActive) {
-                remainingTime--;
-                if (remainingTime < 0) remainingTime = interval / 1000;
-            }
-            const countdownEl = document.getElementById("refresh-countdown");
-            if (countdownEl) {
-                countdownEl.textContent = isTooltipActive ? "⏸ Paused" : `⏱️ ${remainingTime}s`;
-            }
-        }, 1000);
-    }
+        }
+    };
+
+    // Jalankan pertama kali
+    await refreshMovers();
+    
+    // Atur interval untuk refresh berikutnya
+    topMoversInterval = setInterval(refreshMovers, interval);
+    
+    topMoversCountdown = setInterval(() => {
+        if (!isTooltipActive) {
+            remainingTime--;
+            if (remainingTime < 0) remainingTime = interval / 1000;
+        }
+        const countdownEl = document.getElementById("refresh-countdown");
+        if (countdownEl) {
+            countdownEl.textContent = isTooltipActive ? "⏸ Paused" : `⏱️ ${remainingTime}s`;
+        }
+    }, 1000);
+}
 // ================================================================
 
     // =====================================================================================================================================================================
@@ -5981,7 +6011,14 @@ const paperTrade = {
         this.loadState();
         this.elements.resetBtn.addEventListener('click', () => this.resetAccount());
         this.elements.closePositionBtn.addEventListener('click', () => this.closePosition());
-        setInterval(() => this.update(), 500); // Update PNL setiap 500ms
+        
+        const importBtn = document.getElementById('sim-import-btn');
+        const importInput = document.getElementById('sim-import-input');
+        document.getElementById('sim-export-btn').addEventListener('click', exportHistoryToCSV);
+        importBtn.addEventListener('click', () => importInput.click());
+        importInput.addEventListener('change', importHistoryFromCSV);
+        
+        setInterval(() => this.update(), 500);
         this.render();
     },
 
@@ -6021,7 +6058,6 @@ const paperTrade = {
 
     closePosition: function() {
         if (!this.state.position) return;
-
         const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
         if (isNaN(markPrice)) {
             alert("Tidak bisa menutup posisi, harga pasar tidak tersedia.");
@@ -6038,14 +6074,15 @@ const paperTrade = {
         this.state.history.unshift({
             symbol: realtimeCache.main.symbol,
             type: pos.type,
+            entryPrice: pos.entryPrice,
+            closePrice: markPrice,
             pnl: pnl,
             roe: (pnl / pos.cost) * 100,
-            closedAt: new Date()
+            closedAt: new Date(),
+            liquidated: false
         });
         
-        if (this.state.history.length > 20) {
-            this.state.history.pop();
-        }
+        if (this.state.history.length > 20) this.state.history.pop();
 
         this.state.position = null;
         this.saveState();
@@ -6074,13 +6111,14 @@ const paperTrade = {
         this.elements.positionPnl.textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
         this.elements.positionPnl.className = `font-mono font-bold text-lg ml-2 ${pnl >= 0 ? 'positive' : 'negative'}`;
 
-        // Cek likuidasi
         if ((pos.type === 'long' && markPrice <= pos.liqPrice) || (pos.type === 'short' && markPrice >= pos.liqPrice)) {
             alert(`Posisi ${pos.type.toUpperCase()} terlikuidasi!`);
             this.state.history.unshift({
                 symbol: realtimeCache.main.symbol,
                 type: pos.type,
-                pnl: -pos.cost, // PNL adalah kehilangan seluruh modal
+                entryPrice: pos.entryPrice,
+                closePrice: markPrice,
+                pnl: -pos.cost,
                 roe: -100,
                 closedAt: new Date(),
                 liquidated: true
@@ -6095,10 +6133,10 @@ const paperTrade = {
         const pos = this.state.position;
         
         if (pos) {
-            const equity = this.state.balance + pos.cost; // PNL belum dihitung saat render awal
+            // ... (bagian ini tidak berubah, biarkan saja)
+            const equity = this.state.balance + pos.cost;
             this.elements.equity.textContent = formatPrice(equity);
             this.elements.availableMargin.textContent = formatPrice(this.state.balance);
-            
             this.elements.positionContainer.classList.remove('hidden');
             this.elements.positionHeader.textContent = `${pos.type.toUpperCase()} / ${pos.leverage}x`;
             this.elements.positionHeader.className = `font-bold text-lg ${pos.type === 'long' ? 'positive' : 'negative'}`;
@@ -6108,6 +6146,7 @@ const paperTrade = {
             this.elements.unrealizedPnl.textContent = '$0.00';
             this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
         } else {
+            // ... (bagian ini juga tidak berubah)
             this.elements.equity.textContent = formatPrice(this.state.balance);
             this.elements.availableMargin.textContent = formatPrice(this.state.balance);
             this.elements.unrealizedPnl.textContent = '$0.00';
@@ -6115,16 +6154,21 @@ const paperTrade = {
             this.elements.positionContainer.classList.add('hidden');
         }
 
-        // Render Riwayat
         if (this.state.history.length > 0) {
             this.elements.tradeHistoryList.innerHTML = this.state.history.map(trade => `
-                <div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'} flex justify-between items-center">
-                    <div>
-                        <span class="font-bold ${trade.type === 'long' ? 'positive' : 'negative'}">${trade.symbol} ${trade.type.toUpperCase()}</span>
-                        <span class="text-gray-400 text-[10px] ml-2">${trade.closedAt.toLocaleTimeString()}</span>
+                <div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'}">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-bold ${trade.type === 'long' ? 'positive' : 'negative'}">${trade.symbol} ${trade.type.toUpperCase()}</span>
+                            <span class="text-gray-400 text-[10px] ml-2">${trade.closedAt.toLocaleTimeString()}</span>
+                        </div>
+                        <div class="font-mono text-right ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                            ${formatPrice(trade.pnl)} (${trade.roe.toFixed(2)}%) ${trade.liquidated ? '🔥' : ''}
+                        </div>
                     </div>
-                    <div class="font-mono text-right ${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                        ${formatPrice(trade.pnl)} (${trade.roe.toFixed(2)}%) ${trade.liquidated ? '🔥' : ''}
+                    <div class="text-gray-400 text-[10px] font-mono flex justify-between mt-1 pt-1 border-t border-gray-700/50">
+                        <span>Entry: ${formatPrice(trade.entryPrice)}</span>
+                        <span>Close: ${formatPrice(trade.closePrice)}</span>
                     </div>
                 </div>
             `).join('');
@@ -6158,15 +6202,104 @@ const paperTrade = {
     }
 };
 // === LOGIKA SIMULASI TRADING (SELESAI) ===
+// === LOGIKA BARU UNTUK IMPORT/EXPORT CSV (MULAI) ===
+
+function exportHistoryToCSV() {
+    const history = paperTrade.state.history;
+    if (history.length === 0) {
+        alert("Tidak ada riwayat trading untuk diekspor.");
+        return;
+    }
+
+    // Header baru dengan EntryPrice dan ClosePrice
+    const headers = ["Symbol", "Type", "EntryPrice", "ClosePrice", "PNL", "ROE", "ClosedAt", "Liquidated"];
+    let csvContent = headers.join(",") + "\r\n";
+
+    // Tambahkan data baru ke setiap baris
+    history.forEach(trade => {
+        const row = [
+            trade.symbol,
+            trade.type,
+            trade.entryPrice || 'N/A', // Tambahkan fallback jika data lama tidak ada
+            trade.closePrice || 'N/A', // Tambahkan fallback
+            trade.pnl,
+            trade.roe,
+            trade.closedAt.toISOString(),
+            trade.liquidated ? 'TRUE' : 'FALSE'
+        ];
+        csvContent += row.join(",") + "\r\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    const timestamp = new Date().toISOString().slice(0, 10);
+    link.setAttribute("download", `trade_history_${timestamp}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function importHistoryFromCSV(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        if (lines.length <= 1) {
+            alert("File CSV kosong atau hanya berisi header.");
+            return;
+        }
+
+        const importedHistory = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            if (values.length < 8) continue; // Sekarang harus ada 8 kolom
+
+            try {
+                const trade = {
+                    symbol: values[0].trim(),
+                    type: values[1].trim(),
+                    entryPrice: parseFloat(values[2]),
+                    closePrice: parseFloat(values[3]),
+                    pnl: parseFloat(values[4]),
+                    roe: parseFloat(values[5]),
+                    closedAt: new Date(values[6].trim()),
+                    liquidated: values[7].trim().toUpperCase() === 'TRUE'
+                };
+                importedHistory.push(trade);
+            } catch (error) {
+                alert(`Error saat memproses baris ke-${i+1}. Cek format file Anda.`);
+                return;
+            }
+        }
+        
+        if (confirm(`Impor akan menimpa ${importedHistory.length} riwayat trading yang ada. Lanjutkan?`)) {
+            paperTrade.state.history = importedHistory.reverse();
+            paperTrade.saveState();
+            paperTrade.render();
+            alert("Impor riwayat trading berhasil!");
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// === LOGIKA BARU UNTUK IMPORT/EXPORT CSV (SELESAI) ===
 // =====================================================================================================================================================================
-// BAGIAN 5: EVENT LISTENER UTAMA
+// BAGIAN 5: EVENT LISTENER UTAMA (GANTI SELURUH BLOK LAMA ANDA DENGAN INI)
 // =====================================================================================================================================================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Inisialisasi semua yang tidak butuh data eksternal
     loadSettings();
-    initTopMoversTimeframeSelector(); 
+    initTopMoversTimeframeSelector();
     initRefreshIntervalSelector();
-    startTopMoversAutoRefresh("1h", 60000); // Default: 1H, refresh setiap 60 detik
     adjustContentPadding();
+    
+    // Setup semua panel yang bisa dilipat (collapsible)
     setupToggle('toggle-scalping-btn', 'scalping-content-wrapper', 'toggle-scalping-icon', true);
     setupToggle('toggle-sentiment-btn', 'sentiment-content-wrapper', 'toggle-sentiment-icon', false);
     setupToggle('toggle-market-state-btn', 'current-state-content-wrapper', 'toggle-market-state-icon', true);
@@ -6174,9 +6307,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setupToggle('toggle-onchain-btn', 'onchain-content-wrapper', 'toggle-onchain-icon', false);        
     setupToggle('toggle-settings-btn', 'settings-content-wrapper', 'toggle-settings-icon', false);
     setupToggle('toggle-ai-verdict-btn', 'ai-verdict-content-wrapper', 'toggle-ai-verdict-icon', true);
-    
-    window.addEventListener('resize', adjustContentPadding); 
+    setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', true);
+    setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', true);
+
+    // Inisialisasi semua event listener tombol dan input
+    window.addEventListener('resize', adjustContentPadding);
     document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
+    
     
     timeframeSelect.addEventListener('change', (e) => {
         adaptIndicatorParamsToTimeframe(e.target.value);
@@ -6187,16 +6324,16 @@ document.addEventListener('DOMContentLoaded', () => {
         darkIcon.classList.toggle('hidden');
         lightIcon.classList.toggle('hidden');
         localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-            if (cvdChartInstance) {
-                const isDarkMode = document.documentElement.classList.contains('dark');
-                const positiveColor = isDarkMode ? '#4ade80' : '#16a34a';
-                const negativeColor = isDarkMode ? '#f87171' : '#dc2626';
-                cvdChartInstance.data.datasets[0].segment.borderColor = ctx => ctx.p1.parsed.y >= ctx.p0.parsed.y ? positiveColor : negativeColor;
-                cvdChartInstance.options.scales.x.ticks.color = isDarkMode ? '#9ca3af' : '#4b5563';
-                cvdChartInstance.options.scales.y.ticks.color = isDarkMode ? '#9ca3af' : '#4b5563';
-                cvdChartInstance.options.scales.y.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-                cvdChartInstance.update();
-            }
+        if (cvdChartInstance) {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const positiveColor = isDarkMode ? '#4ade80' : '#16a34a';
+            const negativeColor = isDarkMode ? '#f87171' : '#dc2626';
+            cvdChartInstance.data.datasets[0].segment.borderColor = ctx => ctx.p1.parsed.y >= ctx.p0.parsed.y ? positiveColor : negativeColor;
+            cvdChartInstance.options.scales.x.ticks.color = isDarkMode ? '#9ca3af' : '#4b5563';
+            cvdChartInstance.options.scales.y.ticks.color = isDarkMode ? '#9ca3af' : '#4b5563';
+            cvdChartInstance.options.scales.y.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            cvdChartInstance.update();
+        }
     });
 
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -6208,12 +6345,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
     apiKeyInput.addEventListener('change', () => localStorage.setItem('geminiApiKey', apiKeyInput.value));
-    assetInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') runFullAnalysis(); });
+    
     const presetSelect = document.getElementById('preset-select');
-
-    presetSelect.addEventListener('change', (e) => {
-        applyPreset(e.target.value);
-    });
+    presetSelect.addEventListener('change', (e) => applyPreset(e.target.value));
 
     document.getElementById('vwap-mode-buttons').addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
@@ -6242,13 +6376,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    marketTypeSelect.addEventListener('change', () => initializeExchangeInfo(marketTypeSelect.value).catch(err => showError(err.message)));
-    initializeExchangeInfo(marketTypeSelect.value).catch(err => showError(err.message));
     resetBtn.addEventListener('click', resetDashboard);
     const tooltipElement = document.createElement('div');
     tooltipElement.id = 'custom-tooltip';
     document.body.appendChild(tooltipElement);
-
     
     const debouncedRunAnalysis = debounce(runFullAnalysis, 100); 
     analyzeBtn.addEventListener('click', () => {
@@ -6262,163 +6393,76 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     });
     
-    const showTooltip = (e) => {
-        const target = e.currentTarget;
-        const tooltipContent = target.getAttribute('data-tooltip');
-        if (!tooltipContent) return;
-        
-        const [title, ...body] = tooltipContent.split('|');
-        const formattedContent = `<strong>${title}</strong><p>${body.join('<br>')}</p>`;
-        tooltipElement.innerHTML = formattedContent;
-
-        const targetRect = target.getBoundingClientRect();
-        tooltipElement.style.opacity = '1';
-        tooltipElement.style.visibility = 'visible';
-        
-        const tooltipRect = tooltipElement.getBoundingClientRect();
-        let top = targetRect.top - tooltipRect.height - 10;
-        let left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
-
-        if (left < 10) left = 10;
-        if (left + tooltipRect.width > window.innerWidth - 10) {
-            left = window.innerWidth - tooltipRect.width - 10;
-        }
-        if (top < 10) {
-            top = targetRect.bottom + 10;
-            tooltipElement.style.setProperty('--arrow-top', '-6px');
-            tooltipElement.style.setProperty('--arrow-border-color', 'transparent transparent #2d3748 transparent');
-        } else {
-            tooltipElement.style.setProperty('--arrow-top', '100%');
-            tooltipElement.style.setProperty('--arrow-border-color', '#2d3748 transparent transparent transparent');
-        }
-
-        tooltipElement.style.left = `${left}px`;
-        tooltipElement.style.top = `${top + window.scrollY}px`;
-    };
-
-    const hideTooltip = () => {
-        tooltipElement.style.opacity = '0';
-        tooltipElement.style.visibility = 'hidden';
-    };
-
+    // ... (kode event listener untuk tooltip tetap sama)
     const triggers = document.querySelectorAll('[data-tooltip]');
-    triggers.forEach(trigger => {
-        trigger.classList.add('tooltip-trigger');
-        trigger.addEventListener('mouseenter', showTooltip);
-        trigger.addEventListener('mouseleave', hideTooltip);
-        
-        let isTooltipVisible = false;
-        trigger.addEventListener('click', (e) => {
-            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-                e.preventDefault();
-                if (!isTooltipVisible) {
-                    showTooltip(e);
-                    isTooltipVisible = true;
-                } else {
-                    hideTooltip();
-                    isTooltipVisible = false;
-                }
-            }
-        });
-    });
+    // ... (biarkan semua kode tooltip seperti di file Anda)
     
-    document.body.addEventListener('click', (e) => {
-        if (!e.target.hasAttribute('data-tooltip')) {
-            hideTooltip();
-            triggers.forEach(trigger => trigger.isTooltipVisible = false);
-        }
-    }, true);
-
     const dumpTfSelect = document.getElementById('dump-trigger-timeframe-select');
     const triggerListDiv = document.getElementById('trigger-breakdown-list');
-
-    // === LOGIKA BARU UNTUK MEMBUAT KOTAK MTF INTERAKTIF ===
-        const mtfAlignmentContainer = document.getElementById('tf-alignment-summary');
-
-        mtfAlignmentContainer.addEventListener('click', (event) => {
-            // Cari elemen kotak yang bisa di-klik yang paling dekat dengan target klik
-            const clickedBox = event.target.closest('.mtf-clickable-box');
-
-            // Jika yang diklik memang kotaknya (bukan area kosong di sekitarnya)
-            if (clickedBox) {
-                // Ambil timeframe dari atribut data yang kita buat tadi
-                const newTimeframe = clickedBox.dataset.timeframe;
-                
-                // Temukan dropdown timeframe utama dan tombol "GET DATA"
-                const mainTimeframeSelect = document.getElementById('timeframe-select');
-                const mainAnalyzeBtn = document.getElementById('analyze-asset-btn');
-
-                // Untuk mencegah klik ganda saat sedang loading
-                if (mainAnalyzeBtn.disabled) {
-                    console.log("Analisis sedang berjalan, harap tunggu.");
-                    return;
-                }
-
-                console.log(`Mengganti timeframe utama ke: ${newTimeframe}`);
-
-                // 1. Ubah nilai dropdown utama sesuai dengan kotak yang diklik
-                mainTimeframeSelect.value = newTimeframe;
-
-                // 2. Simulasikan klik pada tombol "GET DATA" untuk memuat ulang seluruh data
-                mainAnalyzeBtn.click();
-            }
-        });
-// === AKHIR LOGIKA BARU ===
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    const mtfAlignmentContainer = document.getElementById('tf-alignment-summary');
+    mtfAlignmentContainer.addEventListener('click', (event) => {
+        const clickedBox = event.target.closest('.mtf-clickable-box');
+        if (clickedBox) {
+            const newTimeframe = clickedBox.dataset.timeframe;
+            const mainTimeframeSelect = document.getElementById('timeframe-select');
+            const mainAnalyzeBtn = document.getElementById('analyze-asset-btn');
+            if (mainAnalyzeBtn.disabled) return;
+            mainTimeframeSelect.value = newTimeframe;
+            mainAnalyzeBtn.click();
+        }
+    });
+    
     dumpTfSelect.addEventListener('change', async () => {
-        if (!realtimeCache.main.symbol) return; // Abaikan jika analisis belum berjalan
-
+        if (!realtimeCache.main.symbol) return;
         const selectedTf = dumpTfSelect.value;
         const symbol = realtimeCache.main.symbol;
         const marketType = marketTypeSelect.value;
-
-        // Jaring Pengaman untuk mencegah fatal error
         try {
-            // Tampilkan status loading agar pengguna tahu ada proses berjalan
             dumpTfSelect.disabled = true;
             triggerListDiv.innerHTML = `<p class="text-xs text-center text-yellow-400">Loading data ${selectedTf}...</p>`;
-
-            // Cek apakah data sudah ada di "wadah"
             if (!realtimeCache.main.multiTfKlines[selectedTf]) {
-                console.log(`Data ${selectedTf} NONE di cache. Mengambil dari API...`);
-                // Jika NONE, ambil data baru dari API
                 const newData = await fetchBinanceAPIData('klines', { symbol: symbol, interval: selectedTf, limit: 200 }, marketType);
-                // Simpan data baru ke "wadah" agar tidak perlu download lagi
                 realtimeCache.main.multiTfKlines[selectedTf] = newData;
-                console.log(`Data ${selectedTf} berhasil diambil dan disimpan.`);
             }
-
-            // Panggil fungsi update HANYA SETELAH data dijamin ada
             calculateAndDisplayScalpingSetup();
-            console.log(`Mengganti langganan WebSocket ke timeframe: ${selectedTf}`);
             const symbolLower = symbol.toLowerCase();
             const mainTfStream = `${symbolLower}@kline_${realtimeCache.main.selectedTimeframe}`;
             const newDumpTfStream = `${symbolLower}@kline_${selectedTf}`;
-
-            const newStreamsToSub = [
-                mainTfStream,
-                `${symbolLower}@aggTrade`,
-                `${symbolLower}@depth20@100ms`
-            ];
-
-            if (mainTfStream !== newDumpTfStream) {
-                newStreamsToSub.push(newDumpTfStream);
-            }
+            const newStreamsToSub = [`${symbolLower}@aggTrade`, `${symbolLower}@depth20@100ms`, mainTfStream];
+            if (mainTfStream !== newDumpTfStream) newStreamsToSub.push(newDumpTfStream);
             WebSocketManager.subscribe(newStreamsToSub);
         } catch (error) {
-            // Jika ada error (misal: internet), aplikasi TIDAK AKAN CRASH
             console.error(`Gagal mengambil data untuk ${selectedTf}:`, error);
             triggerListDiv.innerHTML = `<p class="text-xs text-center text-red-500">Failed Data Fetch.. ${selectedTf}.</p>`;
         } finally {
-            // Apapun yang terjadi, aktifkan kembali dropdown
             dumpTfSelect.disabled = false;
         }
     });
-    // TAMBAHKAN BARIS INI
-    setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', true); // Dibuat default terbuka
+    
+        // Inisialisasi kalkulator dan simulasi (tanpa data eksternal)
     initializeNewCalculator();
-    setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', true);
     paperTrade.init();
+    
+    // 2. Sekarang, muat data eksternal WAJIB secara berurutan
+    try {
+        // Langkah A: Download daftar koin futures dulu. INI KUNCINYA.
+        await initializeExchangeInfo('futures');
+        
+        // Langkah B: Setelah daftar koin siap, BARU jalankan Top Movers.
+        await startTopMoversAutoRefresh("1h", 120000);
+        
+        // Langkah C: Siapkan juga daftar koin spot
+        await initializeExchangeInfo('spot'); 
+
+    } catch (err) {
+        console.error("Gagal inisialisasi awal:", err);
+        const gainersList = document.getElementById('gainers-list');
+        if(gainersList) gainersList.innerHTML = `<p class="text-red-500 text-xs p-2">Error: ${err.message}</p>`;
+    }
+    
+    // Listener terakhir yang bergantung pada data di atas
+    marketTypeSelect.addEventListener('change', () => initializeExchangeInfo(marketTypeSelect.value).catch(err => showError(err.message)));
 });
 // ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
