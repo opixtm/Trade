@@ -358,113 +358,139 @@
             background: linear-gradient(to right, #fcd34d, #f59e0b, #ef4444); /* yellow to orange to red */
         }
         /* === CSS BARU UNTUK SKOR TENSI (SELESAI) === */
-        /* === CSS UNTUK KALKULATOR TRAILING STOP (MULAI) === */
-.calculator-container {
-    background-color: var(--card-color);
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    width: 100%;
-    max-width: 600px;
-}
-.mode-selectors {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-.selector-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    border: 1px solid var(--border-color, #3a3f4a);
-    border-radius: 8px;
-    padding: 5px;
-}
-.selector-group label {
-    padding: 10px;
-    text-align: center;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-    font-weight: 500;
-    margin: 0;
-    font-size: 0.9em;
-}
-.selector-group input[type="radio"] {
-    display: none;
-}
-#ts-long:checked + label { background-color: var(--success-color, #2ebd85); color: white; }
-#ts-short:checked + label { background-color: var(--error-color, #f6465d); color: white; }
-#ts-isolated:checked + label, #ts-cross:checked + label { background-color: var(--accent-color, #f0b90b); color: var(--bg-color, #14151a); }
-.dark #ts-isolated:checked + label, .dark #ts-cross:checked + label { color: #1f2937; }
-
-.inputs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-.form-group label { /* Menargetkan label di dalam form-group */
-    margin-bottom: 8px;
-    color: var(--secondary-text-color, #848e9c);
-    font-size: 0.9em;
-}
-.results-container {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 2px solid var(--border-color, #3a3f4a);
-}
-.result-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    font-size: 1.05em;
-    border-bottom: 1px solid var(--border-color, #3a3f4a);
-}
-.result-item:last-child { border-bottom: none; }
-.result-item span:first-child { color: var(--secondary-text-color, #848e9c); }
-.result-item span:last-child { font-weight: 600; }
-.dark .result-item span:first-child { color: #848e9c; }
-/* === CSS UNTUK KALKULATOR TRAILING STOP (SELESAI) === */
-/* --- PERBAIKAN WARNA TEKS INPUT FIELDS --- */
-/* Target semua input type number atau text di dalam form-group */
-.form-group input[type="number"],
-.form-group input[type="text"] {
-    color: var(--primary-text-color, #f0f4f8); /* Warna teks default (putih/light-gray) */
-    background-color: var(--input-bg-color, #272a31); /* Background input default */
-    border: 1px solid var(--border-color, #3a3f4a); /* Border default */
-    padding: 10px 12px;
-    border-radius: 6px;
-    font-size: 1em;
-    width: 100%;
-    transition: border-color 0.2s;
-}
-
-/* Override untuk mode terang, jika ada */
-body.light .form-group input[type="number"],
-body.light .form-group input[type="text"] {
-    color: var(--dark-text-color, #1a202c); /* Teks gelap di mode terang */
-    background-color: var(--light-input-bg-color, #ffffff); /* Background putih di mode terang */
-    border: 1px solid var(--light-border-color, #e2e8f0); /* Border light di mode terang */
-}
-
-/* Placeholder text */
-.form-group input::placeholder {
-    color: var(--secondary-text-color, #848e9c);
-    opacity: 0.7; /* Sedikit lebih transparan */
-}
-
-/* Focus state */
-.form-group input:focus {
-    outline: none;
-    border-color: var(--accent-color, #f0b90b); /* Warna border saat fokus */
-    box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.2);
-}
+        /* === CSS BARU UNTUK KALKULATOR BINANCE STYLE (MULAI) === */
+        .calc-binance-style .btn-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .calc-binance-style .btn-group button {
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            color: #e0e0e0;
+            font-weight: 500;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .calc-binance-style .btn-group button:hover {
+            background-color: #3a3f4a;
+        }
+        .calc-binance-style .btn-group button.active {
+            background-color: #f0b90b;
+            color: #14151a;
+            border-color: #f0b90b;
+        }
+        .calc-binance-style .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .calc-binance-style .input-field {
+            width: 100%;
+            padding: 12px 12px 12px 12px;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1.1em;
+        }
+        .calc-binance-style .input-label-top {
+            font-size: 0.8em;
+            color: #848e9c;
+            margin-bottom: 8px;
+        }
+        .calc-binance-style .input-suffix {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #848e9c;
+            font-weight: 600;
+        }
+        .calc-binance-style .margin-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #3a3f4a;
+            outline: none;
+            border-radius: 2px;
+            margin: 1.5rem 0;
+        }
+        .calc-binance-style .margin-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #f0b90b;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .calc-binance-style .slider-ticks {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #848e9c;
+            padding: 0 2px;
+        }
+        .calc-binance-style .tpsl-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed #3a3f4a;
+        }
+        .calc-binance-style .exec-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 1.5rem;
+        }
+        .calc-binance-style .exec-buttons button {
+            padding: 14px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .calc-binance-style .btn-buy { background-color: #2ebd85; color: white; }
+        .calc-binance-style .btn-sell { background-color: #f6465d; color: white; }
+        .calc-binance-style .calc-result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 1rem;
+            font-size: 0.85em;
+            color: #848e9c;
+        }
+        .calc-binance-style .calc-result-grid span:nth-child(even) {
+            text-align: right;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+        /* === CSS BARU UNTUK KALKULATOR BINANCE STYLE (SELESAI) === */
+        /* === CSS UNTUK MODAL TRAILING STOP === */
+        #ts-modal-content .input-field {
+            width: 100%;
+            padding: 12px;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1.1em;
+        }
+        #ts-modal-close-btn {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .mtf-clickable-box {
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .mtf-clickable-box:hover {
+            background-color: #4b5563; /* Sesuaikan warna hover jika perlu */
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -501,13 +527,11 @@ body.light .form-group input[type="text"] {
                         </div>
                     </div>
                 </div>
-
             </div>
             <a href="#" id="trade-link" class="text-right no-underline hidden flex items-baseline gap-2">
                 <span id="nav-symbol" class="text-base font-bold text-blue-500 dark:text-green-500"></span>
                 <span id="nav-price" class="text-yellow-500 text-lg">-</span>
             </a>
-
         </div>
         <div id="candle-countdown-container" class="w-full h-1 bg-gray-200 dark:bg-gray-700 hidden">
             <div id="candle-countdown-bar" class="h-full bg-yellow-500" style="width: 0%; transition: width 1s linear;"></div>
@@ -526,7 +550,7 @@ body.light .form-group input[type="text"] {
             </button>
         </header>
 
-            <main>
+    <main>
 
                         <div class="space-y-6 mb-8">
                             <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -605,7 +629,7 @@ body.light .form-group input[type="text"] {
                             </div>
                             <section id="top-movers-section" class="card p-6">
                                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                                    <h2 class="text-sm font-semibold">Pump Strength & Dump Even</h2>
+                                    <h2 class="text-sm font-semibold">Top Performers</h2>
                                     <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                                         <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
                                             <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
@@ -629,7 +653,7 @@ body.light .form-group input[type="text"] {
                                 </div>
                                 <div class="grid grid-cols-1 gap-4">
                                     <div>
-                                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Asset Short by TF >>></h3>
+                                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Top Movers (by TF)</h3>
                                         <div id="gainers-list" class="space-y-2"></div>
                                     </div>                       
                                 </div>
@@ -664,203 +688,300 @@ body.light .form-group input[type="text"] {
 
                         </div>
 
-<div id="dashboard-content" class="hidden">
-    <div class="space-y-8">
-        
-        <div class="flex flex-col gap-8">
+            <div id="dashboard-content" class="hidden">
+                <div class="space-y-8">               
+                <div class="flex flex-col gap-8">
 
-            <section id="current-state-section" class="card p-6">
-                <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
-                    <h2 id="current-state-title" class="text-xl font-semibold">Current Market Condition</h2>
-                    <svg id="toggle-market-state-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                    </svg>
-                </button>
-                <div id="current-state-content-wrapper" class="collapsible-content expanded">
-                    <div class="space-y-6">
-                        <h2 class="text-lg font-semibold text-center">Timeframe <span id="quick-confluence-timeframe">5m</span></h2>
-                        <div class="flex items-center gap-4 my-2">
-                            <div id="quick-finalBearishScore" class="text-2xl font-bold status-downtrend text-right w-1/5">🐻 0%</div>
-                            <div class="confluence-bar-container w-3/5">
-                                <div id="quick-confluenceBarBearish" class="confluence-bar confluence-bar-bearish" style="width: 50%;"></div>
-                                <div id="quick-confluenceBarBullish" class="confluence-bar confluence-bar-bullish" style="width: 50%;"></div>
-                            </div>
-                            <div id="quick-finalBullishScore" class="text-2xl font-bold status-uptrend text-left w-1/5">0% 🐂</div>
-                        </div>
-                        <div id="verdict-container" class="text-center">
-                            <p id="quick-finalVerdict" class="font-semibold"></p>
-                            <div id="tension-score-container" class="mt-3 text-xs"></div>
-                        </div>
-                        <div id="confluence-breakdown-container" class="mt-4 text-xs text-center space-y-2 hidden">
-                            <div class="grid grid-cols-2 gap-2 text-left">
-                                <div id="top-bullish-contributors"></div>
-                                <div id="top-bearish-contributors"></div>
-                            </div>
-                        </div>
-                        <div class="space-y-2 pt-6 border-t border-gray-200 dark:border-gray-700">
-                            <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
-                                <div class="h-16 flex items-center justify-center my-2"></div>
-                                <p id="candlestick-pattern" class="font-semibold">NONE</p>
-                            </div>
-                            <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
-                                <p id="chart-pattern-label" class="text-xs text-gray-500">Chart Pattern</p>
-                                <p id="chart-pattern" class="font-semibold">NONE</p>
-                            </div>
-                        </div>
-                        <hr class="border-gray-200 dark:border-gray-700/50 my-4">
-                        <div>
-                            <h3 class="text-xl font-bold mb-4 text-center">Order Book</h3>
-                            <div id="full-order-book-container" class="space-y-2 text-sm"><p class="text-center text-gray-500">FETCHING DATA...</p></div>
-                            <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                <span class="text-gray-500">Order Book Bias</span><span id="order-book-bias" class="font-mono">-</span>
-                            </div>
-                        </div>
-                        <hr class="border-gray-200 dark:border-gray-700/50 my-4">
-                        <div>
-                            <h3 class="text-lg font-bold mb-4 text-center">CVD Order Flow</h3>
-                            <div class="chart-container" style="height: 150px;"><canvas id="cvdChart"></canvas></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="confluence-details-section" class="card p-6">
-                <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
-                    <h2 class="text-lg font-bold">Timeframe [NOW]<span id="confluence-timeframe-display">5m</span></h2>
-                    <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                </button>
-                <div id="confluence-content-wrapper" class="collapsible-content">
-                    <div>
-                        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                            <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">KEY LEVEL</h3>
-                            <div class="space-y-1 text-sm">
-                                <div class="flex justify-between"><span class="text-red-500">VAH</span><span id="vpvr-vah" class="font-mono">-</span></div>
-                                <div class="flex justify-between"><span class="font-bold text-blue-500" data-tooltip="Point of Control (POC)|...">Point of Control (POC)</span><span id="vpvr-poc" class="font-mono font-bold">-</span></div>
-                                <div class="flex justify-between"><span class="text-green-500">VAL</span><span id="vpvr-val" class="font-mono">-</span></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500">24H</span><span id="range-24h" class="font-mono font-semibold">-</span></div>
-                                <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50"><span class="text-gray-500" data-tooltip="Pivot Harian (P)|...">Pivot Harian (P)</span><span id="pivot-p" class="font-mono font-bold text-blue-500">-</span></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="VWAP (Volume-Weighted Average Price)|...">VWAP</span><div class="flex items-center gap-2"><div id="vwap-mode-buttons" class="flex text-xs"><button data-mode="rolling" class="vwap-mode-btn active px-2 py-0.5 rounded-l-md" data-tooltip="Rolling VWAP|...">R</button><button data-mode="session" class="vwap-mode-btn px-2 py-0.5" data-tooltip="Session VWAP|...">S</button><button data-mode="anchored" class="vwap-mode-btn px-2 py-0.5 rounded-r-md" data-tooltip="Anchored VWAP|...">A</button></div><span id="vwap-20d" class="font-mono text-yellow-500">-</span></div></div>
-                            </div>
-                        </div>
-                        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                            <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">MOMENTUM</h3>
-                            <div class="space-y-1 text-sm">
-                                <div class="flex justify-between items-center"><span class="text-gray-500">RSI (14)</span><div><span id="rsi-value" class="font-mono text-xs">-</span> <span id="rsi-status" class="tag tag-gray"></span></div></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500">Stoch RSI (%K/%D)</span><div><span id="stoch-value" class="font-mono text-xs">-</span> <span id="stoch-status" class="tag tag-gray"></span></div></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500">MACD</span><div><span id="macd-status" class="font-mono font-semibold">-</span> <span id="macd-hist" class="font-mono text-xs ml-1">-</span></div></div>
-                                <div class="flex justify-between items-center"><span class="text-blue-500" data-tooltip="Bollinger Squeeze|...">Bollinger Squeeze</span><span id="bollinger-squeeze-status" class="font-mono">-</span></div>
-                                <div class="flex justify-between items-center"><span class="text-yellow-500">BB Rejection</span><span id="bollinger-rejection-status" class="font-mono">-</span></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500">BB Walk the Bands</span><span id="bollinger-walk-status" class="font-mono">-</span></div>
-                                <div><div class="flex justify-between items-center"><span class="text-gray-500">Bollinger Bands</span><span id="bollinger-bands-status" class="font-mono">-</span></div><div class="text-right text-xs text-gray-400 font-mono"><span id="bb-upper-value">-</span> / <span id="bb-middle-value">-</span> / <span id="bb-lower-value">-</span></div></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="RSI Divergence|...">RSI Divergence</span><span id="rsi-divergence" class="font-mono font-semibold text-xs">-</span></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Linear Regression Channel|...">LinReg Channel</span><span id="linreg-status" class="font-mono">-</span></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Ichimoku Bias|...">Ichimoku Bias</span><span id="ichimoku-bias" class="font-mono font-semibold">-</span></div>
-                            </div>
-                        </div>
-                        <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                            <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">Asset Info</h3>
-                            <div class="hidden">
-                                <input type="text" id="correlation-asset-input" class="input-primary" value="BTCUSDT">
-                            </div>
-
-                            <div class="space-y-1 text-sm">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-500">BTC Correlation (30D)</span>
-                                    <div>
-                                        <span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span>
-                                        <span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span>
-                                    </div>
+                <section id="current-state-section" class="card p-6">
+                    <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 id="current-state-title" class="text-xl font-semibold">Current Market Condition</h2>
+                        <svg id="toggle-market-state-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                    <div id="current-state-content-wrapper" class="collapsible-content expanded">
+                        <div class="space-y-6">
+                            <h2 class="text-lg font-semibold text-center">Calculated Timeframe <span id="quick-confluence-timeframe">5m</span></h2>
+                            <div class="flex items-center gap-4 my-2">
+                                <div id="quick-finalBearishScore" class="text-2xl font-bold status-downtrend text-right w-1/5">🐻 0%</div>
+                                <div class="confluence-bar-container w-3/5">
+                                    <div id="quick-confluenceBarBearish" class="confluence-bar confluence-bar-bearish" style="width: 50%;"></div>
+                                    <div id="quick-confluenceBarBullish" class="confluence-bar confluence-bar-bullish" style="width: 50%;"></div>
                                 </div>
-                            <div class="space-y-1 text-sm">
-                                <div class="flex justify-between items-center"><span class="text-gray-500">BTC Correlation (30D)</span><div><span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span><span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span></div></div>
-                                <div class="flex justify-between items-center"><span class="text-gray-500">BTC Dominance</span><span id="btc-dominance" class="font-mono">-</span></div>
-                                <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50"><span class="text-gray-500">Market Cap</span><span id="market-cap" class="font-mono">-</span></div>
+                                <div id="quick-finalBullishScore" class="text-2xl font-bold status-uptrend text-left w-1/5">0% 🐂</div>
+                            </div>
+                            <div id="verdict-container" class="text-center">
+                                <p id="quick-finalVerdict" class="font-semibold"></p>
+                                <div id="tension-score-container" class="mt-3 text-xs"></div>
+                            </div>
+                            <div id="confluence-breakdown-container" class="mt-4 text-xs text-center space-y-2 hidden">
+                                <div class="grid grid-cols-2 gap-2 text-left">
+                                    <div id="top-bullish-contributors"></div>
+                                    <div id="top-bearish-contributors"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-2 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
+                                    <div class="h-16 flex items-center justify-center my-2"></div>
+                                    <p id="candlestick-pattern" class="font-semibold">NONE</p>
+                                </div>
+                                <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
+                                    <p id="chart-pattern-label" class="text-xs text-gray-500">Chart Pattern</p>
+                                    <p id="chart-pattern" class="font-semibold">NONE</p>
+                                </div>
+                            </div>
+                            <hr class="border-gray-200 dark:border-gray-700/50 my-4">
+                            <div>
+                                <h3 class="text-xl font-bold mb-4 text-center">Order Book</h3>
+                                <div id="full-order-book-container" class="space-y-2 text-sm"><p class="text-center text-gray-500">FETCHING DATA...</p></div>
+                                <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                    <span class="text-gray-500">Order Book Bias</span><span id="order-book-bias" class="font-mono">-</span>
+                                </div>
+                            </div>
+                            <hr class="border-gray-200 dark:border-gray-700/50 my-4">
+                            <div>
+                                <h3 class="text-lg font-bold mb-4 text-center">CVD Order Flow</h3>
+                                <div class="chart-container" style="height: 150px;"><canvas id="cvdChart"></canvas></div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <section id="scalping-setup-section" class="card p-6">
-                <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
-                    <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
-                    <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                </button>
-                <div id="scalping-content-wrapper" class="collapsible-content expanded">
-                    <div>
-                        <div id="hybrid-breakdown-module" class="mb-4">
-                            <div class="flex items-center justify-between text-xs text-gray-400"><span>Pump Strength</span><span>Dump Even</span></div>
-                            <div class="confluence-bar-container w-full h-8 mt-1"><div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div><div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div></div>
-                            <div class="flex items-center justify-between text-sm mt-1"><span id="main-pump-score" class="positive font-bold">0%</span><span id="main-dump-score" class="negative font-bold">0/10</span></div>
-                            <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">Flowing...</p>
-                            <details class="mt-3"><summary class="cursor-pointer text-sm text-gray-400 hover:text-white transition-colors flex justify-between items-center"><span>Dump Even Trigger▾</span><select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()"><option value="1m">1m</option><option value="3m">3m</option><option value="5m" selected="">5m</option><option value="15m">15m</option><option value="30m">30m</option><option value="1h">1h</option></select></summary><div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1"><p class="text-xs text-center text-gray-600">Pilih timeframe...</p></div></details>
+                <section id="confluence-details-section" class="card p-6">
+                    <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 class="text-lg font-bold">Timeframe [ NOW ] -<span id="confluence-timeframe-display"> 5m</span></h2>
+                        <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <div id="confluence-content-wrapper" class="collapsible-content">
+                        <div>
+                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">KEY LEVEL</h3>
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex justify-between"><span class="text-red-500">VAH</span><span id="vpvr-vah" class="font-mono">-</span></div>
+                                    <div class="flex justify-between"><span class="font-bold text-blue-500" data-tooltip="Point of Control (POC)|...">Point of Control (POC)</span><span id="vpvr-poc" class="font-mono font-bold">-</span></div>
+                                    <div class="flex justify-between"><span class="text-green-500">VAL</span><span id="vpvr-val" class="font-mono">-</span></div>
+                                    <div class="flex justify-between items-center"><span class="text-gray-500">24H</span><span id="range-24h" class="font-mono font-semibold">-</span></div>
+
+                                    <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500" data-tooltip="Daily Pivot (P)|...">Daily Pivot (P)</span>
+                                            <span id="pivot-p" class="font-mono font-semibold text-blue-500">-</span>
+                                        </div>
+                                        <div id="pivot-levels-container" class="text-xs text-gray-400 space-y-1 mt-1 pl-4 hidden">
+                                            <div class="flex justify-between"><span>R1 / S1</span><span id="pivot-r1s1" class="font-mono">-</span></div>
+                                            <div class="flex justify-between"><span>R2 / S2</span><span id="pivot-r2s2" class="font-mono">-</span></div>
+                                            <div class="flex justify-between"><span>R3 / S3</span><span id="pivot-r3s3" class="font-mono">-</span></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="VWAP (Volume-Weighted Average Price)|...">VWAP</span><div class="flex items-center gap-2"><div id="vwap-mode-buttons" class="flex text-xs"><button data-mode="rolling" class="vwap-mode-btn active px-2 py-0.5 rounded-l-md" data-tooltip="Rolling VWAP|...">R</button><button data-mode="session" class="vwap-mode-btn px-2 py-0.5" data-tooltip="Session VWAP|...">S</button><button data-mode="anchored" class="vwap-mode-btn px-2 py-0.5 rounded-r-md" data-tooltip="Anchored VWAP|...">A</button></div><span id="vwap-20d" class="font-mono text-yellow-500">-</span></div></div>
+                                </div>
+                            </div>
+                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">MOMENTUM</h3>
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex justify-between items-center"><span class="text-gray-500">RSI (14)</span><div><span id="rsi-value" class="font-mono text-xs">-</span> <span id="rsi-status" class="tag tag-gray"></span></div></div>
+                                    <div class="flex justify-between items-center"><span class="text-gray-500">Stoch RSI (%K/%D)</span><div><span id="stoch-value" class="font-mono text-xs">-</span> <span id="stoch-status" class="tag tag-gray"></span></div></div>
+                                    <div class="flex justify-between items-center"><span class="text-gray-500">MACD</span><div><span id="macd-status" class="font-mono font-semibold">-</span> <span id="macd-hist" class="font-mono text-xs ml-1">-</span></div></div>
+                                    <div class="flex justify-between items-center"><span class="text-blue-500" data-tooltip="Bollinger Squeeze|...">Bollinger Squeeze</span><span id="bollinger-squeeze-status" class="font-mono">-</span></div>
+                                    <div class="flex justify-between items-center"><span class="text-yellow-500">BB Reversal</span><span id="bollinger-rejection-status" class="font-mono">-</span></div>
+                                    <div class="flex justify-between items-center"><span class="text-gray-500">BB Walk the Bands</span><span id="bollinger-walk-status" class="font-mono">-</span></div>
+                                    <div><div class="flex justify-between items-center"><span class="text-gray-500">Bollinger Bands</span><span id="bollinger-bands-status" class="font-mono">-</span></div><div class="text-right text-xs text-gray-400 font-mono"><span id="bb-upper-value">-</span> / <span id="bb-middle-value">-</span> / <span id="bb-lower-value">-</span></div></div>
+                                    <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="RSI Divergence|...">RSI Divergence</span><span id="rsi-divergence" class="font-mono font-semibold text-xs">-</span></div>
+                                    <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Linear Regression Channel|...">LinReg Channel</span><span id="linreg-status" class="font-mono">-</span></div>
+                                    <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                        <span class="text-gray-500" data-tooltip="On-Balance Volume|Indikator momentum yang menggunakan volume untuk memprediksi perubahan harga.">OBV</span>
+                                        <span id="obv-value" class="font-mono font-semibold">-</span>
+                                    </div>
+                                    <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Ichimoku Bias|...">Ichimoku Bias</span><span id="ichimoku-bias" class="font-mono font-semibold">-</span></div>
+                                </div>
+                            </div>
+                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">Asset Info</h3>
+                                <div class="hidden">
+                                    <input type="text" id="correlation-asset-input" class="input-primary" value="BTCUSDT">
+                                </div>
+
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-500">BTC Correlation (30D)</span>
+                                        <div>
+                                            <span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span>
+                                            <span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span>
+                                        </div>
+                                    </div>
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex justify-between items-center"><span class="text-gray-500">BTC Dominance</span><span id="btc-dominance" class="font-mono">-</span></div>
+                                    <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50"><span class="text-gray-500">Market Cap</span><span id="market-cap" class="font-mono">-</span></div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="pt-2 mt-2 border-t border-dashed border-gray-700/50"><div id="scalping-resistance-info" class="flex justify-between items-center text-sm"><span class="text-gray-500">Resistance (R1)</span><span class="font-mono font-semibold text-red-400">-</span></div><div id="scalping-wall-container" class="text-center text-xs pt-2 space-y-1"><div id="buy-wall-display" class="text-green-500 font-semibold">— No Buy Wall Detected —</div><div id="sell-wall-display" class="text-red-500 font-semibold">— No Sell Wall Detected —</div></div></div>
-                        <div id="tf-alignment-summary" class="pt-2 mt-2 border-t border-dashed border-gray-600/50"></div>
-                        <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50"><div class="flex justify-between items-center text-sm"><span class="text-gray-500">EMA 21/50</span><span id="ma-status" class="font-mono font-semibold">-</span></div><div class="text-right text-xs text-gray-400 font-mono"><span id="ema-21-value">-</span> / <span id="ema-50-value">-</span></div></div>
-                        <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50 text-sm"><details><summary class="cursor-pointer text-center text-gray-500 text-xs mb-2 list-none">▼ Analisis Tambahan ▼</summary><div class="mt-2"><div class="space-y-1"><div class="flex justify-between items-center"><span class="text-gray-500">Parabolic SAR</span><span id="psar-status" class="font-mono text-sm">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Rate of Change (ROC)|...">Rate of Change (ROC)</span><span id="roc-status" class="font-mono text-sm">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|...">ADX 14</span><div><span id="adx-value" class="font-mono font-semibold text-sm">-</span><span class="text-xs positive" id="plus-di-value"></span> /<span class="text-xs negative" id="minus-di-value"></span></div></div></div><div class="mt-2 pt-2 border-t border-dashed border-gray-700/20 space-y-1"><div class="flex justify-between items-start"><div><span class="text-gray-500 text-sm">A T R</span><span id="atr-status-badge" class="tag tag-gray ml-2">...</span></div><div class="text-right"><p id="atr-percent-value" class="font-mono text-blue-500 font-semibold">-</p><p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p></div></div><div id="ls-umum-container" class="flex justify-between items-center"><span class="text-gray-500">L/S Ratio</span><span id="ls-ratio-umum" class="font-mono">-</span></div><div id="ls-top-container" class="flex justify-between items-center"><span class="text-gray-500">L/S Ratio (Top)</span><span id="ls-ratio-top" class="font-mono">-</span></div><div id="futures-data-container" class="hidden space-y-1"><div class="flex justify-between items-center"><span class="text-gray-500">Funding Interval</span><span id="funding-rate-interval" class="font-mono">-</span></div><div class="flex justify-between items-center"><span class="text-yellow-500">Funding Rate</span><span id="funding-rate" class="font-mono text-yellow-500">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500">Open Interest</span><span id="open-interest">-</span></div></div></div></div></details></div>
-                        <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"><p class="text-sm text-gray-500">FETCHING DATA...</p></div>
                     </div>
-                </div>
-            </section>
-            
-            <section id="onchain-card" class="card p-6">
-                <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
-                    <h2 class="text-xl font-bold">On-Chain</h2>
-                    <svg id="toggle-onchain-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                </button>
-                <div id="onchain-content-wrapper" class="collapsible-content">
-                    <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                        <div id="specific-token-analysis" class="mb-4"><h3 id="specific-token-title" class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Analisis Token Spesifik</h3><div id="specific-token-content" class="text-sm space-y-1"><p class="text-xs text-gray-500 text-center">SEARCHING...</p></div></div>
-                        <div><h3 class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Pool Trending Teratas</h3><div id="trending-pools-content" class="text-sm space-y-2"><div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div></div></div>
-                    </div>
-                </div>
-            </section>
-            
-            <section id="sentiment-display-container" class="card p-6">
-                <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
-                    <h2 class="text-xl font-bold">BTC Sentiment (via AI)</h2>
-                    <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                </button>
-                <div id="sentiment-content-wrapper" class="collapsible-content">
-                    <p class="text-center text-gray-500">Ask AI first....</p>
-                </div>
-            </section>
-            
-            <section id="ai-analysis-section" class="card p-6 relative">
-                <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">AI ANALYZER</h2></div>
-                <div id="ai-verdict-content-wrapper" class="collapsible-content expanded">
-                    <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                        <button id="run-comprehensive-ai-btn" class="btn-primary w-full mb-4"><span>ASK AI</span><div class="loader w-5 h-5 hidden"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></button>
-                        <div id="ai-content-container" class="hidden space-y-6">
-                            <div id="ai-narrative-content" class="prose prose-sm dark:prose-invert max-w-none text-gray-600 space-y-4"></div>
-                            <div><h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">🔮 Proyeksi Harga</h3><div id="projection-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
-                            <div><h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">♟️ Saran Strategis</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><h4 class="font-semibold text-green-500 mb-2">Untuk Calon Buyer</h4><p id="saran-buyer" class="text-lg font-bold"></p><p id="alasan-buyer" class="text-sm text-gray-500 mt-1"></p></div><div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><h4 class="font-semibold text-blue-500 mb-2">Untuk Holder</h4><p id="saran-holder" class="text-lg font-bold"></p><p id="alasan-holder" class="text-sm text-gray-500 mt-1"></p></div></div></div>
+                </section>
+
+                <section id="scalping-setup-section" class="card p-6">
+                    <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
+                        <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <div id="scalping-content-wrapper" class="collapsible-content expanded">
+                        <div>
+                            <div id="hybrid-breakdown-module" class="mb-4">
+                                <div class="flex items-center justify-between text-xs text-gray-400"><span>Bullish Momentum</span><span>Bearish Pressure Score</span></div>
+                                <div class="confluence-bar-container w-full h-8 mt-1"><div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div><div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div></div>
+                                <div class="flex items-center justify-between text-sm mt-1"><span id="main-pump-score" class="positive font-bold">0%</span><span id="main-dump-score" class="negative font-bold">0/10</span></div>
+                                <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">⚠ PLEASE CHECK YOU ARE IN THE RIGHT TIMEFRAME ⚠️</p>
+                                <details class="mt-3"><summary class="cursor-pointer text-xs text-gray-400 hover:text-white transition-colors flex justify-between items-center"><span>Bearish Pressure Score Trigger▾</span><select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()"><option value="1m">1m</option><option value="3m">3m</option><option value="5m" selected="">5m</option><option value="15m">15m</option><option value="30m">30m</option><option value="1h">1h</option></select></summary><div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1"><p class="text-xs text-center text-gray-600">Pilih timeframe...</p></div></details>
+                            </div>
+                            <div class="pt-2 mt-2 border-t border-dashed border-gray-700/50"><div id="scalping-resistance-info" class="flex justify-between items-center text-sm"><span class="text-gray-500">Nearest Resistance</span><span class="font-mono font-semibold text-red-400">-</span></div><div id="scalping-wall-container" class="text-center text-xs pt-2 space-y-1"><div id="buy-wall-display" class="text-green-500 font-semibold">— No Buy Wall Detected —</div><div id="sell-wall-display" class="text-red-500 font-semibold">— No Sell Wall Detected —</div></div></div>
+                            <div id="tf-alignment-summary" class="pt-2 mt-2 border-t border-dashed border-gray-600/50"></div>
+                            <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50"><div class="flex justify-between items-center text-sm"><span class="text-gray-500">EMA 21/50</span><span id="ma-status" class="font-mono font-semibold">-</span></div><div class="text-right text-xs text-gray-400 font-mono"><span id="ema-21-value">-</span> / <span id="ema-50-value">-</span></div></div>
+                            <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50 text-sm"><details><summary class="cursor-pointer text-center text-gray-500 text-xs mb-2 list-none">👇🏻 Click for More 👇🏻</summary><div class="mt-2"><div class="space-y-1"><div class="flex justify-between items-center"><span class="text-gray-500">Parabolic SAR</span><span id="psar-status" class="font-mono text-sm">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Rate of Change (ROC)|...">Rate of Change (ROC)</span><span id="roc-status" class="font-mono text-sm">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|...">ADX 14</span><div><span id="adx-value" class="font-mono font-semibold text-sm">-</span><span class="text-xs positive" id="plus-di-value"></span> /<span class="text-xs negative" id="minus-di-value"></span></div></div></div><div class="mt-2 pt-2 border-t border-dashed border-gray-700/20 space-y-1"><div class="flex justify-between items-start"><div><span class="text-gray-500 text-sm">A T R</span><span id="atr-status-badge" class="tag tag-gray ml-2">...</span></div><div class="text-right"><p id="atr-percent-value" class="font-mono text-blue-500 font-semibold">-</p><p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p></div></div><div id="ls-umum-container" class="flex justify-between items-center"><span class="text-gray-500">L/S Ratio</span><span id="ls-ratio-umum" class="font-mono">-</span></div><div id="ls-top-container" class="flex justify-between items-center"><span class="text-gray-500">L/S Ratio (Top)</span><span id="ls-ratio-top" class="font-mono">-</span></div><div id="futures-data-container" class="hidden space-y-1"><div class="flex justify-between items-center"><span class="text-gray-500">Funding Interval</span><span id="funding-rate-interval" class="font-mono">-</span></div><div class="flex justify-between items-center"><span class="text-yellow-500">Funding Rate</span><span id="funding-rate" class="font-mono text-yellow-500">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500">Open Interest</span><span id="open-interest">-</span></div></div></div></div></details></div>
+                            <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"><p class="text-sm text-gray-500">FETCHING DATA...</p></div>
                         </div>
                     </div>
-                </div>
-                <div class="absolute bottom-2 right-2"><button id="toggle-ai-verdict-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none"><svg id="toggle-ai-verdict-icon" class="w-5 h-5 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div>
-            </section>
+                </section>
+            
+                <section id="onchain-card" class="card p-6">
+                    <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 class="text-xl font-bold">On-Chain</h2>
+                        <svg id="toggle-onchain-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <div id="onchain-content-wrapper" class="collapsible-content">
+                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div id="specific-token-analysis" class="mb-4"><h3 id="specific-token-title" class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Analisis Token Spesifik</h3><div id="specific-token-content" class="text-sm space-y-1"><p class="text-xs text-gray-500 text-center">SEARCHING...</p></div></div>
+                            <div><h3 class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Pool Trending Teratas</h3><div id="trending-pools-content" class="text-sm space-y-2"><div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div></div></div>
+                        </div>
+                    </div>
+                </section>
+            
+                <section id="sentiment-display-container" class="card p-6">
+                    <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 class="text-xl font-bold">BTC Sentiment (via AI)</h2>
+                        <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <div id="sentiment-content-wrapper" class="collapsible-content">
+                        <p class="text-center text-gray-500">Ask AI first....</p>
+                    </div>
+                </section>
+            
+                <section id="ai-analysis-section" class="card p-6 relative">
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">AI ANALYZER</h2></div>
+                    <div id="ai-verdict-content-wrapper" class="collapsible-content expanded">
+                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                            <button id="run-comprehensive-ai-btn" class="btn-primary w-full mb-4"><span>ASK AI</span><div class="loader w-5 h-5 hidden"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></button>
+                            <div id="ai-content-container" class="hidden space-y-6">
+                                <div id="ai-narrative-content" class="prose prose-sm dark:prose-invert max-w-none text-gray-600 space-y-4"></div>
+                                <div><h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">🔮 Proyeksi Harga</h3><div id="projection-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+                                <div><h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">♟️ Saran Strategis</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><h4 class="font-semibold text-green-500 mb-2">Untuk Calon Buyer</h4><p id="saran-buyer" class="text-lg font-bold"></p><p id="alasan-buyer" class="text-sm text-gray-500 mt-1"></p></div><div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><h4 class="font-semibold text-blue-500 mb-2">Untuk Holder</h4><p id="saran-holder" class="text-lg font-bold"></p><p id="alasan-holder" class="text-sm text-gray-500 mt-1"></p></div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-2 right-2"><button id="toggle-ai-verdict-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none"><svg id="toggle-ai-verdict-icon" class="w-5 h-5 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div>
+                </section>
+<section id="trailing-stop-calc-section" class="card p-6">
+    <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
+        <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
+        <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+    </button>
+    
+    <div id="ts-calc-content-wrapper" class="collapsible-content">
+        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
+            
+            <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
+                ⚡️ Auto-fill dari Setup Scalping
+            </button>
 
-            <section id="trailing-stop-calc-section" class="card p-6">
-                <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
-                    <h2 class="text-xl font-bold">Kalkulator Trailing Stop</h2>
-                    <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                </button>
-                <div id="ts-calc-content-wrapper" class="collapsible-content">
-                    <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                        <button id="autofill-ts-btn" class="btn-primary w-full mb-4">⚡️ Auto-fill dari Setup Scalping</button>
-                        <div class="mode-selectors"><div class="selector-group"><input type="radio" id="ts-long" name="ts-position" value="long" checked=""><label for="ts-long">📈 LONG</label><input type="radio" id="ts-short" name="ts-position" value="short"><label for="ts-short">📉 SHORT</label></div><div class="selector-group"><input type="radio" id="ts-isolated" name="ts-marginMode" value="isolated"><label for="ts-isolated">ISOLATED</label><input type="radio" id="ts-cross" name="ts-marginMode" value="cross" checked=""><label for="ts-cross">CROSS</label></div></div>
-                        <div class="inputs-grid"><div class="form-group"><label for="ts-entryPrice">Harga Entry ($)</label><input type="number" id="ts-entryPrice" placeholder="60000"></div><div class="form-group"><label for="ts-initialMargin">Initial Margin / Modal ($)</label><input type="number" id="ts-initialMargin" placeholder="100"></div><div class="form-group"><label for="ts-leverage">Leverage (x)</label><input type="number" id="ts-leverage" placeholder="20"></div><div class="form-group" id="ts-funding-group" style="display: flex;"><label for="ts-funding">Total Dana Wallet / Fund ($)</label><input type="number" id="ts-funding" placeholder="1000"></div><div class="form-group"><label for="ts-callbackRate">Callback Rate (%)</label><input type="number" id="ts-callbackRate" placeholder="2"></div><div class="form-group"><label for="ts-activationPrice">Harga Aktivasi ($)</label><input type="number" id="ts-activationPrice" placeholder="61000"></div><div class="form-group"><label for="ts-marketPrice" id="ts-marketPriceLabel">Harga Pasar Terendah ($)</label><input type="number" id="ts-marketPrice" placeholder="Harga saat ini"></div></div>
-                        <div class="results-container"><div class="result-item"><span>Total Ukuran Posisi:</span><span id="ts-positionSize">-</span></div><div class="result-item"><span>Estimasi Harga Likuidasi:</span><span id="ts-liquidationPrice" class="warning">-</span></div><hr style="border-color: var(--border-color); opacity: 0.5; margin: 5px 0;"><div class="result-item"><span>Status Trailing Stop:</span><span id="ts-status" class="neutral">-</span></div><div class="result-item"><span>Harga Stop Loss Saat Ini:</span><span id="ts-stopLossPrice">-</span></div><div class="result-item"><span>Potensi ROE:</span><span id="ts-roe" class="neutral">-</span></div></div>
+            <div class="btn-group">
+                <button id="ts-mode-cross" class="active">Cross</button>
+                <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
+                <button id="ts-mode-isolated" class="">Isolated</button>
+                <button id="ts-trailing-stop-options">⚙️ TS</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="input-group">
+                    <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
+                    <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
+                </div>
+                <div class="input-group">
+                    <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
+                    <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
+                </div>
+            </div>
+
+            <div>
+                <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
+                <div class="slider-ticks">
+                    <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+                </div>
+            </div>
+
+            <div class="input-group mt-6">
+                <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
+                <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
+            </div>
+
+            <div class="tpsl-section">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
+                    <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
+                </div>
+                <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
+                    <div class="input-group">
+                        <label for="ts-take-profit" class="input-label-top">Take Profit</label>
+                        <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                    </div>
+                    <div class="input-group">
+                        <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
+                        <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
                     </div>
                 </div>
-            </section>
+            </div>
 
+            <div class="exec-buttons">
+                <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
+                <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
+            </div>
+
+            <div class="calc-result-grid">
+                <span>Cost</span><span id="ts-result-cost">--</span>
+                <span>Max</span><span id="ts-result-max">--</span>
+                <span>Position Size</span><span id="ts-result-position-size">--</span>
+                <span>Liq. Price</span><span id="ts-result-liq-price">--</span>
+                <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span><span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
+                <span>Harga Stop Loss TS</span><span id="ts-result-sl-price">--</span>
+                <span>Potensi ROE</span><span id="ts-result-roe">--</span>
+            </div>
         </div>
     </div>
-</div>
-            </main>
+
+    <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+        <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
+                <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <div class="form-group">
+                    <label for="ts-modal-callback-rate">Callback Rate (%)</label>
+                    <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
+                </div>
+                <div class="form-group">
+                    <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
+                    <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
+                </div>
+            </div>
+            <div class="mt-6 text-right">
+                <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
+            </div>
+        </div>
+    </div>
+</section>
+                </div>
+            </div>
+        </div>
+    </main>
 <script>
 // =====================================================================================================================================================================
 // BAGIAN 1: DEKLARASI SEMUA ELEMEN DOM
@@ -998,10 +1119,6 @@ body.light .form-group input[type="text"] {
     };
 
 // =====================================================================================================================================================================
-// BAGIAN 4.5: FUNGSI BANTU (HELPERS) BARU
-// =====================================================================================================================================================================
-    
-// =====================================================================================================================================================================
 // OBJEK WEBSOCKET MANAGER HARUS DIDEKLARASIKAN DI AWAL
 // =====================================================================================================================================================================
     const WebSocketManager = {
@@ -1093,7 +1210,7 @@ body.light .form-group input[type="text"] {
         // NEW CODE (AFTER PATCH)
         resetSubscriptions() { // Sekarang mereset SEMUA langganan
             this.mainSubscriptions.clear();
-            this.moverSubscriptions.clear(); // <-- ADD THIS LINE
+            this.moverSubscriptions.clear(); 
             this.reconnect();
         },
 
@@ -1376,27 +1493,34 @@ body.light .form-group input[type="text"] {
         }
     }
 // =====================================================================================================================================================================
-    const formatPrice = (price) => {
-        if (price === null || price === undefined) return '-';
-        if (price >= 1) {
-            return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    // GANTI SELURUH FUNGSI formatPrice ANDA DENGAN INI
+const formatPrice = (price) => {
+    // PERBAIKAN: Cek jika input bukan angka (termasuk string '--' atau 'N/A')
+    if (typeof price !== 'number' || isNaN(price)) {
+        return price; // Kembalikan input aslinya (misalnya, '--') tanpa error
+    }
+
+    // Sisa dari logika format harga tetap sama
+    if (price >= 1) {
+        return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    const priceString = price.toString();
+    const decimalPart = priceString.includes('.') ? priceString.split('.')[1] : '';
+    if (decimalPart.length === 0) return `$${price.toFixed(2)}`;
+    
+    let nonZeroIndex = -1;
+    for (let i = 0; i < decimalPart.length; i++) {
+        if (decimalPart[i] !== '0') {
+            nonZeroIndex = i;
+            break;
         }
-        const priceString = price.toString();
-        const decimalPart = priceString.includes('.') ? priceString.split('.')[1] : '';
-        if (decimalPart.length === 0) return `$${price.toFixed(2)}`;
-        let nonZeroIndex = -1;
-        for (let i = 0; i < decimalPart.length; i++) {
-            if (decimalPart[i] !== '0') {
-                nonZeroIndex = i;
-                break;
-            }
-        }
-        if (nonZeroIndex !== -1) {
-            const significantDigits = 4;
-            return `$${price.toFixed(nonZeroIndex + significantDigits)}`;
-        }
-        return `$${price.toFixed(8)}`;
-    };
+    }
+    if (nonZeroIndex !== -1) {
+        const significantDigits = 4;
+        return `$${price.toFixed(nonZeroIndex + significantDigits)}`;
+    }
+    return `$${price.toFixed(8)}`;
+};
 // =====================================================================================================================================================================
     function getPrecisionForAsset(price) {
         if (price === 0) return 2;
@@ -1787,21 +1911,32 @@ body.light .form-group input[type="text"] {
     // == BLOK FUNGSI KALKULASI INDIKATOR BARU (MULAI) ==
 // ===================================================================================================================================================================================================================================================================================
     function calculatePivotPoints(prevDayKline) {
-        if (!prevDayKline) return null;
-        const high = parseFloat(prevDayKline[2]);
-        const low = parseFloat(prevDayKline[3]);
-        const close = parseFloat(prevDayKline[4]);
+    // Pengecekan awal, jika tidak ada data sama sekali, langsung hentikan.
+    if (!prevDayKline || prevDayKline.length < 5) return null;
 
-        const P = (high + low + close) / 3;
-        const R1 = (2 * P) - low;
-        const S1 = (2 * P) - high;
-        const R2 = P + (high - low);
-        const S2 = P - (high - low);
-        const R3 = high + 2 * (P - low);
-        const S3 = low - 2 * (high - P);
+    // Ambil nilai dan pastikan dikonversi menjadi angka.
+    const high = parseFloat(prevDayKline[2]);
+    const low = parseFloat(prevDayKline[3]);
+    const close = parseFloat(prevDayKline[4]);
 
-        return { P, R1, S1, R2, S2, R3, S3 };
+    // ---> INI BAGIAN PENTING <---
+    // Pengecekan kedua, jika salah satu data gagal di-parse menjadi angka, hentikan.
+    if (isNaN(high) || isNaN(low) || isNaN(close)) {
+        console.error("Gagal menghitung Pivot: Salah satu data (H, L, C) bukan angka yang valid.", {high, low, close});
+        return null;
     }
+
+    // Jika semua data valid, lanjutkan perhitungan seperti biasa.
+    const P = (high + low + close) / 3;
+    const R1 = (2 * P) - low;
+    const S1 = (2 * P) - high;
+    const R2 = P + (high - low);
+    const S2 = P - (high - low);
+    const R3 = high + 2 * (P - low);
+    const S3 = low - 2 * (high - P);
+
+    return { P, R1, S1, R2, S2, R3, S3 };
+}
 // ===================================================================================================================================================================================================================================================================================
     function calculateKeltnerChannels(klines, period = 20, multiplier = 2, atrPeriod = 10) {
         if (!klines || klines.length < period) return { upper: [], middle: [], lower: [], width: [] };
@@ -1951,15 +2086,16 @@ body.light .form-group input[type="text"] {
         }
         return Array(period).fill(undefined).concat(rsi);
     };
+// =====================================================================================================================================================================
     const calculateMACD = (closes, fast = userSettings.active.indicatorParams.macd_fast, slow = userSettings.active.indicatorParams.macd_slow, signal = userSettings.active.indicatorParams.macd_signal) => {
         if (closes.length < slow + signal) {
             return { status: 'Netral', hist: 'Netral', class: 'text-gray-500', macdLine: [], signalLine: [], histogram: [] };
         }
-        
+// =====================================================================================================================================================================       
     const emaFast = calculateEMA(closes, fast);
     const emaSlow = calculateEMA(closes, slow);
         
-    
+// =====================================================================================================================================================================    
     const macdLine = emaSlow.map((slowVal, i) => {
         if (slowVal !== undefined && emaFast[i] !== undefined) {
             return emaFast[i] - slowVal;
@@ -2006,7 +2142,7 @@ body.light .form-group input[type="text"] {
             histogram 
         };
     };
-
+// =====================================================================================================================================================================
     const calculateStochasticRSI = (closes, 
         rsiPeriod = userSettings.active.indicatorParams.stoch_rsi_period, 
         stochPeriod = userSettings.active.indicatorParams.stoch_stoch_period, 
@@ -2039,7 +2175,7 @@ body.light .form-group input[type="text"] {
             kLine, dLine, kOffset, dOffset
         };
     };
-
+// =====================================================================================================================================================================
     const calculateBollingerBands = (closes, period = 20, stdDev = 2) => {
         if (closes.length < period) return { upper: [], middle: [], lower: [], width: [], status: 'N/A' };
         const middle = calculateSMA(closes, period);
@@ -2083,6 +2219,7 @@ body.light .form-group input[type="text"] {
 
         return { upper, middle, lower, width, status, squeezeStatus }; 
     };
+// =====================================================================================================================================================================
     const calculateVPVR = (klines, numRows = 70, valueAreaPercent = 0.70) => {
         if (!klines || klines.length === 0) return { poc: 0, vah: 0, val: 0 };
         let overallLow = Infinity, overallHigh = -Infinity;
@@ -2122,7 +2259,7 @@ body.light .form-group input[type="text"] {
         }
         return { poc, vah: profile[upperIdx].price + rowSize, val: profile[lowerIdx].price };
     };
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function CVDanalyze(klines, cvdData) {
         if (!klines || klines.length < 2 || !cvdData || cvdData.length < 2) {
         return { trend: 'N/A', divergence: 'N/A', summary: 'Data tidak cukup untuk analisa CVD.' };
@@ -2153,6 +2290,7 @@ body.light .form-group input[type="text"] {
                 summary: summary
             };
     }
+    // ==============================================
     const calculateCVD = (trades) => {
         let cumulativeDeltaCoin = 0;
         let cumulativeDeltaUsdt = 0;
@@ -2171,7 +2309,7 @@ body.light .form-group input[type="text"] {
             };
         });
     };
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     const calculateADX = (klines, period = 14) => {
         if (!klines || klines.length < period * 2) return { adx: 'N/A', plusDI: 'N/A', minusDI: 'N/A' };
         let highs = klines.map(k => parseFloat(k[2])), lows = klines.map(k => parseFloat(k[3])), closes = klines.map(k => parseFloat(k[4]));
@@ -2182,7 +2320,7 @@ body.light .form-group input[type="text"] {
             plusDMs.push(upMove > downMove && upMove > 0 ? upMove : 0);
             minusDMs.push(downMove > upMove && downMove > 0 ? downMove : 0);
         }
-
+    // =============================================
         const rma = (data, p) => {
             let rma = [], sum = 0;
             for (let i = 0; i < data.length; i++) {
@@ -2209,7 +2347,7 @@ body.light .form-group input[type="text"] {
         let adxValues = rma(dxs, period);
         return { adx: adxValues.filter(v=>v!==undefined).pop()?.toFixed(2) || 'N/A', plusDI: plusDIs.pop()?.toFixed(2) || 'N/A', minusDI: minusDIs.pop()?.toFixed(2) || 'N/A' };
     };
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     const findCandlestickPatterns = (klines) => {        
         if (!klines || klines.length < 3) {            
             return { pattern: 'NONE', class: 'text-gray-500', bias: 'NETRAL', svg: '', timestamp: null };
@@ -2273,6 +2411,7 @@ body.light .form-group input[type="text"] {
         
         return result;
     };
+// =====================================================================================================================================================================
     const detectRSIDivergence = (closes, rsiValues, lookback = 30) => {
         if (!closes || closes.length < lookback || !rsiValues || rsiValues.length < lookback) return { status: 'NONE', class: 'text-gray-500' };
         const recentCloses = closes.slice(-lookback), recentRSI = rsiValues.slice(-lookback);
@@ -2299,7 +2438,7 @@ body.light .form-group input[type="text"] {
         }
         return { status: 'NONE', class: 'text-gray-500' };
     };
-
+// =====================================================================================================================================================================
     const detectOBVDivergence = (closes, klines, lookback = 30) => {
         if (!closes || closes.length < lookback || !klines || klines.length < lookback) return { status: 'NONE', class: 'text-gray-500' };
 
@@ -2348,7 +2487,7 @@ body.light .form-group input[type="text"] {
                 <rect x="${x}" y="${bodyY}" width="20" height="${bodyHeight > 0 ? bodyHeight : 0.5}" fill="${color}"/>
             `;
         };
-
+    // ======================================
         switch(patternName) {
             // --- POLA BULLISH ---
             case 'BULLISH_ENGULFING':
@@ -2394,7 +2533,7 @@ body.light .form-group input[type="text"] {
 
         return svgHeader + content + svgFooter;
     }
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function getTimeAgo(date) {
         if (!(date instanceof Date) || isNaN(date)) {
             return 'beberapa saat lalu'; 
@@ -2414,7 +2553,7 @@ body.light .form-group input[type="text"] {
         return Math.floor(seconds) + " detik lalu";
     }
 
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function getExplorerUrl(networkName) {
         const explorerMap = {
             'eth': 'https://etherscan.io', 
@@ -2431,7 +2570,7 @@ body.light .form-group input[type="text"] {
             tx: `${baseUrl}/tx/`
         };
     }
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function getHolderCategory(usdValue) {
         if (usdValue >= 500000) return { name: 'Humpback', class: 'text-purple-400' };
         if (usdValue >= 100000) return { name: 'Whale', class: 'text-blue-400' };
@@ -2440,8 +2579,8 @@ body.light .form-group input[type="text"] {
         if (usdValue >= 1000) return { name: 'Crab', class: 'text-yellow-400' };
         return { name: 'Shrimp', class: 'text-gray-400' };
     }
-// ===================================================================================================================================================================================================================================================================================
-    function findPivots(klines, lookback = 10) {
+// =====================================================================================================================================================================
+     function findPivots(klines, lookback = 10) {
         const pivots = [];
         if (klines.length < lookback * 2 + 1) return [];
 
@@ -2459,13 +2598,13 @@ body.light .form-group input[type="text"] {
         }
         return pivots;
     }
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function calculateSlope(p1, p2) {
         if (p2.index === p1.index) return Infinity;
         return (p2.price - p1.price) / (p2.index - p1.index);
     }
     
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function detectHeadAndShoulders(pivots) {
         for (let i = 4; i < pivots.length; i++) {
             const p1 = pivots[i-4], p2 = pivots[i-3], p3 = pivots[i-2], p4 = pivots[i-1], p5 = pivots[i];
@@ -2484,7 +2623,7 @@ body.light .form-group input[type="text"] {
         return null;
     }
 
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function detectDoubles(pivots) {
         for (let i = 2; i < pivots.length; i++) {
             // Cek Double Top: H, L, H
@@ -2505,7 +2644,7 @@ body.light .form-group input[type="text"] {
         return null;
     }
 
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function detectTriangles(pivots) {
         const recentPivots = pivots.slice(-7); // Fokus pada 7 pivot terakhir
         const highs = recentPivots.filter(p => p.type === 'high');
@@ -2527,7 +2666,7 @@ body.light .form-group input[type="text"] {
         }
         return null;
     }
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function detectWedges(pivots) {
         const recentPivots = pivots.slice(-7);
         const highs = recentPivots.filter(p => p.type === 'high');
@@ -2582,7 +2721,7 @@ body.light .form-group input[type="text"] {
         }
         return null;
     }
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function findChartPatterns(klines) {
         if (!klines || klines.length < 50) {
             return { pattern: 'Data Kurang', class: 'text-gray-500' };
@@ -2608,9 +2747,9 @@ body.light .form-group input[type="text"] {
 
         return { pattern: 'Tidak Terdeteksi', class: 'text-gray-500' };
     }
-/// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
 // == BLOK FUNGSI BARU UNTUK DETEKSI POLA CHART (SELESAI) ==
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function findLastSignificantSwing(klines) {
         const pivots = findPivots(klines.slice(-300), 5); 
         if (pivots.length < 3) return null;
@@ -2630,7 +2769,7 @@ body.light .form-group input[type="text"] {
         return null;
     }
 
-// ===================================================================================================================================================================================================================================================================================
+// =====================================================================================================================================================================
     function calculateFibonacciExtension(swing) {
         if (!swing) return null;
         const impulseMove = Math.abs(swing.B.price - swing.A.price);
@@ -2640,8 +2779,6 @@ body.light .form-group input[type="text"] {
             return swing.C.price - (impulseMove * 1.618);
         }
     } 
-// ===================================================================================================================================================================================================================================================================================
-
 // ===================================================================================================================================================================================================================================================================================
     function calculateATRPercentage(klines, period = 14) {
         if (!klines || klines.length === 0) {
@@ -2717,7 +2854,7 @@ body.light .form-group input[type="text"] {
         specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
         specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Mencari data on-chain...</p>`;
         trendingPoolsContent.innerHTML = `<div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div>`;
-        
+    // =======================     
         try {
             const aiContentContainer = document.getElementById('ai-content-container');
             if (aiContentContainer) aiContentContainer.classList.add('hidden');
@@ -2745,7 +2882,7 @@ body.light .form-group input[type="text"] {
 
             showLoader(true, 'Fetching Market Data...');
             const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
-
+    // =======================         
             let promisesToRun = [
                 fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType), 
                 fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1h', limit: 200 }, marketType), 
@@ -2777,19 +2914,28 @@ body.light .form-group input[type="text"] {
             }
 
         const results = await Promise.allSettled(promisesToRun);
-
+    // ======================= 
         const klines = results[0].status === 'fulfilled' ? results[0].value : null;
         const klines1h = results[1].status === 'fulfilled' ? results[1].value : null;
         const klines15m = results[2].status === 'fulfilled' ? results[2].value : null;
         const tickerData = results[3].status === 'fulfilled' ? results[3].value : null;
         const assetDailyKlines = results[4].status === 'fulfilled' ? results[4].value : null;
+        // ---> TAMBAHKAN KODE DI BAWAH INI <---
+        //console.warn("--- DEBUGGING DATA PIVOT ---");
+        if (assetDailyKlines && assetDailyKlines.length >= 2) {
+            //console.log("Status: BERHASIL. Data harian cukup.", assetDailyKlines);
+            //console.log("Data 'prevDayKline' yang akan digunakan:", assetDailyKlines[assetDailyKlines.length - 2]);
+        } else {
+            //console.error("Status: GAGAL. Data harian tidak cukup atau gagal diambil.", assetDailyKlines);
+        }
+        //console.warn("------------------------------");
+// ---> BATAS AKHIR KODE TAMBAHAN <---
         const btcDailyKlines = results[5].status === 'fulfilled' ? results[5].value : null;
         const orderBookData = results[6].status === 'fulfilled' ? results[6].value : null;
         // Indeks setelah ini disesuaikan karena fetchUsdToIdrRate (bekas indeks 7) telah dihapus
         const globalData = results[7].status === 'fulfilled' ? results[7].value : null;      // <-- DIUBAH ke 7
         const coinGeckoData = results[8].status === 'fulfilled' ? results[8].value : null;   // <-- DIUBAH ke 8
-
-
+    // ======================= 
         let openInterestData = null, fundingRateData = null, lsRatioUmumData = null, lsRatioTopData = null;
       if (marketType === 'futures' && results.length > 9) { // <-- Ubah 10 menjadi 9
             openInterestData = results[9].status === 'fulfilled' ? results[9].value : null;   // <-- Ubah 10 menjadi 9
@@ -2798,7 +2944,7 @@ body.light .form-group input[type="text"] {
             lsRatioTopData = results[12].status === 'fulfilled' ? results[12].value : null;   // <-- Ubah 13 menjadi 12
         }
 
-        // ======================= AWAL BLOK PERBAIKAN =======================
+    // ======================= AWAL BLOK PERBAIKAN =======================
         realtimeCache.main.multiTfKlines = {};
         const defaultDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
         if (selectedTimeframe !== defaultDumpTf) {
@@ -2811,8 +2957,7 @@ body.light .form-group input[type="text"] {
                 console.warn(`Gagal pre-fetch data untuk ${defaultDumpTf}:`, e);
             }
         }
-        // ======================= AKHIR BLOK PERBAIKAN =======================
-
+    // ======================= AKHIR BLOK PERBAIKAN =======================
         if (!klines || !tickerData) {
             throw new Error("Gagal memuat data esensial (Kline & Ticker) dari Binance. Coba lagi.");
         }
@@ -2845,7 +2990,7 @@ body.light .form-group input[type="text"] {
                 },
                 liveScores: { pumpStrength: 0, dumpRisk: 0 }
             };
-
+    // ======================= 
             showLoader(true, 'Calculating Data...');
             
             const allTrades = await fetchBinanceAPIData('aggTrades', { symbol: binanceSymbol, limit: 1000 }, marketType);
@@ -2871,7 +3016,7 @@ body.light .form-group input[type="text"] {
 
             updateDashboardUI();
             startCandleCountdown(); 
-            document.getElementById('current-state-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('scalping-setup-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
             
             const navPriceEl = document.getElementById('nav-price');
             if (navPriceEl) {
@@ -2905,7 +3050,7 @@ body.light .form-group input[type="text"] {
             }
 
             WebSocketManager.subscribe(streamsToSub);
-
+    // ======================= 
             (async () => {
                 try {
                     const searchQuery = (await getCoinGeckoId(baseAsset).then(id => fetchCoinGeckoData(id)).catch(() => null))?.platforms?.ethereum || baseAsset;
@@ -2929,6 +3074,7 @@ body.light .form-group input[type="text"] {
                         const liquidity = attrs.reserve_in_usd ? (parseFloat(attrs.reserve_in_usd) / 1000000).toFixed(2) : 'N/A';
                         let staticContentHtml = `<div class="flex justify-between items-baseline"><span class="text-gray-500 capitalize">Harga DEX (${dexName})</span><span class="font-bold text-lg text-yellow-400">${price}</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Volume 24j DEX</span><span>$${volume}jt</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Likuiditas Pool</span><span>$${liquidity}jt</span></div>`;
                         specificTokenContent.innerHTML = staticContentHtml;
+    // ======================= // ======================= 
                         try {
                             const poolAddress = attrs.address;
                             const tradesData = await fetchGeckoTerminal(`networks/${networkName}/pools/${poolAddress}/trades`);
@@ -2965,7 +3111,7 @@ body.light .form-group input[type="text"] {
                     specificTokenContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data token spesifik: ${dexError.message}</p>`;
                 }
             })();
-
+        // ======================= 
             (async () => {
                 try {
                     const trendingData = await fetchGeckoTerminal('networks/trending_pools');
@@ -2974,6 +3120,7 @@ body.light .form-group input[type="text"] {
                     trendingPoolsContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data trending: ${trendingError.message}</p>`;
                 }
             })();
+        // ======================= 
         } catch (error) {
             console.error("Analisis Gagal:", error);
             showError(error.message);
@@ -3391,48 +3538,64 @@ body.light .form-group input[type="text"] {
     }
 
 // ===================================================================================================================================================================================================================================================================================
-    async function createTFAlignmentSummary(symbol, marketType) {
-        const timeframes = ['5m', '15m', '1h', '4h', '1d'];
-        const summary = {};
-        
-        let score = 0; 
-        
-        const klinesPromises = timeframes.map(tf => 
-            fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType)
-        );
-        const klinesResults = await Promise.all(klinesPromises);
+    // GANTI SELURUH FUNGSI LAMA ANDA DENGAN VERSI FINAL INI
+async function createTFAlignmentSummary(symbol, marketType) {
+    const timeframes = ['5m', '15m', '1h', '4h', '1d'];
+    const summary = {};
+    
+    let score = 0; 
+    
+    const klinesPromises = timeframes.map(tf => 
+        fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType)
+    );
+    const klinesResults = await Promise.all(klinesPromises);
 
-        klinesResults.forEach((klines, index) => {
-            const tf = timeframes[index];
-            if (klines && klines.length >= 50) {
-                const closes = klines.map(k => parseFloat(k[4]));
-                const ema21 = calculateEMA(closes, 21).pop();
-                const ema50 = calculateEMA(closes, 50).pop();
-                summary[tf] = ema21 > ema50 ? 'UPTREND' : 'DOWNTREND';
-            } else {
-                summary[tf] = 'N/A';
-            }
-            if (summary[tf] === 'BULLISH') {
-                score++;
-            } else if (summary[tf] === 'BEARISH') {
-                score--;
-            }
-        });
-
-        realtimeCache.main.tfAlignmentSummary = { summary, score };
-
-        // Tampilkan juga di UI
-        const alignmentContainer = document.getElementById('tf-alignment-summary');
-        let alignmentHtml = '<h4 class="font-semibold text-gray-300 mt-2 mb-1">Multi TF Alignment (EMA 21/50)</h4><div class="flex justify-center gap-1">';
-        for(const tf in summary){
-            const colorClass = summary[tf] === 'UPTREND' ? 'positive' : (summary[tf] === 'DOWNTREND' ? 'negative' : 'text-gray-500');
-            alignmentHtml += `<div class="text-center p-1 rounded-md bg-gray-800/50 flex-1"><span class="font-bold">${tf}</span><br><span class="text-xs ${colorClass}">${summary[tf]}</span></div>`;
+    klinesResults.forEach((klines, index) => {
+        const tf = timeframes[index];
+        if (klines && klines.length >= 50) {
+            const closes = klines.map(k => parseFloat(k[4]));
+            const ema21 = calculateEMA(closes, 21).pop();
+            const ema50 = calculateEMA(closes, 50).pop();
+            // Logika ini tetap menghasilkan 'UPTREND'/'DOWNTREND' untuk dependensi ke Bias Kontekstual
+            summary[tf] = ema21 > ema50 ? 'UPTREND' : 'DOWNTREND';
+        } else {
+            summary[tf] = 'N/A';
         }
-        alignmentHtml += '</div>';
-        if(alignmentContainer) alignmentContainer.innerHTML = alignmentHtml;
+        
+        // Kalkulasi skor (tidak diubah)
+        if (summary[tf] === 'UPTREND') {
+            score++;
+        } else if (summary[tf] === 'DOWNTREND') {
+            score--;
+        }
+    });
 
-        return { summary, score };
+    realtimeCache.main.tfAlignmentSummary = { summary, score };
+
+    // Tampilkan di UI
+    const alignmentContainer = document.getElementById('tf-alignment-summary');
+    let alignmentHtml = '<h4 class="font-semibold text-gray-300 mt-2 mb-1">Multi TF Alignment (EMA 21/50)</h4><div class="flex justify-center gap-1">';
+    
+    for(const tf in summary){
+        const trend = summary[tf];
+        const colorClass = trend === 'UPTREND' ? 'positive' : (trend === 'DOWNTREND' ? 'negative' : 'text-gray-500');
+        
+        // --- PERUBAHAN 1: Definisikan ikon berdasarkan teks tren ---
+        const trendIcon = trend === 'UPTREND' ? '▲' : (trend === 'DOWNTREND' ? '▼' : '—');
+        
+        // --- PERUBAHAN 2: Gunakan variabel ikon, bukan teks, dan perbesar ukurannya ---
+        alignmentHtml += `
+            <div class="text-center p-1 rounded-md bg-gray-800/50 flex-1 mtf-clickable-box" data-timeframe="${tf}">
+                <span class="font-semibold">${tf}</span><br>
+                <span class="text-xl ${colorClass}">${trendIcon}</span>
+            </div>`;
     }
+    
+    alignmentHtml += '</div>';
+    if(alignmentContainer) alignmentContainer.innerHTML = alignmentHtml;
+
+    return { summary, score };
+}
 // ===================================================================================================================================================================================================================================================================================
     function updateDashboardUI() {
         if (!realtimeCache.main.tickerData) return;
@@ -3505,9 +3668,29 @@ body.light .form-group input[type="text"] {
 // ===================================================================================================================================================================================================================================================================================
     function populateConfluenceDetailsWidget() {  
         const { calculatedData, tickerData, orderBookData, lsRatioUmumData, lsRatioTopData } = realtimeCache.main;
-        if (calculatedData.pivot?.data) {
-            document.getElementById('pivot-p').textContent = formatPrice(calculatedData.pivot.data.P);
-        }
+        //if (calculatedData.pivot?.data) {
+            //document.getElementById('pivot-p').textContent = formatPrice(calculatedData.pivot.data.P);
+        //}
+    // Temukan elemen-elemen yang relevan
+const pivotContainer = document.getElementById('pivot-levels-container');
+const pivotPEl = document.getElementById('pivot-p');
+const pivotData = calculatedData.pivot?.data;
+
+// HANYA perbarui elemen jika ada data baru yang valid.
+// JANGAN timpa nilai yang sudah ada dengan placeholder '-'.
+if (pivotData && pivotData.P) {
+    pivotPEl.textContent = formatPrice(pivotData.P);
+    
+    document.getElementById('pivot-r1s1').textContent = `${formatPrice(pivotData.R1)} / ${formatPrice(pivotData.S1)}`;
+    document.getElementById('pivot-r2s2').textContent = `${formatPrice(pivotData.R2)} / ${formatPrice(pivotData.S2)}`;
+    document.getElementById('pivot-r3s3').textContent = `${formatPrice(pivotData.R3)} / ${formatPrice(pivotData.S3)}`;
+    
+    pivotContainer.classList.remove('hidden');
+}
+//} else {
+    // Jika objek pivotData tidak ada sama sekali, pastikan kontainer tetap tersembunyi
+    //pivotContainer.classList.add('hidden');
+//}
         if (calculatedData.vwap) {
             document.getElementById('vwap-20d').textContent = formatPrice(calculatedData.vwap.value);
         }
@@ -3515,6 +3698,14 @@ body.light .form-group input[type="text"] {
             const ichiBiasEl = document.getElementById('ichimoku-bias');
             ichiBiasEl.textContent = calculatedData.ichimoku.status;
             ichiBiasEl.className = `font-mono font-semibold ${calculatedData.ichimoku.status === 'Bullish' ? 'positive' : (calculatedData.ichimoku.status === 'Bearish' ? 'negative' : 'text-gray-500')}`;
+        }
+        
+        if (calculatedData.obv?.value !== undefined) {
+            const obv = calculatedData.obv;
+            const obvEl = document.getElementById('obv-value');
+            const formattedObv = (obv.value / 1_000_000).toFixed(2) + 'M'; // Format ke jutaan
+            obvEl.textContent = `${formattedObv} (${obv.trend})`;
+            obvEl.className = `font-mono font-semibold ${obv.trend === 'Naik' ? 'positive' : 'negative'}`;
         }
 
         document.getElementById('confluence-timeframe-display').textContent = timeframeSelect.value;
@@ -3643,11 +3834,17 @@ body.light .form-group input[type="text"] {
         const resistanceContainer = document.getElementById('scalping-resistance-info');
         if (resistanceContainer && tickerData) {
             const currentPrice = parseFloat(tickerData.lastPrice);
+            const pivots = calculatedData.pivot.data; // Simpan data pivot di variabel agar lebih rapi
+
             const potentialResistances = [
                 { name: 'VAH', value: calculatedData.vpvr.vah },
-                { name: 'Pivot', value: calculatedData.pivot.data?.P },
-                { name: '24H High', value: parseFloat(tickerData.highPrice) }
-            ].filter(r => r.value && r.value > currentPrice); 
+                { name: '24H High', value: parseFloat(tickerData.highPrice) },
+                // Menambahkan SEMUA level resistance pivot (P, R1, R2, R3) sebagai kandidat
+                { name: 'Pivot', value: pivots?.P },
+                { name: 'R1', value: pivots?.R1 },
+                { name: 'R2', value: pivots?.R2 },
+                { name: 'R3', value: pivots?.R3 }
+            ].filter(r => r.value && r.value > currentPrice); // Filter hanya yang di atas harga saat ini
             if (potentialResistances.length > 0) {
                 const nearestResistance = potentialResistances.reduce((prev, curr) => 
                     (Math.abs(curr.value - currentPrice) < Math.abs(prev.value - currentPrice) ? curr : prev)
@@ -3882,13 +4079,13 @@ body.light .form-group input[type="text"] {
 
         let buyWallText = '<span class="text-gray-600 font-normal">— No Buy Wall Detected —</span>';
         if (wallInfo.buyWall) {
-            buyWallText = `<span class="font-bold">BUY WALL ${wallInfo.buyWall.wallType.toUpperCase()}</span> DETECTED ${formatPrice(wallInfo.buyWall.priceStart)} TO ${formatPrice(wallInfo.buyWall.priceEnd)} (Vol: $${(wallInfo.buyWall.totalVolume * parseFloat(bids[0][0])).toLocaleString('en-US', {notation: 'compact'})})`;
+            buyWallText = `<span class="font-normal ">BUY WALL ${wallInfo.buyWall.wallType.toUpperCase()}</span> DETECTED ${formatPrice(wallInfo.buyWall.priceStart)} TO ${formatPrice(wallInfo.buyWall.priceEnd)} (Vol: $${(wallInfo.buyWall.totalVolume * parseFloat(bids[0][0])).toLocaleString('en-US', {notation: 'compact'})})`;
         }
         buyWallDisplay.innerHTML = buyWallText;
 
         let sellWallText = '<span class="text-gray-600 font-normal">— No Sell Wall Detected —</span>';
         if (wallInfo.sellWall) {
-            sellWallText = `<span class="font-bold">SELL WALL ${wallInfo.sellWall.wallType.toUpperCase()}</span> DETECTED ${formatPrice(wallInfo.sellWall.priceStart)} TO ${formatPrice(wallInfo.sellWall.priceEnd)} (Vol: $${(wallInfo.sellWall.totalVolume * parseFloat(asks[0][0])).toLocaleString('en-US', {notation: 'compact'})})`;
+            sellWallText = `<span class="font-normal">SELL WALL ${wallInfo.sellWall.wallType.toUpperCase()}</span> DETECTED ${formatPrice(wallInfo.sellWall.priceStart)} TO ${formatPrice(wallInfo.sellWall.priceEnd)} (Vol: $${(wallInfo.sellWall.totalVolume * parseFloat(asks[0][0])).toLocaleString('en-US', {notation: 'compact'})})`;
         }
         sellWallDisplay.innerHTML = sellWallText;
 
@@ -4499,6 +4696,8 @@ body.light .form-group input[type="text"] {
 
         const bb = calculateBollingerBands(closes);
         const bbPriceAction = analyzeBollingerBandsPriceAction(klines, bb);
+        const obvValues = calculateOBV(klines);
+        const lastObv = obvValues.length > 0 ? obvValues[obvValues.length - 1] : 0;
 
         return {
             adx: calculateADX(klines),
@@ -4516,6 +4715,8 @@ body.light .form-group input[type="text"] {
             stoch: calculateStochasticRSI(closes),
             macd: calculateMACD(closes),
             bollingerBands: { ...bb, rejection: bbPriceAction.rejection, walkTheBands: bbPriceAction.walkTheBands },
+            obv: { value: lastObv, trend: lastObv > obvValues[obvValues.length - 2] ? 'Naik' : 'Turun' },
+            pivot: { status: (lastPrice > pivotPoints?.P) ? 'Bullish' : 'Bearish', data: pivotPoints },
             atr: calculateATR(klines),
             atrPercent: calculateATRPercentage(klines),
             candlePattern: findCandlestickPatterns(klines),
@@ -4524,6 +4725,7 @@ body.light .form-group input[type="text"] {
             psar: calculateParabolicSAR(klines),
             linreg: calculateLinearRegressionChannel(closes),
             vwap: { status: lastPrice > vwapValue ? 'Bullish' : 'Bearish', value: vwapValue },
+            obv: { value: lastObv, trend: lastObv > obvValues[obvValues.length - 2] ? 'Naik' : 'Turun' },
             pivot: { status: (lastPrice > pivotPoints?.P) ? 'Bullish' : 'Bearish', data: pivotPoints },
             ichimoku: { status: ichimoku?.status || 'Netral', data: ichimoku },
             keltnerChannels: keltnerChannels,
@@ -5135,7 +5337,7 @@ body.light .form-group input[type="text"] {
         }
         
         // ================== AWAL BLOK PERBAIKAN FINAL ==================
-        // Menghitung dan memperbarui "Pump Strength" bar secara real-time untuk setiap mover
+        // Menghitung dan memperbarui "Bullish Momentum" bar secara real-time untuk setiap mover
         let pumpStrengthPercentage = 0;
         const klines1h = moverData.klines_1h;
         if (klines1h && klines1h.length >= 2) {
@@ -5181,121 +5383,110 @@ body.light .form-group input[type="text"] {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-function calculateAndDisplayScalpingSetup() {
-    const selectedDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
-    const { klines, calculatedData, symbol, selectedTimeframe, tfAlignmentSummary } = realtimeCache.main;
-    if (!klines || klines.length < 50 || !calculatedData) {
-        document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Not Enough Data</p>';
-        return;
-    }
-    document.getElementById('scalping-timeframe-display').textContent = `💲${symbol} at TF ${selectedTimeframe}`;
-    const scoreData = calculateShortConfluenceScore(symbol, selectedDumpTf) || { score: 0, breakdown: {} };
-    const dumpRiskScore = scoreData.score;
-    const triggerBreakdown = scoreData.breakdown;
-    const pumpStrength = realtimeCache.main.liveScores.pumpStrength || 0;
-    document.getElementById('main-pump-bar').style.width = `${pumpStrength}%`;
-    document.getElementById('main-dump-bar').style.width = `${dumpRiskScore * 10}%`;
-    document.getElementById('main-pump-score').textContent = `${pumpStrength.toFixed(0)}%`;
-    document.getElementById('main-dump-score').textContent = `${dumpRiskScore}/10`;
-    renderTriggerBreakdown(triggerBreakdown);
-
-    const container = document.getElementById('scalping-setup-content');
-    const closes = klines.map(k => parseFloat(k[4]));
-    const lastPrice = closes[closes.length - 1];
-    let biasKontekstual = "NETRAL / CHOP";
-    let biasClass = "status-chop";
-    let biasDetail = "Waiting Signal...";
-    
-    let trenUtama = "CHOP";
-    let trenUtamaClass = "status-chop";
-    if (tfAlignmentSummary && tfAlignmentSummary.summary['1h']) {
-        const trend1h = tfAlignmentSummary.summary['1h'];
-        if (trend1h === 'UPTREND') {
-            trenUtama = "UPTREND";
-            trenUtamaClass = "status-uptrend";
-        } else if (trend1h === 'DOWNTREND') {
-            trenUtama = "DOWNTREND";
-            trenUtamaClass = "status-downtrend";
+// GANTI SELURUH FUNGSI LAMA ANDA DENGAN VERSI FINAL INI
+    function calculateAndDisplayScalpingSetup() {
+        const selectedDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
+        const { klines, calculatedData, symbol, selectedTimeframe, tfAlignmentSummary } = realtimeCache.main;
+        if (!klines || klines.length < 50 || !calculatedData) {
+            document.getElementById('scalping-setup-content').innerHTML = '<p class="text-sm text-gray-500">Not Enough Data</p>';
+            return;
         }
-    }
+        document.getElementById('scalping-timeframe-display').textContent = `💲${symbol} at TF ${selectedTimeframe}`;
+        const scoreData = calculateShortConfluenceScore(symbol, selectedDumpTf) || { score: 0, breakdown: {} };
+        const dumpRiskScore = scoreData.score;
+        const triggerBreakdown = scoreData.breakdown;
+        const pumpStrength = realtimeCache.main.liveScores.pumpStrength || 0;
+        document.getElementById('main-pump-bar').style.width = `${pumpStrength}%`;
+        document.getElementById('main-dump-bar').style.width = `${dumpRiskScore * 10}%`;
+        document.getElementById('main-pump-score').textContent = `${pumpStrength.toFixed(0)}%`;
+        document.getElementById('main-dump-score').textContent = `${dumpRiskScore}/10`;
+        renderTriggerBreakdown(triggerBreakdown);
 
-    const analisisTrigger = getConfluenceAnalysis(klines); 
-    const { skorBullish, skorBearish, detail } = analisisTrigger;
-    biasDetail = detail;
-    if (skorBullish > skorBearish + 1.5) {
-        if (trenUtama === 'UPTREND') {
-            biasKontekstual = 'LONG (Follow Trend)';
-            biasClass = 'status-uptrend';
-        } else if (trenUtama === 'DOWNTREND') {
-            biasKontekstual = 'LONG (Counter Trend)';
-            biasClass = 'status-uptrend';
+        const container = document.getElementById('scalping-setup-content');
+        const closes = klines.map(k => parseFloat(k[4]));
+        const lastPrice = closes[closes.length - 1];
+        
+        // --- Langkah 1: Tentukan sinyal dan tren (logika tetap sama) ---
+        let biasKontekstual = "NETRAL / CHOP";
+        let biasClass = "status-chop";
+        let biasDetail = "Waiting Signal...";
+        let trenUtama = "CHOP";
+        let trenUtamaClass = "status-chop";
+
+        if (tfAlignmentSummary && tfAlignmentSummary.summary['1h']) {
+            const trend1h = tfAlignmentSummary.summary['1h'];
+            if (trend1h === 'UPTREND') { trenUtama = "UPTREND"; trenUtamaClass = "status-uptrend"; } 
+            else if (trend1h === 'DOWNTREND') { trenUtama = "DOWNTREND"; trenUtamaClass = "status-downtrend"; }
+        }
+
+        const analisisTrigger = getConfluenceAnalysis(klines); 
+        const { skorBullish, skorBearish, detail } = analisisTrigger;
+        biasDetail = detail;
+
+        if (skorBullish > skorBearish + 1.5) {
+            if (trenUtama === 'UPTREND') { biasKontekstual = 'LONG (Follow Trend)'; biasClass = 'status-uptrend'; } 
+            else if (trenUtama === 'DOWNTREND') { biasKontekstual = 'LONG (Counter Trend)'; biasClass = 'status-uptrend'; } 
+            else { biasKontekstual = 'LONG (Range Trading)'; biasClass = 'status-uptrend'; }
+        } else if (skorBearish > skorBullish + 1.5) {
+            if (trenUtama === 'DOWNTREND') { biasKontekstual = 'SHORT (Follow Trend)'; biasClass = 'status-downtrend'; } 
+            else if (trenUtama === 'UPTREND') { biasKontekstual = 'SHORT (Counter Trend)'; biasClass = 'status-downtrend'; } 
+            else { biasKontekstual = 'SHORT (Range Trading)'; biasClass = 'status-downtrend'; }
+        }
+
+        // --- Langkah 2: Inisialisasi semua variabel dengan nilai placeholder ---
+        let entryPrice = '--', stopLoss = '--', takeProfit1 = '--', takeProfit2 = '--', takeProfit3 = 'N/A';
+        let entryPercent = '', slPercent = '', tp1Percent = '', tp2Percent = '', tp3Percent = '';
+        let slColorClass = 'text-gray-500', tpColorClass = 'text-gray-500';
+        let finalVerdictHtml = '';
+
+        // --- Langkah 3: Isi variabel dengan data nyata HANYA JIKA ada sinyal ---
+        if (biasKontekstual !== "NETRAL / CHOP") {
+            const biasKalkulator = biasKontekstual.startsWith('LONG') ? 'LONG' : 'SHORT';
+            const ema9 = calculateEMA(closes, 9).pop();
+            const recentKlines = klines.slice(-15);
+            const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+            const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+
+            if (biasKalkulator === 'LONG') {
+                entryPrice = ema9;
+                stopLoss = recentSwingLow * 0.999;
+                takeProfit1 = recentSwingHigh;
+                takeProfit2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
+            } else { // SHORT
+                entryPrice = ema9;
+                stopLoss = recentSwingHigh * 1.001;
+                takeProfit1 = recentSwingLow;
+                takeProfit2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
+            }
+            
+            const calculatePercentage = (target, entry) => (typeof target !== 'number' || entry === 0) ? '' : `(${( (target - entry) / entry * 100).toFixed(2)}%)`;
+            entryPercent = `(Pullback to ${calculatePercentage(entryPrice, lastPrice)})`;
+            slPercent = calculatePercentage(stopLoss, entryPrice);
+            tp1Percent = calculatePercentage(takeProfit1, entryPrice);
+            tp2Percent = calculatePercentage(takeProfit2, entryPrice);
+            slColorClass = 'negative';
+            tpColorClass = 'positive';
+            realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
         } else {
-            biasKontekstual = 'LONG (Range Trading)';
-            biasClass = 'status-uptrend';
+            finalVerdictHtml = `
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
+                    <p class="font-semibold text-yellow-400">SIDEWAYS</p>
+                    <p class="text-sm text-gray-400 mt-1">No Feasible Long/Short Setup. Do Not Trade.</p>
+                </div>
+            `;
+            realtimeCache.main.latestScalpingSetup = null;
         }
-    } else if (skorBearish > skorBullish + 1.5) {
-        if (trenUtama === 'DOWNTREND') {
-            biasKontekstual = 'SHORT (Follow Trend)';
-            biasClass = 'status-downtrend';
-        } else if (trenUtama === 'UPTREND') {
-            biasKontekstual = 'SHORT (Counter Trend)';
-            biasClass = 'status-downtrend';
-        } else {
-            biasKontekstual = 'SHORT (Range Trading)';
-            biasClass = 'status-downtrend';
-        }
-    }
-
-    if (biasKontekstual !== "NETRAL / CHOP") {
-        const biasKalkulator = biasKontekstual.startsWith('LONG') ? 'LONG' : 'SHORT';
-        const ema9 = calculateEMA(closes, 9).pop();
-        let entryPrice, stopLoss, takeProfit1, takeProfit2, takeProfit3;
-        const recentKlines = klines.slice(-15);
-        const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
-        const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-
-        if (biasKalkulator === 'LONG') {
-            entryPrice = ema9;
-            stopLoss = recentSwingLow * 0.999;
-            takeProfit1 = recentSwingHigh;
-            const rrTarget2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
-            takeProfit2 = Math.max(rrTarget2, takeProfit1);
-            const upperBB = calculatedData.bollingerBands.upper.filter(v=>v).pop();
-            const dailyPivot = calculatedData.pivot.data?.P;
-            let potentialTP3s = [upperBB, dailyPivot].filter(p => p && p > takeProfit2);
-            takeProfit3 = potentialTP3s.length > 0 ? Math.min(...potentialTP3s) : 'N/A';
-        } else { // SHORT
-            entryPrice = ema9;
-            stopLoss = recentSwingHigh * 1.001;
-            takeProfit1 = recentSwingLow;
-            const rrTarget2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
-            takeProfit2 = Math.min(rrTarget2, takeProfit1);
-            const lowerBB = calculatedData.bollingerBands.lower.filter(v=>v).pop();
-            const dailyPivot = calculatedData.pivot.data?.P;
-            let potentialTP3s = [lowerBB, dailyPivot].filter(p => p && p < takeProfit2);
-            takeProfit3 = potentialTP3s.length > 0 ? Math.max(...potentialTP3s) : 'N/A';
-        }
-
-        const calculatePercentage = (targetPrice, entry) => {
-            if (typeof targetPrice !== 'number' || entry === 0) return '';
-            return `(${( (targetPrice - entry) / entry * 100).toFixed(2)}%)`;
-        };
-
-        const entryPercent = `(Pullback to ${calculatePercentage(entryPrice, lastPrice)})`;
-        const slPercent = calculatePercentage(stopLoss, entryPrice);
-        const tp1Percent = calculatePercentage(takeProfit1, entryPrice);
-        const tp2Percent = calculatePercentage(takeProfit2, entryPrice);
-        const tp3Percent = calculatePercentage(takeProfit3, entryPrice);
-        const slColorClass = 'negative';
-        const tpColorClass = 'positive';
+        
         const tp3Display = takeProfit3 !== 'N/A' ? `${formatPrice(takeProfit3)}<br><span class="text-xs font-mono ${tpColorClass}">${tp3Percent}</span>` : '<span class="text-gray-400 dark:text-gray-600">N/A</span>';
-
+        
+        // --- Langkah 4: BLOK RENDER TUNGGAL (STATIS) ---
+        // Struktur HTML ini akan selalu sama, hanya isinya yang berubah.
         container.innerHTML = `
             <div class="grid grid-cols-3 gap-4 text-center items-start">
                 <div class="col-span-1">
                     <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
                     <p class="text-[10px] font-mono ${trenUtamaClass}">1H Trend: ${trenUtama}</p> 
-                    <p class="font-bold text-base blinking-text-animation ${biasClass}">${biasKontekstual}</p>
+                    <p class="text-sm font-semiboldblinking-text-animation ${biasClass}">${biasKontekstual}</p>
                     <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
                 </div>
                 <div class="col-span-2 grid grid-cols-2 gap-4">
@@ -5327,27 +5518,11 @@ function calculateAndDisplayScalpingSetup() {
                     <p class="font-semibold text-sm">${tp3Display}</p>
                 </div>
             </div>
-        `;
-        
-        realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
-
-    } else { 
-        container.innerHTML = `
-            <div class="text-center">
-                <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
-                <p class="text-[10px] font-mono ${trenUtamaClass}">1H Trend: ${trenUtama}</p> 
-                <p class="font-bold text-base blinking-text-animation ${biasClass}">${biasKontekstual}</p>
-                <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
-            </div>
-            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
-                <p class="font-semibold text-yellow-400">SIDEWAYS</p>
-                <p class="text-sm text-gray-400 mt-1">No Feasible Long/Short Setup. Do Not Trade.</p>
+            <div class="min-h-[90px] flex flex-col justify-center">
+                ${finalVerdictHtml}
             </div>
         `;
-        
-        realtimeCache.main.latestScalpingSetup = null;
     }
-}
 // ===================================================================================================================================================================================================================================================================================
     function updateShortScoreUI(symbol, score, breakdown) {
         const dumpRiskElement = document.querySelector(`#hybrid-bar-${symbol} .dump-risk`);
@@ -5458,143 +5633,219 @@ function calculateAndDisplayScalpingSetup() {
         }, 1000);
     }
 // ================================================================
-// === BLOK LOGIKA UNTUK KALKULATOR TRAILING STOP (MULAI) ===
+
+    // =====================================================================================================================================================================
 // ================================================================
+// === GANTI SELURUH BLOK tsCalc DAN initializeNewCalculator ANDA DENGAN INI ===
+// ================================================================
+// ================================================================
+// === GANTI SELURUH BLOK tsCalc DAN initializeNewCalculator ANDA DENGAN INI ===
+// ================================================================
+const tsCalc = {
+    elements: {
+        leverage: document.getElementById('ts-leverage'),
+        cost: document.getElementById('ts-cost'),
+        slider: document.getElementById('ts-margin-slider'),
+        walletBalance: document.getElementById('ts-wallet-balance'),
+        marketPrice: document.getElementById('ts-market-price'),
+        tpslToggle: document.getElementById('ts-tpsl-toggle'),
+        tpslInputs: document.getElementById('ts-tpsl-inputs'),
+        takeProfit: document.getElementById('ts-take-profit'),
+        stopLoss: document.getElementById('ts-stop-loss'),
+        resultCost: document.getElementById('ts-result-cost'),
+        resultMax: document.getElementById('ts-result-max'),
+        resultPosSize: document.getElementById('ts-result-position-size'),
+        resultLiqPrice: document.getElementById('ts-result-liq-price'),
+        resultStatus: document.getElementById('ts-result-status'),
+        resultSlPrice: document.getElementById('ts-result-sl-price'),
+        resultRoe: document.getElementById('ts-result-roe'),
+        crossBtn: document.getElementById('ts-mode-cross'),
+        isolatedBtn: document.getElementById('ts-mode-isolated'),
+        buyBtn: document.getElementById('ts-buy-long-btn'),
+        sellBtn: document.getElementById('ts-sell-short-btn'),
+        autofillBtn: document.getElementById('autofill-ts-btn'),
+        tsOptionsBtn: document.getElementById('ts-trailing-stop-options'),
+        // Elemen Modal
+        modalContainer: document.getElementById('ts-modal-container'),
+        modalCallbackRate: document.getElementById('ts-modal-callback-rate'),
+        modalActivationPrice: document.getElementById('ts-modal-activation-price'),
+        modalSaveBtn: document.getElementById('ts-modal-save-btn'),
+        modalCloseBtn: document.getElementById('ts-modal-close-btn')
+    },
+    state: {
+        marginMode: 'cross',
+        leverage: 20,
+        cost: 0,
+        entryPrice: 0,
+        walletBalance: 1000,
+        tp: null,
+        sl: null,
+        callbackRate: null,
+        activationPrice: null,
+        positionType: 'long'
+    },
+    
+    recalculate: function() {
+        this.state.walletBalance = parseFloat(this.elements.walletBalance.value) || 0;
+        this.state.leverage = parseFloat(this.elements.leverage.value) || 20;
+        this.state.cost = parseFloat(this.elements.cost.value) || 0;
+        const marketPrice = parseFloat(this.elements.marketPrice.value);
 
-// Definisikan elemen-elemen untuk kalkulator Trailing Stop
-const tsElements = {
-    fundingGroup: document.getElementById('ts-funding-group'),
-    inputs: document.querySelectorAll('#trailing-stop-calc-section input'),
-    marketPriceLabel: document.getElementById('ts-marketPriceLabel'),
-    positionSize: document.getElementById('ts-positionSize'),
-    liquidationPrice: document.getElementById('ts-liquidationPrice'),
-    status: document.getElementById('ts-status'),
-    stopLossPrice: document.getElementById('ts-stopLossPrice'),
-    roe: document.getElementById('ts-roe'),
-};
+        const lastPrice = realtimeCache.main.tickerData?.lastPrice ? parseFloat(realtimeCache.main.tickerData.lastPrice) : this.state.entryPrice;
+        if (lastPrice === 0 && !marketPrice) return;
+        const entry = this.state.entryPrice || lastPrice;
 
-function tsFormatCurrency(value) {
-    if (isNaN(value) || value === null) return '-';
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-}
-
-function tsResetOutputs() {
-    tsElements.positionSize.textContent = '-';
-    tsElements.liquidationPrice.textContent = '-';
-    tsElements.status.textContent = '-';
-    tsElements.stopLossPrice.textContent = '-';
-    tsElements.roe.textContent = '-';
-    tsElements.roe.className = 'neutral';
-}
-
-function tsCalculateAll() {
-    const values = {};
-    tsElements.inputs.forEach(input => {
-        if (input.type === 'radio' && input.checked) {
-            values[input.name.replace('ts-', '')] = input.value;
-        } else if (input.type === 'number') {
-            values[input.id.replace('ts-', '')] = parseFloat(input.value);
+        const positionSize = this.state.cost * this.state.leverage;
+        const quantity = entry > 0 ? positionSize / entry : 0;
+        
+        this.elements.resultCost.textContent = `${this.state.cost.toFixed(2)} USDT`;
+        this.elements.resultMax.textContent = `${this.state.walletBalance.toFixed(2)} USDT`;
+        this.elements.resultPosSize.textContent = `${positionSize.toFixed(2)} USDT`;
+        
+        let liqPrice = 0;
+        const maintenanceMarginRate = 0.004;
+        if (positionSize > 0) {
+            if (this.state.marginMode === 'isolated') {
+                const priceChange = (this.state.cost / positionSize) * (1 - maintenanceMarginRate);
+                liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
+            } else { // Cross
+                const priceChange = ((this.state.walletBalance) / positionSize) * (1 - maintenanceMarginRate);
+                liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
+            }
         }
-    });
+        this.elements.resultLiqPrice.textContent = liqPrice > 0 ? `${liqPrice.toFixed(4)} USDT` : 'N/A';
+        
+        if (this.state.callbackRate && this.state.activationPrice && !isNaN(marketPrice)) {
+            let isActive = false;
+            let stopLossPrice = 0;
 
-    const { initialMargin, leverage, entryPrice, marginMode, funding, position: positionType } = values;
+            if (this.state.positionType === 'long' ? marketPrice >= this.state.activationPrice : marketPrice <= this.state.activationPrice) {
+                isActive = true;
+                const rate = this.state.callbackRate / 100;
+                stopLossPrice = this.state.positionType === 'long' ? marketPrice * (1 - rate) : marketPrice * (1 + rate);
+                
+                this.elements.resultStatus.textContent = 'Aktif ✅';
+                this.elements.resultStatus.className = 'positive';
+                this.elements.resultSlPrice.textContent = `${stopLossPrice.toFixed(4)} USDT`;
 
-    if (isNaN(initialMargin) || isNaN(leverage) || isNaN(entryPrice) || initialMargin <= 0 || leverage <= 0 || entryPrice <= 0) {
-        tsResetOutputs();
-        return;
-    }
+                const pnl = (this.state.positionType === 'long') ? (stopLossPrice - entry) * quantity : (entry - stopLossPrice) * quantity;
+                const roe = this.state.cost > 0 ? (pnl / this.state.cost) * 100 : 0;
+                this.elements.resultRoe.textContent = `${roe.toFixed(2)}%`;
+                this.elements.resultRoe.className = pnl >= 0 ? 'profit positive' : 'loss negative';
+            } else {
+                this.elements.resultStatus.textContent = 'Belum Aktif';
+                this.elements.resultStatus.className = 'text-yellow-400';
+                this.elements.resultSlPrice.textContent = '--';
+                this.elements.resultRoe.textContent = '--';
+                this.elements.resultRoe.className = '';
+            }
+        } else {
+            this.elements.resultStatus.textContent = 'Belum Diatur';
+            this.elements.resultStatus.className = 'text-gray-500';
+            this.elements.resultSlPrice.textContent = '--';
+            this.elements.resultRoe.textContent = '--';
+            this.elements.resultRoe.className = '';
+        }
+    },
 
-    const positionSize = initialMargin * leverage;
-    const quantity = positionSize / entryPrice;
-    tsElements.positionSize.textContent = tsFormatCurrency(positionSize);
-
-    let liquidationPrice = 0;
-    if (marginMode === 'isolated') {
-        const marginToLose = initialMargin * 0.92;
-        liquidationPrice = positionType === 'long' ? entryPrice - (marginToLose / quantity) : entryPrice + (marginToLose / quantity);
-    } else { // cross
-        if (isNaN(funding) || funding <= 0) {
-            tsElements.liquidationPrice.textContent = 'Masukkan Fund';
+    autofill: function() {
+        const setup = realtimeCache.main.latestScalpingSetup;
+        if (!setup) {
+            alert("JANGAN TRADING PASAR SIDEWAYS");
             return;
         }
-        const marginToLose = (funding - initialMargin) + (initialMargin * 0.92);
-        liquidationPrice = positionType === 'long' ? entryPrice - (marginToLose / quantity) : entryPrice + (marginToLose / quantity);
-    }
-    tsElements.liquidationPrice.textContent = tsFormatCurrency(Math.max(0, liquidationPrice));
+        const isLong = setup.entry < setup.tp1;
+        this.state.positionType = isLong ? 'long' : 'short';
+        
+        this.state.entryPrice = setup.entry;
+        this.elements.takeProfit.value = setup.tp1.toFixed(4);
+        this.elements.stopLoss.value = setup.sl.toFixed(4);
+        this.elements.tpslToggle.checked = true;
+        this.elements.tpslInputs.classList.remove('hidden');
+        this.elements.marketPrice.value = parseFloat(realtimeCache.main.tickerData.lastPrice).toFixed(4);
+        
+        this.elements.modalCallbackRate.value = '0.5'; // Default callback
+        this.elements.modalActivationPrice.value = setup.tp1.toFixed(4); // Default aktivasi di TP1
 
-    const { callbackRate, activationPrice, marketPrice } = values;
-    if (isNaN(callbackRate) || isNaN(activationPrice) || isNaN(marketPrice) || callbackRate <= 0) {
-        tsElements.status.textContent = '-';
-        tsElements.stopLossPrice.textContent = '-';
-        tsElements.roe.textContent = '-';
-        tsElements.roe.className = 'neutral';
-        return;
-    }
+        this.elements.cost.focus();
+        this.recalculate();
+    },
     
-    let isActive = false;
-    let stopLossPrice = 0;
-    if (positionType === 'long' ? marketPrice >= activationPrice : marketPrice <= activationPrice) {
-        isActive = true;
-        const rate = callbackRate / 100;
-        stopLossPrice = positionType === 'long' ? marketPrice * (1 - rate) : marketPrice * (1 + rate);
-        tsElements.status.textContent = 'Aktif ✅';
-        tsElements.status.className = 'positive';
-    } else {
-        tsElements.status.textContent = 'Belum Aktif';
-        tsElements.status.className = 'neutral';
+    toggleModal: function(show) {
+        this.elements.modalContainer.classList.toggle('hidden', !show);
+        this.elements.modalContainer.classList.toggle('flex', show);
     }
+};
 
-    if (isActive) {
-        tsElements.stopLossPrice.textContent = tsFormatCurrency(stopLossPrice);
-        const pnl = (positionType === 'long') ? (stopLossPrice - entryPrice) * quantity : (entryPrice - stopLossPrice) * quantity;
-        const roe = (pnl / initialMargin) * 100;
-        tsElements.roe.textContent = `${roe.toFixed(2)}%`;
-        tsElements.roe.className = pnl > 0 ? 'profit' : 'loss';
-    } else {
-        tsElements.stopLossPrice.textContent = '-';
-        tsElements.roe.textContent = '-';
-        tsElements.roe.className = 'neutral';
-    }
+function initializeNewCalculator() {
+    const { elements, state } = tsCalc;
+    
+    elements.sellBtn.classList.add('opacity-50');
+    state.positionType = 'long';
+
+    elements.crossBtn.addEventListener('click', () => {
+        state.marginMode = 'cross';
+        elements.crossBtn.classList.add('active');
+        elements.isolatedBtn.classList.remove('active');
+        tsCalc.recalculate();
+    });
+    elements.isolatedBtn.addEventListener('click', () => {
+        state.marginMode = 'isolated';
+        elements.isolatedBtn.classList.add('active');
+        elements.crossBtn.classList.remove('active');
+        tsCalc.recalculate();
+    });
+    elements.buyBtn.addEventListener('click', () => {
+        state.positionType = 'long';
+        elements.buyBtn.classList.remove('opacity-50');
+        elements.sellBtn.classList.add('opacity-50');
+        tsCalc.recalculate();
+    });
+    elements.sellBtn.addEventListener('click', () => {
+        state.positionType = 'short';
+        elements.sellBtn.classList.remove('opacity-50');
+        elements.buyBtn.classList.add('opacity-50');
+        tsCalc.recalculate();
+    });
+    elements.tpslToggle.addEventListener('change', () => {
+        elements.tpslInputs.classList.toggle('hidden', !elements.tpslToggle.checked);
+    });
+    elements.slider.addEventListener('input', () => {
+        const currentWalletBalance = parseFloat(elements.walletBalance.value) || 0;
+        const percentage = parseFloat(elements.slider.value);
+        const newCost = (currentWalletBalance * (percentage / 100));
+        elements.cost.value = newCost.toFixed(2);
+        tsCalc.recalculate();
+    });
+    ['cost', 'leverage', 'walletBalance', 'marketPrice'].forEach(id => {
+        elements[id].addEventListener('input', () => tsCalc.recalculate());
+    });
+    elements.cost.addEventListener('input', () => {
+        const currentWalletBalance = parseFloat(elements.walletBalance.value) || 0;
+        const costValue = parseFloat(elements.cost.value) || 0;
+        const percentage = currentWalletBalance > 0 ? (costValue / currentWalletBalance) * 100 : 0;
+        elements.slider.value = Math.min(100, percentage);
+    });
+    elements.autofillBtn.addEventListener('click', () => tsCalc.autofill());
+
+    // --- LOGIKA BARU UNTUK MODAL TS ---
+    elements.tsOptionsBtn.addEventListener('click', () => tsCalc.toggleModal(true));
+    elements.modalCloseBtn.addEventListener('click', () => tsCalc.toggleModal(false));
+    elements.modalContainer.addEventListener('click', (e) => {
+        if (e.target === elements.modalContainer) tsCalc.toggleModal(false);
+    });
+    elements.modalSaveBtn.addEventListener('click', () => {
+        state.callbackRate = parseFloat(elements.modalCallbackRate.value);
+        state.activationPrice = parseFloat(elements.modalActivationPrice.value);
+        tsCalc.toggleModal(false);
+        tsCalc.recalculate();
+    });
+
+    tsCalc.recalculate();
 }
-
-function tsHandleModeChange() {
-    const marginMode = document.querySelector('input[name="ts-marginMode"]:checked').value;
-    const positionType = document.querySelector('input[name="ts-position"]:checked').value;
-
-    tsElements.fundingGroup.style.display = marginMode === 'cross' ? 'flex' : 'none';
-    tsElements.marketPriceLabel.textContent = `Harga Pasar ${positionType === 'long' ? 'Tertinggi' : 'Terendah'} ($)`;
-    
-    tsCalculateAll();
-}
-
-// FUNGSI BARU UNTUK AUTO-FILL
-// GANTI SELURUH FUNGSI LAMA DENGAN VERSI FINAL INI
-function autofillTrailingStopCalculator() {
-    const setup = realtimeCache.main.latestScalpingSetup;
-    const ticker = realtimeCache.main.tickerData;
-    
-    // Logika utama: Jika tidak ada setup (NETRAL/CHOP), tampilkan peringatan dan berhenti.
-    if (!setup || !ticker) {
-        alert("JANGAN TRADING PASAR SIDEWAYS"); // <-- PERINGATAN BARU SESUAI PERMINTAAN
-        return;
-    }
-
-    // Kode di bawah ini hanya akan berjalan jika ada sinyal LONG/SHORT yang valid.
-    const isLong = setup.entry < setup.tp1;
-    
-    document.getElementById(isLong ? 'ts-long' : 'ts-short').checked = true;
-    
-    document.getElementById('ts-entryPrice').value = setup.entry.toFixed(4);
-    document.getElementById('ts-activationPrice').value = setup.tp1.toFixed(4);
-    document.getElementById('ts-marketPrice').value = parseFloat(ticker.lastPrice).toFixed(4);
-    
-    document.getElementById('ts-initialMargin').focus();
-    
-    tsHandleModeChange();
-}
-// ==============================================================
-// === BLOK LOGIKA UNTUK KALKULATOR TRAILING STOP (SELESAI) ===
-// ==============================================================
+// ================================================================
+// === BLOK LOGIKA BARU UNTUK KALKULATOR BINANCE STYLE (SELESAI) ===
+// ================================================================
 // =====================================================================================================================================================================
 // BAGIAN 5: EVENT LISTENER UTAMA
 // =====================================================================================================================================================================
@@ -5768,6 +6019,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dumpTfSelect = document.getElementById('dump-trigger-timeframe-select');
     const triggerListDiv = document.getElementById('trigger-breakdown-list');
+
+    // === LOGIKA BARU UNTUK MEMBUAT KOTAK MTF INTERAKTIF ===
+        const mtfAlignmentContainer = document.getElementById('tf-alignment-summary');
+
+        mtfAlignmentContainer.addEventListener('click', (event) => {
+            // Cari elemen kotak yang bisa di-klik yang paling dekat dengan target klik
+            const clickedBox = event.target.closest('.mtf-clickable-box');
+
+            // Jika yang diklik memang kotaknya (bukan area kosong di sekitarnya)
+            if (clickedBox) {
+                // Ambil timeframe dari atribut data yang kita buat tadi
+                const newTimeframe = clickedBox.dataset.timeframe;
+                
+                // Temukan dropdown timeframe utama dan tombol "GET DATA"
+                const mainTimeframeSelect = document.getElementById('timeframe-select');
+                const mainAnalyzeBtn = document.getElementById('analyze-asset-btn');
+
+                // Untuk mencegah klik ganda saat sedang loading
+                if (mainAnalyzeBtn.disabled) {
+                    console.log("Analisis sedang berjalan, harap tunggu.");
+                    return;
+                }
+
+                console.log(`Mengganti timeframe utama ke: ${newTimeframe}`);
+
+                // 1. Ubah nilai dropdown utama sesuai dengan kotak yang diklik
+                mainTimeframeSelect.value = newTimeframe;
+
+                // 2. Simulasikan klik pada tombol "GET DATA" untuk memuat ulang seluruh data
+                mainAnalyzeBtn.click();
+            }
+        });
+// === AKHIR LOGIKA BARU ===
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     dumpTfSelect.addEventListener('change', async () => {
         if (!realtimeCache.main.symbol) return; // Abaikan jika analisis belum berjalan
@@ -5818,10 +6102,9 @@ document.addEventListener('DOMContentLoaded', () => {
             dumpTfSelect.disabled = false;
         }
     });
-    setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', false);
-    tsElements.inputs.forEach(input => input.addEventListener('input', tsHandleModeChange));
-    document.getElementById('autofill-ts-btn').addEventListener('click', autofillTrailingStopCalculator);
-    tsHandleModeChange();
+    // TAMBAHKAN BARIS INI
+    setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', true); // Dibuat default terbuka
+    initializeNewCalculator();
 });
 // ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
