@@ -1080,15 +1080,12 @@
     const navAth = document.getElementById('nav-ath');
     const navAtl = document.getElementById('nav-atl');
     const resetBtn = document.getElementById('reset-btn');
-
-
 // =====================================================================================================================================================================
 // BAGIAN 2: KONSTANTA KONFIGURASI
 // =====================================================================================================================================================================
     const UI_UPDATE_INTERVAL = 500;
     const KLINE_CACHE_DURATION = 5 * 60 * 1000; // Cache berlaku 5 menit
-    const CVD_DIP_DEBOUNCE_MS = 5000; // <-- TAMBAHKAN BARIS INI
-
+    const CVD_DIP_DEBOUNCE_MS = 5000; 
 // =====================================================================================================================================================================
 // BAGIAN 3: DEKLARASI STATE & VARIABEL GLOBAL
 // =====================================================================================================================================================================
@@ -1116,8 +1113,7 @@
                     rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9,
                     stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 
                 }
-            },
-            
+            },            
         }
     };
     const timeframeParameterMap = {
@@ -1179,7 +1175,6 @@
         history: [], // Akan berisi [timestamp, totalDelta]
         lastTriggerResult: { triggered: false, points: 0 }
     };
-
 // =====================================================================================================================================================================
 // OBJEK WEBSOCKET MANAGER HARUS DIDEKLARASIKAN DI AWAL
 // =====================================================================================================================================================================
@@ -1464,7 +1459,6 @@
         msgEl.classList.remove('hidden');
         setTimeout(() => msgEl.classList.add('hidden'), 2000);
     }
-
 // =====================================================================================================================================================================
     function loadSettings() {
         const savedActiveSettings = localStorage.getItem('ultimateAppSettings');
@@ -1499,7 +1493,6 @@
         document.getElementById('setting-weight-macd').value = userSettings.active.weights.macd;
         document.getElementById('setting-weight-obv-divergence').value = userSettings.active.weights.obvDivergence;
     }
-
 // =====================================================================================================================================================================
     function showError(message) {
         assetError.textContent = message;
@@ -1555,34 +1548,33 @@
         }
     }
 // =====================================================================================================================================================================
-    // GANTI SELURUH FUNGSI formatPrice ANDA DENGAN INI
-const formatPrice = (price) => {
-    // PERBAIKAN: Cek jika input bukan angka (termasuk string '--' atau 'N/A')
-    if (typeof price !== 'number' || isNaN(price)) {
-        return price; // Kembalikan input aslinya (misalnya, '--') tanpa error
-    }
-
-    // Sisa dari logika format harga tetap sama
-    if (price >= 1) {
-        return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-    const priceString = price.toString();
-    const decimalPart = priceString.includes('.') ? priceString.split('.')[1] : '';
-    if (decimalPart.length === 0) return `$${price.toFixed(2)}`;
-    
-    let nonZeroIndex = -1;
-    for (let i = 0; i < decimalPart.length; i++) {
-        if (decimalPart[i] !== '0') {
-            nonZeroIndex = i;
-            break;
+    const formatPrice = (price) => {
+        // PERBAIKAN: Cek jika input bukan angka (termasuk string '--' atau 'N/A')
+        if (typeof price !== 'number' || isNaN(price)) {
+            return price; // Kembalikan input aslinya (misalnya, '--') tanpa error
         }
-    }
-    if (nonZeroIndex !== -1) {
-        const significantDigits = 4;
-        return `$${price.toFixed(nonZeroIndex + significantDigits)}`;
-    }
-    return `$${price.toFixed(8)}`;
-};
+
+        // Sisa dari logika format harga tetap sama
+        if (price >= 1) {
+            return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        const priceString = price.toString();
+        const decimalPart = priceString.includes('.') ? priceString.split('.')[1] : '';
+        if (decimalPart.length === 0) return `$${price.toFixed(2)}`;
+        
+        let nonZeroIndex = -1;
+        for (let i = 0; i < decimalPart.length; i++) {
+            if (decimalPart[i] !== '0') {
+                nonZeroIndex = i;
+                break;
+            }
+        }
+        if (nonZeroIndex !== -1) {
+            const significantDigits = 4;
+            return `$${price.toFixed(nonZeroIndex + significantDigits)}`;
+        }
+        return `$${price.toFixed(8)}`;
+    };
 // =====================================================================================================================================================================
     function getPrecisionForAsset(price) {
         if (price === 0) return 2;
@@ -1736,7 +1728,6 @@ const formatPrice = (price) => {
         const bullWidthPercentage = totalStrength > 0 ? (bullPercentage / totalStrength) * 100 : 50;
         document.getElementById('quick-confluenceBarBullish').style.width = `${bullWidthPercentage}%`;
         document.getElementById('quick-confluenceBarBearish').style.width = `${100 - bullWidthPercentage}%`;
-        // --- AWAL BLOK PERUBAHAN ---
 
         // 1. Hitung Skor Tensi
         const tensionScore = Math.min(100, bullPercentage + bearPercentage);
@@ -1760,8 +1751,7 @@ const formatPrice = (price) => {
         `;
 
         analyzeAndDisplayConfluenceContributors();
-        
-        
+                
         const verdictSpan = verdictEl.querySelector(`.${verdictClass.split(' ')[0]}`);
         if (verdictSpan) {
             verdictSpan.className = verdictClass;
@@ -1846,28 +1836,27 @@ const formatPrice = (price) => {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-    // GANTI FUNGSI LAMA DENGAN VERSI BARU INI
-async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
-    const baseUrl = marketType === 'futures' ? 'https://fapi.binance.com/fapi/v1' : 'https://api.binance.com/api/v3';
-    const query = new URLSearchParams(params).toString();
-    const url = `${baseUrl}/${endpoint}?${query}`;
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            const errorData = await response.json();
-            // **PERBAIKAN UTAMA ADA DI SINI**
-            // Membuat pesan error lebih spesifik
-            const errorMessage = `Binance API error for ${endpoint} (${marketType}): ${errorData.msg || response.statusText}`;
-            throw new Error(errorMessage);
+    async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
+        const baseUrl = marketType === 'futures' ? 'https://fapi.binance.com/fapi/v1' : 'https://api.binance.com/api/v3';
+        const query = new URLSearchParams(params).toString();
+        const url = `${baseUrl}/${endpoint}?${query}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                const errorData = await response.json();
+                // **PERBAIKAN UTAMA ADA DI SINI**
+                // Membuat pesan error lebih spesifik
+                const errorMessage = `Binance API error for ${endpoint} (${marketType}): ${errorData.msg || response.statusText}`;
+                throw new Error(errorMessage);
+            }
+            return response.json();
+        } catch (error) {
+            // **PERBAIKAN UTAMA KEDUA**
+            // Melemparkan error yang lebih informatif, bukan pesan umum
+            console.error(`Network Error fetching from ${url}: ${error.message}`);
+            throw new Error(`Gagal mengambil data untuk ${endpoint} dari Binance ${marketType.toUpperCase()}.`);
         }
-        return response.json();
-    } catch (error) {
-        // **PERBAIKAN UTAMA KEDUA**
-        // Melemparkan error yang lebih informatif, bukan pesan umum
-        console.error(`Network Error fetching from ${url}: ${error.message}`);
-        throw new Error(`Gagal mengambil data untuk ${endpoint} dari Binance ${marketType.toUpperCase()}.`);
     }
-}
 // ===================================================================================================================================================================================================================================================================================
     async function fetchAllAggregateTrades(symbol, marketType, startTime, endTime) {
         const params = { symbol, startTime, endTime, limit: 1000 };
@@ -1883,8 +1872,6 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
             return response.json();
         } catch (error) { return null; }
     }
-// ===================================================================================================================================================================================================================================================================================
-   
 // ===================================================================================================================================================================================================================================================================================
     async function getCoinGeckoId(baseAssetSymbol) {
         if (!coinListCache) {
@@ -1974,7 +1961,6 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
         if (result.candidates?.[0]?.content?.parts?.[0]?.text) return result.candidates[0].content.parts[0].text;
         throw new Error("Respons dari AI tidak valid atau kosong.");
     }
-
 // ===================================================================================================================================================================================================================================================================================
     // == BLOK FUNGSI KALKULASI INDIKATOR BARU (MULAI) ==
 // ===================================================================================================================================================================================================================================================================================
@@ -2159,11 +2145,9 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
         if (closes.length < slow + signal) {
             return { status: 'Netral', hist: 'Netral', class: 'text-gray-500', macdLine: [], signalLine: [], histogram: [] };
         }
-// =====================================================================================================================================================================       
     const emaFast = calculateEMA(closes, fast);
     const emaSlow = calculateEMA(closes, slow);
         
-// =====================================================================================================================================================================    
     const macdLine = emaSlow.map((slowVal, i) => {
         if (slowVal !== undefined && emaFast[i] !== undefined) {
             return emaFast[i] - slowVal;
@@ -2620,7 +2604,6 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
         if (interval > 1) return Math.floor(interval) + " menit lalu";
         return Math.floor(seconds) + " detik lalu";
     }
-
 // =====================================================================================================================================================================
     function getExplorerUrl(networkName) {
         const explorerMap = {
@@ -2670,8 +2653,7 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
     function calculateSlope(p1, p2) {
         if (p2.index === p1.index) return Infinity;
         return (p2.price - p1.price) / (p2.index - p1.index);
-    }
-    
+    }  
 // =====================================================================================================================================================================
     function detectHeadAndShoulders(pivots) {
         for (let i = 4; i < pivots.length; i++) {
@@ -2690,7 +2672,6 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
         }
         return null;
     }
-
 // =====================================================================================================================================================================
     function detectDoubles(pivots) {
         for (let i = 2; i < pivots.length; i++) {
@@ -2711,7 +2692,6 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
         }
         return null;
     }
-
 // =====================================================================================================================================================================
     function detectTriangles(pivots) {
         const recentPivots = pivots.slice(-7); // Fokus pada 7 pivot terakhir
@@ -2755,7 +2735,6 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
         }
         return null;
     }
-
 // =====================================================================================================================================================================
     function detectFlags(klines) {
         const lookback = 30; 
@@ -3218,8 +3197,6 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-// ===BLOK KODE UPGRADE FINAL V2 UNTUK ANALISIS AI (TERMASUK KORELASI & RISIKO) ==masihh ada cache==
-// ===================================================================================================================================================================================================================================================================================
     async function runComprehensiveAIAnalysis() {
         if (!realtimeCache.main.tickerData) {
             showError("Jalankan 'GET DATA' terlebih dahulu untuk memuat data.");
@@ -3293,7 +3270,6 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
             comprehensiveBtn.disabled = false;
         }
     }
-// ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
     function constructHybridAIPrompt(symbol, singleTfData, multiTfData, volumeData, onChainSummary, correlationData) {
         const mainPriceContext = {
@@ -3604,66 +3580,64 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
         
         document.getElementById('confluence-breakdown-container').classList.remove('hidden');
     }
-
 // ===================================================================================================================================================================================================================================================================================
-    // GANTI SELURUH FUNGSI LAMA ANDA DENGAN VERSI FINAL INI
-async function createTFAlignmentSummary(symbol, marketType) {
-    const timeframes = ['5m', '15m', '1h', '4h', '1d'];
-    const summary = {};
-    
-    let score = 0; 
-    
-    const klinesPromises = timeframes.map(tf => 
-        fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType)
-    );
-    const klinesResults = await Promise.all(klinesPromises);
+    async function createTFAlignmentSummary(symbol, marketType) {
+        const timeframes = ['5m', '15m', '1h', '4h', '1d'];
+        const summary = {};
+        
+        let score = 0; 
+        
+        const klinesPromises = timeframes.map(tf => 
+            fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType)
+        );
+        const klinesResults = await Promise.all(klinesPromises);
 
-    klinesResults.forEach((klines, index) => {
-        const tf = timeframes[index];
-        if (klines && klines.length >= 50) {
-            const closes = klines.map(k => parseFloat(k[4]));
-            const ema21 = calculateEMA(closes, 21).pop();
-            const ema50 = calculateEMA(closes, 50).pop();
-            // Logika ini tetap menghasilkan 'UPTREND'/'DOWNTREND' untuk dependensi ke Bias Kontekstual
-            summary[tf] = ema21 > ema50 ? 'UPTREND' : 'DOWNTREND';
-        } else {
-            summary[tf] = 'N/A';
+        klinesResults.forEach((klines, index) => {
+            const tf = timeframes[index];
+            if (klines && klines.length >= 50) {
+                const closes = klines.map(k => parseFloat(k[4]));
+                const ema21 = calculateEMA(closes, 21).pop();
+                const ema50 = calculateEMA(closes, 50).pop();
+                // Logika ini tetap menghasilkan 'UPTREND'/'DOWNTREND' untuk dependensi ke Bias Kontekstual
+                summary[tf] = ema21 > ema50 ? 'UPTREND' : 'DOWNTREND';
+            } else {
+                summary[tf] = 'N/A';
+            }
+            
+            // Kalkulasi skor (tidak diubah)
+            if (summary[tf] === 'UPTREND') {
+                score++;
+            } else if (summary[tf] === 'DOWNTREND') {
+                score--;
+            }
+        });
+
+        realtimeCache.main.tfAlignmentSummary = { summary, score };
+
+        // Tampilkan di UI
+        const alignmentContainer = document.getElementById('tf-alignment-summary');
+        let alignmentHtml = '<h4 class="font-semibold text-gray-300 mt-2 mb-1">Multi TF Alignment (EMA 21/50)</h4><div class="flex justify-center gap-1">';
+        
+        for(const tf in summary){
+            const trend = summary[tf];
+            const colorClass = trend === 'UPTREND' ? 'positive' : (trend === 'DOWNTREND' ? 'negative' : 'text-gray-500');
+            
+            // --- PERUBAHAN 1: Definisikan ikon berdasarkan teks tren ---
+            const trendIcon = trend === 'UPTREND' ? '▲' : (trend === 'DOWNTREND' ? '▼' : '—');
+            
+            // --- PERUBAHAN 2: Gunakan variabel ikon, bukan teks, dan perbesar ukurannya ---
+            alignmentHtml += `
+                <div class="text-center p-1 rounded-md bg-gray-800/50 flex-1 mtf-clickable-box" data-timeframe="${tf}">
+                    <span class="font-semibold">${tf}</span><br>
+                    <span class="text-xl ${colorClass}">${trendIcon}</span>
+                </div>`;
         }
         
-        // Kalkulasi skor (tidak diubah)
-        if (summary[tf] === 'UPTREND') {
-            score++;
-        } else if (summary[tf] === 'DOWNTREND') {
-            score--;
-        }
-    });
+        alignmentHtml += '</div>';
+        if(alignmentContainer) alignmentContainer.innerHTML = alignmentHtml;
 
-    realtimeCache.main.tfAlignmentSummary = { summary, score };
-
-    // Tampilkan di UI
-    const alignmentContainer = document.getElementById('tf-alignment-summary');
-    let alignmentHtml = '<h4 class="font-semibold text-gray-300 mt-2 mb-1">Multi TF Alignment (EMA 21/50)</h4><div class="flex justify-center gap-1">';
-    
-    for(const tf in summary){
-        const trend = summary[tf];
-        const colorClass = trend === 'UPTREND' ? 'positive' : (trend === 'DOWNTREND' ? 'negative' : 'text-gray-500');
-        
-        // --- PERUBAHAN 1: Definisikan ikon berdasarkan teks tren ---
-        const trendIcon = trend === 'UPTREND' ? '▲' : (trend === 'DOWNTREND' ? '▼' : '—');
-        
-        // --- PERUBAHAN 2: Gunakan variabel ikon, bukan teks, dan perbesar ukurannya ---
-        alignmentHtml += `
-            <div class="text-center p-1 rounded-md bg-gray-800/50 flex-1 mtf-clickable-box" data-timeframe="${tf}">
-                <span class="font-semibold">${tf}</span><br>
-                <span class="text-xl ${colorClass}">${trendIcon}</span>
-            </div>`;
+        return { summary, score };
     }
-    
-    alignmentHtml += '</div>';
-    if(alignmentContainer) alignmentContainer.innerHTML = alignmentHtml;
-
-    return { summary, score };
-}
 // ===================================================================================================================================================================================================================================================================================
     function updateDashboardUI() {
         if (!realtimeCache.main.tickerData) return;
@@ -3695,11 +3669,6 @@ async function createTFAlignmentSummary(symbol, marketType) {
         updateQuickConfluenceWidget();
         calculateAndDisplayScalpingSetup();
     }
-// ===================================================================================================================================================================================================================================================================================
-    
-    
-// ===================================================================================================================================================================================================================================================================================
-    
 // ===================================================================================================================================================================================================================================================================================
     function startFundingRateTimer(nextFundingTime) {
         if (fundingRateTimer) clearInterval(fundingRateTimer);
@@ -3736,29 +3705,21 @@ async function createTFAlignmentSummary(symbol, marketType) {
 // ===================================================================================================================================================================================================================================================================================
     function populateConfluenceDetailsWidget() {  
         const { calculatedData, tickerData, orderBookData, lsRatioUmumData, lsRatioTopData } = realtimeCache.main;
-        //if (calculatedData.pivot?.data) {
-            //document.getElementById('pivot-p').textContent = formatPrice(calculatedData.pivot.data.P);
-        //}
-    // Temukan elemen-elemen yang relevan
-const pivotContainer = document.getElementById('pivot-levels-container');
-const pivotPEl = document.getElementById('pivot-p');
-const pivotData = calculatedData.pivot?.data;
+        
+        const pivotContainer = document.getElementById('pivot-levels-container');
+        const pivotPEl = document.getElementById('pivot-p');
+        const pivotData = calculatedData.pivot?.data;
 
-// HANYA perbarui elemen jika ada data baru yang valid.
-// JANGAN timpa nilai yang sudah ada dengan placeholder '-'.
-if (pivotData && pivotData.P) {
-    pivotPEl.textContent = formatPrice(pivotData.P);
-    
-    document.getElementById('pivot-r1s1').textContent = `${formatPrice(pivotData.R1)} / ${formatPrice(pivotData.S1)}`;
-    document.getElementById('pivot-r2s2').textContent = `${formatPrice(pivotData.R2)} / ${formatPrice(pivotData.S2)}`;
-    document.getElementById('pivot-r3s3').textContent = `${formatPrice(pivotData.R3)} / ${formatPrice(pivotData.S3)}`;
-    
-    pivotContainer.classList.remove('hidden');
-}
-//} else {
-    // Jika objek pivotData tidak ada sama sekali, pastikan kontainer tetap tersembunyi
-    //pivotContainer.classList.add('hidden');
-//}
+        if (pivotData && pivotData.P) {
+            pivotPEl.textContent = formatPrice(pivotData.P);
+            
+            document.getElementById('pivot-r1s1').textContent = `${formatPrice(pivotData.R1)} / ${formatPrice(pivotData.S1)}`;
+            document.getElementById('pivot-r2s2').textContent = `${formatPrice(pivotData.R2)} / ${formatPrice(pivotData.S2)}`;
+            document.getElementById('pivot-r3s3').textContent = `${formatPrice(pivotData.R3)} / ${formatPrice(pivotData.S3)}`;
+            
+            pivotContainer.classList.remove('hidden');
+        }
+
         if (calculatedData.vwap) {
             document.getElementById('vwap-20d').textContent = formatPrice(calculatedData.vwap.value);
         }
@@ -4053,9 +4014,6 @@ if (pivotData && pivotData.P) {
                 </div>
             `).join('');
 
-            // ==========================================================
-            // === PERBAIKAN 1: UBAH STRUKTUR HTML YANG DIBUAT DI SINI ===
-            // ==========================================================
             fullOrderBookContainer.innerHTML = `
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -4168,8 +4126,6 @@ if (pivotData && pivotData.P) {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-    
-// ===================================================================================================================================================================================================================================================================================
     function calculateBollingerBands_forPlot(closes, period = 20, stdDev = 2, klines) {
         if (closes.length < period) return { upper: [], middle: [], lower: [] };
         const middle = calculateSMA(closes, period);
@@ -4234,7 +4190,6 @@ if (pivotData && pivotData.P) {
         }
         return { upper, middle, lower };
     }
-
 // ===================================================================================================================================================================================================================================================================================
     function analyzeBollingerBandsPriceAction(klines, bbData) {
         if (!klines || klines.length < 2 || !bbData || bbData.upper.length < 2) {
@@ -4272,9 +4227,6 @@ if (pivotData && pivotData.P) {
         
         return { rejection, walkTheBands };
     }
-// ===================================================================================================================================================================================================================================================================================
-    
-// ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
     const processQueues = () => {
         let shouldUpdateMainUI = false;
@@ -4553,7 +4505,7 @@ if (pivotData && pivotData.P) {
     
         updateCvdTableLive(liveCvdData);
     }   
-    const reconnectDelay = 5000; // Coba sambung kembali setiap 5 detik
+        const reconnectDelay = 5000; // Coba sambung kembali setiap 5 detik
 // ===================================================================================================================================================================================================================================================================================
     function calculateROC(closes, period = 12) {
         if (closes.length < period + 1) return { value: 0, status: 'N/A' };
@@ -4863,7 +4815,7 @@ if (pivotData && pivotData.P) {
         initialPlaceholder.classList.remove('hidden');
 
         realtimeCache.main = {};
-        realtimeCache.movers = {}; // <-- ADD THIS LINE
+        realtimeCache.movers = {}; 
         klineCache = {}; 
         orderBookHistory = { avgVolumes: [], maxSize: 30 };
     }
@@ -4887,7 +4839,6 @@ if (pivotData && pivotData.P) {
         // Panggil ulang update skor konfluensi agar ikut berubah
         updateQuickConfluenceWidget();
     }
-// ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
     function renderTriggerBreakdown(breakdown) {
         const container = document.getElementById('trigger-breakdown-list');
@@ -4957,7 +4908,6 @@ if (pivotData && pivotData.P) {
         return null;
     }
 // ===================================================================================================================================================================================================================================================================================
-// ===================================================================================================================================================================================================================================================================================
     async function updateTopMovers(timeframe = "1h") {
         try {
             const topGainersList = document.getElementById('gainers-list');
@@ -5017,7 +4967,6 @@ if (pivotData && pivotData.P) {
                 finalSortedGainers.forEach(d => d.dynamicPriceChange = parseFloat(d.priceChangePercent));
             }
 
-            // FUNGSI HELPER DIPINDAHKAN KE LUAR LOOP UNTUK EFISIENSI
             const calculateChange = (kData) => {
                 if (!kData || kData.length < 2) return 'N/A';
                 const prevClose = parseFloat(kData[0][4]);
@@ -5111,7 +5060,6 @@ if (pivotData && pivotData.P) {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-// ===================================================================================================================================================================================================================================================================================
     function renderMoversList(containerId, moversData, isGainer, timeframe) {
         const container = document.getElementById(containerId);
         if (!container) return; // Pengaman jika kontainer NONE
@@ -5157,11 +5105,9 @@ if (pivotData && pivotData.P) {
         container.innerHTML = html || `<div class="text-xs text-gray-500 p-2">NONE data.</div>`;
     }
 // ===================================================================================================================================================================================================================================================================================
-// =================================================POSSIBLE DUPILICATE==============DUPLICATE REMOVED!!!====================================================================================================================================================================================================================
     function calculateShortConfluenceScore(symbol, timeframe) {
         if (!symbol) return { score: 0, breakdown: {} };
 
-        // ================== LOGIKA PEMILIHAN DATA (TETAP SAMA) ==================
         let klines;
         let aggTrades;
 
@@ -5193,10 +5139,8 @@ if (pivotData && pivotData.P) {
         // === AWAL BLOK PERUBAHAN & TAMBAHAN UNTUK BOLLINGER BANDS ===
         // ==========================================================
         
-        // 1. Hitung data BB lengkap sekali saja untuk efisiensi
         const bbData = calculateBollingerBands(closes);
         
-        // 2. Ekstrak nilai terakhir dari Upper, Middle, dan Lower band
         const lastUpper = bbData.upper.filter(v => v !== undefined).pop() || 0;
         const lastMiddle = bbData.middle.filter(v => v !== undefined).pop() || 0;
         const lastLower = bbData.lower.filter(v => v !== undefined).pop() || 0;
@@ -5205,7 +5149,6 @@ if (pivotData && pivotData.P) {
             candlePattern: findCandlestickPatterns(klines),
             macd: calculateMACD(closes),
             rsi: calculateRSI(closes),
-            // 3. Gunakan bbData yang sudah dihitung untuk analisis rejection
             bollingerBands: analyzeBollingerBandsPriceAction(klines, bbData), 
             cvd: CVDanalyze(klines, cvdDataForAnalysis),
             atr: calculateATR(klines)
@@ -5244,9 +5187,6 @@ if (pivotData && pivotData.P) {
         };
 
         // ========================================================
-        // === AKHIR BLOK PERUBAHAN & TAMBAHAN ===
-        // ========================================================
-
         const lookbackPeriod = 15;
         const recentKlines = klines.slice(-lookbackPeriod);
         
@@ -5346,7 +5286,6 @@ if (pivotData && pivotData.P) {
         return { score: Math.min(score, 10), breakdown };
     }
 // ===================================================================================================================================================================================================================================================================================
-// ===================================================================================================================================================================================================================================================================================
     function getConfluenceAnalysis(klines) {
         if (!klines || klines.length < 50) {
             return { skorBullish: 0, skorBearish: 0, detail: 'Not Enough Data' };
@@ -5423,7 +5362,6 @@ if (pivotData && pivotData.P) {
         else if (streamName.includes('@depth20')) {
             moverData.orderBook = { bids: payload.bids, asks: payload.asks };
         }
-        
         // ================== AWAL BLOK PERBAIKAN FINAL ==================
         // Menghitung dan memperbarui "Bullish Momentum" bar secara real-time untuk setiap mover
         let pumpStrengthPercentage = 0;
@@ -5441,7 +5379,6 @@ if (pivotData && pivotData.P) {
         if (pumpBarElement) {
             pumpBarElement.style.width = `${pumpStrengthPercentage}%`;
         }
-        // =================== AKHIR BLOK PERBAIKAN FINAL ===================
 
         // Menghitung skor Dump Potention
         const scoreData = calculateShortConfluenceScore(symbol, '5m');
@@ -5471,7 +5408,6 @@ if (pivotData && pivotData.P) {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
-// GANTI SELURUH FUNGSI LAMA ANDA DENGAN VERSI FINAL INI
     function calculateAndDisplayScalpingSetup() {
         const selectedDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
         const { klines, calculatedData, symbol, selectedTimeframe, tfAlignmentSummary } = realtimeCache.main;
@@ -5692,220 +5628,207 @@ if (pivotData && pivotData.P) {
             startTopMoversAutoRefresh(currentTimeframe, interval);
         });
     }
-
+// =====================================================================================================================================================================
     async function startTopMoversAutoRefresh(timeframe = "1H", interval = 120000) {
-    currentTimeframe = timeframe;
-    currentInterval = interval;
-    remainingTime = interval / 1000;
+        currentTimeframe = timeframe;
+        currentInterval = interval;
+        remainingTime = interval / 1000;
 
-    if (topMoversInterval) clearInterval(topMoversInterval);
-    if (topMoversCountdown) clearInterval(topMoversCountdown);
-    
-    // FUNGSI UTAMA UNTUK REFRESH
-    const refreshMovers = async () => {
-        if (!isTooltipActive) {
-            try {
-                // PENGECEKAN KUNCI: Pastikan info bursa sudah ada
-                if (!exchangeInfoCache.futures) {
-                    console.log("Menunggu info bursa futures untuk Top Movers...");
-                    await initializeExchangeInfo('futures');
+        if (topMoversInterval) clearInterval(topMoversInterval);
+        if (topMoversCountdown) clearInterval(topMoversCountdown);
+        
+        const refreshMovers = async () => {
+            if (!isTooltipActive) {
+                try {
+                    if (!exchangeInfoCache.futures) {
+                        console.log("Menunggu info bursa futures untuk Top Movers...");
+                        await initializeExchangeInfo('futures');
+                    }
+                    await updateTopMovers(timeframe);
+                    remainingTime = interval / 1000;
+                } catch (error) {
+                    console.error("Gagal refresh Top Movers:", error);
+                    const gainersList = document.getElementById('gainers-list');
+                    if(gainersList) gainersList.innerHTML = `<div class="text-red-500 text-xs p-2">Error: ${error.message}</div>`;
                 }
-                await updateTopMovers(timeframe);
-                remainingTime = interval / 1000;
-            } catch (error) {
-                console.error("Gagal refresh Top Movers:", error);
-                const gainersList = document.getElementById('gainers-list');
-                if(gainersList) gainersList.innerHTML = `<div class="text-red-500 text-xs p-2">Error: ${error.message}</div>`;
             }
-        }
-    };
+        };
 
-    // Jalankan pertama kali
-    await refreshMovers();
-    
-    // Atur interval untuk refresh berikutnya
-    topMoversInterval = setInterval(refreshMovers, interval);
-    
-    topMoversCountdown = setInterval(() => {
-        if (!isTooltipActive) {
-            remainingTime--;
-            if (remainingTime < 0) remainingTime = interval / 1000;
-        }
-        const countdownEl = document.getElementById("refresh-countdown");
-        if (countdownEl) {
-            countdownEl.textContent = isTooltipActive ? "⏸ Paused" : `⏱️ ${remainingTime}s`;
-        }
-    }, 1000);
-}
-// ================================================================
-
-    // =====================================================================================================================================================================
-// ================================================================
-// === GANTI SELURUH BLOK tsCalc DAN initializeNewCalculator ANDA DENGAN INI ===
-// ================================================================
-// ================================================================
-// === GANTI SELURUH BLOK tsCalc DAN initializeNewCalculator ANDA DENGAN INI ===
-// ================================================================
-const tsCalc = {
-    elements: {
-        leverage: document.getElementById('ts-leverage'),
-        cost: document.getElementById('ts-cost'),
-        slider: document.getElementById('ts-margin-slider'),
-        walletBalance: document.getElementById('ts-wallet-balance'),
-        marketPrice: document.getElementById('ts-market-price'),
-        tpslToggle: document.getElementById('ts-tpsl-toggle'),
-        tpslInputs: document.getElementById('ts-tpsl-inputs'),
-        takeProfit: document.getElementById('ts-take-profit'),
-        stopLoss: document.getElementById('ts-stop-loss'),
-        resultCost: document.getElementById('ts-result-cost'),
-        resultMax: document.getElementById('ts-result-max'),
-        resultPosSize: document.getElementById('ts-result-position-size'),
-        resultLiqPrice: document.getElementById('ts-result-liq-price'),
-        resultStatus: document.getElementById('ts-result-status'),
-        resultSlPrice: document.getElementById('ts-result-sl-price'),
-        resultRoe: document.getElementById('ts-result-roe'),
-        crossBtn: document.getElementById('ts-mode-cross'),
-        isolatedBtn: document.getElementById('ts-mode-isolated'),
-        buyBtn: document.getElementById('ts-buy-long-btn'),
-        sellBtn: document.getElementById('ts-sell-short-btn'),
-        autofillBtn: document.getElementById('autofill-ts-btn'),
-        tsOptionsBtn: document.getElementById('ts-trailing-stop-options'),
-        // Elemen Modal
-        modalContainer: document.getElementById('ts-modal-container'),
-        modalCallbackRate: document.getElementById('ts-modal-callback-rate'),
-        modalActivationPrice: document.getElementById('ts-modal-activation-price'),
-        modalSaveBtn: document.getElementById('ts-modal-save-btn'),
-        modalCloseBtn: document.getElementById('ts-modal-close-btn')
-    },
-    state: {
-        marginMode: 'cross',
-        leverage: 20,
-        cost: 0,
-        entryPrice: 0,
-        walletBalance: 1000,
-        tp: null,
-        sl: null,
-        callbackRate: null,
-        activationPrice: null,
-        positionType: 'long'
-    },
-    
-    toggleModal: function(show) {
-        if (show) {
-            this.elements.modalContainer.classList.remove('hidden');
-        } else {
-            this.elements.modalContainer.classList.add('hidden');
-        }
-    },
-    recalculate: function() {
-        this.state.walletBalance = parseFloat(this.elements.walletBalance.value) || 0;
-        this.state.leverage = parseFloat(this.elements.leverage.value) || 20;
-        this.state.cost = parseFloat(this.elements.cost.value) || 0;
-        const marketPrice = parseFloat(this.elements.marketPrice.value);
-
-        const lastPrice = realtimeCache.main.tickerData?.lastPrice ? parseFloat(realtimeCache.main.tickerData.lastPrice) : this.state.entryPrice;
-        if (lastPrice === 0 && !marketPrice) return;
-        const entry = this.state.entryPrice || lastPrice;
-
-        const positionSize = this.state.cost * this.state.leverage;
-        const quantity = entry > 0 ? positionSize / entry : 0;
+        await refreshMovers();
         
-        this.elements.resultCost.textContent = `${this.state.cost.toFixed(2)} USDT`;
-        this.elements.resultMax.textContent = `${this.state.walletBalance.toFixed(2)} USDT`;
-        this.elements.resultPosSize.textContent = `${positionSize.toFixed(2)} USDT`;
+        // Atur interval untuk refresh berikutnya
+        topMoversInterval = setInterval(refreshMovers, interval);
         
-        let liqPrice = 0;
-        const maintenanceMarginRate = 0.004;
-        if (positionSize > 0) {
-            if (this.state.marginMode === 'isolated') {
-                const priceChange = (this.state.cost / positionSize) * (1 - maintenanceMarginRate);
-                liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
-            } else { // Cross
-                const priceChange = ((this.state.walletBalance) / positionSize) * (1 - maintenanceMarginRate);
-                liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
+        topMoversCountdown = setInterval(() => {
+            if (!isTooltipActive) {
+                remainingTime--;
+                if (remainingTime < 0) remainingTime = interval / 1000;
             }
-        }
-        this.elements.resultLiqPrice.textContent = liqPrice > 0 ? `${liqPrice.toFixed(4)} USDT` : 'N/A';
+            const countdownEl = document.getElementById("refresh-countdown");
+            if (countdownEl) {
+                countdownEl.textContent = isTooltipActive ? "⏸ Paused" : `⏱️ ${remainingTime}s`;
+            }
+        }, 1000);
+    }
+// =====================================================================================================================================================================
+    const tsCalc = {
+        elements: {
+            leverage: document.getElementById('ts-leverage'),
+            cost: document.getElementById('ts-cost'),
+            slider: document.getElementById('ts-margin-slider'),
+            walletBalance: document.getElementById('ts-wallet-balance'),
+            marketPrice: document.getElementById('ts-market-price'),
+            tpslToggle: document.getElementById('ts-tpsl-toggle'),
+            tpslInputs: document.getElementById('ts-tpsl-inputs'),
+            takeProfit: document.getElementById('ts-take-profit'),
+            stopLoss: document.getElementById('ts-stop-loss'),
+            resultCost: document.getElementById('ts-result-cost'),
+            resultMax: document.getElementById('ts-result-max'),
+            resultPosSize: document.getElementById('ts-result-position-size'),
+            resultLiqPrice: document.getElementById('ts-result-liq-price'),
+            resultStatus: document.getElementById('ts-result-status'),
+            resultSlPrice: document.getElementById('ts-result-sl-price'),
+            resultRoe: document.getElementById('ts-result-roe'),
+            crossBtn: document.getElementById('ts-mode-cross'),
+            isolatedBtn: document.getElementById('ts-mode-isolated'),
+            buyBtn: document.getElementById('ts-buy-long-btn'),
+            sellBtn: document.getElementById('ts-sell-short-btn'),
+            autofillBtn: document.getElementById('autofill-ts-btn'),
+            tsOptionsBtn: document.getElementById('ts-trailing-stop-options'),
+            // Elemen Modal
+            modalContainer: document.getElementById('ts-modal-container'),
+            modalCallbackRate: document.getElementById('ts-modal-callback-rate'),
+            modalActivationPrice: document.getElementById('ts-modal-activation-price'),
+            modalSaveBtn: document.getElementById('ts-modal-save-btn'),
+            modalCloseBtn: document.getElementById('ts-modal-close-btn')
+        },
+        state: {
+            marginMode: 'cross',
+            leverage: 20,
+            cost: 0,
+            entryPrice: 0,
+            walletBalance: 1000,
+            tp: null,
+            sl: null,
+            callbackRate: null,
+            activationPrice: null,
+            positionType: 'long'
+        },
         
-        if (this.state.callbackRate && this.state.activationPrice && !isNaN(marketPrice)) {
-            let isActive = false;
-            let stopLossPrice = 0;
-
-            if (this.state.positionType === 'long' ? marketPrice >= this.state.activationPrice : marketPrice <= this.state.activationPrice) {
-                isActive = true;
-                const rate = this.state.callbackRate / 100;
-                stopLossPrice = this.state.positionType === 'long' ? marketPrice * (1 - rate) : marketPrice * (1 + rate);
-                
-                this.elements.resultStatus.textContent = 'Aktif ✅';
-                this.elements.resultStatus.className = 'positive';
-                this.elements.resultSlPrice.textContent = `${stopLossPrice.toFixed(4)} USDT`;
-
-                const pnl = (this.state.positionType === 'long') ? (stopLossPrice - entry) * quantity : (entry - stopLossPrice) * quantity;
-                const roe = this.state.cost > 0 ? (pnl / this.state.cost) * 100 : 0;
-                this.elements.resultRoe.textContent = `${roe.toFixed(2)}%`;
-                this.elements.resultRoe.className = pnl >= 0 ? 'profit positive' : 'loss negative';
+        toggleModal: function(show) {
+            if (show) {
+                this.elements.modalContainer.classList.remove('hidden');
             } else {
-                this.elements.resultStatus.textContent = 'Belum Aktif';
-                this.elements.resultStatus.className = 'text-yellow-400';
+                this.elements.modalContainer.classList.add('hidden');
+            }
+        },
+        recalculate: function() {
+            this.state.walletBalance = parseFloat(this.elements.walletBalance.value) || 0;
+            this.state.leverage = parseFloat(this.elements.leverage.value) || 20;
+            this.state.cost = parseFloat(this.elements.cost.value) || 0;
+            const marketPrice = parseFloat(this.elements.marketPrice.value);
+
+            const lastPrice = realtimeCache.main.tickerData?.lastPrice ? parseFloat(realtimeCache.main.tickerData.lastPrice) : this.state.entryPrice;
+            if (lastPrice === 0 && !marketPrice) return;
+            const entry = this.state.entryPrice || lastPrice;
+
+            const positionSize = this.state.cost * this.state.leverage;
+            const quantity = entry > 0 ? positionSize / entry : 0;
+            
+            this.elements.resultCost.textContent = `${this.state.cost.toFixed(2)} USDT`;
+            this.elements.resultMax.textContent = `${this.state.walletBalance.toFixed(2)} USDT`;
+            this.elements.resultPosSize.textContent = `${positionSize.toFixed(2)} USDT`;
+            
+            let liqPrice = 0;
+            const maintenanceMarginRate = 0.004;
+            if (positionSize > 0) {
+                if (this.state.marginMode === 'isolated') {
+                    const priceChange = (this.state.cost / positionSize) * (1 - maintenanceMarginRate);
+                    liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
+                } else { // Cross
+                    const priceChange = ((this.state.walletBalance) / positionSize) * (1 - maintenanceMarginRate);
+                    liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
+                }
+            }
+            this.elements.resultLiqPrice.textContent = liqPrice > 0 ? `${liqPrice.toFixed(4)} USDT` : 'N/A';
+            
+            if (this.state.callbackRate && this.state.activationPrice && !isNaN(marketPrice)) {
+                let isActive = false;
+                let stopLossPrice = 0;
+
+                if (this.state.positionType === 'long' ? marketPrice >= this.state.activationPrice : marketPrice <= this.state.activationPrice) {
+                    isActive = true;
+                    const rate = this.state.callbackRate / 100;
+                    stopLossPrice = this.state.positionType === 'long' ? marketPrice * (1 - rate) : marketPrice * (1 + rate);
+                    
+                    this.elements.resultStatus.textContent = 'Aktif ✅';
+                    this.elements.resultStatus.className = 'positive';
+                    this.elements.resultSlPrice.textContent = `${stopLossPrice.toFixed(4)} USDT`;
+
+                    const pnl = (this.state.positionType === 'long') ? (stopLossPrice - entry) * quantity : (entry - stopLossPrice) * quantity;
+                    const roe = this.state.cost > 0 ? (pnl / this.state.cost) * 100 : 0;
+                    this.elements.resultRoe.textContent = `${roe.toFixed(2)}%`;
+                    this.elements.resultRoe.className = pnl >= 0 ? 'profit positive' : 'loss negative';
+                } else {
+                    this.elements.resultStatus.textContent = 'Belum Aktif';
+                    this.elements.resultStatus.className = 'text-yellow-400';
+                    this.elements.resultSlPrice.textContent = '--';
+                    this.elements.resultRoe.textContent = '--';
+                    this.elements.resultRoe.className = '';
+                }
+            } else {
+                this.elements.resultStatus.textContent = 'Belum Diatur';
+                this.elements.resultStatus.className = 'text-gray-500';
                 this.elements.resultSlPrice.textContent = '--';
                 this.elements.resultRoe.textContent = '--';
                 this.elements.resultRoe.className = '';
             }
-        } else {
-            this.elements.resultStatus.textContent = 'Belum Diatur';
-            this.elements.resultStatus.className = 'text-gray-500';
-            this.elements.resultSlPrice.textContent = '--';
-            this.elements.resultRoe.textContent = '--';
-            this.elements.resultRoe.className = '';
-        }
-    },
+        },
 
-    // Di dalam objek tsCalc
-    autofill: function() {
-        // Ambil setup terbaru dari cache
-        // Di dalam tsCalc.autofill
-        const setup = realtimeCache.main.latestScalpingSetup; // Benar 'i'
-        
-        if (!setup || !setup.entry) { // Pengecekan lebih kuat
-            alert("Setup scalping belum siap atau pasar sedang sideways. Tidak bisa auto-fill.");
-            return;
-        }
-        
-        // Tentukan tipe posisi dari setup
-        const isLong = setup.tp1 > setup.entry;
-        this.state.positionType = isLong ? 'long' : 'short';
-        
-        // Perbarui UI tombol Buy/Sell
-        if(isLong) {
-            this.elements.buyBtn.classList.remove('opacity-50');
-            this.elements.sellBtn.classList.add('opacity-50');
-        } else {
-            this.elements.sellBtn.classList.remove('opacity-50');
-            this.elements.buyBtn.classList.add('opacity-50');
-        }
-        
-        // Dapatkan harga pasar saat ini dari cache
-        const currentMarketPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
-        const precision = getPrecisionForAsset(currentMarketPrice);
+        autofill: function() {
+            
+            const setup = realtimeCache.main.latestScalpingSetup; // Benar 'i'
+            
+            if (!setup || !setup.entry) { // Pengecekan lebih kuat
+                alert("Setup scalping belum siap atau pasar sedang sideways. Tidak bisa auto-fill.");
+                return;
+            }
+            
+            // Tentukan tipe posisi dari setup
+            const isLong = setup.tp1 > setup.entry;
+            this.state.positionType = isLong ? 'long' : 'short';
+            
+            // Perbarui UI tombol Buy/Sell
+            if(isLong) {
+                this.elements.buyBtn.classList.remove('opacity-50');
+                this.elements.sellBtn.classList.add('opacity-50');
+            } else {
+                this.elements.sellBtn.classList.remove('opacity-50');
+                this.elements.buyBtn.classList.add('opacity-50');
+            }
+            
+            // Dapatkan harga pasar saat ini dari cache
+            const currentMarketPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+            const precision = getPrecisionForAsset(currentMarketPrice);
 
-        // Isi semua field di kalkulator
-        this.elements.marketPrice.value = currentMarketPrice.toFixed(precision); // Harga saat ini
-        this.elements.takeProfit.value = setup.tp1.toFixed(precision); // TP dari scalping setup
-        this.elements.stopLoss.value = setup.sl.toFixed(precision);   // SL dari scalping setup
+            // Isi semua field di kalkulator
+            this.elements.marketPrice.value = currentMarketPrice.toFixed(precision); // Harga saat ini
+            this.elements.takeProfit.value = setup.tp1.toFixed(precision); // TP dari scalping setup
+            this.elements.stopLoss.value = setup.sl.toFixed(precision);   // SL dari scalping setup
 
-        // Aktifkan toggle TP/SL
-        this.elements.tpslToggle.checked = true;
-        this.elements.tpslInputs.classList.remove('hidden');
+            // Aktifkan toggle TP/SL
+            this.elements.tpslToggle.checked = true;
+            this.elements.tpslInputs.classList.remove('hidden');
 
-        // Beri fokus ke input modal agar pengguna bisa langsung mengisi
-        this.elements.cost.focus();
-        this.recalculate(); // Hitung ulang semua nilai di kalkulator
-        
-        // Scroll ke kalkulator agar terlihat
-        this.elements.leverage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    },
-};
-
+            // Beri fokus ke input modal agar pengguna bisa langsung mengisi
+            this.elements.cost.focus();
+            this.recalculate(); // Hitung ulang semua nilai di kalkulator
+            
+            // Scroll ke kalkulator agar terlihat
+            this.elements.leverage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        },
+    };
+// =====================================================================================================================================================================
 function initializeNewCalculator() {
     const { elements, state } = tsCalc;
     
@@ -5929,11 +5852,9 @@ function initializeNewCalculator() {
         elements.buyBtn.classList.remove('opacity-50');
         elements.sellBtn.classList.add('opacity-50');
         
-        // --- TAMBAHAN BARU ---
         if (confirm(`Buka posisi LONG simulasi dengan modal ${tsCalc.state.cost.toFixed(2)} USDT?`)) {
             paperTrade.openPosition('long', tsCalc.state.leverage, tsCalc.state.cost, parseFloat(elements.marketPrice.value));
         }
-        // --- AKHIR TAMBAHAN ---
         
         tsCalc.recalculate();
     });
@@ -5942,12 +5863,10 @@ function initializeNewCalculator() {
         elements.sellBtn.classList.remove('opacity-50');
         elements.buyBtn.classList.add('opacity-50');
         
-        // --- TAMBAHAN BARU ---
         if (confirm(`Buka posisi SHORT simulasi dengan modal ${tsCalc.state.cost.toFixed(2)} USDT?`)) {
             paperTrade.openPosition('short', tsCalc.state.leverage, tsCalc.state.cost, parseFloat(elements.marketPrice.value));
         }
-        // --- AKHIR TAMBAHAN ---
-        
+              
         tsCalc.recalculate();
     });
     elements.tpslToggle.addEventListener('change', () => {
@@ -5986,491 +5905,481 @@ function initializeNewCalculator() {
 
     tsCalc.recalculate();
 }
-// ================================================================
-// === BLOK LOGIKA BARU UNTUK KALKULATOR BINANCE STYLE (SELESAI) ===
-// ================================================================
 // === LOGIKA SIMULASI TRADING (MULAI) ===
-const paperTrade = {
-    state: {
-        balance: 1000,
-        position: null, // { type: 'long'/'short', entryPrice: 65000, quantity: 0.1, leverage: 20, cost: 325 }
-        history: []
-    },
-    elements: {
-        equity: document.getElementById('sim-equity'),
-        unrealizedPnl: document.getElementById('sim-unrealized-pnl'),
-        availableMargin: document.getElementById('sim-available-margin'),
-        resetBtn: document.getElementById('sim-reset-account-btn'),
-        
-        positionContainer: document.getElementById('sim-active-position-container'),
-        positionHeader: document.getElementById('sim-position-header'),
-        closePositionBtn: document.getElementById('sim-close-position-btn'),
-        positionSize: document.getElementById('sim-position-size'),
-        positionEntry: document.getElementById('sim-position-entry'),
-        positionMark: document.getElementById('sim-position-mark'),
-        positionLiq: document.getElementById('sim-position-liq'),
-        positionPnl: document.getElementById('sim-position-pnl'),
-        
-        tradeHistoryList: document.getElementById('sim-trade-history-list'),
-    },
+    const paperTrade = {
+        state: {
+            balance: 1000,
+            position: null, // { type: 'long'/'short', entryPrice: 65000, quantity: 0.1, leverage: 20, cost: 325 }
+            history: []
+        },
+        elements: {
+            equity: document.getElementById('sim-equity'),
+            unrealizedPnl: document.getElementById('sim-unrealized-pnl'),
+            availableMargin: document.getElementById('sim-available-margin'),
+            resetBtn: document.getElementById('sim-reset-account-btn'),
+            
+            positionContainer: document.getElementById('sim-active-position-container'),
+            positionHeader: document.getElementById('sim-position-header'),
+            closePositionBtn: document.getElementById('sim-close-position-btn'),
+            positionSize: document.getElementById('sim-position-size'),
+            positionEntry: document.getElementById('sim-position-entry'),
+            positionMark: document.getElementById('sim-position-mark'),
+            positionLiq: document.getElementById('sim-position-liq'),
+            positionPnl: document.getElementById('sim-position-pnl'),
+            
+            tradeHistoryList: document.getElementById('sim-trade-history-list'),
+        },
 
-    init: function() {
-        this.loadState();
-        this.elements.resetBtn.addEventListener('click', () => this.resetAccount());
-        this.elements.closePositionBtn.addEventListener('click', () => this.closePosition());
-        
-        const importBtn = document.getElementById('sim-import-btn');
-        const importInput = document.getElementById('sim-import-input');
-        document.getElementById('sim-export-btn').addEventListener('click', exportHistoryToCSV);
-        importBtn.addEventListener('click', () => importInput.click());
-        importInput.addEventListener('change', importHistoryFromCSV);
-        
-        setInterval(() => this.update(), 500);
-        this.render();
-    },
+            init: function() {
+                this.loadState();
+                this.elements.resetBtn.addEventListener('click', () => this.resetAccount());
+                this.elements.closePositionBtn.addEventListener('click', () => this.closePosition());
+                
+                const importBtn = document.getElementById('sim-import-btn');
+                const importInput = document.getElementById('sim-import-input');
+                document.getElementById('sim-export-btn').addEventListener('click', exportHistoryToCSV);
+                importBtn.addEventListener('click', () => importInput.click());
+                importInput.addEventListener('change', importHistoryFromCSV);
+                
+                setInterval(() => this.update(), 500);
+                this.render();
+            },
 
-    openPosition: function(type, leverage, cost, entryPrice) {
-        if (this.state.position) {
-            alert("Hanya 1 posisi yang bisa dibuka dalam satu waktu.");
-            return;
-        }
-        if (cost > this.state.balance) {
-            alert("Modal tidak cukup untuk membuka posisi.");
-            return;
-        }
+            openPosition: function(type, leverage, cost, entryPrice) {
+                if (this.state.position) {
+                    alert("Hanya 1 posisi yang bisa dibuka dalam satu waktu.");
+                    return;
+                }
+                if (cost > this.state.balance) {
+                    alert("Modal tidak cukup untuk membuka posisi.");
+                    return;
+                }
 
-        const positionSize = cost * leverage;
-        const quantity = entryPrice > 0 ? positionSize / entryPrice : 0;
-        
-        // Asumsi margin terisolasi untuk perhitungan likuidasi sederhana
-        const maintenanceMarginRate = 0.005; 
-        const liqPriceChange = (cost / positionSize) * (1 - maintenanceMarginRate);
-        const liqPrice = type === 'long' 
-            ? entryPrice * (1 - liqPriceChange) 
-            : entryPrice * (1 + liqPriceChange);
+                const positionSize = cost * leverage;
+                const quantity = entryPrice > 0 ? positionSize / entryPrice : 0;
+                
+                // Asumsi margin terisolasi untuk perhitungan likuidasi sederhana
+                const maintenanceMarginRate = 0.005; 
+                const liqPriceChange = (cost / positionSize) * (1 - maintenanceMarginRate);
+                const liqPrice = type === 'long' 
+                    ? entryPrice * (1 - liqPriceChange) 
+                    : entryPrice * (1 + liqPriceChange);
 
-        this.state.balance -= cost;
-        this.state.position = {
-            type: type,
-            entryPrice: entryPrice,
-            quantity: quantity,
-            leverage: leverage,
-            cost: cost,
-            liqPrice: liqPrice
-        };
-        
-        this.saveState();
-        this.render();
-    },
-
-    closePosition: function() {
-        if (!this.state.position) return;
-        const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
-        if (isNaN(markPrice)) {
-            alert("Tidak bisa menutup posisi, harga pasar tidak tersedia.");
-            return;
-        }
-        
-        const pos = this.state.position;
-        const pnl = (pos.type === 'long') 
-            ? (markPrice - pos.entryPrice) * pos.quantity 
-            : (pos.entryPrice - markPrice) * pos.quantity;
-
-        this.state.balance += (pos.cost + pnl);
-        
-        this.state.history.unshift({
-            symbol: realtimeCache.main.symbol,
-            type: pos.type,
-            entryPrice: pos.entryPrice,
-            closePrice: markPrice,
-            pnl: pnl,
-            roe: (pnl / pos.cost) * 100,
-            closedAt: new Date(),
-            liquidated: false
-        });
-        
-        if (this.state.history.length > 20) this.state.history.pop();
-
-        this.state.position = null;
-        this.saveState();
-        this.render();
-    },
-
-    update: function() {
-        if (!this.state.position) return;
-        
-        const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
-        if (isNaN(markPrice)) return;
-        
-        const pos = this.state.position;
-        const pnl = (pos.type === 'long') 
-            ? (markPrice - pos.entryPrice) * pos.quantity 
-            : (pos.entryPrice - markPrice) * pos.quantity;
-        
-        const equity = this.state.balance + pos.cost + pnl;
-        
-        this.elements.equity.textContent = formatPrice(equity);
-        this.elements.unrealizedPnl.textContent = formatPrice(pnl);
-        this.elements.unrealizedPnl.className = `font-mono font-bold text-lg ${pnl >= 0 ? 'positive' : 'negative'}`;
-        this.elements.positionMark.textContent = formatPrice(markPrice);
-        
-        const roe = (pnl / pos.cost) * 100;
-        this.elements.positionPnl.textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
-        this.elements.positionPnl.className = `font-mono font-bold text-lg ml-2 ${pnl >= 0 ? 'positive' : 'negative'}`;
-
-        if ((pos.type === 'long' && markPrice <= pos.liqPrice) || (pos.type === 'short' && markPrice >= pos.liqPrice)) {
-            alert(`Posisi ${pos.type.toUpperCase()} terlikuidasi!`);
-            this.state.history.unshift({
-                symbol: realtimeCache.main.symbol,
-                type: pos.type,
-                entryPrice: pos.entryPrice,
-                closePrice: markPrice,
-                pnl: -pos.cost,
-                roe: -100,
-                closedAt: new Date(),
-                liquidated: true
-            });
-            this.state.position = null;
-            this.saveState();
-            this.render();
-        }
-    },
-
-    render: function() {
-        const pos = this.state.position;
-        
-        if (pos) {
-            // ... (bagian ini tidak berubah, biarkan saja)
-            const equity = this.state.balance + pos.cost;
-            this.elements.equity.textContent = formatPrice(equity);
-            this.elements.availableMargin.textContent = formatPrice(this.state.balance);
-            this.elements.positionContainer.classList.remove('hidden');
-            this.elements.positionHeader.textContent = `${pos.type.toUpperCase()} / ${pos.leverage}x`;
-            this.elements.positionHeader.className = `font-bold text-lg ${pos.type === 'long' ? 'positive' : 'negative'}`;
-            this.elements.positionSize.textContent = formatPrice(pos.cost * pos.leverage);
-            this.elements.positionEntry.textContent = formatPrice(pos.entryPrice);
-            this.elements.positionLiq.textContent = formatPrice(pos.liqPrice);
-            this.elements.unrealizedPnl.textContent = '$0.00';
-            this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
-        } else {
-            // ... (bagian ini juga tidak berubah)
-            this.elements.equity.textContent = formatPrice(this.state.balance);
-            this.elements.availableMargin.textContent = formatPrice(this.state.balance);
-            this.elements.unrealizedPnl.textContent = '$0.00';
-            this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
-            this.elements.positionContainer.classList.add('hidden');
-        }
-
-        if (this.state.history.length > 0) {
-            this.elements.tradeHistoryList.innerHTML = this.state.history.map(trade => `
-                <div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'}">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <span class="font-bold ${trade.type === 'long' ? 'positive' : 'negative'}">${trade.symbol} ${trade.type.toUpperCase()}</span>
-                            <span class="text-gray-400 text-[10px] ml-2">${trade.closedAt.toLocaleTimeString()}</span>
-                        </div>
-                        <div class="font-mono text-right ${trade.pnl >= 0 ? 'positive' : 'negative'}">
-                            ${formatPrice(trade.pnl)} (${trade.roe.toFixed(2)}%) ${trade.liquidated ? '🔥' : ''}
-                        </div>
-                    </div>
-                    <div class="text-gray-400 text-[10px] font-mono flex justify-between mt-1 pt-1 border-t border-gray-700/50">
-                        <span>Entry: ${formatPrice(trade.entryPrice)}</span>
-                        <span>Close: ${formatPrice(trade.closePrice)}</span>
-                    </div>
-                </div>
-            `).join('');
-        } else {
-            this.elements.tradeHistoryList.innerHTML = '<p class="text-center text-gray-600">No trade history yet.</p>';
-        }
-    },
-
-    resetAccount: function() {
-        if (confirm("Apakah Anda yakin ingin mereset akun simulasi? Semua riwayat akan hilang.")) {
-            this.state.balance = 1000;
-            this.state.position = null;
-            this.state.history = [];
-            this.saveState();
-            this.render();
-        }
-    },
-
-    saveState: function() {
-        localStorage.setItem('paperTradeState', JSON.stringify(this.state));
-    },
-
-    loadState: function() {
-        const savedState = localStorage.getItem('paperTradeState');
-        if (savedState) {
-            this.state = JSON.parse(savedState);
-            if (this.state.history) {
-                 this.state.history.forEach(trade => trade.closedAt = new Date(trade.closedAt));
-            }
-        }
-    }
-};
-// === LOGIKA SIMULASI TRADING (SELESAI) ===
-// === LOGIKA BARU UNTUK IMPORT/EXPORT CSV (MULAI) ===
-
-function exportHistoryToCSV() {
-    const history = paperTrade.state.history;
-    if (history.length === 0) {
-        alert("Tidak ada riwayat trading untuk diekspor.");
-        return;
-    }
-
-    // Header baru dengan EntryPrice dan ClosePrice
-    const headers = ["Symbol", "Type", "EntryPrice", "ClosePrice", "PNL", "ROE", "ClosedAt", "Liquidated"];
-    let csvContent = headers.join(",") + "\r\n";
-
-    // Tambahkan data baru ke setiap baris
-    history.forEach(trade => {
-        const row = [
-            trade.symbol,
-            trade.type,
-            trade.entryPrice || 'N/A', // Tambahkan fallback jika data lama tidak ada
-            trade.closePrice || 'N/A', // Tambahkan fallback
-            trade.pnl,
-            trade.roe,
-            trade.closedAt.toISOString(),
-            trade.liquidated ? 'TRUE' : 'FALSE'
-        ];
-        csvContent += row.join(",") + "\r\n";
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    const timestamp = new Date().toISOString().slice(0, 10);
-    link.setAttribute("download", `trade_history_${timestamp}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function importHistoryFromCSV(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const text = e.target.result;
-        const lines = text.split('\n').filter(line => line.trim() !== '');
-        if (lines.length <= 1) {
-            alert("File CSV kosong atau hanya berisi header.");
-            return;
-        }
-
-        const importedHistory = [];
-        for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(',');
-            if (values.length < 8) continue; // Sekarang harus ada 8 kolom
-
-            try {
-                const trade = {
-                    symbol: values[0].trim(),
-                    type: values[1].trim(),
-                    entryPrice: parseFloat(values[2]),
-                    closePrice: parseFloat(values[3]),
-                    pnl: parseFloat(values[4]),
-                    roe: parseFloat(values[5]),
-                    closedAt: new Date(values[6].trim()),
-                    liquidated: values[7].trim().toUpperCase() === 'TRUE'
+                this.state.balance -= cost;
+                this.state.position = {
+                    type: type,
+                    entryPrice: entryPrice,
+                    quantity: quantity,
+                    leverage: leverage,
+                    cost: cost,
+                    liqPrice: liqPrice
                 };
-                importedHistory.push(trade);
-            } catch (error) {
-                alert(`Error saat memproses baris ke-${i+1}. Cek format file Anda.`);
+                
+                this.saveState();
+                this.render();
+            },
+
+            closePosition: function() {
+                if (!this.state.position) return;
+                const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+                if (isNaN(markPrice)) {
+                    alert("Tidak bisa menutup posisi, harga pasar tidak tersedia.");
+                    return;
+                }
+                
+                const pos = this.state.position;
+                const pnl = (pos.type === 'long') 
+                    ? (markPrice - pos.entryPrice) * pos.quantity 
+                    : (pos.entryPrice - markPrice) * pos.quantity;
+
+                this.state.balance += (pos.cost + pnl);
+                
+                this.state.history.unshift({
+                    symbol: realtimeCache.main.symbol,
+                    type: pos.type,
+                    entryPrice: pos.entryPrice,
+                    closePrice: markPrice,
+                    pnl: pnl,
+                    roe: (pnl / pos.cost) * 100,
+                    closedAt: new Date(),
+                    liquidated: false
+                });
+                
+                if (this.state.history.length > 20) this.state.history.pop();
+
+                this.state.position = null;
+                this.saveState();
+                this.render();
+            },
+
+            update: function() {
+                if (!this.state.position) return;
+                
+                const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+                if (isNaN(markPrice)) return;
+                
+                const pos = this.state.position;
+                const pnl = (pos.type === 'long') 
+                    ? (markPrice - pos.entryPrice) * pos.quantity 
+                    : (pos.entryPrice - markPrice) * pos.quantity;
+                
+                const equity = this.state.balance + pos.cost + pnl;
+                
+                this.elements.equity.textContent = formatPrice(equity);
+                this.elements.unrealizedPnl.textContent = formatPrice(pnl);
+                this.elements.unrealizedPnl.className = `font-mono font-bold text-lg ${pnl >= 0 ? 'positive' : 'negative'}`;
+                this.elements.positionMark.textContent = formatPrice(markPrice);
+                
+                const roe = (pnl / pos.cost) * 100;
+                this.elements.positionPnl.textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
+                this.elements.positionPnl.className = `font-mono font-bold text-lg ml-2 ${pnl >= 0 ? 'positive' : 'negative'}`;
+
+                if ((pos.type === 'long' && markPrice <= pos.liqPrice) || (pos.type === 'short' && markPrice >= pos.liqPrice)) {
+                    alert(`Posisi ${pos.type.toUpperCase()} terlikuidasi!`);
+                    this.state.history.unshift({
+                        symbol: realtimeCache.main.symbol,
+                        type: pos.type,
+                        entryPrice: pos.entryPrice,
+                        closePrice: markPrice,
+                        pnl: -pos.cost,
+                        roe: -100,
+                        closedAt: new Date(),
+                        liquidated: true
+                    });
+                    this.state.position = null;
+                    this.saveState();
+                    this.render();
+                }
+            },
+
+            render: function() {
+                const pos = this.state.position;
+                
+                if (pos) {
+                    const equity = this.state.balance + pos.cost;
+                    this.elements.equity.textContent = formatPrice(equity);
+                    this.elements.availableMargin.textContent = formatPrice(this.state.balance);
+                    this.elements.positionContainer.classList.remove('hidden');
+                    this.elements.positionHeader.textContent = `${pos.type.toUpperCase()} / ${pos.leverage}x`;
+                    this.elements.positionHeader.className = `font-bold text-lg ${pos.type === 'long' ? 'positive' : 'negative'}`;
+                    this.elements.positionSize.textContent = formatPrice(pos.cost * pos.leverage);
+                    this.elements.positionEntry.textContent = formatPrice(pos.entryPrice);
+                    this.elements.positionLiq.textContent = formatPrice(pos.liqPrice);
+                    this.elements.unrealizedPnl.textContent = '$0.00';
+                    this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
+                } else {
+                    this.elements.equity.textContent = formatPrice(this.state.balance);
+                    this.elements.availableMargin.textContent = formatPrice(this.state.balance);
+                    this.elements.unrealizedPnl.textContent = '$0.00';
+                    this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
+                    this.elements.positionContainer.classList.add('hidden');
+                }
+
+                if (this.state.history.length > 0) {
+                    this.elements.tradeHistoryList.innerHTML = this.state.history.map(trade => `
+                        <div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold ${trade.type === 'long' ? 'positive' : 'negative'}">${trade.symbol} ${trade.type.toUpperCase()}</span>
+                                    <span class="text-gray-400 text-[10px] ml-2">${trade.closedAt.toLocaleTimeString()}</span>
+                                </div>
+                                <div class="font-mono text-right ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                                    ${formatPrice(trade.pnl)} (${trade.roe.toFixed(2)}%) ${trade.liquidated ? '🔥' : ''}
+                                </div>
+                            </div>
+                            <div class="text-gray-400 text-[10px] font-mono flex justify-between mt-1 pt-1 border-t border-gray-700/50">
+                                <span>Entry: ${formatPrice(trade.entryPrice)}</span>
+                                <span>Close: ${formatPrice(trade.closePrice)}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    this.elements.tradeHistoryList.innerHTML = '<p class="text-center text-gray-600">No trade history yet.</p>';
+                }
+            },
+
+            resetAccount: function() {
+                if (confirm("Apakah Anda yakin ingin mereset akun simulasi? Semua riwayat akan hilang.")) {
+                    this.state.balance = 1000;
+                    this.state.position = null;
+                    this.state.history = [];
+                    this.saveState();
+                    this.render();
+                }
+            },
+
+            saveState: function() {
+                localStorage.setItem('paperTradeState', JSON.stringify(this.state));
+            },
+
+            loadState: function() {
+                const savedState = localStorage.getItem('paperTradeState');
+                if (savedState) {
+                    this.state = JSON.parse(savedState);
+                    if (this.state.history) {
+                        this.state.history.forEach(trade => trade.closedAt = new Date(trade.closedAt));
+                    }
+                }
+            }
+    };
+// =====================================================================================================================================================================
+    function exportHistoryToCSV() {
+        const history = paperTrade.state.history;
+        if (history.length === 0) {
+            alert("Tidak ada riwayat trading untuk diekspor.");
+            return;
+        }
+
+        // Header baru dengan EntryPrice dan ClosePrice
+        const headers = ["Symbol", "Type", "EntryPrice", "ClosePrice", "PNL", "ROE", "ClosedAt", "Liquidated"];
+        let csvContent = headers.join(",") + "\r\n";
+
+        // Tambahkan data baru ke setiap baris
+        history.forEach(trade => {
+            const row = [
+                trade.symbol,
+                trade.type,
+                trade.entryPrice || 'N/A', // Tambahkan fallback jika data lama tidak ada
+                trade.closePrice || 'N/A', // Tambahkan fallback
+                trade.pnl,
+                trade.roe,
+                trade.closedAt.toISOString(),
+                trade.liquidated ? 'TRUE' : 'FALSE'
+            ];
+            csvContent += row.join(",") + "\r\n";
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        const timestamp = new Date().toISOString().slice(0, 10);
+        link.setAttribute("download", `trade_history_${timestamp}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+// =====================================================================================================================================================================
+    function importHistoryFromCSV(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length <= 1) {
+                alert("File CSV kosong atau hanya berisi header.");
                 return;
             }
-        }
-        
-        if (confirm(`Impor akan menimpa ${importedHistory.length} riwayat trading yang ada. Lanjutkan?`)) {
-            paperTrade.state.history = importedHistory.reverse();
-            paperTrade.saveState();
-            paperTrade.render();
-            alert("Impor riwayat trading berhasil!");
-        }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-}
 
-// === LOGIKA BARU UNTUK IMPORT/EXPORT CSV (SELESAI) ===
+            const importedHistory = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length < 8) continue; // Sekarang harus ada 8 kolom
+
+                try {
+                    const trade = {
+                        symbol: values[0].trim(),
+                        type: values[1].trim(),
+                        entryPrice: parseFloat(values[2]),
+                        closePrice: parseFloat(values[3]),
+                        pnl: parseFloat(values[4]),
+                        roe: parseFloat(values[5]),
+                        closedAt: new Date(values[6].trim()),
+                        liquidated: values[7].trim().toUpperCase() === 'TRUE'
+                    };
+                    importedHistory.push(trade);
+                } catch (error) {
+                    alert(`Error saat memproses baris ke-${i+1}. Cek format file Anda.`);
+                    return;
+                }
+            }
+            
+            if (confirm(`Impor akan menimpa ${importedHistory.length} riwayat trading yang ada. Lanjutkan?`)) {
+                paperTrade.state.history = importedHistory.reverse();
+                paperTrade.saveState();
+                paperTrade.render();
+                alert("Impor riwayat trading berhasil!");
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
 // =====================================================================================================================================================================
 // BAGIAN 5: EVENT LISTENER UTAMA (GANTI SELURUH BLOK LAMA ANDA DENGAN INI)
 // =====================================================================================================================================================================
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Inisialisasi semua yang tidak butuh data eksternal
-    loadSettings();
-    initTopMoversTimeframeSelector();
-    initRefreshIntervalSelector();
-    adjustContentPadding();
-    
-    // Setup semua panel yang bisa dilipat (collapsible)
-    setupToggle('toggle-scalping-btn', 'scalping-content-wrapper', 'toggle-scalping-icon', true);
-    setupToggle('toggle-sentiment-btn', 'sentiment-content-wrapper', 'toggle-sentiment-icon', false);
-    setupToggle('toggle-market-state-btn', 'current-state-content-wrapper', 'toggle-market-state-icon', true);
-    setupToggle('toggle-confluence-btn', 'confluence-content-wrapper', 'toggle-confluence-icon', true);
-    setupToggle('toggle-onchain-btn', 'onchain-content-wrapper', 'toggle-onchain-icon', false);        
-    setupToggle('toggle-settings-btn', 'settings-content-wrapper', 'toggle-settings-icon', false);
-    setupToggle('toggle-ai-verdict-btn', 'ai-verdict-content-wrapper', 'toggle-ai-verdict-icon', true);
-    setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', true);
-    setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', true);
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 1. Inisialisasi semua yang tidak butuh data eksternal
+        loadSettings();
+        initTopMoversTimeframeSelector();
+        initRefreshIntervalSelector();
+        adjustContentPadding();
+        
+        // Setup semua panel yang bisa dilipat (collapsible)
+        setupToggle('toggle-scalping-btn', 'scalping-content-wrapper', 'toggle-scalping-icon', true);
+        setupToggle('toggle-sentiment-btn', 'sentiment-content-wrapper', 'toggle-sentiment-icon', false);
+        setupToggle('toggle-market-state-btn', 'current-state-content-wrapper', 'toggle-market-state-icon', true);
+        setupToggle('toggle-confluence-btn', 'confluence-content-wrapper', 'toggle-confluence-icon', true);
+        setupToggle('toggle-onchain-btn', 'onchain-content-wrapper', 'toggle-onchain-icon', false);        
+        setupToggle('toggle-settings-btn', 'settings-content-wrapper', 'toggle-settings-icon', false);
+        setupToggle('toggle-ai-verdict-btn', 'ai-verdict-content-wrapper', 'toggle-ai-verdict-icon', true);
+        setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', true);
+        setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', true);
 
-    // Inisialisasi semua event listener tombol dan input
-    window.addEventListener('resize', adjustContentPadding);
-    document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
-    
-    
-    timeframeSelect.addEventListener('change', (e) => {
-        adaptIndicatorParamsToTimeframe(e.target.value);
-    });
+        // Inisialisasi semua event listener tombol dan input
+        window.addEventListener('resize', adjustContentPadding);
+        document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
+        
+        
+        timeframeSelect.addEventListener('change', (e) => {
+            adaptIndicatorParamsToTimeframe(e.target.value);
+        });
 
-    themeToggleBtn.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        darkIcon.classList.toggle('hidden');
-        lightIcon.classList.toggle('hidden');
-        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        if (cvdChartInstance) {
-            const isDarkMode = document.documentElement.classList.contains('dark');
-            const positiveColor = isDarkMode ? '#4ade80' : '#16a34a';
-            const negativeColor = isDarkMode ? '#f87171' : '#dc2626';
-            cvdChartInstance.data.datasets[0].segment.borderColor = ctx => ctx.p1.parsed.y >= ctx.p0.parsed.y ? positiveColor : negativeColor;
-            cvdChartInstance.options.scales.x.ticks.color = isDarkMode ? '#9ca3af' : '#4b5563';
-            cvdChartInstance.options.scales.y.ticks.color = isDarkMode ? '#9ca3af' : '#4b5563';
-            cvdChartInstance.options.scales.y.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-            cvdChartInstance.update();
-        }
-    });
-
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-        darkIcon.classList.remove('hidden');
-    } else {
-        lightIcon.classList.remove('hidden');
-    }
-
-    apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
-    apiKeyInput.addEventListener('change', () => localStorage.setItem('geminiApiKey', apiKeyInput.value));
-    
-    const presetSelect = document.getElementById('preset-select');
-    presetSelect.addEventListener('change', (e) => applyPreset(e.target.value));
-
-    document.getElementById('vwap-mode-buttons').addEventListener('click', (e) => {
-        if (e.target.tagName === 'BUTTON') {
-            const mode = e.target.dataset.mode;
-            document.querySelectorAll('.vwap-mode-btn').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            updateVwapDisplay(mode);
-        }
-    });
-
-    document.getElementById('run-comprehensive-ai-btn').addEventListener('click', runComprehensiveAIAnalysis);
-    
-    tradeLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        const binanceSymbol = realtimeCache.main.binanceSymbol;
-        if (!binanceSymbol) return;
-        const marketType = marketTypeSelect.value;
-        const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-        const desktopUrl = marketType === 'futures' ? `https://www.binance.com/en/futures/${binanceSymbol}` : `https://www.binance.com/en/trade/${binanceSymbol}`;
-        const mobileUrl = marketType === 'futures' ? `binance://futures/trade?symbol=${binanceSymbol}` : `binance://trade?symbol=${binanceSymbol}`;
-        if (isMobile) {
-            window.location.href = mobileUrl;
-            setTimeout(() => { window.location.href = desktopUrl; }, 1500);
-        } else {
-            window.open(desktopUrl, '_blank');
-        }
-    });
-
-    resetBtn.addEventListener('click', resetDashboard);
-    const tooltipElement = document.createElement('div');
-    tooltipElement.id = 'custom-tooltip';
-    document.body.appendChild(tooltipElement);
-    
-    const debouncedRunAnalysis = debounce(runFullAnalysis, 100); 
-    analyzeBtn.addEventListener('click', () => {
-        analyzeBtn.disabled = true;
-        debouncedRunAnalysis();
-    });
-    assetInput.addEventListener('keypress', (e) => { 
-        if (e.key === 'Enter') {
-            analyzeBtn.disabled = true; 
-            debouncedRunAnalysis();
-        } 
-    });
-    
-    // ... (kode event listener untuk tooltip tetap sama)
-    const triggers = document.querySelectorAll('[data-tooltip]');
-    // ... (biarkan semua kode tooltip seperti di file Anda)
-    
-    const dumpTfSelect = document.getElementById('dump-trigger-timeframe-select');
-    const triggerListDiv = document.getElementById('trigger-breakdown-list');
-    
-    const mtfAlignmentContainer = document.getElementById('tf-alignment-summary');
-    mtfAlignmentContainer.addEventListener('click', (event) => {
-        const clickedBox = event.target.closest('.mtf-clickable-box');
-        if (clickedBox) {
-            const newTimeframe = clickedBox.dataset.timeframe;
-            const mainTimeframeSelect = document.getElementById('timeframe-select');
-            const mainAnalyzeBtn = document.getElementById('analyze-asset-btn');
-            if (mainAnalyzeBtn.disabled) return;
-            mainTimeframeSelect.value = newTimeframe;
-            mainAnalyzeBtn.click();
-        }
-    });
-    
-    dumpTfSelect.addEventListener('change', async () => {
-        if (!realtimeCache.main.symbol) return;
-        const selectedTf = dumpTfSelect.value;
-        const symbol = realtimeCache.main.symbol;
-        const marketType = marketTypeSelect.value;
-        try {
-            dumpTfSelect.disabled = true;
-            triggerListDiv.innerHTML = `<p class="text-xs text-center text-yellow-400">Loading data ${selectedTf}...</p>`;
-            if (!realtimeCache.main.multiTfKlines[selectedTf]) {
-                const newData = await fetchBinanceAPIData('klines', { symbol: symbol, interval: selectedTf, limit: 200 }, marketType);
-                realtimeCache.main.multiTfKlines[selectedTf] = newData;
+        themeToggleBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            if (cvdChartInstance) {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                const positiveColor = isDarkMode ? '#4ade80' : '#16a34a';
+                const negativeColor = isDarkMode ? '#f87171' : '#dc2626';
+                cvdChartInstance.data.datasets[0].segment.borderColor = ctx => ctx.p1.parsed.y >= ctx.p0.parsed.y ? positiveColor : negativeColor;
+                cvdChartInstance.options.scales.x.ticks.color = isDarkMode ? '#9ca3af' : '#4b5563';
+                cvdChartInstance.options.scales.y.ticks.color = isDarkMode ? '#9ca3af' : '#4b5563';
+                cvdChartInstance.options.scales.y.grid.color = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                cvdChartInstance.update();
             }
-            calculateAndDisplayScalpingSetup();
-            const symbolLower = symbol.toLowerCase();
-            const mainTfStream = `${symbolLower}@kline_${realtimeCache.main.selectedTimeframe}`;
-            const newDumpTfStream = `${symbolLower}@kline_${selectedTf}`;
-            const newStreamsToSub = [`${symbolLower}@aggTrade`, `${symbolLower}@depth20@100ms`, mainTfStream];
-            if (mainTfStream !== newDumpTfStream) newStreamsToSub.push(newDumpTfStream);
-            WebSocketManager.subscribe(newStreamsToSub);
-        } catch (error) {
-            console.error(`Gagal mengambil data untuk ${selectedTf}:`, error);
-            triggerListDiv.innerHTML = `<p class="text-xs text-center text-red-500">Failed Data Fetch.. ${selectedTf}.</p>`;
-        } finally {
-            dumpTfSelect.disabled = false;
-        }
-    });
-    
-        // Inisialisasi kalkulator dan simulasi (tanpa data eksternal)
-    initializeNewCalculator();
-    paperTrade.init();
-    
-    // 2. Sekarang, muat data eksternal WAJIB secara berurutan
-    try {
-        // Langkah A: Download daftar koin futures dulu. INI KUNCINYA.
-        await initializeExchangeInfo('futures');
-        
-        // Langkah B: Setelah daftar koin siap, BARU jalankan Top Movers.
-        await startTopMoversAutoRefresh("1h", 120000);
-        
-        // Langkah C: Siapkan juga daftar koin spot
-        await initializeExchangeInfo('spot'); 
+        });
 
-    } catch (err) {
-        console.error("Gagal inisialisasi awal:", err);
-        const gainersList = document.getElementById('gainers-list');
-        if(gainersList) gainersList.innerHTML = `<p class="text-red-500 text-xs p-2">Error: ${err.message}</p>`;
-    }
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            darkIcon.classList.remove('hidden');
+        } else {
+            lightIcon.classList.remove('hidden');
+        }
+
+        apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
+        apiKeyInput.addEventListener('change', () => localStorage.setItem('geminiApiKey', apiKeyInput.value));
+        
+        const presetSelect = document.getElementById('preset-select');
+        presetSelect.addEventListener('change', (e) => applyPreset(e.target.value));
+
+        document.getElementById('vwap-mode-buttons').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const mode = e.target.dataset.mode;
+                document.querySelectorAll('.vwap-mode-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                updateVwapDisplay(mode);
+            }
+        });
+
+        document.getElementById('run-comprehensive-ai-btn').addEventListener('click', runComprehensiveAIAnalysis);
+        
+        tradeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const binanceSymbol = realtimeCache.main.binanceSymbol;
+            if (!binanceSymbol) return;
+            const marketType = marketTypeSelect.value;
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+            const desktopUrl = marketType === 'futures' ? `https://www.binance.com/en/futures/${binanceSymbol}` : `https://www.binance.com/en/trade/${binanceSymbol}`;
+            const mobileUrl = marketType === 'futures' ? `binance://futures/trade?symbol=${binanceSymbol}` : `binance://trade?symbol=${binanceSymbol}`;
+            if (isMobile) {
+                window.location.href = mobileUrl;
+                setTimeout(() => { window.location.href = desktopUrl; }, 1500);
+            } else {
+                window.open(desktopUrl, '_blank');
+            }
+        });
+
+        resetBtn.addEventListener('click', resetDashboard);
+        const tooltipElement = document.createElement('div');
+        tooltipElement.id = 'custom-tooltip';
+        document.body.appendChild(tooltipElement);
+        
+        const debouncedRunAnalysis = debounce(runFullAnalysis, 100); 
+        analyzeBtn.addEventListener('click', () => {
+            analyzeBtn.disabled = true;
+            debouncedRunAnalysis();
+        });
+        assetInput.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') {
+                analyzeBtn.disabled = true; 
+                debouncedRunAnalysis();
+            } 
+        });
+        
+        const triggers = document.querySelectorAll('[data-tooltip]');
     
-    // Listener terakhir yang bergantung pada data di atas
-    marketTypeSelect.addEventListener('change', () => initializeExchangeInfo(marketTypeSelect.value).catch(err => showError(err.message)));
-});
+        
+        const dumpTfSelect = document.getElementById('dump-trigger-timeframe-select');
+        const triggerListDiv = document.getElementById('trigger-breakdown-list');
+        
+        const mtfAlignmentContainer = document.getElementById('tf-alignment-summary');
+        mtfAlignmentContainer.addEventListener('click', (event) => {
+            const clickedBox = event.target.closest('.mtf-clickable-box');
+            if (clickedBox) {
+                const newTimeframe = clickedBox.dataset.timeframe;
+                const mainTimeframeSelect = document.getElementById('timeframe-select');
+                const mainAnalyzeBtn = document.getElementById('analyze-asset-btn');
+                if (mainAnalyzeBtn.disabled) return;
+                mainTimeframeSelect.value = newTimeframe;
+                mainAnalyzeBtn.click();
+            }
+        });
+        
+        dumpTfSelect.addEventListener('change', async () => {
+            if (!realtimeCache.main.symbol) return;
+            const selectedTf = dumpTfSelect.value;
+            const symbol = realtimeCache.main.symbol;
+            const marketType = marketTypeSelect.value;
+            try {
+                dumpTfSelect.disabled = true;
+                triggerListDiv.innerHTML = `<p class="text-xs text-center text-yellow-400">Loading data ${selectedTf}...</p>`;
+                if (!realtimeCache.main.multiTfKlines[selectedTf]) {
+                    const newData = await fetchBinanceAPIData('klines', { symbol: symbol, interval: selectedTf, limit: 200 }, marketType);
+                    realtimeCache.main.multiTfKlines[selectedTf] = newData;
+                }
+                calculateAndDisplayScalpingSetup();
+                const symbolLower = symbol.toLowerCase();
+                const mainTfStream = `${symbolLower}@kline_${realtimeCache.main.selectedTimeframe}`;
+                const newDumpTfStream = `${symbolLower}@kline_${selectedTf}`;
+                const newStreamsToSub = [`${symbolLower}@aggTrade`, `${symbolLower}@depth20@100ms`, mainTfStream];
+                if (mainTfStream !== newDumpTfStream) newStreamsToSub.push(newDumpTfStream);
+                WebSocketManager.subscribe(newStreamsToSub);
+            } catch (error) {
+                console.error(`Gagal mengambil data untuk ${selectedTf}:`, error);
+                triggerListDiv.innerHTML = `<p class="text-xs text-center text-red-500">Failed Data Fetch.. ${selectedTf}.</p>`;
+            } finally {
+                dumpTfSelect.disabled = false;
+            }
+        });
+        
+            // Inisialisasi kalkulator dan simulasi (tanpa data eksternal)
+        initializeNewCalculator();
+        paperTrade.init();
+        
+        // 2. Sekarang, muat data eksternal WAJIB secara berurutan
+        try {
+            // Langkah A: Download daftar koin futures dulu. INI KUNCINYA.
+            await initializeExchangeInfo('futures');
+            
+            // Langkah B: Setelah daftar koin siap, BARU jalankan Top Movers.
+            await startTopMoversAutoRefresh("1h", 120000);
+            
+            // Langkah C: Siapkan juga daftar koin spot
+            await initializeExchangeInfo('spot'); 
+
+        } catch (err) {
+            console.error("Gagal inisialisasi awal:", err);
+            const gainersList = document.getElementById('gainers-list');
+            if(gainersList) gainersList.innerHTML = `<p class="text-red-500 text-xs p-2">Error: ${err.message}</p>`;
+        }
+        
+        // Listener terakhir yang bergantung pada data di atas
+        marketTypeSelect.addEventListener('change', () => initializeExchangeInfo(marketTypeSelect.value).catch(err => showError(err.message)));
+    });
 // ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
 </script>
