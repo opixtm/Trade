@@ -879,105 +879,160 @@
                     </div>
                     <div class="absolute bottom-2 right-2"><button id="toggle-ai-verdict-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none"><svg id="toggle-ai-verdict-icon" class="w-5 h-5 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div>
                 </section>
-<section id="trailing-stop-calc-section" class="card p-6">
-    <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
-        <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
-        <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-    </button>
-    
-    <div id="ts-calc-content-wrapper" class="collapsible-content">
-        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
-            
-            <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
-                ⚡️ Auto-fill dari Setup Scalping
-            </button>
+                <section id="trailing-stop-calc-section" class="card p-6">
+                    <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
+                        <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    
+                    <div id="ts-calc-content-wrapper" class="collapsible-content">
+                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
+                            
+                            <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
+                                ⚡️ Auto-fill dari Setup Scalping
+                            </button>
 
-            <div class="btn-group">
-                <button id="ts-mode-cross" class="active">Cross</button>
-                <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
-                <button id="ts-mode-isolated" class="">Isolated</button>
-                <button id="ts-trailing-stop-options">⚙️ TS</button>
-            </div>
+                            <div class="btn-group">
+                                <button id="ts-mode-cross" class="active">Cross</button>
+                                <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
+                                <button id="ts-mode-isolated" class="">Isolated</button>
+                                <button id="ts-trailing-stop-options">⚙️ TS</button>
+                            </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div class="input-group">
-                    <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
-                    <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
-                </div>
-                <div class="input-group">
-                    <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
-                    <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
-                </div>
-            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="input-group">
+                                    <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
+                                    <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
+                                </div>
+                                <div class="input-group">
+                                    <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
+                                    <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
+                                </div>
+                            </div>
 
-            <div>
-                <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
-                <div class="slider-ticks">
-                    <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
-                </div>
-            </div>
+                            <div>
+                                <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
+                                <div class="slider-ticks">
+                                    <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+                                </div>
+                            </div>
 
-            <div class="input-group mt-6">
-                <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
-                <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
-            </div>
+                            <div class="input-group mt-6">
+                                <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
+                                <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
+                            </div>
 
-            <div class="tpsl-section">
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
-                    <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
-                </div>
-                <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
-                    <div class="input-group">
-                        <label for="ts-take-profit" class="input-label-top">Take Profit</label>
-                        <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                            <div class="tpsl-section">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
+                                    <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
+                                </div>
+                                <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
+                                    <div class="input-group">
+                                        <label for="ts-take-profit" class="input-label-top">Take Profit</label>
+                                        <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
+                                        <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="exec-buttons">
+                                <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
+                                <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
+                            </div>
+
+                            <div class="calc-result-grid">
+                                <span>Cost</span><span id="ts-result-cost">--</span>
+                                <span>Max</span><span id="ts-result-max">--</span>
+                                <span>Position Size</span><span id="ts-result-position-size">--</span>
+                                <span>Liq. Price</span><span id="ts-result-liq-price">--</span>
+                                <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span><span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
+                                <span>Harga Stop Loss TS</span><span id="ts-result-sl-price">--</span>
+                                <span>Potensi ROE</span><span id="ts-result-roe">--</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
-                        <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
+
+                    <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+                        <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
+                                <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="form-group">
+                                    <label for="ts-modal-callback-rate">Callback Rate (%)</label>
+                                    <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
+                                </div>
+                                <div class="form-group">
+                                    <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
+                                    <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
+                                </div>
+                            </div>
+                            <div class="mt-6 text-right">
+                                <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </section>
+                <section id="paper-trading-section" class="card p-6">
+                    <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 class="text-xl font-bold">Trading Simulation</h2>
+                        <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
 
-            <div class="exec-buttons">
-                <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
-                <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
-            </div>
+                    <div id="paper-trading-content-wrapper" class="collapsible-content">
+                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div>
+                                    <p class="text-xs text-gray-500">Equity</p>
+                                    <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Unrealized PNL</p>
+                                    <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Available Margin</p>
+                                    <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
+                                </div>
+                                <div class="flex items-center justify-center">
+                                    <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
+                                </div>
+                            </div>
 
-            <div class="calc-result-grid">
-                <span>Cost</span><span id="ts-result-cost">--</span>
-                <span>Max</span><span id="ts-result-max">--</span>
-                <span>Position Size</span><span id="ts-result-position-size">--</span>
-                <span>Liq. Price</span><span id="ts-result-liq-price">--</span>
-                <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span><span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
-                <span>Harga Stop Loss TS</span><span id="ts-result-sl-price">--</span>
-                <span>Potensi ROE</span><span id="ts-result-roe">--</span>
-            </div>
-        </div>
-    </div>
+                            <div id="sim-active-position-container" class="hidden">
+                                <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
+                                <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
+                                        <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
+                                    </div>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                        <div><span class="text-gray-400">Size:</span> <span id="sim-position-size" class="font-mono"></span></div>
+                                        <div><span class="text-gray-400">Entry:</span> <span id="sim-position-entry" class="font-mono"></span></div>
+                                        <div><span class="text-gray-400">Mark:</span> <span id="sim-position-mark" class="font-mono"></span></div>
+                                        <div><span class="text-gray-400">Liq:</span> <span id="sim-position-liq" class="font-mono"></span></div>
+                                    </div>
+                                    <div class="pt-2 border-t border-dashed border-gray-700">
+                                        <span class="text-gray-400">PNL (ROE %):</span>
+                                        <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
+                                    </div>
+                                </div>
+                            </div>
 
-    <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
-        <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
-                <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
-            </div>
-            <div class="space-y-4">
-                <div class="form-group">
-                    <label for="ts-modal-callback-rate">Callback Rate (%)</label>
-                    <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
-                </div>
-                <div class="form-group">
-                    <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
-                    <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
-                </div>
-            </div>
-            <div class="mt-6 text-right">
-                <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
-            </div>
-        </div>
-    </div>
-</section>
+                            <div>
+                                <h3 class="font-semibold text-gray-400 mb-2">Trade History</h3>
+                                <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
+                                    <p class="text-center text-gray-600">No trade history yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
                 </div>
             </div>
         </div>
@@ -3830,6 +3885,8 @@ if (pivotData && pivotData.P) {
             document.getElementById('order-book-bias').textContent = 'N/A';
             realtimeCache.main.orderBookBias = 'N/A';
         }
+        //baru simulasi
+        tsCalc.elements.marketPrice.value = parseFloat(realtimeCache.main.tickerData.lastPrice).toFixed(getPrecisionForAsset(parseFloat(realtimeCache.main.tickerData.lastPrice)));
 
         const resistanceContainer = document.getElementById('scalping-resistance-info');
         if (resistanceContainer && tickerData) {
@@ -4262,12 +4319,30 @@ if (pivotData && pivotData.P) {
                 const tradesToProcess = tradeQueue.splice(0, tradeQueue.length);
                 tradesToProcess.forEach(trade => {
                     const quantity = parseFloat(trade.q);
+                    // Di dalam loop forEach di processQueues
                     const price = parseFloat(trade.p);
 
+                    // === AWAL PERBAIKAN PENTING ===
+
+                    // 1. Perbarui harga di cache utama agar simulasi bisa membacanya
+                    if (realtimeCache.main.tickerData) {
+                        realtimeCache.main.tickerData.lastPrice = price;
+                    }
+
+                    // 2. Perbarui harga di input kalkulator secara real-time
+                    const marketPriceInput = tsCalc.elements.marketPrice;
+                    // Hanya update jika pengguna tidak sedang mengetik di dalamnya
+                    if (document.activeElement !== marketPriceInput) {
+                        marketPriceInput.value = price.toFixed(getPrecisionForAsset(price));
+                    }
+
+                    // 3. Perbarui harga di header navigasi (kode lama yang dipertahankan)
                     const navPriceEl = document.getElementById('nav-price');
                     if (navPriceEl) {
                         navPriceEl.textContent = formatPrice(price);
                     }
+
+                    // === AKHIR PERBAIKAN PENTING ===
 
                     const now = trade.T;
                     const bucketTimestamp = Math.floor(now / CVD_AGGREGATION_INTERVAL_MS) * CVD_AGGREGATION_INTERVAL_MS;
@@ -5748,33 +5823,50 @@ const tsCalc = {
         }
     },
 
+    // Di dalam objek tsCalc
     autofill: function() {
-        const setup = realtimeCache.main.latestScalpingSetup;
-        if (!setup) {
-            alert("JANGAN TRADING PASAR SIDEWAYS");
+        // Ambil setup terbaru dari cache
+        // Di dalam tsCalc.autofill
+        const setup = realtimeCache.main.latestScalpingSetup; // Benar 'i'
+        
+        if (!setup || !setup.entry) { // Pengecekan lebih kuat
+            alert("Setup scalping belum siap atau pasar sedang sideways. Tidak bisa auto-fill.");
             return;
         }
-        const isLong = setup.entry < setup.tp1;
+        
+        // Tentukan tipe posisi dari setup
+        const isLong = setup.tp1 > setup.entry;
         this.state.positionType = isLong ? 'long' : 'short';
         
-        this.state.entryPrice = setup.entry;
-        this.elements.takeProfit.value = setup.tp1.toFixed(4);
-        this.elements.stopLoss.value = setup.sl.toFixed(4);
+        // Perbarui UI tombol Buy/Sell
+        if(isLong) {
+            this.elements.buyBtn.classList.remove('opacity-50');
+            this.elements.sellBtn.classList.add('opacity-50');
+        } else {
+            this.elements.sellBtn.classList.remove('opacity-50');
+            this.elements.buyBtn.classList.add('opacity-50');
+        }
+        
+        // Dapatkan harga pasar saat ini dari cache
+        const currentMarketPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+        const precision = getPrecisionForAsset(currentMarketPrice);
+
+        // Isi semua field di kalkulator
+        this.elements.marketPrice.value = currentMarketPrice.toFixed(precision); // Harga saat ini
+        this.elements.takeProfit.value = setup.tp1.toFixed(precision); // TP dari scalping setup
+        this.elements.stopLoss.value = setup.sl.toFixed(precision);   // SL dari scalping setup
+
+        // Aktifkan toggle TP/SL
         this.elements.tpslToggle.checked = true;
         this.elements.tpslInputs.classList.remove('hidden');
-        this.elements.marketPrice.value = parseFloat(realtimeCache.main.tickerData.lastPrice).toFixed(4);
-        
-        this.elements.modalCallbackRate.value = '0.5'; // Default callback
-        this.elements.modalActivationPrice.value = setup.tp1.toFixed(4); // Default aktivasi di TP1
 
+        // Beri fokus ke input modal agar pengguna bisa langsung mengisi
         this.elements.cost.focus();
-        this.recalculate();
+        this.recalculate(); // Hitung ulang semua nilai di kalkulator
+        
+        // Scroll ke kalkulator agar terlihat
+        this.elements.leverage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
-    
-    toggleModal: function(show) {
-        this.elements.modalContainer.classList.toggle('hidden', !show);
-        this.elements.modalContainer.classList.toggle('flex', show);
-    }
 };
 
 function initializeNewCalculator() {
@@ -5799,12 +5891,26 @@ function initializeNewCalculator() {
         state.positionType = 'long';
         elements.buyBtn.classList.remove('opacity-50');
         elements.sellBtn.classList.add('opacity-50');
+        
+        // --- TAMBAHAN BARU ---
+        if (confirm(`Buka posisi LONG simulasi dengan modal ${tsCalc.state.cost.toFixed(2)} USDT?`)) {
+            paperTrade.openPosition('long', tsCalc.state.leverage, tsCalc.state.cost, parseFloat(elements.marketPrice.value));
+        }
+        // --- AKHIR TAMBAHAN ---
+        
         tsCalc.recalculate();
     });
     elements.sellBtn.addEventListener('click', () => {
         state.positionType = 'short';
         elements.sellBtn.classList.remove('opacity-50');
         elements.buyBtn.classList.add('opacity-50');
+        
+        // --- TAMBAHAN BARU ---
+        if (confirm(`Buka posisi SHORT simulasi dengan modal ${tsCalc.state.cost.toFixed(2)} USDT?`)) {
+            paperTrade.openPosition('short', tsCalc.state.leverage, tsCalc.state.cost, parseFloat(elements.marketPrice.value));
+        }
+        // --- AKHIR TAMBAHAN ---
+        
         tsCalc.recalculate();
     });
     elements.tpslToggle.addEventListener('change', () => {
@@ -5846,6 +5952,212 @@ function initializeNewCalculator() {
 // ================================================================
 // === BLOK LOGIKA BARU UNTUK KALKULATOR BINANCE STYLE (SELESAI) ===
 // ================================================================
+// === LOGIKA SIMULASI TRADING (MULAI) ===
+const paperTrade = {
+    state: {
+        balance: 1000,
+        position: null, // { type: 'long'/'short', entryPrice: 65000, quantity: 0.1, leverage: 20, cost: 325 }
+        history: []
+    },
+    elements: {
+        equity: document.getElementById('sim-equity'),
+        unrealizedPnl: document.getElementById('sim-unrealized-pnl'),
+        availableMargin: document.getElementById('sim-available-margin'),
+        resetBtn: document.getElementById('sim-reset-account-btn'),
+        
+        positionContainer: document.getElementById('sim-active-position-container'),
+        positionHeader: document.getElementById('sim-position-header'),
+        closePositionBtn: document.getElementById('sim-close-position-btn'),
+        positionSize: document.getElementById('sim-position-size'),
+        positionEntry: document.getElementById('sim-position-entry'),
+        positionMark: document.getElementById('sim-position-mark'),
+        positionLiq: document.getElementById('sim-position-liq'),
+        positionPnl: document.getElementById('sim-position-pnl'),
+        
+        tradeHistoryList: document.getElementById('sim-trade-history-list'),
+    },
+
+    init: function() {
+        this.loadState();
+        this.elements.resetBtn.addEventListener('click', () => this.resetAccount());
+        this.elements.closePositionBtn.addEventListener('click', () => this.closePosition());
+        setInterval(() => this.update(), 500); // Update PNL setiap 500ms
+        this.render();
+    },
+
+    openPosition: function(type, leverage, cost, entryPrice) {
+        if (this.state.position) {
+            alert("Hanya 1 posisi yang bisa dibuka dalam satu waktu.");
+            return;
+        }
+        if (cost > this.state.balance) {
+            alert("Modal tidak cukup untuk membuka posisi.");
+            return;
+        }
+
+        const positionSize = cost * leverage;
+        const quantity = entryPrice > 0 ? positionSize / entryPrice : 0;
+        
+        // Asumsi margin terisolasi untuk perhitungan likuidasi sederhana
+        const maintenanceMarginRate = 0.005; 
+        const liqPriceChange = (cost / positionSize) * (1 - maintenanceMarginRate);
+        const liqPrice = type === 'long' 
+            ? entryPrice * (1 - liqPriceChange) 
+            : entryPrice * (1 + liqPriceChange);
+
+        this.state.balance -= cost;
+        this.state.position = {
+            type: type,
+            entryPrice: entryPrice,
+            quantity: quantity,
+            leverage: leverage,
+            cost: cost,
+            liqPrice: liqPrice
+        };
+        
+        this.saveState();
+        this.render();
+    },
+
+    closePosition: function() {
+        if (!this.state.position) return;
+
+        const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+        if (isNaN(markPrice)) {
+            alert("Tidak bisa menutup posisi, harga pasar tidak tersedia.");
+            return;
+        }
+        
+        const pos = this.state.position;
+        const pnl = (pos.type === 'long') 
+            ? (markPrice - pos.entryPrice) * pos.quantity 
+            : (pos.entryPrice - markPrice) * pos.quantity;
+
+        this.state.balance += (pos.cost + pnl);
+        
+        this.state.history.unshift({
+            symbol: realtimeCache.main.symbol,
+            type: pos.type,
+            pnl: pnl,
+            roe: (pnl / pos.cost) * 100,
+            closedAt: new Date()
+        });
+        
+        if (this.state.history.length > 20) {
+            this.state.history.pop();
+        }
+
+        this.state.position = null;
+        this.saveState();
+        this.render();
+    },
+
+    update: function() {
+        if (!this.state.position) return;
+        
+        const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+        if (isNaN(markPrice)) return;
+        
+        const pos = this.state.position;
+        const pnl = (pos.type === 'long') 
+            ? (markPrice - pos.entryPrice) * pos.quantity 
+            : (pos.entryPrice - markPrice) * pos.quantity;
+        
+        const equity = this.state.balance + pos.cost + pnl;
+        
+        this.elements.equity.textContent = formatPrice(equity);
+        this.elements.unrealizedPnl.textContent = formatPrice(pnl);
+        this.elements.unrealizedPnl.className = `font-mono font-bold text-lg ${pnl >= 0 ? 'positive' : 'negative'}`;
+        this.elements.positionMark.textContent = formatPrice(markPrice);
+        
+        const roe = (pnl / pos.cost) * 100;
+        this.elements.positionPnl.textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
+        this.elements.positionPnl.className = `font-mono font-bold text-lg ml-2 ${pnl >= 0 ? 'positive' : 'negative'}`;
+
+        // Cek likuidasi
+        if ((pos.type === 'long' && markPrice <= pos.liqPrice) || (pos.type === 'short' && markPrice >= pos.liqPrice)) {
+            alert(`Posisi ${pos.type.toUpperCase()} terlikuidasi!`);
+            this.state.history.unshift({
+                symbol: realtimeCache.main.symbol,
+                type: pos.type,
+                pnl: -pos.cost, // PNL adalah kehilangan seluruh modal
+                roe: -100,
+                closedAt: new Date(),
+                liquidated: true
+            });
+            this.state.position = null;
+            this.saveState();
+            this.render();
+        }
+    },
+
+    render: function() {
+        const pos = this.state.position;
+        
+        if (pos) {
+            const equity = this.state.balance + pos.cost; // PNL belum dihitung saat render awal
+            this.elements.equity.textContent = formatPrice(equity);
+            this.elements.availableMargin.textContent = formatPrice(this.state.balance);
+            
+            this.elements.positionContainer.classList.remove('hidden');
+            this.elements.positionHeader.textContent = `${pos.type.toUpperCase()} / ${pos.leverage}x`;
+            this.elements.positionHeader.className = `font-bold text-lg ${pos.type === 'long' ? 'positive' : 'negative'}`;
+            this.elements.positionSize.textContent = formatPrice(pos.cost * pos.leverage);
+            this.elements.positionEntry.textContent = formatPrice(pos.entryPrice);
+            this.elements.positionLiq.textContent = formatPrice(pos.liqPrice);
+            this.elements.unrealizedPnl.textContent = '$0.00';
+            this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
+        } else {
+            this.elements.equity.textContent = formatPrice(this.state.balance);
+            this.elements.availableMargin.textContent = formatPrice(this.state.balance);
+            this.elements.unrealizedPnl.textContent = '$0.00';
+            this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
+            this.elements.positionContainer.classList.add('hidden');
+        }
+
+        // Render Riwayat
+        if (this.state.history.length > 0) {
+            this.elements.tradeHistoryList.innerHTML = this.state.history.map(trade => `
+                <div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'} flex justify-between items-center">
+                    <div>
+                        <span class="font-bold ${trade.type === 'long' ? 'positive' : 'negative'}">${trade.symbol} ${trade.type.toUpperCase()}</span>
+                        <span class="text-gray-400 text-[10px] ml-2">${trade.closedAt.toLocaleTimeString()}</span>
+                    </div>
+                    <div class="font-mono text-right ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                        ${formatPrice(trade.pnl)} (${trade.roe.toFixed(2)}%) ${trade.liquidated ? '🔥' : ''}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            this.elements.tradeHistoryList.innerHTML = '<p class="text-center text-gray-600">No trade history yet.</p>';
+        }
+    },
+
+    resetAccount: function() {
+        if (confirm("Apakah Anda yakin ingin mereset akun simulasi? Semua riwayat akan hilang.")) {
+            this.state.balance = 1000;
+            this.state.position = null;
+            this.state.history = [];
+            this.saveState();
+            this.render();
+        }
+    },
+
+    saveState: function() {
+        localStorage.setItem('paperTradeState', JSON.stringify(this.state));
+    },
+
+    loadState: function() {
+        const savedState = localStorage.getItem('paperTradeState');
+        if (savedState) {
+            this.state = JSON.parse(savedState);
+            if (this.state.history) {
+                 this.state.history.forEach(trade => trade.closedAt = new Date(trade.closedAt));
+            }
+        }
+    }
+};
+// === LOGIKA SIMULASI TRADING (SELESAI) ===
 // =====================================================================================================================================================================
 // BAGIAN 5: EVENT LISTENER UTAMA
 // =====================================================================================================================================================================
@@ -6105,6 +6417,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // TAMBAHKAN BARIS INI
     setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', true); // Dibuat default terbuka
     initializeNewCalculator();
+    setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', true);
+    paperTrade.init();
 });
 // ===================================================================================================================================================================================================================================================================================
 // ===================================================================================================================================================================================================================================================================================
