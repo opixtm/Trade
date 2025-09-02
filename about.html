@@ -3,340 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Trailing Stop (Dual Mode)</title>
+    <title>Mosha Trading Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
     <style>
-        :root {
-            --bg-color: #14151a;
-            --card-color: #1e2026;
-            --primary-text-color: #e0e0e0;
-            --secondary-text-color: #848e9c;
-            --input-bg-color: #2c2f36;
-            --border-color: #3a3f4a;
-            --accent-color: #f0b90b;
-            --success-color: #2ebd85;
-            --error-color: #f6465d;
-        }
-
+        /* Gaya dasar untuk dark mode dan card */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--primary-text-color);
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
         }
-
-        .calculator-container {
-            background-color: var(--card-color);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px D30px rgba(0, 0, 0, 0.25);
-            width: 100%;
-            max-width: 600px;
+        .card {
+            background-color: #151414;
+            border: 1px solid #333;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
-
-        h1 {
-            text-align: center;
-            color: var(--primary-text-color);
-            margin-top: 0;
-            margin-bottom: 25px;
-            font-size: 1.8em;
+        .btn-primary {
+            background-color: #f59e0b;
+            color: #1f2937;
             font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
         }
-
-        .mode-selectors {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .selector-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 5px;
-        }
-        
-        .selector-group label {
-            padding: 10px;
-            text-align: center;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s, color 0.3s;
-            font-weight: 500;
-            margin: 0;
-            font-size: 0.9em;
-        }
-
-        .selector-group input[type="radio"] {
-            display: none;
-        }
-        
-        #long:checked + label { background-color: var(--success-color); color: white; }
-        #short:checked + label { background-color: var(--error-color); color: white; }
-        #isolated:checked + label { background-color: var(--accent-color); color: var(--bg-color); }
-        #cross:checked + label { background-color: var(--accent-color); color: var(--bg-color); }
-
-
-        .inputs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            margin-bottom: 8px;
-            color: var(--secondary-text-color);
-            font-size: 0.9em;
-        }
-
-        input[type="number"] {
+        .btn-primary:hover { background-color: #d97706; }
+        .btn-primary:disabled { background-color: #333; cursor: not-allowed; }
+        .input-primary {
+            background-color: #1c1b1b;
+            border: 1px solid #444;
+            color: #E0E0E0;
+            padding: 0.625rem 1rem;
             width: 100%;
-            padding: 12px;
-            background-color: var(--input-bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--primary-text-color);
-            font-size: 1em;
-            box-sizing: border-box;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            -moz-appearance: textfield;
+            border-radius: 0.5rem;
         }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .tag { padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .tag-green { background-color: rgba(74, 124, 89, 0.2); color: #69b37f; }
+        .tag-red { background-color: rgba(168, 58, 58, 0.2); color: #d17474; }
+        .tag-yellow { background-color: rgba(181, 132, 15, 0.2); color: #e0c273; }
+        .tag-gray { background-color: rgba(95, 99, 104, 0.2); color: #9aa0a6; }
         
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
+        /* Gaya loader dan animasi */
+        .loader { display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .dot { width: 14px; height: 14px; background-color: #e1e1e1; border-radius: 50%; animation: bounce 1.0s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.5); } }
+        .blinking-text-animation { animation: blinking-text 1.0s infinite; }
+        @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-        input[type="number"]:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-        
-        #funding-group { display: none; }
-
-        .results-container {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid var(--border-color);
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            font-size: 1.05em;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .result-item:last-child { border-bottom: none; }
-        .result-item span:first-child { color: var(--secondary-text-color); }
-        .result-item span:last-child { font-weight: 600; }
-
-        .profit { color: var(--success-color); }
-        .loss { color: var(--error-color); }
-        .neutral { color: var(--primary-text-color); }
-        .warning { color: var(--accent-color); }
+        /* Gaya Khusus untuk dashboard */
+        .collapsible-content { grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease-in-out; }
+        .collapsible-content.expanded { grid-template-rows: 1fr; }
+        .collapsible-content > div { overflow: hidden; }
+        .confluence-bar-container { background-color: #374151; border-radius: 0.5rem; overflow: hidden; height: 30px; display: flex; }
+        .confluence-bar-bullish { background: linear-gradient(to right, #22c55e, #86efac); }
+        .confluence-bar-bearish { background: linear-gradient(to right, #ef4444, #fca5a5); }
+        .confluence-bar { height: 100%; transition: width 0.5s ease-out; }
+        .status-uptrend { color: #34d399; }
+        .status-downtrend { color: #ef4444; }
+        .status-chop { color: #fbbf24; }
+        .btn-secondary { background-color: #4b5563; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; }
     </style>
 </head>
-<body>
+<body class="bg-gray-900 text-gray-200">
 
-    <div class="calculator-container">
-        <h1>Kalkulator Trailing Stop & Risiko</h1>
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-yellow-500">Mosha Playbook Dashboard</h1>
+            <p class="text-sm text-gray-400 mt-2">Analisis teknikal real-time untuk keputusan trading yang lebih presisi.</p>
+        </header>
 
-        <div class="mode-selectors">
-            <div class="selector-group">
-                <input type="radio" id="long" name="position" value="long" checked>
-                <label for="long">📈 LONG</label>
-                <input type="radio" id="short" name="position" value="short">
-                <label for="short">📉 SHORT</label>
+        <section class="card p-4 md:p-6 mb-6">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="asset-input" class="input-primary uppercase flex-grow" placeholder="Contoh: BTCUSDT" value="BTCUSDT">
+                <select id="timeframe-select" class="input-primary !w-auto">
+                    <option value="5m">5m</option>
+                    <option value="15m" selected>15m</option>
+                    <option value="1h">1h</option>
+                    <option value="4h">4h</option>
+                    <option value="1d">1d</option>
+                </select>
+                <button id="analyze-btn" class="btn-primary">
+                    <span id="btn-text">MULAI ANALISIS</span>
+                    <div id="btn-loader" class="loader hidden">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </button>
             </div>
-            <div class="selector-group">
-                <input type="radio" id="isolated" name="marginMode" value="isolated" checked>
-                <label for="isolated">ISOLATED</label>
-                <input type="radio" id="cross" name="marginMode" value="cross">
-                <label for="cross">CROSS</label>
-            </div>
-        </div>
+            <p id="asset-error" class="text-red-500 text-sm mt-2 hidden"></p>
+        </section>
 
-        <div class="inputs-grid">
-            <div class="form-group">
-                <label for="entryPrice">Harga Entry ($)</label>
-                <input type="number" id="entryPrice" placeholder="60000">
+        <section id="quick-confluence-card" class="card p-4 md:p-6 mb-6 hidden">
+            <h2 class="text-lg font-bold text-center mb-4">Konfluensi Pasar: <span id="symbol-display">BTCUSDT</span></h2>
+            <div class="flex items-center gap-4 my-4">
+                <div id="bearish-score" class="text-2xl font-bold negative w-1/5 text-right">0% 🐻</div>
+                <div class="confluence-bar-container w-3/5">
+                    <div id="bearish-bar" class="confluence-bar confluence-bar-bearish" style="width: 50%;"></div>
+                    <div id="bullish-bar" class="confluence-bar confluence-bar-bullish" style="width: 50%;"></div>
+                </div>
+                <div id="bullish-score" class="text-2xl font-bold positive w-1/5 text-left">0% 🐂</div>
             </div>
-            <div class="form-group">
-                <label for="initialMargin">Initial Margin / Modal ($)</label>
-                <input type="number" id="initialMargin" placeholder="100">
+            <p id="final-verdict" class="text-center font-semibold text-xl">Menunggu data...</p>
+        </section>
+        
+        <section id="mosha-sop-card" class="card p-4 md:p-6 mb-6 hidden">
+            <h2 class="text-lg font-bold text-center mb-4">Langkah-langkah SOP Mosha</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div class="p-4 bg-gray-800 rounded-lg">
+                    <h3 class="font-semibold text-yellow-400">1. Breakout (BO)</h3>
+                    <p class="text-sm mt-2" id="bo-status">Menganalisis pergerakan harga.</p>
+                </div>
+                <div class="p-4 bg-gray-800 rounded-lg">
+                    <h3 class="font-semibold text-blue-400">2. Valid Retracement (VR)</h3>
+                    <p class="text-sm mt-2" id="vr-status">Mencari koreksi yang valid.</p>
+                </div>
+                <div class="p-4 bg-gray-800 rounded-lg">
+                    <h3 class="font-semibold text-green-400">3. Confirmation (CF)</h3>
+                    <p class="text-sm mt-2" id="cf-status">Menunggu sinyal konfirmasi entri.</p>
+                </div>
             </div>
-             <div class="form-group">
-                <label for="leverage">Leverage (x)</label>
-                <input type="number" id="leverage" placeholder="20">
-            </div>
-            <div class="form-group" id="funding-group">
-                <label for="funding">Total Dana Wallet / Fund ($)</label>
-                <input type="number" id="funding" placeholder="1000">
-            </div>
-            <div class="form-group">
-                <label for="callbackRate">Callback Rate (%)</label>
-                <input type="number" id="callbackRate" placeholder="2">
-            </div>
-            <div class="form-group">
-                <label for="activationPrice">Harga Aktivasi ($)</label>
-                <input type="number" id="activationPrice" placeholder="61000">
-            </div>
-            <div class="form-group">
-                <label for="marketPrice" id="marketPriceLabel">Harga Pasar Tertinggi ($)</label>
-                <input type="number" id="marketPrice" placeholder="Harga saat ini">
-            </div>
-        </div>
+        </section>
 
-        <div class="results-container">
-            <div class="result-item">
-                <span>Total Ukuran Posisi:</span>
-                <span id="positionSize">-</span>
+        <section id="setup-summary-card" class="card p-4 md:p-6 mb-6 hidden">
+            <h2 class="text-lg font-bold text-center mb-4">Setup Trading Terkini</h2>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div>
+                    <p class="text-sm text-gray-400">Saran Posisi</p>
+                    <p class="text-xl font-bold mt-1" id="trading-bias">Netral</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-400">Alasan Utama</p>
+                    <p class="text-sm mt-1" id="trading-reason">Menunggu konfluensi.</p>
+                </div>
             </div>
-            <div class="result-item">
-                <span>Estimasi Harga Likuidasi:</span>
-                <span id="liquidationPrice" class="warning">-</span>
+            <div class="mt-4 pt-4 border-t border-gray-700">
+                <p class="text-sm text-gray-400 text-center">Area Kunci:</p>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Harga Entri</p>
+                        <p class="font-mono" id="entry-price">--</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Stop Loss</p>
+                        <p class="font-mono" id="stop-loss">--</p>
+                    </div>
+                </div>
             </div>
-            <hr style="border-color: var(--border-color); opacity: 0.5; margin: 5px 0;">
-            <div class="result-item">
-                <span>Status Trailing Stop:</span>
-                <span id="status">-</span>
+        </section>
+
+        <section id="trading-tools-card" class="card p-4 md:p-6 mb-6 hidden">
+            <h2 class="text-lg font-bold text-center mb-4">Kalkulator & Simulasi</h2>
+            <div class="space-y-4">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-grow">
+                        <label class="text-sm text-gray-400">Modal ($)</label>
+                        <input type="number" id="capital-input" class="input-primary mt-1" value="1000">
+                    </div>
+                    <div class="flex-grow">
+                        <label class="text-sm text-gray-400">Harga Entry ($)</label>
+                        <input type="number" id="entry-input" class="input-primary mt-1" placeholder="Harga pasar">
+                    </div>
+                    <div class="flex-grow">
+                        <label class="text-sm text-gray-400">Leverage</label>
+                        <input type="number" id="leverage-input" class="input-primary mt-1" value="20">
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button id="long-btn" class="btn-primary flex-grow bg-green-500 hover:bg-green-600">Buy / Long</button>
+                    <button id="short-btn" class="btn-primary flex-grow bg-red-500 hover:bg-red-600">Sell / Short</button>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <h3 class="text-center font-semibold text-lg">Simulasi Akun</h3>
+                    <div class="grid grid-cols-2 gap-2 mt-2 text-center">
+                        <div>
+                            <p class="text-sm text-gray-500">Equity</p>
+                            <p class="font-mono text-xl" id="sim-equity">$1,000.00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Unrealized PNL</p>
+                            <p class="font-mono text-xl" id="sim-pnl">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+                <button id="reset-sim-btn" class="btn-secondary w-full mt-4">Reset Simulasi</button>
             </div>
-            <div class="result-item">
-                <span>Harga Stop Loss Saat Ini:</span>
-                <span id="stopLossPrice">-</span>
-            </div>
-            <div class="result-item">
-                <span>Potensi ROE:</span>
-                <span id="roe" class="neutral">-</span>
-            </div>
-        </div>
+        </section>
+        
+        <p id="footer-text" class="text-xs text-center text-gray-500 mt-8">Data disediakan oleh Binance API. Ini bukan saran keuangan.</p>
     </div>
 
     <script>
-        const elements = {
-            fundingGroup: document.getElementById('funding-group'),
-            inputs: document.querySelectorAll('input'),
-            marketPriceLabel: document.getElementById('marketPriceLabel'),
-            positionSize: document.getElementById('positionSize'),
-            liquidationPrice: document.getElementById('liquidationPrice'),
-            status: document.getElementById('status'),
-            stopLossPrice: document.getElementById('stopLossPrice'),
-            roe: document.getElementById('roe'),
+        // Deklarasi Elemen DOM
+        const assetInput = document.getElementById('asset-input');
+        const timeframeSelect = document.getElementById('timeframe-select');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+        const assetError = document.getElementById('asset-error');
+        const quickConfluenceCard = document.getElementById('quick-confluence-card');
+        const moshaSopCard = document.getElementById('mosha-sop-card');
+        const setupSummaryCard = document.getElementById('setup-summary-card');
+        const tradingToolsCard = document.getElementById('trading-tools-card');
+        
+        // Elemen Dashboard
+        const symbolDisplay = document.getElementById('symbol-display');
+        const bullishScore = document.getElementById('bullish-score');
+        const bearishScore = document.getElementById('bearish-score');
+        const bullishBar = document.getElementById('bullish-bar');
+        const bearishBar = document.getElementById('bearish-bar');
+        const finalVerdict = document.getElementById('final-verdict');
+        const boStatus = document.getElementById('bo-status');
+        const vrStatus = document.getElementById('vr-status');
+        const cfStatus = document.getElementById('cf-status');
+        const tradingBias = document.getElementById('trading-bias');
+        const tradingReason = document.getElementById('trading-reason');
+        const entryPriceEl = document.getElementById('entry-price');
+        const stopLossEl = document.getElementById('stop-loss');
+        const simEquity = document.getElementById('sim-equity');
+        const simPnl = document.getElementById('sim-pnl');
+        const capitalInput = document.getElementById('capital-input');
+        const entryInput = document.getElementById('entry-input');
+        const leverageInput = document.getElementById('leverage-input');
+        const longBtn = document.getElementById('long-btn');
+        const shortBtn = document.getElementById('short-btn');
+        const resetSimBtn = document.getElementById('reset-sim-btn');
+
+        // State Aplikasi
+        let klinesCache = {};
+        let realtimePrice = 0;
+        let ws = null;
+        let currentPosition = null;
+        let simCapital = 1000;
+        
+        // Objek Trading Playbook
+        const playbook = {
+            // Formula dan logika analisis
+            calculateRSI: (closes, period = 14) => {
+                let gains = [], losses = [];
+                for (let i = 1; i < closes.length; i++) {
+                    const diff = closes[i] - closes[i - 1];
+                    gains.push(diff > 0 ? diff : 0);
+                    losses.push(diff < 0 ? -diff : 0);
+                }
+                let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+                let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+                if (avgLoss === 0) return 100;
+                return 100 - (100 / (1 + (avgGain / avgLoss)));
+            },
+            calculateMACD: (closes, fast = 12, slow = 26, signal = 9) => {
+                const EMA = (data, period) => {
+                    const k = 2 / (period + 1);
+                    let ema = [data[0]];
+                    for (let i = 1; i < data.length; i++) {
+                        ema.push(data[i] * k + ema[i-1] * (1-k));
+                    }
+                    return ema;
+                };
+                const emaFast = EMA(closes, fast);
+                const emaSlow = EMA(closes, slow);
+                const macdLine = emaFast.map((v, i) => v - emaSlow[i]);
+                const signalLine = EMA(macdLine.slice(slow), signal);
+                const lastMacd = macdLine[macdLine.length-1];
+                const lastSignal = signalLine[signalLine.length-1];
+                if (lastMacd > lastSignal) return 'Bullish';
+                if (lastMacd < lastSignal) return 'Bearish';
+                return 'Netral';
+            },
+            findBreakout: (klines) => {
+                const closes = klines.map(k => parseFloat(k[4]));
+                const lastClose = closes[closes.length-1];
+                const prevClose = closes[closes.length-2];
+                const high = Math.max(...closes.slice(-10));
+                const low = Math.min(...closes.slice(-10));
+                if (lastClose > high) return 'Bullish Breakout';
+                if (lastClose < low) return 'Bearish Breakout';
+                return 'No Breakout';
+            },
+            findVR: (klines) => {
+                const bo = playbook.findBreakout(klines);
+                if (bo.includes('Bullish')) return 'Bearish Retracement';
+                if (bo.includes('Bearish')) return 'Bullish Retracement';
+                return 'No Retracement';
+            },
+            findCF: (klines, vr) => {
+                const bo = playbook.findBreakout(klines);
+                if (bo.includes('Bullish') && vr.includes('Bearish')) return 'Bullish Confirmation';
+                if (bo.includes('Bearish') && vr.includes('Bullish')) return 'Bearish Confirmation';
+                return 'No Confirmation';
+            }
         };
 
-        function formatCurrency(value) {
-            if (isNaN(value) || value === null) return '-';
-            return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        // Fungsi fetch data dari Binance
+        async function fetchKlines(symbol, timeframe) {
+            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=200`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Gagal mengambil data klines.');
+                const data = await response.json();
+                return data.map(d => parseFloat(d[4]));
+            } catch (error) {
+                showError(error.message);
+                return [];
+            }
         }
         
-        function resetOutputs() {
-            elements.positionSize.textContent = '-';
-            elements.liquidationPrice.textContent = '-';
-            elements.status.textContent = '-';
-            elements.stopLossPrice.textContent = '-';
-            elements.roe.textContent = '-';
-            elements.roe.className = 'neutral';
+        // Fungsi WebSocket untuk harga real-time
+        function connectWebSocket(symbol) {
+            if (ws) ws.close();
+            const wsUrl = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@trade`;
+            ws = new WebSocket(wsUrl);
+            ws.onmessage = (event) => {
+                const trade = JSON.parse(event.data);
+                realtimePrice = parseFloat(trade.p);
+                // Update UI harga real-time
+                document.getElementById('entry-input').value = realtimePrice.toFixed(2);
+                updateSimulasi();
+            };
         }
 
-        function calculateAll() {
-            const values = {};
-            elements.inputs.forEach(input => {
-                if (input.type === 'radio' && input.checked) {
-                    values[input.name] = input.value;
-                } else if (input.type === 'number') {
-                    values[input.id] = parseFloat(input.value);
-                }
-            });
+        // Fungsi analisis dan update UI
+        async function analyzeAndRender() {
+            const symbol = assetInput.value.toUpperCase();
+            const timeframe = timeframeSelect.value;
+            symbolDisplay.textContent = symbol;
+            
+            showLoader(true);
+            
+            const closes = await fetchKlines(symbol, timeframe);
+            if (closes.length === 0) {
+                showLoader(false);
+                return;
+            }
+            klinesCache.closes = closes;
+            connectWebSocket(symbol);
 
-            const { initialMargin, leverage, entryPrice, marginMode, funding, position: positionType } = values;
+            const rsi = playbook.calculateRSI(closes);
+            const macd = playbook.calculateMACD(closes);
+            const bo = playbook.findBreakout(closes.map(c => [0,0,0,0,c]));
 
-            if (isNaN(initialMargin) || isNaN(leverage) || isNaN(entryPrice) || initialMargin <= 0 || leverage <= 0 || entryPrice <= 0) {
-                resetOutputs();
+            // Update status SOP
+            boStatus.textContent = bo;
+            vrStatus.textContent = playbook.findVR(closes.map(c => [0,0,0,0,c]));
+            cfStatus.textContent = playbook.findCF(closes.map(c => [0,0,0,0,c]), vrStatus.textContent);
+
+            // Update Konfluensi
+            let bullScore = 0, bearScore = 0;
+            if (rsi < 30) bullScore += 3;
+            if (macd === 'Bullish') bullScore += 2;
+            if (bo === 'Bullish Breakout') bullScore += 5;
+            if (rsi > 70) bearScore += 3;
+            if (macd === 'Bearish') bearScore += 2;
+            if (bo === 'Bearish Breakout') bearScore += 5;
+
+            bullishScore.textContent = `${(bullScore/10*100).toFixed(0)}% 🐂`;
+            bearishScore.textContent = `${(bearScore/10*100).toFixed(0)}% 🐻`;
+            bullishBar.style.width = `${(bullScore/10*100)}%`;
+            bearishBar.style.width = `${(bearScore/10*100)}%`;
+
+            let verdict = "NETRAL";
+            if (bullScore > bearScore) verdict = "BULLISH";
+            if (bearScore > bullScore) verdict = "BEARISH";
+            finalVerdict.textContent = verdict;
+
+            // Update Setup Trading
+            if (verdict.includes('BULLISH')) {
+                tradingBias.textContent = 'Buy / Long';
+                tradingBias.className = 'text-green-500 font-bold mt-1';
+                tradingReason.textContent = `Konfluensi Bullish kuat dari BO, RSI, dan MACD.`;
+                entryPriceEl.textContent = realtimePrice ? realtimePrice.toFixed(2) : '--';
+                stopLossEl.textContent = (realtimePrice * 0.98).toFixed(2); // Contoh SL 2%
+            } else if (verdict.includes('BEARISH')) {
+                tradingBias.textContent = 'Sell / Short';
+                tradingBias.className = 'text-red-500 font-bold mt-1';
+                tradingReason.textContent = `Konfluensi Bearish kuat dari BO, RSI, dan MACD.`;
+                entryPriceEl.textContent = realtimePrice ? realtimePrice.toFixed(2) : '--';
+                stopLossEl.textContent = (realtimePrice * 1.02).toFixed(2); // Contoh SL 2%
+            } else {
+                tradingBias.textContent = 'Netral';
+                tradingBias.className = 'text-yellow-500 font-bold mt-1';
+                tradingReason.textContent = `Pasar sedang konsolidasi atau menunggu sinyal yang jelas.`;
+                entryPriceEl.textContent = '--';
+                stopLossEl.textContent = '--';
+            }
+
+            // Tampilkan card
+            quickConfluenceCard.classList.remove('hidden');
+            moshaSopCard.classList.remove('hidden');
+            setupSummaryCard.classList.remove('hidden');
+            tradingToolsCard.classList.remove('hidden');
+            
+            showLoader(false);
+        }
+
+        // Fungsi simulasi trading
+        function updateSimulasi() {
+            const capital = parseFloat(capitalInput.value);
+            const entry = parseFloat(entryInput.value);
+            const leverage = parseFloat(leverageInput.value);
+
+            if (!currentPosition) {
+                simEquity.textContent = `$${capital.toFixed(2)}`;
+                simPnl.textContent = `$0.00`;
                 return;
             }
 
-            const positionSize = initialMargin * leverage;
-            const quantity = positionSize / entryPrice;
-            elements.positionSize.textContent = formatCurrency(positionSize);
+            const currentPrice = realtimePrice;
+            const pnl = currentPosition.type === 'long' 
+                ? (currentPrice - entry) / entry * currentPosition.cost * leverage
+                : (entry - currentPrice) / entry * currentPosition.cost * leverage;
 
-            let liquidationPrice = 0;
-            if (marginMode === 'isolated') {
-                const marginToLose = initialMargin * 0.92; // Binance holds ~8% for fees. A safe estimate.
-                liquidationPrice = positionType === 'long' ? entryPrice - (marginToLose / quantity) : entryPrice + (marginToLose / quantity);
-            } else { // cross
-                if (isNaN(funding) || funding <= 0) {
-                    elements.liquidationPrice.textContent = 'Masukkan Fund';
-                    return; // Hentikan kalkulasi jika fund tidak ada
-                }
-                const marginToLose = (funding - initialMargin) + (initialMargin * 0.92);
-                liquidationPrice = positionType === 'long' ? entryPrice - (marginToLose / quantity) : entryPrice + (marginToLose / quantity);
-            }
-            elements.liquidationPrice.textContent = formatCurrency(Math.max(0, liquidationPrice));
+            const totalEquity = simCapital + pnl;
+            simEquity.textContent = `$${totalEquity.toFixed(2)}`;
+            simPnl.textContent = `$${pnl.toFixed(2)}`;
+            simPnl.className = pnl > 0 ? 'positive' : 'negative';
+        }
 
-            const { callbackRate, activationPrice, marketPrice } = values;
-            if (isNaN(callbackRate) || isNaN(activationPrice) || isNaN(marketPrice) || callbackRate <= 0) {
-                elements.status.textContent = '-';
-                elements.stopLossPrice.textContent = '-';
-                elements.roe.textContent = '-';
-                elements.roe.className = 'neutral';
+        function toggleLoader(show) {
+            btnText.classList.toggle('hidden', show);
+            btnLoader.classList.toggle('hidden', !show);
+            analyzeBtn.disabled = show;
+        }
+
+        function showError(message) {
+            assetError.textContent = message;
+            assetError.classList.remove('hidden');
+        }
+
+        function showLoader(show) {
+            toggleLoader(show);
+            assetError.classList.add('hidden');
+        }
+
+        // Event Listeners
+        analyzeBtn.addEventListener('click', analyzeAndRender);
+        longBtn.addEventListener('click', () => {
+            const capital = parseFloat(capitalInput.value);
+            const entry = parseFloat(entryInput.value);
+            const leverage = parseFloat(leverageInput.value);
+            if (currentPosition) {
+                alert("Tutup posisi sebelumnya.");
                 return;
             }
-            
-            let isActive = false;
-            let stopLossPrice = 0;
-            if (positionType === 'long' ? marketPrice >= activationPrice : marketPrice <= activationPrice) {
-                isActive = true;
-                const rate = callbackRate / 100;
-                stopLossPrice = positionType === 'long' ? marketPrice * (1 - rate) : marketPrice * (1 + rate);
-                elements.status.textContent = 'Aktif ✅';
-            } else {
-                elements.status.textContent = 'Belum Aktif';
+            currentPosition = { type: 'long', entryPrice: entry, cost: capital, leverage: leverage };
+            simCapital = capital;
+            updateSimulasi();
+        });
+        shortBtn.addEventListener('click', () => {
+            const capital = parseFloat(capitalInput.value);
+            const entry = parseFloat(entryInput.value);
+            const leverage = parseFloat(leverageInput.value);
+            if (currentPosition) {
+                alert("Tutup posisi sebelumnya.");
+                return;
             }
+            currentPosition = { type: 'short', entryPrice: entry, cost: capital, leverage: leverage };
+            simCapital = capital;
+            updateSimulasi();
+        });
+        resetSimBtn.addEventListener('click', () => {
+            currentPosition = null;
+            simCapital = 1000;
+            capitalInput.value = 1000;
+            updateSimulasi();
+        });
 
-            if (isActive) {
-                elements.stopLossPrice.textContent = formatCurrency(stopLossPrice);
-                const pnl = (positionType === 'long') ? (stopLossPrice - entryPrice) * quantity : (entryPrice - stopLossPrice) * quantity;
-                const roe = (pnl / initialMargin) * 100;
-                elements.roe.textContent = `${roe.toFixed(2)}%`;
-                elements.roe.className = pnl > 0 ? 'profit' : 'loss';
-            } else {
-                elements.stopLossPrice.textContent = '-';
-                elements.roe.textContent = '-';
-                elements.roe.className = 'neutral';
+        // Inisialisasi awal
+        window.onload = () => {
+            if (assetInput.value) {
+                analyzeAndRender();
             }
-        }
-
-        function handleModeChange() {
-            const marginMode = document.querySelector('input[name="marginMode"]:checked').value;
-            const positionType = document.querySelector('input[name="position"]:checked').value;
-
-            elements.fundingGroup.style.display = marginMode === 'cross' ? 'flex' : 'none';
-            elements.marketPriceLabel.textContent = `Harga Pasar ${positionType === 'long' ? 'Tertinggi' : 'Terendah'} ($)`;
-            
-            calculateAll();
-        }
-
-        elements.inputs.forEach(input => input.addEventListener('input', handleModeChange));
-        
-        // Panggil fungsi saat halaman pertama kali dimuat
-        handleModeChange();
+        };
     </script>
 </body>
 </html>
