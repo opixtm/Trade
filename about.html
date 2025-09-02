@@ -1,420 +1,609 @@
-<!DOCTYPE html>
-<html lang="id">
+ <!DOCTYPE html>
+<html lang="id" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosha Playbook Dashboard</title>
-    
+    <title>BACKTESTING</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #E0E0E0; }
-        .card { background-color: #151414; border: 1px solid #333; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        .btn-primary { background-color: #f59e0b; color: #1f2937; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background-color 0.3s; }
-        .btn-primary:hover { background-color: #d97706; }
-        .btn-primary:disabled { background-color: #333; cursor: not-allowed; }
-        .input-primary { background-color: #1c1b1b; border: 1px solid #444; color: #E0E0E0; padding: 0.625rem 1rem; width: 100%; border-radius: 0.5rem; }
-        .positive { color: #4ade80; }
-        .negative { color: #f87171; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7;
+            color: #342d27;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #EAE5E0;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease-in-out;
+        }
+        .btn-primary {
+            background-color: #c97c00;
+            color: #2b2a28;
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover { background-color: #eb9413 }
+        .btn-primary:disabled { background-color: #333333; cursor: not-allowed; }
+        .input-primary {
+            background-color: #F8F5F1;
+            border: 1px solid #DCD6CF;
+            border-radius: 0.5rem;
+            padding: 0.625rem 1rem;
+            width: 100%;
+            color: #3D352E;
+        }
+        .input-primary:focus {
+            outline: none;
+            border-color: #747462;
+            box-shadow: 0 0 0 2px rgba(34, 55, 40, 0.2);
+        }
         .tag { padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-        .tag-green { background-color: rgba(74, 124, 89, 0.2); color: #69b37f; }
-        .tag-red { background-color: rgba(168, 58, 58, 0.2); color: #d17474; }
-        .tag-yellow { background-color: rgba(181, 132, 15, 0.2); color: #e0c273; }
-        .tag-gray { background-color: rgba(95, 99, 104, 0.2); color: #9aa0a6; }
-        .loader { display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .dot { width: 14px; height: 14px; background-color: #e1e1e1; border-radius: 50%; animation: bounce 1.0s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.5); } }
+        .tag-green { background-color: #E6F4EA; color: #4A7C59; }
+        .tag-red { background-color: #FCE8E8; color: #A83A3A; }
+        .tag-yellow { background-color: #FFF8E1; color: #B5840F; }
+        .tag-gray { background-color: #F1F3F4; color: #5F6368; }
+
+        /* Dark Mode Styles */
+        .dark body { background-color: #000000; color: #E0E0E0; }
+        .dark .card { background-color: #151414; border-color: #333; }
+        .dark .input-primary { background-color: #1c1b1b; border-color: #444; color: #E0E0E0; }
+        .dark .input-primary:focus { border-color: #2b2d2b; box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.3); }
+        .dark .tag-green { background-color: rgba(74, 124, 89, 0.2); color: #69b37f; }
+        .dark .tag-red { background-color: rgba(168, 58, 58, 0.2); color: #d17474; }
+        .dark .tag-yellow { background-color: rgba(181, 132, 15, 0.2); color: #e0c273; }
+        .dark .tag-gray { background-color: rgba(95, 99, 104, 0.2); color: #9aa0a6; }
+        .dark .text-gray-800 { color: #E0E0E0; }
+        .dark .text-gray-500 { color: #d8d2d2; }
+        .dark .text-gray-600 { color: #dddddd; }
+        .dark .text-gray-700 { color: #e0e0e0; }
+        .dark hr { border-color: #3e4946; }
+        .dark .positive { color: #69b37f; }
+        .dark .negative { color: #d17474; }
+
+
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px; 
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            background-color: #e1e1e1; 
+            border-radius: 50%;
+            animation: bounce 1.0s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        .dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1.5);
+            }
+        }
+        
+        .positive { color: #16a34a; }
+        .dark .positive { color: #4ade80; }
+        .negative { color: #dc2626; }
+        .dark .negative { color: #f87171; }
         .blinking-text-animation { animation: blinking-text 1.0s infinite; }
         @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .status-container { display: flex; flex-direction: column; gap: 0.5rem; }
-        .status-item { padding: 0.75rem; border-radius: 0.5rem; font-weight: 600; }
-        .status-waiting { background-color: #333; color: #999; }
-        .status-found { background-color: #166534; color: #dcfce7; }
-        .status-valid { background-color: #1d4ed8; color: #dbeafe; }
-        .status-entry { background-color: #854d0e; color: #fef9c3; }
-        .status-final { background-color: #2563eb; color: #dbeafe; }
-        .log-panel { background-color: #1c1b1b; border: 1px solid #444; border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; font-family: monospace; font-size: 0.875rem; max-height: 400px; overflow-y: auto; }
-        .log-item { margin-bottom: 0.5rem; color: #9aa0a6; }
-        .log-item.info { color: #dbeafe; }
-        .log-item.success { color: #69b37f; }
-        .log-item.error { color: #d17474; }
+
+        #button-loader .dot {
+            width: 8px;
+            height: 8px;
+        }
+
+        /* Style untuk tombol toggle indikator */
+        .toggle-btn {
+            background-color: #E7A13B;
+            color: #4b5563;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #d1d5db;
+        }
+        .toggle-btn:hover {
+            background-color: #d1d5db;
+        }
+        .toggle-btn.active {
+            background-color: #1755c6;
+            color: #121010;
+            border-color: #1c295c;
+        }
+        .dark .toggle-btn {
+            background-color: #1c1b1b;
+            color: #d1d5db;
+            border-color: #444;
+        }
+        .dark .toggle-btn:hover {
+            background-color: #444;
+        }
+        .dark .toggle-btn.active {
+            background-color: #4f3e01;
+            color: #ffffff;
+            border-color: #4A7C59;
+        }
+        .projection-results-container .card {
+            background-color: #1c1b1b;
+            border-color: #444;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .projection-results-container h4 {
+            font-size: 1rem;
+            color: #008c38;
+        }
+        .projection-results-container p {
+            color: #e0e0e0;
+        }
+        .btn-yellow {
+            background-color: #f59e0b; 
+            color: #1f2937; 
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-yellow:hover {
+            background-color: #b5a38d;
+        }
+        
+        .collapsible-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.4s ease-in-out;
+        }
+        .collapsible-content.expanded {
+            grid-template-rows: 1fr;
+        }
+        .collapsible-content > div {
+            overflow: hidden;
+        }
+        #trade-link:hover {
+            text-decoration: none;
+        }
+        /* === CSS BARU UNTUK KONFLUENSI CEPAT (MULAI) === */
+        .status-uptrend { color: #34d399; }
+        .dark .status-uptrend { color: #4ade80; }
+        .status-downtrend { color: #ef4444; }
+        .dark .status-downtrend { color: #f87171; }
+        .status-chop { color: #fbbf24; }
+        .dark .status-chop { color: #fcd34d; }
+
+        .confluence-bar-container {
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            height: 30px;
+            display: flex;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .dark .confluence-bar-container { background-color: #374151; }
+
+        .confluence-bar {
+            height: 100%;
+            transition: width 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+            color: #111827;
+        }
+
+        .confluence-bar-bullish { background: linear-gradient(to right, #22c55e, #86efac); }
+        .confluence-bar-bearish { background: linear-gradient(to right, #ef4444, #fca5a5); }
+        /* === CSS BARU UNTUK KONFLUENSI CEPAT (SELESAI) === */
+        .dark .btn-yellow {
+            color: #120f0f;
+        }
+        /* === TAMBAHKAN BLOK CSS DI BAWAH INI === */
+        .btn-secondary {
+            background-color: #ff1869; /* gray-500 */
+            color: #070707;
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-secondary:hover {
+            background-color: #226756; /* gray-600 */
+        }
+        .dark .btn-secondary {
+            background-color: lab(42.97% -24.5 -10.46); /* gray-600 */
+        }
+        .dark .btn-secondary:hover {
+            background-color: hsl(189, 95%, 25%); /* gray-700 */
+        }   
+        .tooltip-trigger {
+            cursor: help;
+            border-bottom: 1px dashed rgba(128, 128, 128, 0.5);
+        }
+
+        #custom-tooltip {
+            position: absolute;
+            background-color: #141517; /* dark:bg-gray-800 */
+            color: #e2e8f0; /* dark:text-gray-200 */
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #e48005; /* dark:border-gray-600 */
+            font-size: 0.875rem;
+            line-height: 1.5;
+            z-index: 100;
+            max-width: 320px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            pointer-events: none;
+        }
+
+        #custom-tooltip::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 100%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #2d3748 transparent transparent transparent;
+        }
+
+        #custom-tooltip strong {
+            color: #63b3ed; /* dark:text-blue-400 */
+            display: block;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #4a5568;
+            padding-bottom: 4px;
+        }
+
+        #ai-narrative-content .prose h3 {
+            margin-top: 1.25rem; /* Beri jarak di atas setiap judul (###) */
+            margin-bottom: 0.5rem;
+        }
+
+        #ai-narrative-content .prose ul {
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #ai-narrative-content .prose li {
+            margin-bottom: 0.5rem; /* Beri jarak antar poin-poin (*) */
+        }
+        .vwap-mode-btn {
+            background-color: #4a5568; /* gray-600 */
+            color: #e2e8f0; /* gray-200 */
+            border: 1px solid #718096; /* gray-500 */
+            opacity: 0.6;
+        }
+        .vwap-mode-btn.active {
+            background-color: #f59e0b; /* yellow-500 */
+            color: #1f2937; /* gray-800 */
+            opacity: 1;
+            font-weight: bold;
+        }
+        .hybrid-bar {
+            background-color: #2d3748;
+            border-radius: 4px;
+            height: 12px;
+            width: 100px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #4a5568;
+        }
+        .pump-strength {
+            background-color: #48bb78;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: width 0.3s ease-in-out;
+        }
+        .dump-risk {
+            background-color: #f56565;
+            height: 100%;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: width 0.3s ease-in-out;
+        }
+        /* === CSS BARU UNTUK SKOR TENSI (MULAI) === */
+        .tension-bar-bg {
+            background-color: #374151; /* dark:bg-gray-700 */
+            border-radius: 9999px;
+            height: 8px;
+            width: 100%;
+            margin: 4px auto 0;
+            overflow: hidden;
+            border: 1px solid #4b5563;
+        }
+        .tension-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease-in-out;
+            background: linear-gradient(to right, #fcd34d, #f59e0b, #ef4444); /* yellow to orange to red */
+        }
+        /* === CSS BARU UNTUK SKOR TENSI (SELESAI) === */
+        /* === CSS BARU UNTUK KALKULATOR BINANCE STYLE (MULAI) === */
+        .calc-binance-style .btn-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .calc-binance-style .btn-group button {
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            color: #e0e0e0;
+            font-weight: 500;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .calc-binance-style .btn-group button:hover {
+            background-color: #3a3f4a;
+        }
+        .calc-binance-style .btn-group button.active {
+            background-color: #f0b90b;
+            color: #14151a;
+            border-color: #f0b90b;
+        }
+        .calc-binance-style .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .calc-binance-style .input-field {
+            width: 100%;
+            padding: 12px 12px 12px 12px;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1.1em;
+        }
+        .calc-binance-style .input-label-top {
+            font-size: 0.8em;
+            color: #848e9c;
+            margin-bottom: 8px;
+        }
+        .calc-binance-style .input-suffix {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #848e9c;
+            font-weight: 600;
+        }
+        .calc-binance-style .margin-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #3a3f4a;
+            outline: none;
+            border-radius: 2px;
+            margin: 1.5rem 0;
+        }
+        .calc-binance-style .margin-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #f0b90b;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .calc-binance-style .slider-ticks {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #848e9c;
+            padding: 0 2px;
+        }
+        .calc-binance-style .tpsl-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed #3a3f4a;
+        }
+        .calc-binance-style .exec-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 1.5rem;
+        }
+        .calc-binance-style .exec-buttons button {
+            padding: 14px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .calc-binance-style .btn-buy { background-color: #2ebd85; color: white; }
+        .calc-binance-style .btn-sell { background-color: #f6465d; color: white; }
+        .calc-binance-style .calc-result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 1rem;
+            font-size: 0.85em;
+            color: #848e9c;
+        }
+        .calc-binance-style .calc-result-grid span:nth-child(even) {
+            text-align: right;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+        /* === CSS BARU UNTUK KALKULATOR BINANCE STYLE (SELESAI) === */
+        /* === CSS UNTUK MODAL TRAILING STOP === */
+        #ts-modal-content .input-field {
+            width: 100%;
+            padding: 12px;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1.1em;
+        }
+        #ts-modal-close-btn {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .mtf-clickable-box {
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .mtf-clickable-box:hover {
+            background-color: #4b5563; /* Sesuaikan warna hover jika perlu */
+        }
+        /* === PERBAIKAN UNTUK INPUT KECIL (TAMBAHKAN INI) === */
+        .input-primary.small-input {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+           
+        }
+        .input-primary.small-input::-webkit-inner-spin-button,
+        .input-primary.small-input::-webkit-outer-spin-button {
+            -webkit-appearance: none; /* Sembunyikan panah di Chrome/Safari */
+            margin: 0;
+        }
+        /* === AKHIR DARI KODE TAMBAHAN === */
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200">
+<body class="antialiased">
 
-    <div class="container mx-auto p-4 md:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-yellow-500">Mosha Playbook Dashboard</h1>
-            <p class="text-sm text-gray-400 mt-2">100% Implementasi Penuh Logika PDF</p>
+    <div id="main-content-container" class="px-4 pb-8 sm:px-6 lg:px-8">
+        <header class="py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">BACKTESTING ENGINE</h1>
+                <p class="text-yellow-500 font-mono mt-1 text-sm">🔬</p>
+            </div>
+            <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none">
+                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414 1.414zM-.707 7.072l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z"></path></svg>
+            </button>
         </header>
+    <main>
 
-        <section class="card p-4 md:p-6 mb-6">
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="asset-input" class="input-primary uppercase flex-grow" placeholder="Contoh: BTCUSDT" value="BTCUSDT">
-                <select id="timeframe-select" class="input-primary !w-auto">
-                    <option value="1d">Daily (Father)</option>
-                    <option value="4h">H4 (Mother)</option>
-                    <option value="1h" selected>H1 (Baby)</option>
-                    <option value="30m">M30</option>
-                    <option value="15m">M15</option>
-                    <option value="5m">M5</option>
-                </select>
-                <button id="analyze-btn" class="btn-primary">
-                    <span id="btn-text">JALANKAN ANALISIS</span>
-                    <div id="btn-loader" class="loader hidden">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                </button>
-            </div>
-            <p id="asset-error" class="text-red-500 text-sm mt-2 hidden"></p>
-        </section>
+                <section id="backtesting-section" class="card p-6">
+                    <button id="toggle-backtesting-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 class="text-xl font-bold">🔬 Mesin Backtesting</h2>
+                        <svg id="toggle-backtesting-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
 
-        <section id="analysis-results-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Analisis Pasar</h2>
-            <div class="text-center mb-4">
-                <p class="text-sm text-gray-400">Storyline Pasar (HTF):</p>
-                <p id="storyline" class="text-2xl font-bold mt-1">---</p>
-                <p class="text-sm text-gray-400 mt-2">Fase Market Cycle:</p>
-                <p id="market-phase" class="text-xl font-bold mt-1">---</p>
-            </div>
-            
-            <div class="border-t border-gray-700 pt-4 mt-4">
-                <h3 class="font-bold text-yellow-400 mb-2">Langkah-langkah SOP</h3>
-                <div class="status-container" id="sop-status-container">
-                    <div class="status-item status-waiting">1. Breakout (BO): Menganalisis pergerakan harga.</div>
-                    <div class="status-item status-waiting">2. Valid Retracement (VR): Mencari koreksi yang valid.</div>
-                    <div class="status-item status-waiting">3. Confirmation (CF): Menunggu sinyal konfirmasi entri.</div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="setup-summary-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Detail Setup Trading</h2>
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div>
-                    <p class="text-sm text-gray-400">Saran Posisi</p>
-                    <p class="text-xl font-bold mt-1" id="trading-bias">---</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-400">Lokasi Entri Terbaik</p>
-                    <p class="text-sm mt-1" id="trading-reason">---</p>
-                </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-gray-700">
-                <p class="text-sm text-gray-400 text-center">Area Kunci:</p>
-                <div class="grid grid-cols-3 gap-2 mt-2">
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Harga Entri</p>
-                        <p class="font-mono" id="entry-price">--</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Stop Loss (15 pips)</p>
-                        <p class="font-mono" id="stop-loss">--</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Take Profit (VR)</p>
-                        <p class="font-mono" id="take-profit">--</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+                    <div id="backtesting-content-wrapper" class="collapsible-content">
+                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-6">
 
-        <section id="analysis-log-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Log Analisis</h2>
-            <div class="log-panel" id="log-panel">
-                <div class="log-item info">Log akan muncul di sini.</div>
-            </div>
-        </section>
-        
-        <p id="footer-text" class="text-xs text-center text-gray-500 mt-8">Data disediakan oleh Binance API. Ini bukan saran keuangan.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+    <div>
+        <label for="backtest-symbol-input" class="block text-sm font-medium text-gray-400">Simbol Aset</label>
+        <input type="text" id="backtest-symbol-input" value="BTCUSDT" class="input-primary uppercase mt-1">
     </div>
+    <div>
+        <label for="backtest-start-date" class="block text-sm font-medium text-gray-400">Tanggal Mulai</label>
+        <input type="date" id="backtest-start-date" class="input-primary mt-1">
+    </div>
+    <div>
+        <label for="backtest-end-date" class="block text-sm font-medium text-gray-400">Tanggal Selesai</label>
+        <input type="date" id="backtest-end-date" class="input-primary mt-1">
+    </div>
+    <div>
+        <label for="backtest-timeframe-select" class="block text-sm font-medium text-gray-400">Timeframe</label>
+        <select id="backtest-timeframe-select" class="input-primary mt-1">
+            <option value="15m" selected>15m</option>
+            <option value="1h">1h</option>
+            <option value="4h">4h</option>
+            <option value="1d">1d</option>
+        </select>
+    </div>
+    <div>
+        <label for="backtest-initial-balance" class="block text-sm font-medium text-gray-400">Modal Awal ($)</label>
+        <input type="number" id="backtest-initial-balance" value="1000" class="input-primary small-input mt-1">
+    </div>
+    <button id="start-backtest-btn" class="btn-primary w-full">
+        <span>▶️ Mulai Simulasi</span>
+        <div class="loader w-5 h-5 hidden">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+    </button>
+</div>
 
-    <script>
-        const assetInput = document.getElementById('asset-input');
-        const timeframeSelect = document.getElementById('timeframe-select');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        const btnText = document.getElementById('btn-text');
-        const btnLoader = document.getElementById('btn-loader');
-        const analysisResultsCard = document.getElementById('analysis-results-card');
-        const setupSummaryCard = document.getElementById('setup-summary-card');
-        const storylineEl = document.getElementById('storyline');
-        const marketPhaseEl = document.getElementById('market-phase');
-        const sopStatusContainer = document.getElementById('sop-status-container');
-        const tradingBiasEl = document.getElementById('trading-bias');
-        const tradingReasonEl = document.getElementById('trading-reason');
-        const entryPriceEl = document.getElementById('entry-price');
-        const stopLossEl = document.getElementById('stop-loss');
-        const takeProfitEl = document.getElementById('take-profit');
-        const logPanel = document.getElementById('log-panel');
-        const analysisLogCard = document.getElementById('analysis-log-card');
-        
-        const TIMEFRAME_ORDER = ['1d', '4h', '1h', '30m', '15m', '5m', '1m'];
-        const PIP_VALUES = { '1d': 0.0001, '4h': 0.0001, '1h': 0.0001, '30m': 0.0001, '15m': 0.0001, '5m': 0.0001, '1m': 0.0001 };
-        
-        function logToPage(message, type = 'info') {
-            const logItem = document.createElement('div');
-            logItem.className = `log-item ${type}`;
-            logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            logPanel.appendChild(logItem);
-            logPanel.scrollTop = logPanel.scrollHeight;
-        }
+                            <div id="backtest-progress-container" class="hidden">
+                                <p id="backtest-status-text" class="text-center text-sm text-yellow-400 mb-2">Mengambil data...</p>
+                                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                                    <div id="backtest-progress-bar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
 
-        async function fetchKlines(symbol, interval, limit =1000) {
-            logToPage(`Mengambil data klines untuk ${symbol} di timeframe ${interval}...`, 'info');
-            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Gagal mengambil data untuk ${symbol} di ${interval}.`);
-                const data = await response.json();
-                logToPage(`Data klines ${interval} diterima. Jumlah candle: ${data.length}`, 'success');
-                return data;
-            } catch (error) {
-                logToPage(`ERROR: ${error.message}`, 'error');
-                return [];
-            }
-        }
+                            <div id="backtest-results-container" class="hidden">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center p-4 bg-gray-800/50 rounded-lg">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Total Profit/Loss</p>
+                                        <p id="backtest-result-pnl" class="font-mono font-bold text-lg">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Win Rate</p>
+                                        <p id="backtest-result-winrate" class="font-mono font-bold text-lg">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Profit Factor</p>
+                                        <p id="backtest-result-profit-factor" class="font-mono font-bold text-lg">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Total Perdagangan</p>
+                                        <p id="backtest-result-total-trades" class="font-mono font-bold text-lg">-</p>
+                                    </div>
+                                </div>
+                            </div>
 
-        // Fungsi untuk mendeteksi BO, termasuk BO Normal dan BO Structure (W/M-pattern)
-        function findBreakout(klines, typeToFind = 'any') {
-            if (klines.length < 20) return { status: 'NO_BREAKOUT', type: 'N/A', level: 0 };
-            const highs = klines.map(k => parseFloat(k[2]));
-            const lows = klines.map(k => parseFloat(k[3]));
-            const lastCandleClose = parseFloat(klines[klines.length - 1][4]);
-            
-            // Logika untuk BO Structure (W/M-pattern)
-            const recentHighs = highs.slice(-5, -1);
-            const recentLows = lows.slice(-5, -1);
-            const peakHigh = Math.max(...recentHighs);
-            const valleyLow = Math.min(...recentLows);
-            
-            const isBullishStructure = lastCandleClose > peakHigh;
-            const isBearishStructure = lastCandleClose < valleyLow;
-            
-            if (isBullishStructure && (typeToFind === 'BULLISH' || typeToFind === 'any')) {
-                logToPage("BO Structure (W-pattern) BUY ditemukan.", 'success');
-                return { status: 'BREAKOUT', type: 'BULLISH', level: peakHigh };
-            }
-            if (isBearishStructure && (typeToFind === 'BEARISH' || typeToFind === 'any')) {
-                logToPage("BO Structure (M-pattern) SELL ditemukan.", 'success');
-                return { status: 'BREAKOUT', type: 'BEARISH', level: valleyLow };
-            }
-            
-            // Logika untuk BO Normal
-            const highLevel = Math.max(...highs.slice(-10, -1));
-            const lowLevel = Math.min(...lows.slice(-10, -1));
-            
-            const isBuyBreakout = lastCandleClose > highLevel;
-            const isSellBreakout = lastCandleClose < lowLevel;
-            
-            if (isBuyBreakout && (typeToFind === 'BULLISH' || typeToFind === 'any')) {
-                logToPage("BO Normal BUY ditemukan.", 'success');
-                return { status: 'BREAKOUT', type: 'BULLISH', level: highLevel };
-            }
-            if (isSellBreakout && (typeToFind === 'BEARISH' || typeToFind === 'any')) {
-                logToPage("BO Normal SELL ditemukan.", 'success');
-                return { status: 'BREAKOUT', type: 'BEARISH', level: lowLevel };
-            }
-            
-            logToPage("Tidak ada Breakout yang valid ditemukan.", 'info');
-            return { status: 'NO_BREAKOUT', type: 'N/A', level: 0 };
-        }
+                            <div id="backtest-trade-log-container" class="hidden">
+                                <h4 class="font-semibold text-gray-400 mb-2">Riwayat Perdagangan Simulasi</h4>
+                                <div id="backtest-trade-log" class="space-y-2 text-xs max-h-60 overflow-y-auto p-2 bg-gray-900/50 rounded-md">
+                                    </div>
+                            </div>
 
-        function getNextTimeframe(currentTF) {
-            const index = TIMEFRAME_ORDER.indexOf(currentTF);
-            return TIMEFRAME_ORDER[index + 1] || null;
-        }
-
-        function addSOPStatus(message, type) {
-            const statusEl = document.createElement('div');
-            statusEl.className = `status-item ${type}`;
-            statusEl.textContent = message;
-            sopStatusContainer.appendChild(statusEl);
-        }
-
-        async function runMoshaSOP(symbol, mainTimeframe) {
-            // Reset UI
-            analyzeBtn.disabled = true;
-            btnText.classList.add('hidden');
-            btnLoader.classList.remove('hidden');
-            analysisResultsCard.classList.remove('hidden');
-            setupSummaryCard.classList.remove('hidden');
-            analysisLogCard.classList.remove('hidden');
-            sopStatusContainer.innerHTML = '';
-            logPanel.innerHTML = '<div class="log-item info">Log akan muncul di sini.</div>';
-
-            // Fase 1: Validasi Storyline dan BO Utama
-            addSOPStatus("1. Mencari Storyline Pasar (HTF)...", 'status-waiting blinking-text-animation');
-            logToPage("--- Memulai Analisis SOP ---", 'info');
-            const mainTFIndex = TIMEFRAME_ORDER.indexOf(mainTimeframe);
-            const htf = TIMEFRAME_ORDER[mainTFIndex - 2] || TIMEFRAME_ORDER[0];
-            const htfKlines = await fetchKlines(symbol, htf);
-            const htfBO = findBreakout(htfKlines);
-            const storyline = htfBO.type === 'BULLISH' ? 'UPTREND (BUY)' : (htfBO.type === 'BEARISH' ? 'DOWNTREND (SELL)' : 'SIDEWAYS');
-            storylineEl.textContent = storyline;
-            storylineEl.className = `text-2xl font-bold mt-1 ${htfBO.type === 'BULLISH' ? 'positive' : (htfBO.type === 'BEARISH' ? 'negative' : 'text-gray-400')}`;
-            logToPage(`Storyline Pasar Ditemukan: ${storyline}`, 'success');
-
-            addSOPStatus(`2. Memulai SOP dengan BO di ${mainTimeframe}...`, 'status-waiting blinking-text-animation');
-            const boKlines = await fetchKlines(symbol, mainTimeframe);
-            const boResult = findBreakout(boKlines, htfBO.type);
-            
-            if (boResult.status !== 'BREAKOUT') {
-                addSOPStatus(`⚠️ Tidak ada BO yang selaras dengan tren HTF. Analisis dihentikan.`, 'status-waiting');
-                updateUIForNoSetup(storyline);
-                logToPage("Analisis dihentikan: BO tidak selaras dengan tren HTF.", 'error');
-                return;
-            }
-            addSOPStatus(`✅ BO Ditemukan di ${mainTimeframe}: ${boResult.type}`, 'status-found');
-            logToPage(`BO utama ditemukan: ${boResult.type} di level ${boResult.level}`, 'success');
-
-            // Fase 2: Deteksi VR dan CF
-            const vrTimeframe = getNextTimeframe(mainTimeframe);
-            addSOPStatus(`3. Mencari VR di ${vrTimeframe}...`, 'status-waiting blinking-text-animation');
-            const vrKlines = await fetchKlines(symbol, vrTimeframe);
-            const vrResult = findBreakout(vrKlines, boResult.type === 'BULLISH' ? 'BEARISH' : 'BULLISH');
-            
-            if (vrResult.status !== 'BREAKOUT') {
-                addSOPStatus(`⚠️ VR tidak valid atau belum terbentuk. Ini adalah Fase 1 (Continuation).`, 'status-waiting');
-                updateUIForNoSetup(storyline, 'Fase 1 - Continuation (Menunggu)');
-                logToPage("Analisis dihentikan: Tidak ada VR, ini Fase 1.", 'error');
-                return;
-            }
-            addSOPStatus(`✅ VR Ditemukan di ${vrTimeframe}: ${vrResult.type}`, 'status-valid');
-            logToPage(`VR ditemukan: ${vrResult.type} di level ${vrResult.level}`, 'success');
-
-            const cfTimeframe = vrTimeframe;
-            addSOPStatus(`4. Mencari CF di ${cfTimeframe}...`, 'status-waiting blinking-text-animation');
-            const cfKlines = await fetchKlines(symbol, cfTimeframe);
-            const cfResult = findBreakout(cfKlines, boResult.type);
-
-            if (cfResult.status !== 'BREAKOUT') {
-                addSOPStatus(`⚠️ CF belum terbentuk. Ini adalah Fase 2 (High Risk Setup).`, 'status-waiting');
-                updateUIForHighRiskSetup(storyline, boResult, vrResult);
-                logToPage("Analisis dihentikan: Tidak ada CF, ini Fase 2.", 'error');
-                return;
-            }
-            addSOPStatus(`✅ CF Ditemukan di ${cfTimeframe}: ${cfResult.type}`, 'status-entry');
-            logToPage(`CF ditemukan: ${cfResult.type} di level ${cfResult.level}`, 'success');
-            
-            // Fase 3: SOP Berulang (Pullback Entry)
-            let finalCFResult = cfResult;
-            let currentTF = cfTimeframe;
-            let currentVR = vrResult;
-            let isFinalSetupFound = false;
-
-            while (true) {
-                const nextTF = getNextTimeframe(currentTF);
-                if (!nextTF) { 
-                    isFinalSetupFound = true; 
-                    logToPage(`Mencapai timeframe terkecil (${currentTF}). SOP berulang selesai.`, 'success');
-                    break; 
-                }
-                
-                addSOPStatus(`"Zona Besar", mengulangi SOP di ${nextTF}...`, 'status-waiting blinking-text-animation');
-                logToPage(`Memulai SOP berulang untuk menemukan pullback di ${nextTF}`, 'info');
-                
-                const nextVRKlines = await fetchKlines(symbol, nextTF);
-                const nextVRResult = findBreakout(nextVRKlines, finalCFResult.type === 'BULLISH' ? 'BEARISH' : 'BULLISH');
-                
-                if (nextVRResult.status === 'BREAKOUT') {
-                    addSOPStatus(`🚨 Oops, ada VR di ${nextTF}. Tunggu CF di ${nextTF}.`, 'status-waiting');
-                    logToPage(`VR ditemukan di ${nextTF}. Mencari CF...`, 'info');
-                    const nextCFKlines = await fetchKlines(symbol, nextTF);
-                    const nextCFResult = findBreakout(nextCFKlines, finalCFResult.type);
-                    
-                    if (nextCFResult.status === 'BREAKOUT') {
-                        currentVR = nextVRResult;
-                        finalCFResult = nextCFResult;
-                        currentTF = nextTF;
-                        addSOPStatus(`✅ Siklus baru ditemukan di ${currentTF}.`, 'status-valid');
-                        logToPage(`Siklus lengkap ditemukan di ${currentTF}. Melanjutkan pencarian...`, 'success');
-                    } else {
-                        addSOPStatus(`⚠️ CF di ${nextTF} belum terbentuk. Analisis final.`, 'status-final');
-                        isFinalSetupFound = true;
-                        logToPage(`CF tidak ditemukan di ${nextTF}. Ini adalah titik entri terakhir.`, 'info');
-                        break; 
-                    }
-                } else {
-                    addSOPStatus(`✅ Tidak ada siklus kecil lagi. Setup valid.`, 'status-final');
-                    isFinalSetupFound = true;
-                    logToPage("Tidak ada siklus kecil yang ditemukan. Analisis final.", 'success');
-                    break;
-                }
-            }
-            
-            if (isFinalSetupFound) {
-                updateUIForCompleteSetup(storyline, boResult, currentVR, finalCFResult, currentTF);
-            }
-        }
-
-        function updateUI(show) {
-            analysisResultsCard.classList.toggle('hidden', !show);
-            setupSummaryCard.classList.toggle('hidden', !show);
-            analysisLogCard.classList.toggle('hidden', !show);
-            analyzeBtn.disabled = !show;
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-        }
-
-        function updateUIForNoSetup(storyline, phase = 'Fase 1 - Continuation (Menunggu)') {
-            updateUI(true);
-            tradingBiasEl.textContent = 'Menunggu Setup';
-            tradingBiasEl.className = 'text-xl font-bold mt-1 text-gray-400';
-            tradingReasonEl.textContent = `Tidak ada setup ${storyline} yang valid. Tunggu konfirmasi.`;
-            marketPhaseEl.textContent = phase;
-            marketPhaseEl.className = 'text-xl font-bold mt-1 text-gray-400';
-            entryPriceEl.textContent = '--';
-            stopLossEl.textContent = '--';
-            takeProfitEl.textContent = '--';
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-            analyzeBtn.disabled = false;
-        }
-        
-        function updateUIForHighRiskSetup(storyline, bo, vr) {
-            updateUI(true);
-            const direction = vr.type === 'BULLISH' ? 'Buy / Long' : 'Sell / Short';
-            tradingBiasEl.textContent = direction;
-            tradingBiasEl.className = `text-xl font-bold mt-1 ${vr.type === 'BULLISH' ? 'positive' : 'negative'}`;
-            tradingReasonEl.textContent = `⚠️ Setup VR (High Risk). Tunggu CF.`;
-            marketPhaseEl.textContent = 'Fase 2 - Retracement (High Risk)';
-            marketPhaseEl.className = 'text-xl font-bold mt-1 negative';
-            entryPriceEl.textContent = '$' + vr.level.toFixed(4);
-            stopLossEl.textContent = '--';
-            takeProfitEl.textContent = '$' + bo.level.toFixed(4);
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-            analyzeBtn.disabled = false;
-        }
-
-        function updateUIForCompleteSetup(storyline, bo, vr, cf, finalTimeframe) {
-            updateUI(true);
-            const direction = bo.type === 'BULLISH' ? 'Buy / Long' : 'Sell / Short';
-            tradingBiasEl.textContent = direction;
-            tradingBiasEl.className = `text-xl font-bold mt-1 ${bo.type === 'BULLISH' ? 'positive' : 'negative'}`;
-            tradingReasonEl.textContent = `SOP Lengkap! Fase 3 (Best Conti) di ${finalTimeframe}.`;
-            marketPhaseEl.textContent = 'Fase 3 - Continuation (Best Setup)';
-            marketPhaseEl.className = 'text-xl font-bold mt-1 positive';
-            
-            const assetPips = PIP_VALUES[finalTimeframe] || 0.0001; 
-            const slLevel = bo.type === 'BULLISH' ? cf.level - (15 * assetPips) : cf.level + (15 * assetPips);
-            
-            entryPriceEl.textContent = '$' + cf.level.toFixed(4);
-            stopLossEl.textContent = '$' + slLevel.toFixed(4);
-            takeProfitEl.textContent = '$' + vr.level.toFixed(4);
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-            analyzeBtn.disabled = false;
-        }
-
-        analyzeBtn.addEventListener('click', () => {
-            const symbol = assetInput.value.toUpperCase();
-            const timeframe = timeframeSelect.value;
-            runMoshaSOP(symbol, timeframe);
-        });
-    </script>
+                        </div>
+                    </div>
+                </section>
+                </div>
+            </div>
+        </div>
+    </main>
+<script src="backtester.js"></script>
 </body>
 </html>
