@@ -1101,21 +1101,83 @@
         movers: {}
     };
     let userSettings = {
-        active: {
-            weights: {}, 
-            indicatorParams: {} 
+    active: {
+        weights: {}, 
+        indicatorParams: {} 
+    },
+    presets: {
+        'default': {
+            weights: { 
+                ma: 2, 
+                pivot: 2, 
+                vwap: 2, 
+                ichimoku: 3, 
+                rsi: 1.5, 
+                stoch: 1, 
+                macd: 2, 
+                candlePattern: 1.5, 
+                psar: 1, 
+                linreg: 1, 
+                roc: 1, 
+                bollingerBands: 1, 
+                rsiDivergence: 2.5, 
+                obvDivergence: 3.0, 
+                openInterest: 1, 
+                funding: 1, 
+                lsr: 1, 
+                orderBookBias: 1, 
+                bbSqueeze: 1.5 
+            },
+            indicatorParams: { 
+                rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9,
+                stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 
+            }
         },
-        presets: {
-            'default': {
-                weights: { ma: 2, pivot: 2, vwap: 2, ichimoku: 3, rsi: 1.5, stoch: 1, macd: 2, candlePattern: 1.5, psar: 1, linreg: 1, roc: 1, bollingerBands: 1, rsiDivergence: 2.5, obvDivergence: 3.0, openInterest: 1, funding: 1, lsr: 1, orderBookBias: 1, bbSqueeze: 1 },
-                
-                indicatorParams: { 
-                    rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9,
-                    stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 
-                }
-            },            
+        
+        // ===== PRESET BARU UNTUK REZIM PASAR =====
+        'bullTrend': {
+            weights: { 
+                ma: 3.0,          // Sangat penting dalam tren
+                ichimoku: 3.0,    // Sangat penting dalam tren
+                psar: 2.5,        // Sangat penting dalam tren
+                vwap: 2.5,
+                rsiDivergence: 1.0, // Kurang relevan saat tren kuat
+                stoch: 0.5,       // Osilator kurang berguna
+                bbSqueeze: 0.5   // Tidak relevan
+            }
+        },
+        'bearTrend': {
+            weights: { 
+                ma: 3.0,
+                ichimoku: 3.0,
+                psar: 2.5,
+                vwap: 2.5,
+                rsiDivergence: 1.0,
+                stoch: 0.5,
+                bbSqueeze: 0.5
+            }
+        },
+        'lowVolatility': {
+            weights: { 
+                bbSqueeze: 3.5,   // Sinyal paling penting!
+                rsi: 2.0,         // Berguna untuk melihat momentum yang mulai terbentuk
+                macd: 2.0,        // Cross MACD bisa jadi konfirmasi awal breakout
+                ma: 1.0,          // MA kurang relevan saat sideways
+                ichimoku: 1.0     // Awan Ichimoku biasanya datar dan tidak informatif
+            }
+        },
+        'ranging': {
+            weights: { 
+                rsi: 2.5,         // Osilator sangat berguna
+                stoch: 2.0,       // Sangat berguna untuk kondisi overbought/oversold
+                rsiDivergence: 3.0, // Divergensi adalah sinyal pembalikan yang kuat di pasar ranging
+                bollingerBands: 2.5, // Pantulan dari batas atas/bawah BB sangat relevan
+                ma: 1.0,          // Kurang relevan
+                psar: 1.0         // Kurang relevan
+            }
         }
-    };
+    }
+};
     const timeframeParameterMap = {
         // Kategori Scalping (Timeframe <= 15m) -> Stoch RSI lebih sensitif
         '1m': { rsi_period: 7, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
@@ -1657,115 +1719,124 @@
     }
 // ===================================================================================================================================================================================================================================================================================
     async function updateQuickConfluenceWidget() {
-        const data = realtimeCache.main.calculatedData;
-            if (!data) return;
-
-        const mtfAlignmentScore = realtimeCache.main.tfAlignmentSummary?.score || 0;
-        const mtfMultiplier = 1 + (Math.abs(mtfAlignmentScore) / 4) * 0.25;
-
-        let totalBullScore = 0;
-        let totalBearScore = 0;
-        let maxPossibleScore = 0;
-
-        const marketType = marketTypeSelect.value;
-        const marketRegime = realtimeCache.main.marketRegime?.regime || 'RANGING';
-        const trendIndicators = ['ma', 'ichimoku', 'psar', 'adx'];
-        const rangeIndicators = ['rsi', 'stoch', 'rsiDivergence', 'bollingerBands'];
-
-        for (const indicator in userSettings.active.weights) {
-            if (['funding', 'lsr', 'openInterest'].includes(indicator)) {
-                if (marketType !== 'futures') {
-                    continue;
-                }
-            }
-            
-            let weight = userSettings.active.weights[indicator] || 0;
-
-            if (marketRegime.includes('TRENDING') && rangeIndicators.includes(indicator)) {
-                weight *= 0.5;
-            }
-            if (marketRegime === 'RANGING' && trendIndicators.includes(indicator)) {
-                weight *= 0.5;
-            }
-            
-            if (data[indicator]) {
-                const rawScore = getUltimateSignalScore(indicator, data[indicator]);
-                let finalWeight = weight;
-
-                if (rawScore > 0 && mtfAlignmentScore > 0) {
-                    finalWeight *= mtfMultiplier;
-                } else if (rawScore < 0 && mtfAlignmentScore < 0) {
-                    finalWeight *= mtfMultiplier;
-                } else if ((rawScore > 0 && mtfAlignmentScore < 0) || (rawScore < 0 && mtfAlignmentScore > 0)) {
-                    finalWeight *= 0.75; 
-                }
-
-                const weightedScore = rawScore * finalWeight;
-                
-                if (weightedScore > 0) totalBullScore += weightedScore;
-                if (weightedScore < 0) totalBearScore += Math.abs(weightedScore);
-            }
-            maxPossibleScore += Math.abs(weight);
-        }
-
-        const bullPercentage = maxPossibleScore > 0 ? (totalBullScore / maxPossibleScore) * 100 : 0;
-        const bearPercentage = maxPossibleScore > 0 ? (totalBearScore / maxPossibleScore) * 100 : 0;
-        
-        realtimeCache.main.quickConfluenceScore = { 
-            score: bullPercentage - bearPercentage,
-            bull: bullPercentage,
-            bear: bearPercentage
-        };
-        
-        const { text: verdict, class: verdictClass } = generateShortVerdict(bullPercentage, bearPercentage);
-        const mtfScoreText = mtfAlignmentScore > 0 ? `+${mtfAlignmentScore}` : mtfAlignmentScore;
-        const mtfHtml = `<div class="text-xs text-center text-gray-400 mt-2">Multi-Timeframe Trend Confirmation: <span class="font-bold ${mtfAlignmentScore > 0 ? 'positive' : (mtfAlignmentScore < 0 ? 'negative' : '')}">${mtfScoreText}</span></div>`;
-
-        document.getElementById('quick-confluence-timeframe').textContent = timeframeSelect.value;
-        document.getElementById('quick-finalBullishScore').textContent = `${bullPercentage.toFixed(0)}% 🐂`;
-        document.getElementById('quick-finalBearishScore').textContent = `🐻 ${bearPercentage.toFixed(0)}%`;
-        const totalStrength = bullPercentage + bearPercentage;
-        const bullWidthPercentage = totalStrength > 0 ? (bullPercentage / totalStrength) * 100 : 50;
-        document.getElementById('quick-confluenceBarBullish').style.width = `${bullWidthPercentage}%`;
-        document.getElementById('quick-confluenceBarBearish').style.width = `${100 - bullWidthPercentage}%`;
-
-        // 1. Hitung Skor Tensi
-        const tensionScore = Math.min(100, bullPercentage + bearPercentage);
-        let tensionText = "Low";
-        if (tensionScore > 50) tensionText = "Medium";
-        if (tensionScore > 75) tensionText = "High";
-        if (tensionScore > 90) tensionText = "Extreme";
-
-        // 2. Tampilkan Verdict Utama
-        const verdictEl = document.getElementById('quick-finalVerdict');
-        verdictEl.innerHTML = `${verdict} <span class="text-sm font-mono ${verdictClass}">(${(bullPercentage - bearPercentage).toFixed(0)})</span> ${mtfHtml}`;
-        verdictEl.className = `font-semibold`;
-
-        // 3. Tampilkan Skor Tensi
-        const tensionContainer = document.getElementById('tension-score-container');
-        tensionContainer.innerHTML = `
-            <span class="text-gray-400">Market Tension: <strong>${tensionText}</strong> (${tensionScore.toFixed(0)}/100)</span>
-            <div class="tension-bar-bg">
-                <div class="tension-bar-fill" style="width: ${tensionScore}%;"></div>
-            </div>
-        `;
-
-        analyzeAndDisplayConfluenceContributors();
-                
-        const verdictSpan = verdictEl.querySelector(`.${verdictClass.split(' ')[0]}`);
-        if (verdictSpan) {
-            verdictSpan.className = verdictClass;
-        } else {
-            // Fallback jika struktur HTML berubah
-            const textNode = verdictEl.childNodes[0];
-            const newSpan = document.createElement('span');
-            newSpan.className = verdictClass;
-            newSpan.textContent = textNode.textContent;
-            verdictEl.replaceChild(newSpan, textNode);
-        }
-        
-        analyzeAndDisplayConfluenceContributors();
+    const data = realtimeCache.main.calculatedData;
+    // Pastikan data yang dibutuhkan untuk deteksi rezim ada sebelum melanjutkan
+    if (!data || !data.bollingerBands || !data.adx) {
+        return;
     }
+
+    // ===== LANGKAH INTEGRASI REZIM PASAR =====
+
+    // 1. Deteksi rezim pasar saat ini menggunakan data yang sudah ada
+    const currentRegime = detectMarketRegime(
+        realtimeCache.main.klines, 
+        data.bollingerBands, 
+        data.adx
+    );
+
+    // 2. (Opsional) Tampilkan rezim aktif di UI agar pengguna tahu model mana yang berjalan
+    const verdictContainer = document.getElementById('verdict-container');
+    if (verdictContainer) {
+        let regimeTextEl = document.getElementById('market-regime-display');
+        if (!regimeTextEl) {
+            regimeTextEl = document.createElement('p');
+            regimeTextEl.id = 'market-regime-display';
+            regimeTextEl.className = 'text-xs text-gray-500 mt-2 font-mono';
+            // Sisipkan sebelum elemen tension score jika ada
+            const tensionContainer = document.getElementById('tension-score-container');
+            if(tensionContainer) {
+                 verdictContainer.insertBefore(regimeTextEl, tensionContainer);
+            } else {
+                 verdictContainer.appendChild(regimeTextEl);
+            }
+        }
+        regimeTextEl.textContent = `[Active Model: ${currentRegime.toUpperCase()}]`;
+    }
+
+    // 3. Pilih preset bobot yang sesuai, gabungkan dengan 'default' sebagai basis
+    const regimeWeights = userSettings.presets[currentRegime]?.weights || {};
+    const activeWeights = { ...userSettings.presets['default'].weights, ...regimeWeights };
+    
+    // ===== AKHIR LANGKAH INTEGRASI =====
+
+    const mtfAlignmentScore = realtimeCache.main.tfAlignmentSummary?.score || 0;
+    const mtfMultiplier = 1 + (Math.abs(mtfAlignmentScore) / 4) * 0.25;
+
+    let totalBullScore = 0;
+    let totalBearScore = 0;
+    let maxPossibleScore = 0;
+
+    const marketType = marketTypeSelect.value;
+    
+    // 4. Gunakan 'activeWeights' yang dinamis dalam loop, bukan bobot statis
+    for (const indicator in activeWeights) {
+        if (['funding', 'lsr', 'openInterest'].includes(indicator) && marketType !== 'futures') {
+            continue;
+        }
+        
+        let weight = activeWeights[indicator] || 0;
+        
+        if (data[indicator]) {
+            const rawScore = getUltimateSignalScore(indicator, data[indicator]);
+            let finalWeight = weight;
+
+            if (rawScore > 0 && mtfAlignmentScore > 0) {
+                finalWeight *= mtfMultiplier;
+            } else if (rawScore < 0 && mtfAlignmentScore < 0) {
+                finalWeight *= mtfMultiplier;
+            } else if ((rawScore > 0 && mtfAlignmentScore < 0) || (rawScore < 0 && mtfAlignmentScore > 0)) {
+                finalWeight *= 0.75; 
+            }
+
+            const weightedScore = rawScore * finalWeight;
+            
+            if (weightedScore > 0) totalBullScore += weightedScore;
+            if (weightedScore < 0) totalBearScore += Math.abs(weightedScore);
+        }
+        maxPossibleScore += Math.abs(activeWeights[indicator] || 0);
+    }
+
+    const bullPercentage = maxPossibleScore > 0 ? (totalBullScore / maxPossibleScore) * 100 : 0;
+    const bearPercentage = maxPossibleScore > 0 ? (totalBearScore / maxPossibleScore) * 100 : 0;
+    
+    realtimeCache.main.quickConfluenceScore = { 
+        score: bullPercentage - bearPercentage,
+        bull: bullPercentage,
+        bear: bearPercentage
+    };
+    
+    const { text: verdict, class: verdictClass } = generateShortVerdict(bullPercentage, bearPercentage);
+    const mtfScoreText = mtfAlignmentScore > 0 ? `+${mtfAlignmentScore}` : mtfAlignmentScore;
+    const mtfHtml = `<div class="text-xs text-center text-gray-400 mt-2">Multi-Timeframe Trend Confirmation: <span class="font-bold ${mtfAlignmentScore > 0 ? 'positive' : (mtfAlignmentScore < 0 ? 'negative' : '')}">${mtfScoreText}</span></div>`;
+
+    document.getElementById('quick-confluence-timeframe').textContent = timeframeSelect.value;
+    document.getElementById('quick-finalBullishScore').textContent = `${bullPercentage.toFixed(0)}% 🐂`;
+    document.getElementById('quick-finalBearishScore').textContent = `🐻 ${bearPercentage.toFixed(0)}%`;
+    const totalStrength = bullPercentage + bearPercentage;
+    const bullWidthPercentage = totalStrength > 0 ? (bullPercentage / totalStrength) * 100 : 50;
+    document.getElementById('quick-confluenceBarBullish').style.width = `${bullWidthPercentage}%`;
+    document.getElementById('quick-confluenceBarBearish').style.width = `${100 - bullWidthPercentage}%`;
+
+    const tensionScore = Math.min(100, bullPercentage + bearPercentage);
+    let tensionText = "Low";
+    if (tensionScore > 50) tensionText = "Medium";
+    if (tensionScore > 75) tensionText = "High";
+    if (tensionScore > 90) tensionText = "Extreme";
+
+    const verdictEl = document.getElementById('quick-finalVerdict');
+    verdictEl.innerHTML = `${verdict} <span class="text-sm font-mono ${verdictClass}">(${(bullPercentage - bearPercentage).toFixed(0)})</span> ${mtfHtml}`;
+    verdictEl.className = `font-semibold`;
+
+    const tensionContainer = document.getElementById('tension-score-container');
+    tensionContainer.innerHTML = `
+        <span class="text-gray-400">Market Tension: <strong>${tensionText}</strong> (${tensionScore.toFixed(0)}/100)</span>
+        <div class="tension-bar-bg">
+            <div class="tension-bar-fill" style="width: ${tensionScore}%;"></div>
+        </div>
+    `;
+
+    analyzeAndDisplayConfluenceContributors();
+}
 // ===================================================================================================================================================================================================================================================================================
     function updateCvdTableLive() {
         const tableBody = document.getElementById('cvd-table-body');
@@ -2931,12 +3002,12 @@
             const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
     // =======================         
             let promisesToRun = [
-                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 500 }, marketType), 
-                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1h', limit: 200 }, marketType), 
-                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '15m', limit: 200 }, marketType), 
+                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 1000 }, marketType), 
+                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1h', limit: 500 }, marketType), 
+                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '15m', limit: 500 }, marketType), 
                 fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType),
-                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 30 }, marketType),
-                fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 30 }, 'spot'),
+                fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 500 }, marketType),
+                fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 500 }, 'spot'),
                 fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
                 fetch('https://api.coingecko.com/api/v3/global').then(res => res.json()),
                 
@@ -2961,17 +3032,28 @@
             }
 
         const results = await Promise.allSettled(promisesToRun);
-    // ======================= 
-        const klines = results[0].status === 'fulfilled' ? results[0].value : null;
-        const klines1h = results[1].status === 'fulfilled' ? results[1].value : null;
-        const klines15m = results[2].status === 'fulfilled' ? results[2].value : null;
+        // ======================= 
+
+        // Ambil data mentah terlebih dahulu
+        const rawKlines = results[0].status === 'fulfilled' ? results[0].value : null;
+        const rawKlines1h = results[1].status === 'fulfilled' ? results[1].value : null;
+        const rawKlines15m = results[2].status === 'fulfilled' ? results[2].value : null;
+
+        // Cek apakah data yang diterima cukup
+        if (!rawKlines || rawKlines.length < 550) { 
+            throw new Error(`Data historis tidak cukup untuk pemanasan (hanya ${rawKlines?.length} candle). Coba timeframe lebih tinggi atau aset lain.`);
+        }
+
+        // POTONG DATA DI SINI! Ambil 500 candle terakhir untuk diolah
+        const klines = rawKlines.slice(-500);
+        const klines1h = rawKlines1h ? rawKlines1h.slice(-200) : null;
+        const klines15m = rawKlines15m ? rawKlines15m.slice(-200) : null;
         const tickerData = results[3].status === 'fulfilled' ? results[3].value : null;
         const assetDailyKlines = results[4].status === 'fulfilled' ? results[4].value : null;
         // ---> TAMBAHKAN KODE DI BAWAH INI <---
         //console.warn("--- DEBUGGING DATA PIVOT ---");
         if (assetDailyKlines && assetDailyKlines.length >= 2) {
-            //console.log("Status: BERHASIL. Data harian cukup.", assetDailyKlines);
-            //console.log("Data 'prevDayKline' yang akan digunakan:", assetDailyKlines[assetDailyKlines.length - 2]);
+            
         } else {
             //console.error("Status: GAGAL. Data harian tidak cukup atau gagal diambil.", assetDailyKlines);
         }
@@ -3180,6 +3262,43 @@
         }
     }
 // ===========end of async function runFullAnalysis(symbol = null) {====================================================================================================
+
+function detectMarketRegime(klines, bbData, adxData) {
+    const closes = klines.map(k => parseFloat(k[4]));
+    const lastPrice = closes[closes.length - 1];
+    const ema50 = calculateEMA(closes, 50).pop();
+    const ema200 = calculateEMA(closes, 200).pop();
+
+    // --- Prioritas 1: Deteksi Volatilitas Rendah (Squeeze) ---
+    if (bbData && bbData.width && bbData.width.length > 100) {
+        const recentWidths = bbData.width.slice(-100); // Analisis 100 periode terakhir
+        const currentWidth = recentWidths[recentWidths.length - 1];
+        const averageWidth = recentWidths.reduce((a, b) => a + b, 0) / recentWidths.length;
+        
+        // Jika lebar BB saat ini berada di 20% terendah dalam 100 periode, anggap Squeeze
+        const sortedWidths = [...recentWidths].sort((a, b) => a - b);
+        const threshold = sortedWidths[Math.floor(sortedWidths.length * 0.20)]; 
+
+        if (currentWidth < threshold) {
+            return 'lowVolatility'; // Pasar sedang terkompresi, bersiap untuk breakout.
+        }
+    }
+
+    // --- Prioritas 2: Deteksi Tren Kuat ---
+    const adxValue = parseFloat(adxData.adx);
+    if (adxValue > 25) { // ADX menunjukkan adanya tren kuat
+        if (lastPrice > ema50 && ema50 > ema200) {
+            return 'bullTrend'; // Tren naik yang kuat.
+        }
+        if (lastPrice < ema50 && ema50 < ema200) {
+            return 'bearTrend'; // Tren turun yang kuat.
+        }
+    }
+
+    // --- Fallback: Pasar Ranging / Chop ---
+    return 'ranging'; // Jika tidak ada kondisi di atas yang terpenuhi.
+}
+
 // ===================================================================================================================================================================================================================================================================================
     async function getConfluenceScoreForSymbol(symbol) {
         try {
@@ -3536,8 +3655,9 @@
         if (!data) return;
 
         let contributors = [];
+        const indicatorsToInclude = ['vwap', 'pivot', 'ichimoku', 'macd', 'rsiDivergence', 'obvDivergence'];
     
-        for (const indicator in userSettings.active.weights) {
+        for (const indicator of indicatorsToInclude) {
             if (data[indicator]) {
                 const score = getUltimateSignalScore(indicator, data[indicator]);
                 if (score !== 0) {
