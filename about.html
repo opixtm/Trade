@@ -3,43 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosha Trading Dashboard</title>
+    <title>Mosha Playbook Dashboard</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    
     <style>
-        /* Gaya dasar untuk dark mode dan card */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #000000;
-            color: #E0E0E0;
-        }
-        .card {
-            background-color: #151414;
-            border: 1px solid #333;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
-        .btn-primary {
-            background-color: #f59e0b;
-            color: #1f2937;
-            font-weight: 600;
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.3s;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #E0E0E0; }
+        .card { background-color: #151414; border: 1px solid #333; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+        .btn-primary { background-color: #f59e0b; color: #1f2937; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background-color 0.3s; }
         .btn-primary:hover { background-color: #d97706; }
         .btn-primary:disabled { background-color: #333; cursor: not-allowed; }
-        .input-primary {
-            background-color: #1c1b1b;
-            border: 1px solid #444;
-            color: #E0E0E0;
-            padding: 0.625rem 1rem;
-            width: 100%;
-            border-radius: 0.5rem;
-        }
+        .input-primary { background-color: #1c1b1b; border: 1px solid #444; color: #E0E0E0; padding: 0.625rem 1rem; width: 100%; border-radius: 0.5rem; }
         .positive { color: #4ade80; }
         .negative { color: #f87171; }
         .tag { padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
@@ -47,8 +20,6 @@
         .tag-red { background-color: rgba(168, 58, 58, 0.2); color: #d17474; }
         .tag-yellow { background-color: rgba(181, 132, 15, 0.2); color: #e0c273; }
         .tag-gray { background-color: rgba(95, 99, 104, 0.2); color: #9aa0a6; }
-        
-        /* Gaya loader dan animasi */
         .loader { display: flex; justify-content: center; align-items: center; gap: 8px; }
         .dot { width: 14px; height: 14px; background-color: #e1e1e1; border-radius: 50%; animation: bounce 1.0s infinite ease-in-out both; }
         .dot:nth-child(1) { animation-delay: -0.32s; }
@@ -56,19 +27,18 @@
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.5); } }
         .blinking-text-animation { animation: blinking-text 1.0s infinite; }
         @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-
-        /* Gaya Khusus untuk dashboard */
-        .collapsible-content { grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease-in-out; }
-        .collapsible-content.expanded { grid-template-rows: 1fr; }
-        .collapsible-content > div { overflow: hidden; }
-        .confluence-bar-container { background-color: #374151; border-radius: 0.5rem; overflow: hidden; height: 30px; display: flex; }
-        .confluence-bar-bullish { background: linear-gradient(to right, #22c55e, #86efac); }
-        .confluence-bar-bearish { background: linear-gradient(to right, #ef4444, #fca5a5); }
-        .confluence-bar { height: 100%; transition: width 0.5s ease-out; }
-        .status-uptrend { color: #34d399; }
-        .status-downtrend { color: #ef4444; }
-        .status-chop { color: #fbbf24; }
-        .btn-secondary { background-color: #4b5563; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; }
+        .status-container { display: flex; flex-direction: column; gap: 0.5rem; }
+        .status-item { padding: 0.75rem; border-radius: 0.5rem; font-weight: 600; }
+        .status-waiting { background-color: #333; color: #999; }
+        .status-found { background-color: #166534; color: #dcfce7; }
+        .status-valid { background-color: #1d4ed8; color: #dbeafe; }
+        .status-entry { background-color: #854d0e; color: #fef9c3; }
+        .status-final { background-color: #2563eb; color: #dbeafe; }
+        .log-panel { background-color: #1c1b1b; border: 1px solid #444; border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; font-family: monospace; font-size: 0.875rem; max-height: 400px; overflow-y: auto; }
+        .log-item { margin-bottom: 0.5rem; color: #9aa0a6; }
+        .log-item.info { color: #dbeafe; }
+        .log-item.success { color: #69b37f; }
+        .log-item.error { color: #d17474; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
@@ -76,21 +46,22 @@
     <div class="container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-yellow-500">Mosha Playbook Dashboard</h1>
-            <p class="text-sm text-gray-400 mt-2">Analisis teknikal real-time untuk keputusan trading yang lebih presisi.</p>
+            <p class="text-sm text-gray-400 mt-2">100% Implementasi Penuh Logika PDF</p>
         </header>
 
         <section class="card p-4 md:p-6 mb-6">
             <div class="flex flex-col md:flex-row gap-4">
                 <input type="text" id="asset-input" class="input-primary uppercase flex-grow" placeholder="Contoh: BTCUSDT" value="BTCUSDT">
                 <select id="timeframe-select" class="input-primary !w-auto">
-                    <option value="5m">5m</option>
-                    <option value="15m" selected>15m</option>
-                    <option value="1h">1h</option>
-                    <option value="4h">4h</option>
-                    <option value="1d">1d</option>
+                    <option value="1d">Daily (Father)</option>
+                    <option value="4h">H4 (Mother)</option>
+                    <option value="1h" selected>H1 (Baby)</option>
+                    <option value="30m">M30</option>
+                    <option value="15m">M15</option>
+                    <option value="5m">M5</option>
                 </select>
                 <button id="analyze-btn" class="btn-primary">
-                    <span id="btn-text">MULAI ANALISIS</span>
+                    <span id="btn-text">JALANKAN ANALISIS</span>
                     <div id="btn-loader" class="loader hidden">
                         <div class="dot"></div>
                         <div class="dot"></div>
@@ -101,99 +72,60 @@
             <p id="asset-error" class="text-red-500 text-sm mt-2 hidden"></p>
         </section>
 
-        <section id="quick-confluence-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Konfluensi Pasar: <span id="symbol-display">BTCUSDT</span></h2>
-            <div class="flex items-center gap-4 my-4">
-                <div id="bearish-score" class="text-2xl font-bold negative w-1/5 text-right">0% 🐻</div>
-                <div class="confluence-bar-container w-3/5">
-                    <div id="bearish-bar" class="confluence-bar confluence-bar-bearish" style="width: 50%;"></div>
-                    <div id="bullish-bar" class="confluence-bar confluence-bar-bullish" style="width: 50%;"></div>
-                </div>
-                <div id="bullish-score" class="text-2xl font-bold positive w-1/5 text-left">0% 🐂</div>
+        <section id="analysis-results-card" class="card p-4 md:p-6 mb-6 hidden">
+            <h2 class="text-lg font-bold text-center mb-4">Analisis Pasar</h2>
+            <div class="text-center mb-4">
+                <p class="text-sm text-gray-400">Storyline Pasar (HTF):</p>
+                <p id="storyline" class="text-2xl font-bold mt-1">---</p>
+                <p class="text-sm text-gray-400 mt-2">Fase Market Cycle:</p>
+                <p id="market-phase" class="text-xl font-bold mt-1">---</p>
             </div>
-            <p id="final-verdict" class="text-center font-semibold text-xl">Menunggu data...</p>
+            
+            <div class="border-t border-gray-700 pt-4 mt-4">
+                <h3 class="font-bold text-yellow-400 mb-2">Langkah-langkah SOP</h3>
+                <div class="status-container" id="sop-status-container">
+                    <div class="status-item status-waiting">1. Breakout (BO): Menganalisis pergerakan harga.</div>
+                    <div class="status-item status-waiting">2. Valid Retracement (VR): Mencari koreksi yang valid.</div>
+                    <div class="status-item status-waiting">3. Confirmation (CF): Menunggu sinyal konfirmasi entri.</div>
+                </div>
+            </div>
         </section>
         
-        <section id="mosha-sop-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Langkah-langkah SOP Mosha</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div class="p-4 bg-gray-800 rounded-lg">
-                    <h3 class="font-semibold text-yellow-400">1. Breakout (BO)</h3>
-                    <p class="text-sm mt-2" id="bo-status">Menganalisis pergerakan harga.</p>
-                </div>
-                <div class="p-4 bg-gray-800 rounded-lg">
-                    <h3 class="font-semibold text-blue-400">2. Valid Retracement (VR)</h3>
-                    <p class="text-sm mt-2" id="vr-status">Mencari koreksi yang valid.</p>
-                </div>
-                <div class="p-4 bg-gray-800 rounded-lg">
-                    <h3 class="font-semibold text-green-400">3. Confirmation (CF)</h3>
-                    <p class="text-sm mt-2" id="cf-status">Menunggu sinyal konfirmasi entri.</p>
-                </div>
-            </div>
-        </section>
-
         <section id="setup-summary-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Setup Trading Terkini</h2>
+            <h2 class="text-lg font-bold text-center mb-4">Detail Setup Trading</h2>
             <div class="grid grid-cols-2 gap-4 text-center">
                 <div>
                     <p class="text-sm text-gray-400">Saran Posisi</p>
-                    <p class="text-xl font-bold mt-1" id="trading-bias">Netral</p>
+                    <p class="text-xl font-bold mt-1" id="trading-bias">---</p>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-400">Alasan Utama</p>
-                    <p class="text-sm mt-1" id="trading-reason">Menunggu konfluensi.</p>
+                    <p class="text-sm text-gray-400">Lokasi Entri Terbaik</p>
+                    <p class="text-sm mt-1" id="trading-reason">---</p>
                 </div>
             </div>
             <div class="mt-4 pt-4 border-t border-gray-700">
                 <p class="text-sm text-gray-400 text-center">Area Kunci:</p>
-                <div class="grid grid-cols-2 gap-2 mt-2">
+                <div class="grid grid-cols-3 gap-2 mt-2">
                     <div class="text-center">
                         <p class="text-xs text-gray-500">Harga Entri</p>
                         <p class="font-mono" id="entry-price">--</p>
                     </div>
                     <div class="text-center">
-                        <p class="text-xs text-gray-500">Stop Loss</p>
+                        <p class="text-xs text-gray-500">Stop Loss (15 pips)</p>
                         <p class="font-mono" id="stop-loss">--</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Take Profit (VR)</p>
+                        <p class="font-mono" id="take-profit">--</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="trading-tools-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Kalkulator & Simulasi</h2>
-            <div class="space-y-4">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <div class="flex-grow">
-                        <label class="text-sm text-gray-400">Modal ($)</label>
-                        <input type="number" id="capital-input" class="input-primary mt-1" value="1000">
-                    </div>
-                    <div class="flex-grow">
-                        <label class="text-sm text-gray-400">Harga Entry ($)</label>
-                        <input type="number" id="entry-input" class="input-primary mt-1" placeholder="Harga pasar">
-                    </div>
-                    <div class="flex-grow">
-                        <label class="text-sm text-gray-400">Leverage</label>
-                        <input type="number" id="leverage-input" class="input-primary mt-1" value="20">
-                    </div>
-                </div>
-                <div class="flex gap-4">
-                    <button id="long-btn" class="btn-primary flex-grow bg-green-500 hover:bg-green-600">Buy / Long</button>
-                    <button id="short-btn" class="btn-primary flex-grow bg-red-500 hover:bg-red-600">Sell / Short</button>
-                </div>
-                <div class="mt-4 pt-4 border-t border-gray-700">
-                    <h3 class="text-center font-semibold text-lg">Simulasi Akun</h3>
-                    <div class="grid grid-cols-2 gap-2 mt-2 text-center">
-                        <div>
-                            <p class="text-sm text-gray-500">Equity</p>
-                            <p class="font-mono text-xl" id="sim-equity">$1,000.00</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Unrealized PNL</p>
-                            <p class="font-mono text-xl" id="sim-pnl">$0.00</p>
-                        </div>
-                    </div>
-                </div>
-                <button id="reset-sim-btn" class="btn-secondary w-full mt-4">Reset Simulasi</button>
+        <section id="analysis-log-card" class="card p-4 md:p-6 mb-6 hidden">
+            <h2 class="text-lg font-bold text-center mb-4">Log Analisis</h2>
+            <div class="log-panel" id="log-panel">
+                <div class="log-item info">Log akan muncul di sini.</div>
             </div>
         </section>
         
@@ -201,286 +133,288 @@
     </div>
 
     <script>
-        // Deklarasi Elemen DOM
         const assetInput = document.getElementById('asset-input');
         const timeframeSelect = document.getElementById('timeframe-select');
         const analyzeBtn = document.getElementById('analyze-btn');
         const btnText = document.getElementById('btn-text');
         const btnLoader = document.getElementById('btn-loader');
-        const assetError = document.getElementById('asset-error');
-        const quickConfluenceCard = document.getElementById('quick-confluence-card');
-        const moshaSopCard = document.getElementById('mosha-sop-card');
+        const analysisResultsCard = document.getElementById('analysis-results-card');
         const setupSummaryCard = document.getElementById('setup-summary-card');
-        const tradingToolsCard = document.getElementById('trading-tools-card');
-        
-        // Elemen Dashboard
-        const symbolDisplay = document.getElementById('symbol-display');
-        const bullishScore = document.getElementById('bullish-score');
-        const bearishScore = document.getElementById('bearish-score');
-        const bullishBar = document.getElementById('bullish-bar');
-        const bearishBar = document.getElementById('bearish-bar');
-        const finalVerdict = document.getElementById('final-verdict');
-        const boStatus = document.getElementById('bo-status');
-        const vrStatus = document.getElementById('vr-status');
-        const cfStatus = document.getElementById('cf-status');
-        const tradingBias = document.getElementById('trading-bias');
-        const tradingReason = document.getElementById('trading-reason');
+        const storylineEl = document.getElementById('storyline');
+        const marketPhaseEl = document.getElementById('market-phase');
+        const sopStatusContainer = document.getElementById('sop-status-container');
+        const tradingBiasEl = document.getElementById('trading-bias');
+        const tradingReasonEl = document.getElementById('trading-reason');
         const entryPriceEl = document.getElementById('entry-price');
         const stopLossEl = document.getElementById('stop-loss');
-        const simEquity = document.getElementById('sim-equity');
-        const simPnl = document.getElementById('sim-pnl');
-        const capitalInput = document.getElementById('capital-input');
-        const entryInput = document.getElementById('entry-input');
-        const leverageInput = document.getElementById('leverage-input');
-        const longBtn = document.getElementById('long-btn');
-        const shortBtn = document.getElementById('short-btn');
-        const resetSimBtn = document.getElementById('reset-sim-btn');
-
-        // State Aplikasi
-        let klinesCache = {};
-        let realtimePrice = 0;
-        let ws = null;
-        let currentPosition = null;
-        let simCapital = 1000;
+        const takeProfitEl = document.getElementById('take-profit');
+        const logPanel = document.getElementById('log-panel');
+        const analysisLogCard = document.getElementById('analysis-log-card');
         
-        // Objek Trading Playbook
-        const playbook = {
-            // Formula dan logika analisis
-            calculateRSI: (closes, period = 14) => {
-                let gains = [], losses = [];
-                for (let i = 1; i < closes.length; i++) {
-                    const diff = closes[i] - closes[i - 1];
-                    gains.push(diff > 0 ? diff : 0);
-                    losses.push(diff < 0 ? -diff : 0);
-                }
-                let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
-                let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
-                if (avgLoss === 0) return 100;
-                return 100 - (100 / (1 + (avgGain / avgLoss)));
-            },
-            calculateMACD: (closes, fast = 12, slow = 26, signal = 9) => {
-                const EMA = (data, period) => {
-                    const k = 2 / (period + 1);
-                    let ema = [data[0]];
-                    for (let i = 1; i < data.length; i++) {
-                        ema.push(data[i] * k + ema[i-1] * (1-k));
-                    }
-                    return ema;
-                };
-                const emaFast = EMA(closes, fast);
-                const emaSlow = EMA(closes, slow);
-                const macdLine = emaFast.map((v, i) => v - emaSlow[i]);
-                const signalLine = EMA(macdLine.slice(slow), signal);
-                const lastMacd = macdLine[macdLine.length-1];
-                const lastSignal = signalLine[signalLine.length-1];
-                if (lastMacd > lastSignal) return 'Bullish';
-                if (lastMacd < lastSignal) return 'Bearish';
-                return 'Netral';
-            },
-            findBreakout: (klines) => {
-                const closes = klines.map(k => parseFloat(k[4]));
-                const lastClose = closes[closes.length-1];
-                const prevClose = closes[closes.length-2];
-                const high = Math.max(...closes.slice(-10));
-                const low = Math.min(...closes.slice(-10));
-                if (lastClose > high) return 'Bullish Breakout';
-                if (lastClose < low) return 'Bearish Breakout';
-                return 'No Breakout';
-            },
-            findVR: (klines) => {
-                const bo = playbook.findBreakout(klines);
-                if (bo.includes('Bullish')) return 'Bearish Retracement';
-                if (bo.includes('Bearish')) return 'Bullish Retracement';
-                return 'No Retracement';
-            },
-            findCF: (klines, vr) => {
-                const bo = playbook.findBreakout(klines);
-                if (bo.includes('Bullish') && vr.includes('Bearish')) return 'Bullish Confirmation';
-                if (bo.includes('Bearish') && vr.includes('Bullish')) return 'Bearish Confirmation';
-                return 'No Confirmation';
-            }
-        };
+        const TIMEFRAME_ORDER = ['1d', '4h', '1h', '30m', '15m', '5m', '1m'];
+        const PIP_VALUES = { '1d': 0.0001, '4h': 0.0001, '1h': 0.0001, '30m': 0.0001, '15m': 0.0001, '5m': 0.0001, '1m': 0.0001 };
+        
+        function logToPage(message, type = 'info') {
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type}`;
+            logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logPanel.appendChild(logItem);
+            logPanel.scrollTop = logPanel.scrollHeight;
+        }
 
-        // Fungsi fetch data dari Binance
-        async function fetchKlines(symbol, timeframe) {
-            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=200`;
+        async function fetchKlines(symbol, interval, limit =1000) {
+            logToPage(`Mengambil data klines untuk ${symbol} di timeframe ${interval}...`, 'info');
+            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error('Gagal mengambil data klines.');
+                if (!response.ok) throw new Error(`Gagal mengambil data untuk ${symbol} di ${interval}.`);
                 const data = await response.json();
-                return data.map(d => parseFloat(d[4]));
+                logToPage(`Data klines ${interval} diterima. Jumlah candle: ${data.length}`, 'success');
+                return data;
             } catch (error) {
-                showError(error.message);
+                logToPage(`ERROR: ${error.message}`, 'error');
                 return [];
             }
         }
-        
-        // Fungsi WebSocket untuk harga real-time
-        function connectWebSocket(symbol) {
-            if (ws) ws.close();
-            const wsUrl = `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@trade`;
-            ws = new WebSocket(wsUrl);
-            ws.onmessage = (event) => {
-                const trade = JSON.parse(event.data);
-                realtimePrice = parseFloat(trade.p);
-                // Update UI harga real-time
-                document.getElementById('entry-input').value = realtimePrice.toFixed(2);
-                updateSimulasi();
-            };
+
+        // Fungsi untuk mendeteksi BO, termasuk BO Normal dan BO Structure (W/M-pattern)
+        function findBreakout(klines, typeToFind = 'any') {
+            if (klines.length < 20) return { status: 'NO_BREAKOUT', type: 'N/A', level: 0 };
+            const highs = klines.map(k => parseFloat(k[2]));
+            const lows = klines.map(k => parseFloat(k[3]));
+            const lastCandleClose = parseFloat(klines[klines.length - 1][4]);
+            
+            // Logika untuk BO Structure (W/M-pattern)
+            const recentHighs = highs.slice(-5, -1);
+            const recentLows = lows.slice(-5, -1);
+            const peakHigh = Math.max(...recentHighs);
+            const valleyLow = Math.min(...recentLows);
+            
+            const isBullishStructure = lastCandleClose > peakHigh;
+            const isBearishStructure = lastCandleClose < valleyLow;
+            
+            if (isBullishStructure && (typeToFind === 'BULLISH' || typeToFind === 'any')) {
+                logToPage("BO Structure (W-pattern) BUY ditemukan.", 'success');
+                return { status: 'BREAKOUT', type: 'BULLISH', level: peakHigh };
+            }
+            if (isBearishStructure && (typeToFind === 'BEARISH' || typeToFind === 'any')) {
+                logToPage("BO Structure (M-pattern) SELL ditemukan.", 'success');
+                return { status: 'BREAKOUT', type: 'BEARISH', level: valleyLow };
+            }
+            
+            // Logika untuk BO Normal
+            const highLevel = Math.max(...highs.slice(-10, -1));
+            const lowLevel = Math.min(...lows.slice(-10, -1));
+            
+            const isBuyBreakout = lastCandleClose > highLevel;
+            const isSellBreakout = lastCandleClose < lowLevel;
+            
+            if (isBuyBreakout && (typeToFind === 'BULLISH' || typeToFind === 'any')) {
+                logToPage("BO Normal BUY ditemukan.", 'success');
+                return { status: 'BREAKOUT', type: 'BULLISH', level: highLevel };
+            }
+            if (isSellBreakout && (typeToFind === 'BEARISH' || typeToFind === 'any')) {
+                logToPage("BO Normal SELL ditemukan.", 'success');
+                return { status: 'BREAKOUT', type: 'BEARISH', level: lowLevel };
+            }
+            
+            logToPage("Tidak ada Breakout yang valid ditemukan.", 'info');
+            return { status: 'NO_BREAKOUT', type: 'N/A', level: 0 };
         }
 
-        // Fungsi analisis dan update UI
-        async function analyzeAndRender() {
+        function getNextTimeframe(currentTF) {
+            const index = TIMEFRAME_ORDER.indexOf(currentTF);
+            return TIMEFRAME_ORDER[index + 1] || null;
+        }
+
+        function addSOPStatus(message, type) {
+            const statusEl = document.createElement('div');
+            statusEl.className = `status-item ${type}`;
+            statusEl.textContent = message;
+            sopStatusContainer.appendChild(statusEl);
+        }
+
+        async function runMoshaSOP(symbol, mainTimeframe) {
+            // Reset UI
+            analyzeBtn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+            analysisResultsCard.classList.remove('hidden');
+            setupSummaryCard.classList.remove('hidden');
+            analysisLogCard.classList.remove('hidden');
+            sopStatusContainer.innerHTML = '';
+            logPanel.innerHTML = '<div class="log-item info">Log akan muncul di sini.</div>';
+
+            // Fase 1: Validasi Storyline dan BO Utama
+            addSOPStatus("1. Mencari Storyline Pasar (HTF)...", 'status-waiting blinking-text-animation');
+            logToPage("--- Memulai Analisis SOP ---", 'info');
+            const mainTFIndex = TIMEFRAME_ORDER.indexOf(mainTimeframe);
+            const htf = TIMEFRAME_ORDER[mainTFIndex - 2] || TIMEFRAME_ORDER[0];
+            const htfKlines = await fetchKlines(symbol, htf);
+            const htfBO = findBreakout(htfKlines);
+            const storyline = htfBO.type === 'BULLISH' ? 'UPTREND (BUY)' : (htfBO.type === 'BEARISH' ? 'DOWNTREND (SELL)' : 'SIDEWAYS');
+            storylineEl.textContent = storyline;
+            storylineEl.className = `text-2xl font-bold mt-1 ${htfBO.type === 'BULLISH' ? 'positive' : (htfBO.type === 'BEARISH' ? 'negative' : 'text-gray-400')}`;
+            logToPage(`Storyline Pasar Ditemukan: ${storyline}`, 'success');
+
+            addSOPStatus(`2. Memulai SOP dengan BO di ${mainTimeframe}...`, 'status-waiting blinking-text-animation');
+            const boKlines = await fetchKlines(symbol, mainTimeframe);
+            const boResult = findBreakout(boKlines, htfBO.type);
+            
+            if (boResult.status !== 'BREAKOUT') {
+                addSOPStatus(`⚠️ Tidak ada BO yang selaras dengan tren HTF. Analisis dihentikan.`, 'status-waiting');
+                updateUIForNoSetup(storyline);
+                logToPage("Analisis dihentikan: BO tidak selaras dengan tren HTF.", 'error');
+                return;
+            }
+            addSOPStatus(`✅ BO Ditemukan di ${mainTimeframe}: ${boResult.type}`, 'status-found');
+            logToPage(`BO utama ditemukan: ${boResult.type} di level ${boResult.level}`, 'success');
+
+            // Fase 2: Deteksi VR dan CF
+            const vrTimeframe = getNextTimeframe(mainTimeframe);
+            addSOPStatus(`3. Mencari VR di ${vrTimeframe}...`, 'status-waiting blinking-text-animation');
+            const vrKlines = await fetchKlines(symbol, vrTimeframe);
+            const vrResult = findBreakout(vrKlines, boResult.type === 'BULLISH' ? 'BEARISH' : 'BULLISH');
+            
+            if (vrResult.status !== 'BREAKOUT') {
+                addSOPStatus(`⚠️ VR tidak valid atau belum terbentuk. Ini adalah Fase 1 (Continuation).`, 'status-waiting');
+                updateUIForNoSetup(storyline, 'Fase 1 - Continuation (Menunggu)');
+                logToPage("Analisis dihentikan: Tidak ada VR, ini Fase 1.", 'error');
+                return;
+            }
+            addSOPStatus(`✅ VR Ditemukan di ${vrTimeframe}: ${vrResult.type}`, 'status-valid');
+            logToPage(`VR ditemukan: ${vrResult.type} di level ${vrResult.level}`, 'success');
+
+            const cfTimeframe = vrTimeframe;
+            addSOPStatus(`4. Mencari CF di ${cfTimeframe}...`, 'status-waiting blinking-text-animation');
+            const cfKlines = await fetchKlines(symbol, cfTimeframe);
+            const cfResult = findBreakout(cfKlines, boResult.type);
+
+            if (cfResult.status !== 'BREAKOUT') {
+                addSOPStatus(`⚠️ CF belum terbentuk. Ini adalah Fase 2 (High Risk Setup).`, 'status-waiting');
+                updateUIForHighRiskSetup(storyline, boResult, vrResult);
+                logToPage("Analisis dihentikan: Tidak ada CF, ini Fase 2.", 'error');
+                return;
+            }
+            addSOPStatus(`✅ CF Ditemukan di ${cfTimeframe}: ${cfResult.type}`, 'status-entry');
+            logToPage(`CF ditemukan: ${cfResult.type} di level ${cfResult.level}`, 'success');
+            
+            // Fase 3: SOP Berulang (Pullback Entry)
+            let finalCFResult = cfResult;
+            let currentTF = cfTimeframe;
+            let currentVR = vrResult;
+            let isFinalSetupFound = false;
+
+            while (true) {
+                const nextTF = getNextTimeframe(currentTF);
+                if (!nextTF) { 
+                    isFinalSetupFound = true; 
+                    logToPage(`Mencapai timeframe terkecil (${currentTF}). SOP berulang selesai.`, 'success');
+                    break; 
+                }
+                
+                addSOPStatus(`"Zona Besar", mengulangi SOP di ${nextTF}...`, 'status-waiting blinking-text-animation');
+                logToPage(`Memulai SOP berulang untuk menemukan pullback di ${nextTF}`, 'info');
+                
+                const nextVRKlines = await fetchKlines(symbol, nextTF);
+                const nextVRResult = findBreakout(nextVRKlines, finalCFResult.type === 'BULLISH' ? 'BEARISH' : 'BULLISH');
+                
+                if (nextVRResult.status === 'BREAKOUT') {
+                    addSOPStatus(`🚨 Oops, ada VR di ${nextTF}. Tunggu CF di ${nextTF}.`, 'status-waiting');
+                    logToPage(`VR ditemukan di ${nextTF}. Mencari CF...`, 'info');
+                    const nextCFKlines = await fetchKlines(symbol, nextTF);
+                    const nextCFResult = findBreakout(nextCFKlines, finalCFResult.type);
+                    
+                    if (nextCFResult.status === 'BREAKOUT') {
+                        currentVR = nextVRResult;
+                        finalCFResult = nextCFResult;
+                        currentTF = nextTF;
+                        addSOPStatus(`✅ Siklus baru ditemukan di ${currentTF}.`, 'status-valid');
+                        logToPage(`Siklus lengkap ditemukan di ${currentTF}. Melanjutkan pencarian...`, 'success');
+                    } else {
+                        addSOPStatus(`⚠️ CF di ${nextTF} belum terbentuk. Analisis final.`, 'status-final');
+                        isFinalSetupFound = true;
+                        logToPage(`CF tidak ditemukan di ${nextTF}. Ini adalah titik entri terakhir.`, 'info');
+                        break; 
+                    }
+                } else {
+                    addSOPStatus(`✅ Tidak ada siklus kecil lagi. Setup valid.`, 'status-final');
+                    isFinalSetupFound = true;
+                    logToPage("Tidak ada siklus kecil yang ditemukan. Analisis final.", 'success');
+                    break;
+                }
+            }
+            
+            if (isFinalSetupFound) {
+                updateUIForCompleteSetup(storyline, boResult, currentVR, finalCFResult, currentTF);
+            }
+        }
+
+        function updateUI(show) {
+            analysisResultsCard.classList.toggle('hidden', !show);
+            setupSummaryCard.classList.toggle('hidden', !show);
+            analysisLogCard.classList.toggle('hidden', !show);
+            analyzeBtn.disabled = !show;
+            btnText.classList.remove('hidden');
+            btnLoader.classList.add('hidden');
+        }
+
+        function updateUIForNoSetup(storyline, phase = 'Fase 1 - Continuation (Menunggu)') {
+            updateUI(true);
+            tradingBiasEl.textContent = 'Menunggu Setup';
+            tradingBiasEl.className = 'text-xl font-bold mt-1 text-gray-400';
+            tradingReasonEl.textContent = `Tidak ada setup ${storyline} yang valid. Tunggu konfirmasi.`;
+            marketPhaseEl.textContent = phase;
+            marketPhaseEl.className = 'text-xl font-bold mt-1 text-gray-400';
+            entryPriceEl.textContent = '--';
+            stopLossEl.textContent = '--';
+            takeProfitEl.textContent = '--';
+            btnText.classList.remove('hidden');
+            btnLoader.classList.add('hidden');
+            analyzeBtn.disabled = false;
+        }
+        
+        function updateUIForHighRiskSetup(storyline, bo, vr) {
+            updateUI(true);
+            const direction = vr.type === 'BULLISH' ? 'Buy / Long' : 'Sell / Short';
+            tradingBiasEl.textContent = direction;
+            tradingBiasEl.className = `text-xl font-bold mt-1 ${vr.type === 'BULLISH' ? 'positive' : 'negative'}`;
+            tradingReasonEl.textContent = `⚠️ Setup VR (High Risk). Tunggu CF.`;
+            marketPhaseEl.textContent = 'Fase 2 - Retracement (High Risk)';
+            marketPhaseEl.className = 'text-xl font-bold mt-1 negative';
+            entryPriceEl.textContent = '$' + vr.level.toFixed(4);
+            stopLossEl.textContent = '--';
+            takeProfitEl.textContent = '$' + bo.level.toFixed(4);
+            btnText.classList.remove('hidden');
+            btnLoader.classList.add('hidden');
+            analyzeBtn.disabled = false;
+        }
+
+        function updateUIForCompleteSetup(storyline, bo, vr, cf, finalTimeframe) {
+            updateUI(true);
+            const direction = bo.type === 'BULLISH' ? 'Buy / Long' : 'Sell / Short';
+            tradingBiasEl.textContent = direction;
+            tradingBiasEl.className = `text-xl font-bold mt-1 ${bo.type === 'BULLISH' ? 'positive' : 'negative'}`;
+            tradingReasonEl.textContent = `SOP Lengkap! Fase 3 (Best Conti) di ${finalTimeframe}.`;
+            marketPhaseEl.textContent = 'Fase 3 - Continuation (Best Setup)';
+            marketPhaseEl.className = 'text-xl font-bold mt-1 positive';
+            
+            const assetPips = PIP_VALUES[finalTimeframe] || 0.0001; 
+            const slLevel = bo.type === 'BULLISH' ? cf.level - (15 * assetPips) : cf.level + (15 * assetPips);
+            
+            entryPriceEl.textContent = '$' + cf.level.toFixed(4);
+            stopLossEl.textContent = '$' + slLevel.toFixed(4);
+            takeProfitEl.textContent = '$' + vr.level.toFixed(4);
+            btnText.classList.remove('hidden');
+            btnLoader.classList.add('hidden');
+            analyzeBtn.disabled = false;
+        }
+
+        analyzeBtn.addEventListener('click', () => {
             const symbol = assetInput.value.toUpperCase();
             const timeframe = timeframeSelect.value;
-            symbolDisplay.textContent = symbol;
-            
-            showLoader(true);
-            
-            const closes = await fetchKlines(symbol, timeframe);
-            if (closes.length === 0) {
-                showLoader(false);
-                return;
-            }
-            klinesCache.closes = closes;
-            connectWebSocket(symbol);
-
-            const rsi = playbook.calculateRSI(closes);
-            const macd = playbook.calculateMACD(closes);
-            const bo = playbook.findBreakout(closes.map(c => [0,0,0,0,c]));
-
-            // Update status SOP
-            boStatus.textContent = bo;
-            vrStatus.textContent = playbook.findVR(closes.map(c => [0,0,0,0,c]));
-            cfStatus.textContent = playbook.findCF(closes.map(c => [0,0,0,0,c]), vrStatus.textContent);
-
-            // Update Konfluensi
-            let bullScore = 0, bearScore = 0;
-            if (rsi < 30) bullScore += 3;
-            if (macd === 'Bullish') bullScore += 2;
-            if (bo === 'Bullish Breakout') bullScore += 5;
-            if (rsi > 70) bearScore += 3;
-            if (macd === 'Bearish') bearScore += 2;
-            if (bo === 'Bearish Breakout') bearScore += 5;
-
-            bullishScore.textContent = `${(bullScore/10*100).toFixed(0)}% 🐂`;
-            bearishScore.textContent = `${(bearScore/10*100).toFixed(0)}% 🐻`;
-            bullishBar.style.width = `${(bullScore/10*100)}%`;
-            bearishBar.style.width = `${(bearScore/10*100)}%`;
-
-            let verdict = "NETRAL";
-            if (bullScore > bearScore) verdict = "BULLISH";
-            if (bearScore > bullScore) verdict = "BEARISH";
-            finalVerdict.textContent = verdict;
-
-            // Update Setup Trading
-            if (verdict.includes('BULLISH')) {
-                tradingBias.textContent = 'Buy / Long';
-                tradingBias.className = 'text-green-500 font-bold mt-1';
-                tradingReason.textContent = `Konfluensi Bullish kuat dari BO, RSI, dan MACD.`;
-                entryPriceEl.textContent = realtimePrice ? realtimePrice.toFixed(2) : '--';
-                stopLossEl.textContent = (realtimePrice * 0.98).toFixed(2); // Contoh SL 2%
-            } else if (verdict.includes('BEARISH')) {
-                tradingBias.textContent = 'Sell / Short';
-                tradingBias.className = 'text-red-500 font-bold mt-1';
-                tradingReason.textContent = `Konfluensi Bearish kuat dari BO, RSI, dan MACD.`;
-                entryPriceEl.textContent = realtimePrice ? realtimePrice.toFixed(2) : '--';
-                stopLossEl.textContent = (realtimePrice * 1.02).toFixed(2); // Contoh SL 2%
-            } else {
-                tradingBias.textContent = 'Netral';
-                tradingBias.className = 'text-yellow-500 font-bold mt-1';
-                tradingReason.textContent = `Pasar sedang konsolidasi atau menunggu sinyal yang jelas.`;
-                entryPriceEl.textContent = '--';
-                stopLossEl.textContent = '--';
-            }
-
-            // Tampilkan card
-            quickConfluenceCard.classList.remove('hidden');
-            moshaSopCard.classList.remove('hidden');
-            setupSummaryCard.classList.remove('hidden');
-            tradingToolsCard.classList.remove('hidden');
-            
-            showLoader(false);
-        }
-
-        // Fungsi simulasi trading
-        function updateSimulasi() {
-            const capital = parseFloat(capitalInput.value);
-            const entry = parseFloat(entryInput.value);
-            const leverage = parseFloat(leverageInput.value);
-
-            if (!currentPosition) {
-                simEquity.textContent = `$${capital.toFixed(2)}`;
-                simPnl.textContent = `$0.00`;
-                return;
-            }
-
-            const currentPrice = realtimePrice;
-            const pnl = currentPosition.type === 'long' 
-                ? (currentPrice - entry) / entry * currentPosition.cost * leverage
-                : (entry - currentPrice) / entry * currentPosition.cost * leverage;
-
-            const totalEquity = simCapital + pnl;
-            simEquity.textContent = `$${totalEquity.toFixed(2)}`;
-            simPnl.textContent = `$${pnl.toFixed(2)}`;
-            simPnl.className = pnl > 0 ? 'positive' : 'negative';
-        }
-
-        function toggleLoader(show) {
-            btnText.classList.toggle('hidden', show);
-            btnLoader.classList.toggle('hidden', !show);
-            analyzeBtn.disabled = show;
-        }
-
-        function showError(message) {
-            assetError.textContent = message;
-            assetError.classList.remove('hidden');
-        }
-
-        function showLoader(show) {
-            toggleLoader(show);
-            assetError.classList.add('hidden');
-        }
-
-        // Event Listeners
-        analyzeBtn.addEventListener('click', analyzeAndRender);
-        longBtn.addEventListener('click', () => {
-            const capital = parseFloat(capitalInput.value);
-            const entry = parseFloat(entryInput.value);
-            const leverage = parseFloat(leverageInput.value);
-            if (currentPosition) {
-                alert("Tutup posisi sebelumnya.");
-                return;
-            }
-            currentPosition = { type: 'long', entryPrice: entry, cost: capital, leverage: leverage };
-            simCapital = capital;
-            updateSimulasi();
+            runMoshaSOP(symbol, timeframe);
         });
-        shortBtn.addEventListener('click', () => {
-            const capital = parseFloat(capitalInput.value);
-            const entry = parseFloat(entryInput.value);
-            const leverage = parseFloat(leverageInput.value);
-            if (currentPosition) {
-                alert("Tutup posisi sebelumnya.");
-                return;
-            }
-            currentPosition = { type: 'short', entryPrice: entry, cost: capital, leverage: leverage };
-            simCapital = capital;
-            updateSimulasi();
-        });
-        resetSimBtn.addEventListener('click', () => {
-            currentPosition = null;
-            simCapital = 1000;
-            capitalInput.value = 1000;
-            updateSimulasi();
-        });
-
-        // Inisialisasi awal
-        window.onload = () => {
-            if (assetInput.value) {
-                analyzeAndRender();
-            }
-        };
     </script>
 </body>
 </html>
