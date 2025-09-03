@@ -1,0 +1,674 @@
+ <!DOCTYPE html>
+<html lang="id" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BACKTESTING</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7;
+            color: #342d27;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #EAE5E0;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease-in-out;
+        }
+        .btn-primary {
+            background-color: #c97c00;
+            color: #2b2a28;
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover { background-color: #eb9413 }
+        .btn-primary:disabled { background-color: #333333; cursor: not-allowed; }
+        .input-primary {
+            background-color: #F8F5F1;
+            border: 1px solid #DCD6CF;
+            border-radius: 0.5rem;
+            padding: 0.625rem 1rem;
+            width: 100%;
+            color: #3D352E;
+        }
+        .input-primary:focus {
+            outline: none;
+            border-color: #747462;
+            box-shadow: 0 0 0 2px rgba(34, 55, 40, 0.2);
+        }
+        .tag { padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .tag-green { background-color: #E6F4EA; color: #4A7C59; }
+        .tag-red { background-color: #FCE8E8; color: #A83A3A; }
+        .tag-yellow { background-color: #FFF8E1; color: #B5840F; }
+        .tag-gray { background-color: #F1F3F4; color: #5F6368; }
+
+        /* Dark Mode Styles */
+        .dark body { background-color: #000000; color: #E0E0E0; }
+        .dark .card { background-color: #151414; border-color: #333; }
+        .dark .input-primary { background-color: #1c1b1b; border-color: #444; color: #E0E0E0; }
+        .dark .input-primary:focus { border-color: #2b2d2b; box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.3); }
+        .dark .tag-green { background-color: rgba(74, 124, 89, 0.2); color: #69b37f; }
+        .dark .tag-red { background-color: rgba(168, 58, 58, 0.2); color: #d17474; }
+        .dark .tag-yellow { background-color: rgba(181, 132, 15, 0.2); color: #e0c273; }
+        .dark .tag-gray { background-color: rgba(95, 99, 104, 0.2); color: #9aa0a6; }
+        .dark .text-gray-800 { color: #E0E0E0; }
+        .dark .text-gray-500 { color: #d8d2d2; }
+        .dark .text-gray-600 { color: #dddddd; }
+        .dark .text-gray-700 { color: #e0e0e0; }
+        .dark hr { border-color: #3e4946; }
+        .dark .positive { color: #69b37f; }
+        .dark .negative { color: #d17474; }
+
+
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px; 
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            background-color: #e1e1e1; 
+            border-radius: 50%;
+            animation: bounce 1.0s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        .dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1.5);
+            }
+        }
+        
+        .positive { color: #16a34a; }
+        .dark .positive { color: #4ade80; }
+        .negative { color: #dc2626; }
+        .dark .negative { color: #f87171; }
+        .blinking-text-animation { animation: blinking-text 1.0s infinite; }
+        @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        #button-loader .dot {
+            width: 8px;
+            height: 8px;
+        }
+
+        /* Style untuk tombol toggle indikator */
+        .toggle-btn {
+            background-color: #E7A13B;
+            color: #4b5563;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #d1d5db;
+        }
+        .toggle-btn:hover {
+            background-color: #d1d5db;
+        }
+        .toggle-btn.active {
+            background-color: #1755c6;
+            color: #121010;
+            border-color: #1c295c;
+        }
+        .dark .toggle-btn {
+            background-color: #1c1b1b;
+            color: #d1d5db;
+            border-color: #444;
+        }
+        .dark .toggle-btn:hover {
+            background-color: #444;
+        }
+        .dark .toggle-btn.active {
+            background-color: #4f3e01;
+            color: #ffffff;
+            border-color: #4A7C59;
+        }
+        .projection-results-container .card {
+            background-color: #1c1b1b;
+            border-color: #444;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .projection-results-container h4 {
+            font-size: 1rem;
+            color: #008c38;
+        }
+        .projection-results-container p {
+            color: #e0e0e0;
+        }
+        .btn-yellow {
+            background-color: #f59e0b; 
+            color: #1f2937; 
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-yellow:hover {
+            background-color: #b5a38d;
+        }
+        
+        .collapsible-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.4s ease-in-out;
+        }
+        .collapsible-content.expanded {
+            grid-template-rows: 1fr;
+        }
+        .collapsible-content > div {
+            overflow: hidden;
+        }
+        #trade-link:hover {
+            text-decoration: none;
+        }
+        /* === CSS BARU UNTUK KONFLUENSI CEPAT (MULAI) === */
+        .status-uptrend { color: #34d399; }
+        .dark .status-uptrend { color: #4ade80; }
+        .status-downtrend { color: #ef4444; }
+        .dark .status-downtrend { color: #f87171; }
+        .status-chop { color: #fbbf24; }
+        .dark .status-chop { color: #fcd34d; }
+
+        .confluence-bar-container {
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            height: 30px;
+            display: flex;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .dark .confluence-bar-container { background-color: #374151; }
+
+        .confluence-bar {
+            height: 100%;
+            transition: width 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+            color: #111827;
+        }
+
+        .confluence-bar-bullish { background: linear-gradient(to right, #22c55e, #86efac); }
+        .confluence-bar-bearish { background: linear-gradient(to right, #ef4444, #fca5a5); }
+        /* === CSS BARU UNTUK KONFLUENSI CEPAT (SELESAI) === */
+        .dark .btn-yellow {
+            color: #120f0f;
+        }
+        /* === TAMBAHKAN BLOK CSS DI BAWAH INI === */
+        .btn-secondary {
+            background-color: #ff1869; /* gray-500 */
+            color: #070707;
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-secondary:hover {
+            background-color: #226756; /* gray-600 */
+        }
+        .dark .btn-secondary {
+            background-color: lab(42.97% -24.5 -10.46); /* gray-600 */
+        }
+        .dark .btn-secondary:hover {
+            background-color: hsl(189, 95%, 25%); /* gray-700 */
+        }   
+        .tooltip-trigger {
+            cursor: help;
+            border-bottom: 1px dashed rgba(128, 128, 128, 0.5);
+        }
+
+        #custom-tooltip {
+            position: absolute;
+            background-color: #141517; /* dark:bg-gray-800 */
+            color: #e2e8f0; /* dark:text-gray-200 */
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #e48005; /* dark:border-gray-600 */
+            font-size: 0.875rem;
+            line-height: 1.5;
+            z-index: 100;
+            max-width: 320px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            pointer-events: none;
+        }
+
+        #custom-tooltip::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 100%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #2d3748 transparent transparent transparent;
+        }
+
+        #custom-tooltip strong {
+            color: #63b3ed; /* dark:text-blue-400 */
+            display: block;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #4a5568;
+            padding-bottom: 4px;
+        }
+
+        #ai-narrative-content .prose h3 {
+            margin-top: 1.25rem; /* Beri jarak di atas setiap judul (###) */
+            margin-bottom: 0.5rem;
+        }
+
+        #ai-narrative-content .prose ul {
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #ai-narrative-content .prose li {
+            margin-bottom: 0.5rem; /* Beri jarak antar poin-poin (*) */
+        }
+        .vwap-mode-btn {
+            background-color: #4a5568; /* gray-600 */
+            color: #e2e8f0; /* gray-200 */
+            border: 1px solid #718096; /* gray-500 */
+            opacity: 0.6;
+        }
+        .vwap-mode-btn.active {
+            background-color: #f59e0b; /* yellow-500 */
+            color: #1f2937; /* gray-800 */
+            opacity: 1;
+            font-weight: bold;
+        }
+        .hybrid-bar {
+            background-color: #2d3748;
+            border-radius: 4px;
+            height: 12px;
+            width: 100px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #4a5568;
+        }
+        .pump-strength {
+            background-color: #48bb78;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: width 0.3s ease-in-out;
+        }
+        .dump-risk {
+            background-color: #f56565;
+            height: 100%;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: width 0.3s ease-in-out;
+        }
+        /* === CSS BARU UNTUK SKOR TENSI (MULAI) === */
+        .tension-bar-bg {
+            background-color: #374151; /* dark:bg-gray-700 */
+            border-radius: 9999px;
+            height: 8px;
+            width: 100%;
+            margin: 4px auto 0;
+            overflow: hidden;
+            border: 1px solid #4b5563;
+        }
+        .tension-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease-in-out;
+            background: linear-gradient(to right, #fcd34d, #f59e0b, #ef4444); /* yellow to orange to red */
+        }
+        /* === CSS BARU UNTUK SKOR TENSI (SELESAI) === */
+        /* === CSS BARU UNTUK KALKULATOR BINANCE STYLE (MULAI) === */
+        .calc-binance-style .btn-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .calc-binance-style .btn-group button {
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            color: #e0e0e0;
+            font-weight: 500;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .calc-binance-style .btn-group button:hover {
+            background-color: #3a3f4a;
+        }
+        .calc-binance-style .btn-group button.active {
+            background-color: #f0b90b;
+            color: #14151a;
+            border-color: #f0b90b;
+        }
+        .calc-binance-style .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .calc-binance-style .input-field {
+            width: 100%;
+            padding: 12px 12px 12px 12px;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1.1em;
+        }
+        .calc-binance-style .input-label-top {
+            font-size: 0.8em;
+            color: #848e9c;
+            margin-bottom: 8px;
+        }
+        .calc-binance-style .input-suffix {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #848e9c;
+            font-weight: 600;
+        }
+        .calc-binance-style .margin-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #3a3f4a;
+            outline: none;
+            border-radius: 2px;
+            margin: 1.5rem 0;
+        }
+        .calc-binance-style .margin-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #f0b90b;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .calc-binance-style .slider-ticks {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #848e9c;
+            padding: 0 2px;
+        }
+        .calc-binance-style .tpsl-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed #3a3f4a;
+        }
+        .calc-binance-style .exec-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 1.5rem;
+        }
+        .calc-binance-style .exec-buttons button {
+            padding: 14px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .calc-binance-style .btn-buy { background-color: #2ebd85; color: white; }
+        .calc-binance-style .btn-sell { background-color: #f6465d; color: white; }
+        .calc-binance-style .calc-result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 1rem;
+            font-size: 0.85em;
+            color: #848e9c;
+        }
+        .calc-binance-style .calc-result-grid span:nth-child(even) {
+            text-align: right;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+        /* === CSS BARU UNTUK KALKULATOR BINANCE STYLE (SELESAI) === */
+        /* === CSS UNTUK MODAL TRAILING STOP === */
+        #ts-modal-content .input-field {
+            width: 100%;
+            padding: 12px;
+            background-color: #2c2f36;
+            border: 1px solid #3a3f4a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1.1em;
+        }
+        #ts-modal-close-btn {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .mtf-clickable-box {
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .mtf-clickable-box:hover {
+            background-color: #4b5563; /* Sesuaikan warna hover jika perlu */
+        }
+        /* === PERBAIKAN UNTUK INPUT KECIL (TAMBAHKAN INI) === */
+        .input-primary.small-input {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+           
+        }
+        .input-primary.small-input::-webkit-inner-spin-button,
+        .input-primary.small-input::-webkit-outer-spin-button {
+            -webkit-appearance: none; /* Sembunyikan panah di Chrome/Safari */
+            margin: 0;
+        }
+        /* === AKHIR DARI KODE TAMBAHAN === */
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="main-content-container" class="px-4 pb-8 sm:px-6 lg:px-8">
+        <header class="py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">BACKTESTING ENGINE</h1>
+                <p class="text-yellow-500 font-mono mt-1 text-sm">🔬</p>
+            </div>
+            <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none">
+                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414 1.414zM-.707 7.072l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z"></path></svg>
+            </button>
+        </header>
+    <main>
+
+                <section id="backtesting-section" class="card p-6">
+                    <button id="toggle-backtesting-btn" class="w-full flex justify-between items-center text-left mb-4">
+                        <h2 class="text-xl font-bold">🔬 Mesin Backtesting</h2>
+                        <svg id="toggle-backtesting-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+
+                    <div id="backtesting-content-wrapper" class="collapsible-content">
+                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-6">
+
+                            <div class="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
+                                <div>
+                                    <label for="backtest-symbol-input" class="block text-sm font-medium text-gray-400">Simbol Aset</label>
+                                    <input type="text" id="backtest-symbol-input" value="BTCUSDT" class="input-primary uppercase mt-1">
+                                </div>
+                                <div>
+                                    <label for="backtest-start-date" class="block text-sm font-medium text-gray-400">Tanggal Mulai</label>
+                                    <input type="date" id="backtest-start-date" class="input-primary mt-1">
+                                </div>
+                                <div>
+                                    <label for="backtest-end-date" class="block text-sm font-medium text-gray-400">Tanggal Selesai</label>
+                                    <input type="date" id="backtest-end-date" class="input-primary mt-1">
+                                </div>
+                                <div>
+                                    <label for="backtest-timeframe-select" class="block text-sm font-medium text-gray-400">Timeframe</label>
+                                    <select id="backtest-timeframe-select" class="input-primary mt-1">
+                                        <option value="15m">15m</option>
+                                        <option value="1h" selected>1h</option>
+                                        <option value="4h">4h</option>
+                                        <option value="1d">1d</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="backtest-initial-balance" class="block text-sm font-medium text-gray-400">Modal Awal ($)</label>
+                                    <input type="number" id="backtest-initial-balance" value="1000" class="input-primary small-input mt-1">
+                                </div>
+                                <div>
+                                    <label for="backtest-leverage-input" class="block text-sm font-medium text-gray-400">Leverage</label>
+                                    <input type="number" id="backtest-leverage-input" value="10" class="input-primary small-input mt-1">
+                                </div>
+                                <button id="start-backtest-btn" class="btn-primary w-full">
+                                    <span>▶️ Mulai Simulasi</span>
+                                    <div class="loader w-5 h-5 hidden">
+                                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <div id="backtest-progress-container" class="hidden">
+                                <p id="backtest-status-text" class="text-center text-sm text-yellow-400 mb-2">Mengambil data...</p>
+                                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                                    <div id="backtest-progress-bar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div id="backtest-results-container" class="hidden">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center p-4 bg-gray-800/50 rounded-lg">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Total Profit/Loss</p>
+                                        <p id="backtest-result-pnl" class="font-mono font-bold text-lg">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Win Rate</p>
+                                        <p id="backtest-result-winrate" class="font-mono font-bold text-lg">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Profit Factor</p>
+                                        <p id="backtest-result-profit-factor" class="font-mono font-bold text-lg">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Total Perdagangan</p>
+                                        <p id="backtest-result-total-trades" class="font-mono font-bold text-lg">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="backtest-logbook-container" class="hidden mt-8">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-semibold text-gray-400">📖 Logbook Pengujian</h4>
+                                    <button id="clear-logbook-btn" class="btn-secondary !text-xs !py-1 !px-2">Hapus Riwayat</button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full text-sm text-left text-gray-400">
+                                        <thead class="text-xs text-gray-400 uppercase bg-gray-700/50">
+                                            <tr>
+                                                <th scope="col" class="px-4 py-2">Aset</th>
+                                                <th scope="col" class="px-4 py-2">TF</th>
+                                                <th scope="col" class="px-4 py-2">PNL (%)</th>
+                                                <th scope="col" class="px-4 py-2">Win Rate</th>
+                                                <th scope="col" class="px-4 py-2">Profit Factor</th>
+                                                <th scope="col" class="px-4 py-2">Periode</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="logbook-body">
+                                            </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="backtest-trade-log-container" class="hidden">
+                                <h4 class="font-semibold text-gray-400 mb-2">Riwayat Perdagangan Simulasi</h4>
+                                <div id="backtest-trade-log" class="space-y-2 text-xs max-h-60 overflow-y-auto p-2 bg-gray-900/50 rounded-md">
+                                    </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+                <section id="strategy-lab-section" class="card p-6 mt-6">
+                <button id="toggle-lab-btn" class="w-full flex justify-between items-center text-left mb-4">
+                    <h2 class="text-xl font-bold">🧪 Strategy Lab & Tuning</h2>
+                    <svg id="toggle-lab-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+
+                <div id="lab-content-wrapper" class="collapsible-content expanded">
+                    <div class="pt-4 mt-4 border-t border-gray-700 space-y-6">
+                        <div>
+                            <h3 class="font-semibold text-lg mb-3">Parameter Eksekusi Scalping</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-xs text-gray-400">R:R Ratio (TP)</label>
+                                    <input type="number" step="0.1" id="lab-rr-ratio" value="1.5" class="input-primary small-input mt-1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400">EMA Entry</label>
+                                    <input type="number" id="lab-ema-period" value="9" class="input-primary small-input mt-1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400">Swing Lookback (SL)</label>
+                                    <input type="number" id="lab-swing-lookback" value="15" class="input-primary small-input mt-1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400">Bias Threshold (+)</label>
+                                    <input type="number" id="lab-bias-threshold" value="15" class="input-primary small-input mt-1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <details>
+                            <summary class="cursor-pointer text-sm text-gray-400 hover:text-white">
+                                Tuning Bobot Konfluensi (Advanced)
+                            </summary>
+                            <div id="lab-weights-tuning" class="mt-4 pt-4 border-t border-gray-600 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4">
+                                </div>
+                        </details>
+                    </div>
+                </div>
+            </section>
+                </div>
+            </div>
+        </div>
+    </main>
+<script src="backtester.js"></script>
+</body>
+</html>

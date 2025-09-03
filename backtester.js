@@ -20,10 +20,87 @@ const backtestTradeLog = document.getElementById('backtest-trade-log');
 const themeToggleBtn = document.getElementById('theme-toggle');
 const darkIcon = document.getElementById('theme-toggle-dark-icon');
 const lightIcon = document.getElementById('theme-toggle-light-icon');
+const backtestLeverageInput = document.getElementById('backtest-leverage-input');
+const labRrRatioInput = document.getElementById('lab-rr-ratio');
+const labEmaPeriodInput = document.getElementById('lab-ema-period');
+const labSwingLookbackInput = document.getElementById('lab-swing-lookback');
+const labBiasThresholdInput = document.getElementById('lab-bias-threshold');
+const labWeightsContainer = document.getElementById('lab-weights-tuning');
 
 // ===================================================================================
 // BAGIAN 2: FUNGSI-FUNGSI PEMBANTU (HELPERS)
 // ===================================================================================
+
+function populateWeightsTuningPanel() {
+    const weights = userSettings.presets.default.weights;
+    labWeightsContainer.innerHTML = '';
+    for (const key in weights) {
+        const defaultValue = weights[key];
+        const div = document.createElement('div');
+        div.innerHTML = `
+            <label class="block text-xs text-gray-400 capitalize">${key.replace(/([A-Z])/g, ' $1')}</label>
+            <input type="number" step="0.1" data-weight-key="${key}" value="${defaultValue}" class="input-primary small-input mt-1">
+        `;
+        labWeightsContainer.appendChild(div);
+    }
+}
+
+function saveResultToLogbook(settings, metrics) {
+    // 1. Ambil data logbook yang sudah ada dari localStorage
+    let logbookData = JSON.parse(localStorage.getItem('backtestLogbook')) || [];
+
+    // 2. Buat entri baru untuk hasil tes saat ini
+    const newEntry = {
+        id: Date.now(), // ID unik untuk setiap tes
+        symbol: settings.symbol,
+        timeframe: settings.timeframe,
+        pnlPercent: (metrics.totalPnl / settings.initialBalance) * 100,
+        winRate: metrics.winRate,
+        profitFactor: metrics.profitFactor,
+        startDate: new Date(settings.startDate).toLocaleDateString('id-ID'),
+        endDate: new Date(settings.endDate).toLocaleDateString('id-ID'),
+    };
+
+    // 3. Tambahkan entri baru ke awal array
+    logbookData.unshift(newEntry);
+    
+    // Batasi riwayat hingga 20 entri terakhir agar tidak terlalu berat
+    if (logbookData.length > 20) {
+        logbookData.pop();
+    }
+
+    // 4. Simpan kembali ke localStorage
+    localStorage.setItem('backtestLogbook', JSON.stringify(logbookData));
+}
+
+function loadAndRenderLogbook() {
+    const logbookData = JSON.parse(localStorage.getItem('backtestLogbook')) || [];
+    const logbookBody = document.getElementById('logbook-body');
+    const logbookContainer = document.getElementById('backtest-logbook-container');
+
+    if (logbookData.length > 0) {
+        logbookBody.innerHTML = logbookData.map(entry => `
+            <tr class="border-b border-gray-700 hover:bg-gray-800/50">
+                <td class="px-4 py-2 font-bold text-white">${entry.symbol}</td>
+                <td class="px-4 py-2">${entry.timeframe}</td>
+                <td class="px-4 py-2 font-mono ${entry.pnlPercent >= 0 ? 'positive' : 'negative'}">${entry.pnlPercent.toFixed(2)}%</td>
+                <td class="px-4 py-2 font-mono">${entry.winRate.toFixed(2)}%</td>
+                <td class="px-4 py-2 font-mono">${entry.profitFactor.toFixed(2)}</td>
+                <td class="px-4 py-2 text-gray-500">${entry.startDate} - ${entry.endDate}</td>
+            </tr>
+        `).join('');
+        logbookContainer.classList.remove('hidden');
+    } else {
+        logbookContainer.classList.add('hidden');
+    }
+}
+
+function clearLogbook() {
+    if (confirm("Apakah Anda yakin ingin menghapus seluruh riwayat pengujian?")) {
+        localStorage.removeItem('backtestLogbook');
+        loadAndRenderLogbook(); // Muat ulang untuk menampilkan keadaan kosong
+    }
+}
 
 function setButtonState(button, isLoading, text = null) {
     const btnText = button.querySelector('span');
@@ -98,6 +175,9 @@ function calculateConfluenceScoreForCandle(klinesSnapshot) { if (klinesSnapshot.
 // ===================================================================================
 // BAGIAN 4: OBJEK UTAMA MESIN BACKTESTING
 // ===================================================================================
+// ===================================================================================
+// BAGIAN 4: OBJEK UTAMA MESIN BACKTESTING (GANTI SELURUH BLOK INI)
+// ===================================================================================
 const backtester = {
     state: { isRunning: false, settings: {}, results: {} },
 
@@ -110,9 +190,12 @@ const backtester = {
             this.gatherSettings();
             const historicalData = await this.fetchHistoricalData();
             if (historicalData.length < 200) throw new Error("Data historis tidak cukup untuk backtest (min. 200 candle).");
+            
+            // Memanggil fungsi simulasi, metrik, dan tampilan
             const trades = this.runSimulation(historicalData);
             const metrics = this.calculateMetrics(trades, this.state.settings.initialBalance);
             this.displayResults(metrics);
+
         } catch (error) {
             console.error("Backtest Gagal:", error);
             backtestStatusText.textContent = `Error: ${error.message}`;
@@ -132,18 +215,34 @@ const backtester = {
         backtestProgressBar.style.width = "0%";
     },
     
-    gatherSettings() {
+gatherSettings() {
+    // Ambil bobot yang sudah di-tuning dari UI
+    const tunedWeights = {};
+    labWeightsContainer.querySelectorAll('input').forEach(input => {
+        tunedWeights[input.dataset.weightKey] = parseFloat(input.value) || 0;
+    });
+
     this.state.settings = {
-        symbol: backtestSymbolInput.value.toUpperCase().trim(), // <-- Diambil dari input
+        // Pengaturan dasar
+        symbol: backtestSymbolInput.value.toUpperCase().trim(),
         timeframe: backtestTimeframeSelect.value,
-            startDate: new Date(backtestStartDate.value).getTime(),
-            endDate: new Date(backtestEndDate.value).getTime(),
-            initialBalance: parseFloat(backtestInitialBalance.value),
-        };
-        if (!this.state.settings.symbol || !this.state.settings.startDate || !this.state.settings.endDate) {
-            throw new Error("Simbol, Tanggal Mulai, dan Tanggal Selesai harus diisi.");
-        }
-    },
+        startDate: new Date(backtestStartDate.value).getTime(),
+        endDate: new Date(backtestEndDate.value).getTime(),
+        initialBalance: parseFloat(backtestInitialBalance.value),
+        leverage: parseInt(backtestLeverageInput.value) || 1,
+
+        // Pengaturan strategi dari Strategy Lab
+        riskRewardRatio: parseFloat(labRrRatioInput.value) || 1.5,
+        pullbackEmaPeriod: parseInt(labEmaPeriodInput.value) || 9,
+        swingLookback: parseInt(labSwingLookbackInput.value) || 15,
+        biasThreshold: parseInt(labBiasThresholdInput.value) || 15,
+        weights: { ...userSettings.presets.default.weights, ...tunedWeights }
+    };
+
+    if (!this.state.settings.symbol || !this.state.settings.startDate || !this.state.settings.endDate) {
+        throw new Error("Simbol, Tanggal Mulai, dan Tanggal Selesai harus diisi.");
+    }
+},
 
     async fetchHistoricalData() {
         const { symbol, timeframe, startDate, endDate } = this.state.settings;
@@ -164,46 +263,68 @@ const backtester = {
         return allKlines.filter(k => k[0] >= startDate && k[0] <= endDate);
     },
 
-    runSimulation(historicalData) {
-        let balance = this.state.settings.initialBalance;
-        let position = null;
-        const trades = [];
-        const entryThreshold = 70, exitThreshold = 65, stopLossPercent = 0.02;
+    // --- INI ADALAH FUNGSI BARU YANG SUDAH DIPERBAIKI ---
+runSimulation(historicalData) {
+    const { 
+        initialBalance, leverage, riskRewardRatio, 
+        pullbackEmaPeriod, swingLookback, biasThreshold
+    } = this.state.settings; // <-- Ambil semua parameter dari state
 
-        for (let i = 200; i < historicalData.length; i++) {
-            const klinesSnapshot = historicalData.slice(0, i + 1);
-            const currentCandle = historicalData[i];
-            const currentPrice = parseFloat(currentCandle[4]);
-            const score = calculateConfluenceScoreForCandle(klinesSnapshot);
+    let balance = initialBalance;
+    let position = null;
+    const trades = [];
+    const riskPerTrade = 0.05; // Ini bisa juga dijadikan input di UI nanti
 
-            if (position) {
-                let exit = false;
-                if (position.type === 'LONG' && (score.bear > exitThreshold || currentPrice < position.entryPrice * (1 - stopLossPercent))) exit = true;
-                else if (position.type === 'SHORT' && (score.bull > exitThreshold || currentPrice > position.entryPrice * (1 + stopLossPercent))) exit = true;
-                if (exit) {
-                    const pnl = position.type === 'LONG' ? (currentPrice - position.entryPrice) * position.size : (position.entryPrice - currentPrice) * position.size;
-                    balance += pnl;
-                    trades.push({ ...position, exitPrice: currentPrice, pnl, exitDate: new Date(currentCandle[0]) });
-                    position = null;
-                }
+    const entryThreshold = 70, exitThreshold = 65, stopLossPercent = 0.02;
+
+    for (let i = 200; i < historicalData.length; i++) {
+        const klinesSnapshot = historicalData.slice(0, i + 1);
+        const currentCandle = historicalData[i];
+        const currentPrice = parseFloat(currentCandle[4]);
+        const score = calculateConfluenceScoreForCandle(klinesSnapshot);
+
+        if (position) {
+            let exit = false;
+            if (position.type === 'LONG' && (score.bear > exitThreshold || currentPrice < position.entryPrice * (1 - stopLossPercent))) exit = true;
+            else if (position.type === 'SHORT' && (score.bull > exitThreshold || currentPrice > position.entryPrice * (1 + stopLossPercent))) exit = true;
+
+            if (exit) {
+                // PNL dihitung berdasarkan ukuran posisi yang sudah di-leverage
+                const pnl = position.type === 'LONG' ? (currentPrice - position.entryPrice) * position.size : (position.entryPrice - currentPrice) * position.size;
+                balance += pnl;
+                trades.push({ ...position, exitPrice: currentPrice, pnl, exitDate: new Date(currentCandle[0]) });
+                position = null;
+                if (balance <= 0) break; // Hentikan jika modal habis
             }
-
-            if (!position) {
-                let entryType = null;
-                if (score.bull > entryThreshold) entryType = 'LONG';
-                else if (score.bear > entryThreshold) entryType = 'SHORT';
-                if (entryType) {
-                    const positionSize = (balance * 0.95) / currentPrice;
-                    position = { type: entryType, entryPrice: currentPrice, size: positionSize, entryDate: new Date(currentCandle[0]) };
-                }
-            }
-            
-            const progress = (i / historicalData.length) * 100;
-            backtestProgressBar.style.width = `${progress}%`;
-            backtestStatusText.textContent = `Menjalankan simulasi... ${i} / ${historicalData.length} candle`;
         }
-        return trades;
-    },
+
+        if (!position) {
+            let entryType = null;
+            if (score.bull > entryThreshold) entryType = 'LONG';
+            else if (score.bear > entryThreshold) entryType = 'SHORT';
+
+            if (entryType) {
+                const cost = balance * riskPerTrade; // Modal yang digunakan (margin)
+                const positionValue = cost * leverage; // Nilai posisi setelah leverage
+                const positionSize = positionValue / currentPrice; // Ukuran posisi dalam unit aset (misal: 0.1 BTC)
+
+                position = { 
+                    type: entryType, 
+                    entryPrice: currentPrice, 
+                    size: positionSize, // size sekarang sudah merefleksikan leverage
+                    cost: cost,
+                    leverage: leverage,
+                    entryDate: new Date(currentCandle[0]) 
+                };
+            }
+        }
+
+        const progress = (i / historicalData.length) * 100;
+        backtestProgressBar.style.width = `${progress}%`;
+        backtestStatusText.textContent = `Menjalankan simulasi... ${i} / ${historicalData.length} candle`;
+    }
+    return trades;
+},
 
     calculateMetrics(trades, initialBalance) {
         let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0;
@@ -234,6 +355,9 @@ const backtester = {
         backtestResultsContainer.classList.remove('hidden');
         backtestTradeLogContainer.classList.remove('hidden');
         backtestProgressContainer.classList.add('hidden');
+        
+        saveResultToLogbook(this.state.settings, metrics);
+        loadAndRenderLogbook();
     }
 };
 
@@ -249,4 +373,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupToggle('toggle-backtesting-btn', 'backtesting-content-wrapper', 'toggle-backtesting-icon', true);
     startBacktestBtn.addEventListener('click', () => backtester.run());
     const backtestSymbolInput = document.getElementById('backtest-symbol-input');
+    loadAndRenderLogbook(); // Muat logbook saat halaman pertama kali dibuka
+
+    const clearBtn = document.getElementById('clear-logbook-btn');
+    if(clearBtn) {
+        clearBtn.addEventListener('click', clearLogbook);
+    }
+    populateWeightsTuningPanel();
+    setupToggle('toggle-lab-btn', 'lab-content-wrapper', 'toggle-lab-icon', true);
 });
