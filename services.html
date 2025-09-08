@@ -3,418 +3,1032 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosha Playbook Dashboard</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>MOSHAX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #E0E0E0; }
-        .card { background-color: #151414; border: 1px solid #333; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        .btn-primary { background-color: #f59e0b; color: #1f2937; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background-color 0.3s; }
-        .btn-primary:hover { background-color: #d97706; }
-        .btn-primary:disabled { background-color: #333; cursor: not-allowed; }
-        .input-primary { background-color: #1c1b1b; border: 1px solid #444; color: #E0E0E0; padding: 0.625rem 1rem; width: 100%; border-radius: 0.5rem; }
-        .positive { color: #4ade80; }
-        .negative { color: #f87171; }
-        .tag { padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-        .tag-green { background-color: rgba(74, 124, 89, 0.2); color: #69b37f; }
-        .tag-red { background-color: rgba(168, 58, 58, 0.2); color: #d17474; }
-        .tag-yellow { background-color: rgba(181, 132, 15, 0.2); color: #e0c273; }
-        .tag-gray { background-color: rgba(95, 99, 104, 0.2); color: #9aa0a6; }
-        .loader { display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .dot { width: 14px; height: 14px; background-color: #e1e1e1; border-radius: 50%; animation: bounce 1.0s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.5); } }
-        .blinking-text-animation { animation: blinking-text 1.0s infinite; }
-        @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .status-container { display: flex; flex-direction: column; gap: 0.5rem; }
-        .status-item { padding: 0.75rem; border-radius: 0.5rem; font-weight: 600; }
-        .status-waiting { background-color: #333; color: #999; }
-        .status-found { background-color: #166534; color: #dcfce7; }
-        .status-valid { background-color: #1d4ed8; color: #dbeafe; }
-        .status-entry { background-color: #854d0e; color: #fef9c3; }
-        .status-final { background-color: #2563eb; color: #dbeafe; }
-        .log-panel { background-color: #1c1b1b; border: 1px solid #444; border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; font-family: monospace; font-size: 0.875rem; max-height: 400px; overflow-y: auto; }
-        .log-item { margin-bottom: 0.5rem; color: #9aa0a6; }
-        .log-item.info { color: #dbeafe; }
-        .log-item.success { color: #69b37f; }
-        .log-item.error { color: #d17474; }
+        :root {
+            --main-bg: #010f1c;
+            --card-bg: rgba(3, 24, 47, 0.7);
+            --accent-color: #ab7d00;
+            --accent-hover-color: #a79f00;
+            --positive-color: #4CAF50;
+            --negative-color: #F44336;
+            --warning-color: #ffc107;
+            --text-color: #e0e0e0;
+            --secondary-text-color: #a0a0a0;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: normal; /* <-- UBAH SELURUH FONT KE NORMAL */
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--main-bg) 0%, #000000 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 32px 0 rgba(32, 105, 132, 0.476);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #d4cb88;
+            text-shadow: 0 0 15px rgba(7, 140, 62, 0.6);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--secondary-text-color);
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        input[type="text"] {
+            border: 1px solid var(--border-color);
+        }
+
+        input[type="text"],
+        button {
+            padding: 12px 18px;
+            border-radius: 8px;
+            background: rgba(84, 109, 184, 0.1);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--accent-color);
+            background: rgba(43, 56, 177, 0.2);
+        }
+
+        button {
+            background: var(--accent-color);
+            cursor: pointer;
+            font-weight: normal; /* <-- UBAH FONT-WEIGHT BUTTON KE NORMAL */
+            border: none;
+        }
+
+        button:hover {
+            background: var(--accent-hover-color);
+        }
+
+        button.btn-stop {
+            background: var(--negative-color);
+        }
+
+        button.btn-stop:hover {
+            background: #5b1919;
+        }
+
+        button:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+            cursor: not-allowed;
+        }
+
+        .asset-tag-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            min-height: 40px;
+        }
+
+        .asset-tag {
+            display: inline-flex;
+            align-items: center;
+            background: #011211;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .asset-tag:hover {
+            background: #102e4c;
+        }
+
+        .asset-tag i {
+            margin-left: 10px;
+            font-size: 0.8rem;
+            color: var(--secondary-text-color);
+        }
+
+        .tf-checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .tf-checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-color);
+        }
+
+        .tf-checkbox-group input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent-color);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-right: 8px;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .tf-checkbox-group input[type="checkbox"]:checked {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .tf-checkbox-group input[type="checkbox"]:checked::after {
+            content: '\f00c';
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--main-bg);
+            font-size: 14px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .progress-bar-wrapper {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 50%;
+            width: 0%;
+            background: linear-gradient(90deg, #07ff07, var(--accent-color));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: var(--secondary-text-color);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .dashboard {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem; 
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            font-size: 0.9rem; 
+        }
+
+        th {
+            background: rgba(53, 50, 50, 0.5);
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            font-weight: normal; /* <-- UBAH FONT-WEIGHT HEADER KE NORMAL */
+            color: white;
+            font-size: 0.8rem; 
+
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .symbol {
+            font-weight: normal;
+            font-size: 0.9rem; 
+        }
+
+        .symbol a {
+            color: var(--text-color);
+            text-decoration: none; /* <-- TAMBAHKAN STYLING UNTUK LINK */
+        }
+
+        .live-price {
+            font-weight: normal;
+            font-size: 0.9rem; 
+        }
+
+        .price-up {
+            color: var(--positive-color);
+            animation: price-flash-green 0.5s;
+        }
+
+        .price-down {
+            color: var(--negative-color);
+            animation: price-flash-red 0.5s;
+        }
+
+        @keyframes price-flash-green {
+            0% { background-color: rgba(76, 175, 80, 0.2); }
+            100% { background-color: transparent; }
+        }
+
+        @keyframes price-flash-red {
+            0% { background-color: rgba(244, 67, 54, 0.2); }
+            100% { background-color: transparent; }
+        }
+
+        .positive-text {
+            color: var(--positive-color);
+        }
+
+        .negative-text {
+            color: var(--negative-color);
+        }
+
+        .action-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        .action-tag.buy {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--positive-color);
+        }
+
+        .action-tag.sell {
+            background: rgba(244, 67, 54, 0.15);
+            color: var(--negative-color);
+        }
+
+        .action-tag.wait {
+            background: rgba(255, 193, 7, 0.15);
+            color: var(--warning-color);
+        }
+
+        .phase-1 {
+            color: var(--positive-color);
+            font-weight: normal;
+        }
+
+        .phase-2 {
+            color: #8eb803;
+            font-weight: normal;
+        }
+
+        .phase-3 {
+            color: #00ffcc;
+            font-weight: normal;
+        }
+
+        .log-panel {
+            background-color: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            margin-bottom: 0.5rem;
+            color: var(--secondary-text-color);
+        }
+
+        .log-item.info {
+            color: #64b5f6;
+        }
+
+        .log-item.success {
+            color: var(--positive-color);
+        }
+
+        .log-item.error {
+            color: var(--negative-color);
+        }
+
+        .log-item.result {
+            color: var(--warning-color);
+            font-weight: normal;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: auto;
+            padding: 20px;
+            color: var(--secondary-text-color);
+            font-size: 0.9rem;
+        }
+
+        th.numeric-sort {
+            text-align: right;
+        }
+
+        th.asc::after, th.desc::after {
+            content: ' ';
+            display: inline-block;
+            width: 0;
+            height: 0;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        th.asc::after {
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 4px solid var(--accent-color);
+        }
+
+        th.desc::after {
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid var(--accent-color);
+        }
+        #runScannerBtn {
+            margin-top: 20px; /* Sesuaikan nilai ini sesuai kebutuhan Anda */
+            width: 100%; /* Agar tombol selebar container-nya */
+        }
+        .asset-tag-wrapper {
+            display: flex;
+            flex-wrap: nowrap; /* <-- Mencegah tag turun ke baris baru */
+            gap: 8px;
+            margin-top: 10px;
+            min-height: 40px;
+            overflow-x: auto; /* <-- Mengaktifkan gulir horizontal */
+            padding-bottom: 15px; /* Tambahan padding untuk visibilitas scrollbar */
+        }
+        .asset-box {
+            background: rgba(3, 24, 47, 0.7); /* Menggunakan warna yang sama dengan card */
+            padding: 15px; /* Memberikan jarak di dalam kotak */
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200">
-
-    <div class="container mx-auto p-4 md:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-yellow-500">Mosha Playbook Dashboard</h1>
-            <p class="text-sm text-gray-400 mt-2">100% Implementasi Penuh Logika PDF</p>
-        </header>
-
-        <section class="card p-4 md:p-6 mb-6">
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="asset-input" class="input-primary uppercase flex-grow" placeholder="Contoh: BTCUSDT" value="BTCUSDT">
-                <select id="timeframe-select" class="input-primary !w-auto">
-                    <option value="1d">Daily (Father)</option>
-                    <option value="4h">H4 (Mother)</option>
-                    <option value="1h" selected>H1 (Baby)</option>
-                    <option value="30m">M30</option>
-                    <option value="15m">M15</option>
-                    <option value="5m">M5</option>
-                </select>
-                <button id="analyze-btn" class="btn-primary">
-                    <span id="btn-text">JALANKAN ANALISIS</span>
-                    <div id="btn-loader" class="loader hidden">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                </button>
+<body>
+    <div class="container">
+        <header>
+            <div class="card">
+            <div class="flex items-center mb-4">
+                <input type="text" id="assetInput" placeholder="Contoh: BTCUSDT" class="flex-grow">
+                <button id="addAssetBtn" class="ml-2">➕</button>
             </div>
-            <p id="asset-error" class="text-red-500 text-sm mt-2 hidden"></p>
-        </section>
-
-        <section id="analysis-results-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Analisis Pasar</h2>
-            <div class="text-center mb-4">
-                <p class="text-sm text-gray-400">Storyline Pasar (HTF):</p>
-                <p id="storyline" class="text-2xl font-bold mt-1">---</p>
-                <p class="text-sm text-gray-400 mt-2">Fase Market Cycle:</p>
-                <p id="market-phase" class="text-xl font-bold mt-1">---</p>
+            <div id="assetList" class="asset-tag-wrapper"></div>
+        </div>
+        </header>
+        <div class="card">
+            <div class="grid-container">
+                <div>
+                    <label class="block mb-2 text-sm font-normal"></label>
+                    <div id="timeframeCheckboxes" class="tf-checkbox-group"></div>
+                </div>
             </div>
             
-            <div class="border-t border-gray-700 pt-4 mt-4">
-                <h3 class="font-bold text-yellow-400 mb-2">Langkah-langkah SOP</h3>
-                <div class="status-container" id="sop-status-container">
-                    <div class="status-item status-waiting">1. Breakout (BO): Menganalisis pergerakan harga.</div>
-                    <div class="status-item status-waiting">2. Valid Retracement (VR): Mencari koreksi yang valid.</div>
-                    <div class="status-item status-waiting">3. Confirmation (CF): Menunggu sinyal konfirmasi entri.</div>
+            <div class="mt-8 text-center">
+                <button id="runScannerBtn" class="w-full md:w-auto"><i class="fas fa-play"></i> Mulai Scan</button>
+                <div id="progressBarWrapper" class="progress-bar-wrapper hidden">
+                    <p id="progressText" class="progress-text"></p>
+                    <div class="progress-bar"><div id="progressBarFill" class="progress-bar-fill"></div></div>
                 </div>
             </div>
-        </section>
-        
-        <section id="setup-summary-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Detail Setup Trading</h2>
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div>
-                    <p class="text-sm text-gray-400">Saran Posisi</p>
-                    <p class="text-xl font-bold mt-1" id="trading-bias">---</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-400">Lokasi Entri Terbaik</p>
-                    <p class="text-sm mt-1" id="trading-reason">---</p>
-                </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-gray-700">
-                <p class="text-sm text-gray-400 text-center">Area Kunci:</p>
-                <div class="grid grid-cols-3 gap-2 mt-2">
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Harga Entri</p>
-                        <p class="font-mono" id="entry-price">--</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Stop Loss (15 pips)</p>
-                        <p class="font-mono" id="stop-loss">--</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Take Profit (VR)</p>
-                        <p class="font-mono" id="take-profit">--</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+        </div>
 
-        <section id="analysis-log-card" class="card p-4 md:p-6 mb-6 hidden">
-            <h2 class="text-lg font-bold text-center mb-4">Log Analisis</h2>
-            <div class="log-panel" id="log-panel">
-                <div class="log-item info">Log akan muncul di sini.</div>
-            </div>
+        <div class="dashboard">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Simbol</th>
+                        <th>Aksi</th>
+                        <th>Harga</th>
+                        <th>HTF Story</th>
+                        <th>Siklus Aktif</th>
+                        <th>Fase</th>
+                        <th>VR</th>
+                        <th>CF</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <section id="analysisLogCard" class="card hidden">
+            <h2 class="text-lg font-normal text-center mb-4"></h2>
+            <div class="log-panel" id="logPanel"></div>
         </section>
-        
-        <p id="footer-text" class="text-xs text-center text-gray-500 mt-8">Data disediakan oleh Binance API. Ini bukan saran keuangan.</p>
     </div>
 
     <script>
-        const assetInput = document.getElementById('asset-input');
-        const timeframeSelect = document.getElementById('timeframe-select');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        const btnText = document.getElementById('btn-text');
-        const btnLoader = document.getElementById('btn-loader');
-        const analysisResultsCard = document.getElementById('analysis-results-card');
-        const setupSummaryCard = document.getElementById('setup-summary-card');
-        const storylineEl = document.getElementById('storyline');
-        const marketPhaseEl = document.getElementById('market-phase');
-        const sopStatusContainer = document.getElementById('sop-status-container');
-        const tradingBiasEl = document.getElementById('trading-bias');
-        const tradingReasonEl = document.getElementById('trading-reason');
-        const entryPriceEl = document.getElementById('entry-price');
-        const stopLossEl = document.getElementById('stop-loss');
-        const takeProfitEl = document.getElementById('take-profit');
-        const logPanel = document.getElementById('log-panel');
-        const analysisLogCard = document.getElementById('analysis-log-card');
-        
-        const TIMEFRAME_ORDER = ['1d', '4h', '1h', '30m', '15m', '5m', '1m'];
-        const PIP_VALUES = { '1d': 0.0001, '4h': 0.0001, '1h': 0.0001, '30m': 0.0001, '15m': 0.0001, '5m': 0.0001, '1m': 0.0001 };
-        
-        function logToPage(message, type = 'info') {
-            const logItem = document.createElement('div');
-            logItem.className = `log-item ${type}`;
-            logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            logPanel.appendChild(logItem);
-            logPanel.scrollTop = logPanel.scrollHeight;
-        }
+        // ===================================================================================
+// BAGIAN 1: DEKLARASI ELEMEN & VARIABEL GLOBAL
+// ===================================================================================
+const assetInput = document.getElementById('assetInput');
+const addAssetBtn = document.getElementById('addAssetBtn');
+const assetList = document.getElementById('assetList');
+const timeframeCheckboxes = document.getElementById('timeframeCheckboxes');
+const runScannerBtn = document.getElementById('runScannerBtn');
+const tbody = document.querySelector('#dataTable tbody');
+const progressBarWrapper = document.getElementById('progressBarWrapper');
+const progressText = document.getElementById('progressText');
+const progressBarFill = document.getElementById('progressBarFill');
+const analysisLogCard = document.getElementById('analysisLogCard');
+const logPanel = document.getElementById('logPanel');
+const alertSound = document.getElementById('alertSound');
 
-        async function fetchKlines(symbol, interval, limit =1000) {
-            logToPage(`Mengambil data klines untuk ${symbol} di timeframe ${interval}...`, 'info');
-            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Gagal mengambil data untuk ${symbol} di ${interval}.`);
-                const data = await response.json();
-                logToPage(`Data klines ${interval} diterima. Jumlah candle: ${data.length}`, 'success');
-                return data;
-            } catch (error) {
-                logToPage(`ERROR: ${error.message}`, 'error');
-                return [];
+let SYMBOLS_TO_ANALYZE = [
+    "BTCUSDT",
+    "ETHUSDT",
+    "PAXGUSDT"
+];
+let TIMEFRAMES_TO_SCAN = ['15m', '1m'];
+let websocket = null;
+let klineDataCache = {}; 
+const TIMEFRAME_ORDER = ['1d', '4h', '1h', '30m', '15m', '5m', '1m'];
+let isScanning = false;
+let analysisInterval = null;
+const ANALYSIS_PERIOD_SECONDS = 15; 
+
+// ===================================================================================
+// BAGIAN 2: LOGIKA INTI (ANALISIS & FETCH)
+// ===================================================================================
+function logToPage(message, type = '', source = 'system') {
+    if (source === 'system') {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+        return;
+    }
+    const logItem = document.createElement('div');
+    logItem.className = `log-item ${type}`;
+    const time = new Date().toLocaleTimeString();
+    logItem.textContent = `[${time}] ${message}`;
+    logPanel.appendChild(logItem);
+    logPanel.scrollTop = logPanel.scrollHeight;
+}
+
+async function fetchInitialKlines(symbol, interval, limit = 200) {
+    // URL API untuk pasar Futures
+    const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`; 
+    try {
+        await new Promise(resolve => setTimeout(resolve, 250)); 
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        logToPage(`[${symbol}] Gagal fetch data ${interval}: ${error.message}`, 'error', 'analysis');
+        return [];
+    }
+}
+
+function findBreakout(klines, timeframe, typeToFind = 'any') {
+    if (klines.length < 20) return { status: 'NO_BREAKOUT' };
+    const parsedKlines = klines.map(k => ({ close: parseFloat(k[4]), high: parseFloat(k[2]), low: parseFloat(k[3]) }));
+    const recentKlines = parsedKlines.slice(-20, -1);
+    if(recentKlines.length === 0) return { status: 'NO_BREAKOUT' };
+    const peakHigh = Math.max(...recentKlines.map(k => k.high));
+    const valleyLow = Math.min(...recentKlines.map(k => k.low));
+    const lastCandleClose = parsedKlines[parsedKlines.length - 1].close;
+    if (lastCandleClose > peakHigh && (typeToFind === 'BULLISH' || typeToFind === 'any')) return { status: 'BREAKOUT', type: 'BULLISH', timeframe };
+    if (lastCandleClose < valleyLow && (typeToFind === 'BEARISH' || typeToFind === 'any')) return { status: 'BREAKOUT', type: 'BEARISH', timeframe };
+    return { status: 'NO_BREAKOUT' };
+}
+
+function getNextTimeframe(currentTF) {
+    const index = TIMEFRAME_ORDER.indexOf(currentTF);
+    return index > -1 && index < TIMEFRAME_ORDER.length - 1 ? TIMEFRAME_ORDER[index + 1] : null;
+}
+
+function getRequiredTimeframesForScan(scanTimeframes) {
+    const required = new Set();
+    scanTimeframes.forEach(tf => {
+        required.add(tf);
+        const htfIndex = TIMEFRAME_ORDER.indexOf(tf) - 2;
+        if(htfIndex >= 0) required.add(TIMEFRAME_ORDER[htfIndex]);
+        const vrTimeframe = getNextTimeframe(tf);
+        if(vrTimeframe) required.add(vrTimeframe);
+    });
+    return Array.from(required);
+}
+
+function analyzeSingleSetup(symbol, mainTimeframe) {
+    const htfIndex = TIMEFRAME_ORDER.indexOf(mainTimeframe) - 2;
+    const htf = htfIndex >= 0 ? TIMEFRAME_ORDER[htfIndex] : TIMEFRAME_ORDER[0];
+    const htfKlines = klineDataCache[symbol]?.[htf];
+    if (!htfKlines) return { phase: 0, htfStory: 'WAITING DATA' };
+    const htfBO = findBreakout(htfKlines, htf);
+    const htfStory = htfBO.type === 'BULLISH' ? `${htf.toUpperCase()}-BUY` : htfBO.type === 'BEARISH' ? `${htf.toUpperCase()}-SELL` : 'SIDEWAYS';
+    const boKlines = klineDataCache[symbol]?.[mainTimeframe];
+    if (!boKlines) return { phase: 0, htfStory };
+    const boResult = findBreakout(boKlines, mainTimeframe, htfBO.type);
+    if (boResult.status !== 'BREAKOUT') return { phase: 0, htfStory };
+    const vrTimeframe = getNextTimeframe(mainTimeframe);
+    if (!vrTimeframe) return { phase: 1, htfStory, activeCycle: mainTimeframe.toUpperCase(), boType: boResult.type };
+    const vrKlines = klineDataCache[symbol]?.[vrTimeframe];
+    if (!vrKlines) return { phase: 1, htfStory, activeCycle: mainTimeframe.toUpperCase(), boType: boResult.type };
+    const vrResult = findBreakout(vrKlines, vrTimeframe, boResult.type === 'BULLISH' ? 'BEARISH' : 'BULLISH');
+    if (vrResult.status !== 'BREAKOUT') return { phase: 1, htfStory, activeCycle: mainTimeframe.toUpperCase(), boType: boResult.type, vrAlert: `${vrTimeframe.toUpperCase()}-NO_VR` };
+    const cfResult = findBreakout(vrKlines, vrTimeframe, boResult.type);
+    if (cfResult.status !== 'BREAKOUT') return { phase: 2, htfStory, activeCycle: mainTimeframe.toUpperCase(), boType: boResult.type, vrAlert: `${vrTimeframe.toUpperCase()}-${vrResult.type}` };
+    return { phase: 3, htfStory, activeCycle: mainTimeframe.toUpperCase(), boType: boResult.type, vrAlert: `${vrTimeframe.toUpperCase()}-${vrResult.type}`, cfAlert: `${vrTimeframe.toUpperCase()}-${cfResult.type}` };
+}
+
+function runAnalysisForSymbol(symbol) {
+    logToPage(`Menganalisis ${symbol}...`, 'info', 'analysis');
+    let bestResult = { phase: -1, htfStory: "N/A" };
+    if (TIMEFRAMES_TO_SCAN.length === 0) { updateTableRow(symbol, bestResult); return; }
+    for (const tf of TIMEFRAMES_TO_SCAN) {
+        const result = analyzeSingleSetup(symbol, tf);
+        if (result.phase > bestResult.phase) bestResult = result;
+    }
+    updateTableRow(symbol, bestResult);
+    logToPage(`[${symbol}] Update: Fase ${bestResult.phase > -1 ? bestResult.phase : 'N/A'}`, 'result', 'analysis');
+}
+
+// --- BAGIAN 3: PENGELOLA TAMPILAN (UI) ---
+// ===================================================================================
+// BAGIAN 6: FUNGSI PENGURUTAN TABEL (SORTING)
+// ===================================================================================
+function addSortingToTable() {
+    const headers = document.querySelectorAll('#dataTable th');
+    
+    headers.forEach(header => {
+        header.addEventListener('click', () => {
+            const table = header.closest('table');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const headerIndex = Array.from(header.parentNode.children).indexOf(header);
+            const isAsc = header.classList.contains('asc');
+
+            // Hapus kelas pengurutan dari semua header
+            headers.forEach(h => h.classList.remove('asc', 'desc'));
+            
+            // Tentukan arah pengurutan berikutnya
+            if (!isAsc) {
+                header.classList.add('asc');
+            } else {
+                header.classList.add('desc');
             }
-        }
 
-        // Fungsi untuk mendeteksi BO, termasuk BO Normal dan BO Structure (W/M-pattern)
-        function findBreakout(klines, typeToFind = 'any') {
-            if (klines.length < 20) return { status: 'NO_BREAKOUT', type: 'N/A', level: 0 };
-            const highs = klines.map(k => parseFloat(k[2]));
-            const lows = klines.map(k => parseFloat(k[3]));
-            const lastCandleClose = parseFloat(klines[klines.length - 1][4]);
-            
-            // Logika untuk BO Structure (W/M-pattern)
-            const recentHighs = highs.slice(-5, -1);
-            const recentLows = lows.slice(-5, -1);
-            const peakHigh = Math.max(...recentHighs);
-            const valleyLow = Math.min(...recentLows);
-            
-            const isBullishStructure = lastCandleClose > peakHigh;
-            const isBearishStructure = lastCandleClose < valleyLow;
-            
-            if (isBullishStructure && (typeToFind === 'BULLISH' || typeToFind === 'any')) {
-                logToPage("BO Structure (W-pattern) BUY ditemukan.", 'success');
-                return { status: 'BREAKOUT', type: 'BULLISH', level: peakHigh };
-            }
-            if (isBearishStructure && (typeToFind === 'BEARISH' || typeToFind === 'any')) {
-                logToPage("BO Structure (M-pattern) SELL ditemukan.", 'success');
-                return { status: 'BREAKOUT', type: 'BEARISH', level: valleyLow };
-            }
-            
-            // Logika untuk BO Normal
-            const highLevel = Math.max(...highs.slice(-10, -1));
-            const lowLevel = Math.min(...lows.slice(-10, -1));
-            
-            const isBuyBreakout = lastCandleClose > highLevel;
-            const isSellBreakout = lastCandleClose < lowLevel;
-            
-            if (isBuyBreakout && (typeToFind === 'BULLISH' || typeToFind === 'any')) {
-                logToPage("BO Normal BUY ditemukan.", 'success');
-                return { status: 'BREAKOUT', type: 'BULLISH', level: highLevel };
-            }
-            if (isSellBreakout && (typeToFind === 'BEARISH' || typeToFind === 'any')) {
-                logToPage("BO Normal SELL ditemukan.", 'success');
-                return { status: 'BREAKOUT', type: 'BEARISH', level: lowLevel };
-            }
-            
-            logToPage("Tidak ada Breakout yang valid ditemukan.", 'info');
-            return { status: 'NO_BREAKOUT', type: 'N/A', level: 0 };
-        }
-
-        function getNextTimeframe(currentTF) {
-            const index = TIMEFRAME_ORDER.indexOf(currentTF);
-            return TIMEFRAME_ORDER[index + 1] || null;
-        }
-
-        function addSOPStatus(message, type) {
-            const statusEl = document.createElement('div');
-            statusEl.className = `status-item ${type}`;
-            statusEl.textContent = message;
-            sopStatusContainer.appendChild(statusEl);
-        }
-
-        async function runMoshaSOP(symbol, mainTimeframe) {
-            // Reset UI
-            analyzeBtn.disabled = true;
-            btnText.classList.add('hidden');
-            btnLoader.classList.remove('hidden');
-            analysisResultsCard.classList.remove('hidden');
-            setupSummaryCard.classList.remove('hidden');
-            analysisLogCard.classList.remove('hidden');
-            sopStatusContainer.innerHTML = '';
-            logPanel.innerHTML = '<div class="log-item info">Log akan muncul di sini.</div>';
-
-            // Fase 1: Validasi Storyline dan BO Utama
-            addSOPStatus("1. Mencari Storyline Pasar (HTF)...", 'status-waiting blinking-text-animation');
-            logToPage("--- Memulai Analisis SOP ---", 'info');
-            const mainTFIndex = TIMEFRAME_ORDER.indexOf(mainTimeframe);
-            const htf = TIMEFRAME_ORDER[mainTFIndex - 2] || TIMEFRAME_ORDER[0];
-            const htfKlines = await fetchKlines(symbol, htf);
-            const htfBO = findBreakout(htfKlines);
-            const storyline = htfBO.type === 'BULLISH' ? 'UPTREND (BUY)' : (htfBO.type === 'BEARISH' ? 'DOWNTREND (SELL)' : 'SIDEWAYS');
-            storylineEl.textContent = storyline;
-            storylineEl.className = `text-2xl font-bold mt-1 ${htfBO.type === 'BULLISH' ? 'positive' : (htfBO.type === 'BEARISH' ? 'negative' : 'text-gray-400')}`;
-            logToPage(`Storyline Pasar Ditemukan: ${storyline}`, 'success');
-
-            addSOPStatus(`2. Memulai SOP dengan BO di ${mainTimeframe}...`, 'status-waiting blinking-text-animation');
-            const boKlines = await fetchKlines(symbol, mainTimeframe);
-            const boResult = findBreakout(boKlines, htfBO.type);
-            
-            if (boResult.status !== 'BREAKOUT') {
-                addSOPStatus(`⚠️ Tidak ada BO yang selaras dengan tren HTF. Analisis dihentikan.`, 'status-waiting');
-                updateUIForNoSetup(storyline);
-                logToPage("Analisis dihentikan: BO tidak selaras dengan tren HTF.", 'error');
-                return;
-            }
-            addSOPStatus(`✅ BO Ditemukan di ${mainTimeframe}: ${boResult.type}`, 'status-found');
-            logToPage(`BO utama ditemukan: ${boResult.type} di level ${boResult.level}`, 'success');
-
-            // Fase 2: Deteksi VR dan CF
-            const vrTimeframe = getNextTimeframe(mainTimeframe);
-            addSOPStatus(`3. Mencari VR di ${vrTimeframe}...`, 'status-waiting blinking-text-animation');
-            const vrKlines = await fetchKlines(symbol, vrTimeframe);
-            const vrResult = findBreakout(vrKlines, boResult.type === 'BULLISH' ? 'BEARISH' : 'BULLISH');
-            
-            if (vrResult.status !== 'BREAKOUT') {
-                addSOPStatus(`⚠️ VR tidak valid atau belum terbentuk. Ini adalah Fase 1 (Continuation).`, 'status-waiting');
-                updateUIForNoSetup(storyline, 'Fase 1 - Continuation (Menunggu)');
-                logToPage("Analisis dihentikan: Tidak ada VR, ini Fase 1.", 'error');
-                return;
-            }
-            addSOPStatus(`✅ VR Ditemukan di ${vrTimeframe}: ${vrResult.type}`, 'status-valid');
-            logToPage(`VR ditemukan: ${vrResult.type} di level ${vrResult.level}`, 'success');
-
-            const cfTimeframe = vrTimeframe;
-            addSOPStatus(`4. Mencari CF di ${cfTimeframe}...`, 'status-waiting blinking-text-animation');
-            const cfKlines = await fetchKlines(symbol, cfTimeframe);
-            const cfResult = findBreakout(cfKlines, boResult.type);
-
-            if (cfResult.status !== 'BREAKOUT') {
-                addSOPStatus(`⚠️ CF belum terbentuk. Ini adalah Fase 2 (High Risk Setup).`, 'status-waiting');
-                updateUIForHighRiskSetup(storyline, boResult, vrResult);
-                logToPage("Analisis dihentikan: Tidak ada CF, ini Fase 2.", 'error');
-                return;
-            }
-            addSOPStatus(`✅ CF Ditemukan di ${cfTimeframe}: ${cfResult.type}`, 'status-entry');
-            logToPage(`CF ditemukan: ${cfResult.type} di level ${cfResult.level}`, 'success');
-            
-            // Fase 3: SOP Berulang (Pullback Entry)
-            let finalCFResult = cfResult;
-            let currentTF = cfTimeframe;
-            let currentVR = vrResult;
-            let isFinalSetupFound = false;
-
-            while (true) {
-                const nextTF = getNextTimeframe(currentTF);
-                if (!nextTF) { 
-                    isFinalSetupFound = true; 
-                    logToPage(`Mencapai timeframe terkecil (${currentTF}). SOP berulang selesai.`, 'success');
-                    break; 
+            // Dapatkan nilai sel yang akan diurutkan
+            const getCellValue = (row) => {
+                const cell = row.children[headerIndex];
+                const text = cell.textContent || cell.innerText;
+                if (header.classList.contains('numeric-sort')) {
+                    // Untuk nilai numerik
+                    return parseFloat(text.replace('$', '')) || 0;
                 }
-                
-                addSOPStatus(`"Zona Besar", mengulangi SOP di ${nextTF}...`, 'status-waiting blinking-text-animation');
-                logToPage(`Memulai SOP berulang untuk menemukan pullback di ${nextTF}`, 'info');
-                
-                const nextVRKlines = await fetchKlines(symbol, nextTF);
-                const nextVRResult = findBreakout(nextVRKlines, finalCFResult.type === 'BULLISH' ? 'BEARISH' : 'BULLISH');
-                
-                if (nextVRResult.status === 'BREAKOUT') {
-                    addSOPStatus(`🚨 Oops, ada VR di ${nextTF}. Tunggu CF di ${nextTF}.`, 'status-waiting');
-                    logToPage(`VR ditemukan di ${nextTF}. Mencari CF...`, 'info');
-                    const nextCFKlines = await fetchKlines(symbol, nextTF);
-                    const nextCFResult = findBreakout(nextCFKlines, finalCFResult.type);
-                    
-                    if (nextCFResult.status === 'BREAKOUT') {
-                        currentVR = nextVRResult;
-                        finalCFResult = nextCFResult;
-                        currentTF = nextTF;
-                        addSOPStatus(`✅ Siklus baru ditemukan di ${currentTF}.`, 'status-valid');
-                        logToPage(`Siklus lengkap ditemukan di ${currentTF}. Melanjutkan pencarian...`, 'success');
-                    } else {
-                        addSOPStatus(`⚠️ CF di ${nextTF} belum terbentuk. Analisis final.`, 'status-final');
-                        isFinalSetupFound = true;
-                        logToPage(`CF tidak ditemukan di ${nextTF}. Ini adalah titik entri terakhir.`, 'info');
-                        break; 
-                    }
+                // Untuk nilai string
+                return text.trim().toLowerCase();
+            };
+
+            // Urutkan baris
+            rows.sort((a, b) => {
+                const valA = getCellValue(a);
+                const valB = getCellValue(b);
+
+                if (typeof valA === 'string') {
+                    return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
                 } else {
-                    addSOPStatus(`✅ Tidak ada siklus kecil lagi. Setup valid.`, 'status-final');
-                    isFinalSetupFound = true;
-                    logToPage("Tidak ada siklus kecil yang ditemukan. Analisis final.", 'success');
-                    break;
+                    return isAsc ? valA - valB : valB - valA;
                 }
-            }
-            
-            if (isFinalSetupFound) {
-                updateUIForCompleteSetup(storyline, boResult, currentVR, finalCFResult, currentTF);
-            }
-        }
+            });
 
-        function updateUI(show) {
-            analysisResultsCard.classList.toggle('hidden', !show);
-            setupSummaryCard.classList.toggle('hidden', !show);
-            analysisLogCard.classList.toggle('hidden', !show);
-            analyzeBtn.disabled = !show;
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-        }
-
-        function updateUIForNoSetup(storyline, phase = 'Fase 1 - Continuation (Menunggu)') {
-            updateUI(true);
-            tradingBiasEl.textContent = 'Menunggu Setup';
-            tradingBiasEl.className = 'text-xl font-bold mt-1 text-gray-400';
-            tradingReasonEl.textContent = `Tidak ada setup ${storyline} yang valid. Tunggu konfirmasi.`;
-            marketPhaseEl.textContent = phase;
-            marketPhaseEl.className = 'text-xl font-bold mt-1 text-gray-400';
-            entryPriceEl.textContent = '--';
-            stopLossEl.textContent = '--';
-            takeProfitEl.textContent = '--';
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-            analyzeBtn.disabled = false;
-        }
-        
-        function updateUIForHighRiskSetup(storyline, bo, vr) {
-            updateUI(true);
-            const direction = vr.type === 'BULLISH' ? 'Buy / Long' : 'Sell / Short';
-            tradingBiasEl.textContent = direction;
-            tradingBiasEl.className = `text-xl font-bold mt-1 ${vr.type === 'BULLISH' ? 'positive' : 'negative'}`;
-            tradingReasonEl.textContent = `⚠️ Setup VR (High Risk). Tunggu CF.`;
-            marketPhaseEl.textContent = 'Fase 2 - Retracement (High Risk)';
-            marketPhaseEl.className = 'text-xl font-bold mt-1 negative';
-            entryPriceEl.textContent = '$' + vr.level.toFixed(4);
-            stopLossEl.textContent = '--';
-            takeProfitEl.textContent = '$' + bo.level.toFixed(4);
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-            analyzeBtn.disabled = false;
-        }
-
-        function updateUIForCompleteSetup(storyline, bo, vr, cf, finalTimeframe) {
-            updateUI(true);
-            const direction = bo.type === 'BULLISH' ? 'Buy / Long' : 'Sell / Short';
-            tradingBiasEl.textContent = direction;
-            tradingBiasEl.className = `text-xl font-bold mt-1 ${bo.type === 'BULLISH' ? 'positive' : 'negative'}`;
-            tradingReasonEl.textContent = `SOP Lengkap! Fase 3 (Best Conti) di ${finalTimeframe}.`;
-            marketPhaseEl.textContent = 'Fase 3 - Continuation (Best Setup)';
-            marketPhaseEl.className = 'text-xl font-bold mt-1 positive';
-            
-            const assetPips = PIP_VALUES[finalTimeframe] || 0.0001; 
-            const slLevel = bo.type === 'BULLISH' ? cf.level - (15 * assetPips) : cf.level + (15 * assetPips);
-            
-            entryPriceEl.textContent = '$' + cf.level.toFixed(4);
-            stopLossEl.textContent = '$' + slLevel.toFixed(4);
-            takeProfitEl.textContent = '$' + vr.level.toFixed(4);
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-            analyzeBtn.disabled = false;
-        }
-
-        analyzeBtn.addEventListener('click', () => {
-            const symbol = assetInput.value.toUpperCase();
-            const timeframe = timeframeSelect.value;
-            runMoshaSOP(symbol, timeframe);
+            // Tambahkan kembali baris yang sudah diurutkan ke tabel
+            rows.forEach(row => tbody.appendChild(row));
         });
+    });
+}
+
+
+
+function renderAssetList() {
+    assetList.innerHTML = '';
+    if (SYMBOLS_TO_ANALYZE.length === 0) assetList.innerHTML = `<span class="asset-tag" style="background:transparent; color:var(--secondary-text-color);">Tambahkan aset untuk memulai.</span>`;
+    else SYMBOLS_TO_ANALYZE.forEach(symbol => {
+        const tag = document.createElement('span');
+        tag.className = 'asset-tag';
+        tag.innerHTML = `${symbol} <i class="fas fa-times-circle"></i>`;
+        tag.onclick = () => removeSymbol(symbol);
+        assetList.appendChild(tag);
+    });
+}
+
+function createTimeframeCheckboxes() {
+    timeframeCheckboxes.innerHTML = '';
+    TIMEFRAME_ORDER.forEach(tf => {
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = tf;
+        checkbox.checked = TIMEFRAMES_TO_SCAN.includes(tf);
+        checkbox.onchange = updateScanTimeframes;
+        label.appendChild(checkbox);
+        label.append(` ${tf.toUpperCase()}`);
+        timeframeCheckboxes.appendChild(label);
+    });
+}
+
+function populateTable(symbols) {
+    tbody.innerHTML = '';
+    if (symbols.length === 0) { 
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px; color:var(--secondary-text-color);">Tidak ada aset.</td></tr>`; 
+        return; 
+    }
+    symbols.forEach(symbol => {
+        const tr = document.createElement('tr');
+        tr.id = `row-${symbol}`;
+        tr.innerHTML = `
+            <td class="symbol">
+                <a href="https://www.binance.com/en/futures/${symbol}" target="_blank" rel="noopener noreferrer">
+                    ${symbol}
+                </a>
+            </td>
+            <td id="action-${symbol}"><span class="action-tag wait">WAIT</span></td>
+            <td id="price-${symbol}" class="live-price">-</td>
+            <td id="htf-${symbol}">-</td>
+            <td id="cycle-${symbol}">-</td>
+            <td id="phase-${symbol}">-</td>
+            <td id="vr-${symbol}">-</td>
+            <td id="cf-${symbol}">-</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateTableRow(symbol, result) {
+    const row = document.getElementById(`row-${symbol}`);
+    if (!row) return;
+
+    const finalHtfStory = result.htfStory || "N/A";
+    let action, actionClass, phase, phaseClass, activeCycle, vrAlert, cfAlert;
+
+    switch (result.phase) {
+        case 1:
+            action = `LOOK ${result.boType}`;
+            actionClass = result.boType === 'BULLISH' ? 'buy' : 'sell';
+            phase = "1";
+            phaseClass = 'phase-1';
+            activeCycle = result.activeCycle;
+            vrAlert = "N/A";
+            cfAlert = "N/A";
+            break;
+        case 2:
+            action = "WAIT CF";
+            actionClass = 'wait';
+            phase = "2";
+            phaseClass = 'phase-2';
+            activeCycle = result.activeCycle;
+            vrAlert = result.vrAlert;
+            cfAlert = "N/A";
+            break;
+        case 3:
+            action = result.boType;
+            actionClass = result.boType === 'BULLISH' ? 'buy' : 'sell';
+            phase = "3";
+            phaseClass = 'phase-3';
+            activeCycle = result.activeCycle;
+            vrAlert = result.vrAlert;
+            cfAlert = result.cfAlert;
+
+            // Play the alert sound for BUY/SELL signals
+            if (alertSound) {
+                alertSound.play().catch(e => console.error("Gagal memutar suara:", e));
+            }
+            break;
+        default:
+            action = "WAIT";
+            actionClass = 'wait';
+            phase = "N/A";
+            phaseClass = '';
+            activeCycle = "N/A";
+            vrAlert = "N/A";
+            cfAlert = "N/A";
+            break;
+    }
+
+    document.getElementById(`htf-${symbol}`).textContent = finalHtfStory;
+    document.getElementById(`htf-${symbol}`).className = finalHtfStory.includes('BUY') ? 'positive-text' : finalHtfStory.includes('SELL') ? 'negative-text' : '';
+    document.getElementById(`cycle-${symbol}`).textContent = activeCycle;
+    document.getElementById(`phase-${symbol}`).textContent = phase;
+    document.getElementById(`phase-${symbol}`).className = phaseClass;
+    document.getElementById(`vr-${symbol}`).textContent = vrAlert;
+    document.getElementById(`cf-${symbol}`).textContent = cfAlert;
+    document.getElementById(`action-${symbol}`).innerHTML = `<span class="action-tag ${actionClass}">${action}</span>`;
+}
+
+function connectWebSocket() {
+    if (websocket) websocket.close();
+    const timeframesToWatch = getRequiredTimeframesForScan(TIMEFRAMES_TO_SCAN);
+    const klineStreams = SYMBOLS_TO_ANALYZE.flatMap(s => timeframesToWatch.map(tf => `${s.toLowerCase()}@kline_${tf}`));
+    const miniTickerStreams = SYMBOLS_TO_ANALYZE.map(s => `${s.toLowerCase()}@miniTicker`);
+    const streams = [...klineStreams, ...miniTickerStreams].join('/');
+    if (streams.length === 0) return;
+    
+    // URL WebSocket untuk pasar Futures
+    websocket = new WebSocket(`wss://fstream.binance.com/ws/${streams}`); 
+    websocket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        const symbol = message.s;
+        if (message.e === 'kline') {
+            const timeframe = message.k.i;
+            const cache = klineDataCache[symbol]?.[timeframe];
+            if (cache) {
+                const newCandle = [message.k.t, message.k.o, message.k.h, message.k.l, message.k.c, message.k.v, message.k.T, message.k.q, message.k.n, message.k.V, message.k.Q, message.k.B];
+                if (message.k.x) {
+                    cache.shift();
+                    cache.push(newCandle);
+                    if(isScanning) runAnalysisForSymbol(symbol);
+                } else { cache[cache.length - 1] = newCandle; }
+            }
+        } else if (message.e === '24hrMiniTicker') {
+            const priceCell = document.getElementById(`price-${symbol}`);
+            if (priceCell) {
+                const newPrice = parseFloat(message.c);
+                const oldPrice = parseFloat(priceCell.textContent.replace('$', '')) || 0;
+                
+                let formattedPrice;
+                if (newPrice >= 1) {
+                    formattedPrice = newPrice.toFixed(2);
+                } else {
+                    formattedPrice = newPrice.toFixed(8);
+                }
+                
+                priceCell.textContent = '$' + formattedPrice;
+                priceCell.classList.remove('price-up', 'price-down');
+                if (newPrice > oldPrice && oldPrice !== 0) priceCell.classList.add('price-up');
+                else if (newPrice < oldPrice && oldPrice !== 0) priceCell.classList.add('price-down');
+            }
+        }
+    };
+    websocket.onopen = () => logToPage("Koneksi WebSocket berhasil.", 'success', 'system');
+    websocket.onerror = (error) => logToPage("Koneksi WebSocket error.", 'error', 'system');
+}
+function populateTable(symbols) {
+    tbody.innerHTML = '';
+    if (symbols.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px; color:var(--secondary-text-color);">Tidak ada aset.</td></tr>`;
+        return;
+    }
+    symbols.forEach(symbol => {
+        const tr = document.createElement('tr');
+        tr.id = `row-${symbol}`;
+        tr.innerHTML = `
+            <td class="symbol">
+                <a href="https://www.binance.com/en/futures/${symbol}" target="_blank" rel="noopener noreferrer">
+                    ${symbol}
+                </a>
+            </td>
+            <td id="action-${symbol}"><span class="action-tag wait">WAIT</span></td>
+            <td id="price-${symbol}" class="live-price">-</td>
+            <td id="htf-${symbol}">-</td>
+            <td id="cycle-${symbol}">-</td>
+            <td id="phase-${symbol}">-</td>
+            <td id="vr-${symbol}">-</td>
+            <td id="cf-${symbol}">-</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+async function addSymbol() {
+    const newSymbol = assetInput.value.toUpperCase().trim();
+    if (newSymbol && !SYMBOLS_TO_ANALYZE.includes(newSymbol)) {
+        SYMBOLS_TO_ANALYZE.push(newSymbol);
+        renderAssetList();
+        assetInput.value = '';
+        if (isScanning) {
+            logToPage(`Menambahkan aset baru: ${newSymbol}...`, 'info', 'analysis');
+            populateTable(SYMBOLS_TO_ANALYZE);
+            await fetchDataForSingleSymbol(newSymbol);
+            connectWebSocket(); 
+            runAnalysisForSymbol(newSymbol);
+        }
+    }
+}
+function removeSymbol(symbolToRemove) {
+    SYMBOLS_TO_ANALYZE = SYMBOLS_TO_ANALYZE.filter(s => s !== symbolToRemove);
+    renderAssetList();
+    if (isScanning) {
+        logToPage(`Menghapus ${symbolToRemove} dari pantauan.`, 'info', 'analysis');
+        connectWebSocket();
+        const rowToRemove = document.getElementById(`row-${symbolToRemove}`);
+        if (rowToRemove) rowToRemove.remove();
+        if (SYMBOLS_TO_ANALYZE.length === 0) populateTable([]);
+    }
+}
+function updateScanTimeframes() {
+    TIMEFRAMES_TO_SCAN = Array.from(document.querySelectorAll('#timeframeCheckboxes input:checked')).map(cb => cb.value);
+    TIMEFRAMES_TO_SCAN.sort((a, b) => TIMEFRAME_ORDER.indexOf(a) - TIMEFRAME_ORDER.indexOf(b));
+    if(isScanning) {
+        alert("Perubahan timeframe akan diterapkan setelah scan dihentikan dan dimulai ulang.");
+    }
+}
+async function fetchDataForSingleSymbol(symbol) {
+    const timeframesToFetch = getRequiredTimeframesForScan(TIMEFRAMES_TO_SCAN);
+    klineDataCache[symbol] = klineDataCache[symbol] || {};
+    for (const tf of timeframesToFetch) {
+        logToPage(`[${symbol}] Mengambil data awal untuk ${tf}...`, 'info', 'analysis');
+        klineDataCache[symbol][tf] = await fetchInitialKlines(symbol, tf);
+    }
+    logToPage(`[${symbol}] Data awal berhasil diambil.`, 'success', 'analysis');
+}
+
+// --- BAGIAN 4: KONTROL SCANNER ---
+async function startScanner() {
+    if (SYMBOLS_TO_ANALYZE.length === 0 || TIMEFRAMES_TO_SCAN.length === 0) {
+        alert('Harap tambahkan aset dan pilih setidaknya satu timeframe untuk di-scan.');
+        return;
+    }
+    isScanning = true;
+    runScannerBtn.disabled = true;
+    runScannerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inisialisasi...';
+    logPanel.innerHTML = '';
+    analysisLogCard.classList.remove('hidden');
+    populateTable(SYMBOLS_TO_ANALYZE);
+    progressBarWrapper.classList.remove('hidden');
+
+    const timeframesToFetch = getRequiredTimeframesForScan(TIMEFRAMES_TO_SCAN);
+    const totalFetches = SYMBOLS_TO_ANALYZE.length * timeframesToFetch.length;
+    let fetchesDone = 0;
+
+    for (const symbol of SYMBOLS_TO_ANALYZE) {
+        klineDataCache[symbol] = {};
+        for (const tf of timeframesToFetch) {
+            fetchesDone++;
+            const progress = (fetchesDone / totalFetches) * 100;
+            progressText.textContent = `[${fetchesDone}/${totalFetches}] Mengambil data ${symbol} @ ${tf}...`;
+            progressBarFill.style.width = `${progress}%`;
+            klineDataCache[symbol][tf] = await fetchInitialKlines(symbol, tf);
+        }
+    }
+    
+    // Sembunyikan progress bar inisialisasi
+    progressBarWrapper.classList.add('hidden');
+    
+    // Jalankan analisis pertama kali
+    runFullAnalysis();
+    
+    // Mulai timer untuk analisis berkala
+    startAnalysisTimer();
+
+    connectWebSocket();
+
+    document.querySelectorAll('#timeframeCheckboxes input').forEach(el => el.disabled = true);
+    runScannerBtn.innerHTML = '<i class="fas fa-stop"></i> STOP';
+    runScannerBtn.classList.add('btn-stop');
+    runScannerBtn.disabled = false;
+}
+function runFullAnalysis() {
+    logToPage("Memulai analisis baru untuk semua aset...", 'info', 'analysis');
+    for (const symbol of SYMBOLS_TO_ANALYZE) {
+        runAnalysisForSymbol(symbol);
+    }
+    logToPage("Analisis selesai.", 'success', 'analysis');
+}
+function startAnalysisTimer() {
+    let timeLeftMs = ANALYSIS_PERIOD_SECONDS * 1000;
+    progressBarWrapper.classList.remove('hidden');
+
+    analysisInterval = setInterval(() => {
+        timeLeftMs -= 100; // Kurangi 100ms setiap 100ms
+        
+        // Pastikan waktu tidak negatif
+        if (timeLeftMs < 0) timeLeftMs = 0;
+
+        // Hitung jam, menit, detik, dan milidetik
+        const hours = Math.floor(timeLeftMs / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeftMs % (1000 * 60)) / 1000);
+        const milliseconds = timeLeftMs % 1000;
+
+        // Tambahkan nol di depan jika angkanya kurang dari 10
+        const formatNumber = (num) => num.toString().padStart(2, '0');
+
+        const formattedTime = `${formatNumber(hours)}:${formatNumber(minutes)}:${formatNumber(seconds)}:${milliseconds.toString().padStart(3, '0')}`;
+        
+        // Hitung progres bilah kemajuan
+        const progress = (1 - (timeLeftMs / (ANALYSIS_PERIOD_SECONDS * 1000))) * 100;
+
+        progressText.textContent = `Analisis ulang dalam ${formattedTime}`;
+        progressBarFill.style.width = `${progress}%`;
+        
+        if (timeLeftMs <= 0) {
+            clearInterval(analysisInterval);
+            runFullAnalysis();
+            startAnalysisTimer();
+        }
+    }, 100); // Perbarui setiap 100 milidetik
+}
+function stopScanner() {
+    isScanning = false;
+    if (websocket) websocket.close();
+    if (analysisInterval) clearInterval(analysisInterval); // Hentikan timer
+    analysisInterval = null;
+    analysisLogCard.classList.add('hidden');
+    progressBarWrapper.classList.add('hidden');
+    document.querySelectorAll('#timeframeCheckboxes input').forEach(el => el.disabled = false);
+    runScannerBtn.innerHTML = '<i class="fas fa-play"></i> Mulai Scan';
+    runScannerBtn.classList.remove('btn-stop');
+}
+
+// --- BAGIAN 5: INISIALISASI APLIKASI ---
+document.addEventListener('DOMContentLoaded', () => {
+    runScannerBtn.addEventListener('click', () => {
+        if (isScanning) stopScanner();
+        else startScanner();
+    });
+
+    addAssetBtn.onclick = addSymbol;
+    assetInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addSymbol(); });
+    
+    renderAssetList();
+    createTimeframeCheckboxes();
+    populateTable([]);
+    addSortingToTable(); // <-- Panggil fungsi pengurutan di sini
+});
     </script>
+    <audio id="alertSound" src="alarm.wav" preload="auto"></audio>
 </body>
 </html>

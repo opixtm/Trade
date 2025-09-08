@@ -1,31 +1,37 @@
- <!DOCTYPE html>
-<html lang="id" class="">
+<!DOCTYPE html>
+<html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BACKTESTING</title>
-
+    <title>BACKTESTING ENGINE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        /* General & Typography */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #FDFBF7;
-            color: #342d27;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: #000000;
+            color: #E0E0E0;
         }
+
+        /* UI Elements */
         .card {
-            background-color: #FFFFFF;
-            border: 1px solid #EAE5E0;
+            background-color: #151414;
+            border: 1px solid #333;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            transition: all 0.3s ease-in-out;
         }
+
+        .positive {
+            color: #4ade80;
+        }
+
+        .negative {
+            color: #f87171;
+        }
+
+        /* Buttons */
         .btn-primary {
             background-color: #c97c00;
-            color: #2b2a28;
+            color: #1f2937;
             font-weight: 600;
             padding: 0.625rem 1.25rem;
             border-radius: 0.5rem;
@@ -35,63 +41,76 @@
             justify-content: center;
             gap: 0.5rem;
         }
-        .btn-primary:hover { background-color: #eb9413 }
-        .btn-primary:disabled { background-color: #333333; cursor: not-allowed; }
+
+        .btn-primary:hover {
+            background-color: #eb9413;
+        }
+
+        .btn-primary:disabled {
+            background-color: #333333;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #374151;
+            color: #e0e0e0;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+        /* Form Inputs */
         .input-primary {
-            background-color: #F8F5F1;
-            border: 1px solid #DCD6CF;
+            background-color: #1c1b1b;
+            border: 1px solid #444;
             border-radius: 0.5rem;
             padding: 0.625rem 1rem;
             width: 100%;
-            color: #3D352E;
+            color: #E0E0E0;
         }
+
         .input-primary:focus {
             outline: none;
-            border-color: #747462;
-            box-shadow: 0 0 0 2px rgba(34, 55, 40, 0.2);
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
         }
-        .tag { padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-        .tag-green { background-color: #E6F4EA; color: #4A7C59; }
-        .tag-red { background-color: #FCE8E8; color: #A83A3A; }
-        .tag-yellow { background-color: #FFF8E1; color: #B5840F; }
-        .tag-gray { background-color: #F1F3F4; color: #5F6368; }
 
-        /* Dark Mode Styles */
-        .dark body { background-color: #000000; color: #E0E0E0; }
-        .dark .card { background-color: #151414; border-color: #333; }
-        .dark .input-primary { background-color: #1c1b1b; border-color: #444; color: #E0E0E0; }
-        .dark .input-primary:focus { border-color: #2b2d2b; box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.3); }
-        .dark .tag-green { background-color: rgba(74, 124, 89, 0.2); color: #69b37f; }
-        .dark .tag-red { background-color: rgba(168, 58, 58, 0.2); color: #d17474; }
-        .dark .tag-yellow { background-color: rgba(181, 132, 15, 0.2); color: #e0c273; }
-        .dark .tag-gray { background-color: rgba(95, 99, 104, 0.2); color: #9aa0a6; }
-        .dark .text-gray-800 { color: #E0E0E0; }
-        .dark .text-gray-500 { color: #d8d2d2; }
-        .dark .text-gray-600 { color: #dddddd; }
-        .dark .text-gray-700 { color: #e0e0e0; }
-        .dark hr { border-color: #3e4946; }
-        .dark .positive { color: #69b37f; }
-        .dark .negative { color: #d17474; }
+        .input-primary.small-input {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
 
+        .input-primary.small-input::-webkit-inner-spin-button,
+        .input-primary.small-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
+        /* Loader Animation */
         .loader {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px; 
+            gap: 4px;
         }
 
         .dot {
-            width: 14px;
-            height: 14px;
-            background-color: #e1e1e1; 
+            width: 8px;
+            height: 8px;
+            background-color: #e1e1e1;
             border-radius: 50%;
-            animation: bounce 1.0s infinite ease-in-out both;
+            animation: bounce 1.4s infinite ease-in-out both;
         }
 
         .dot:nth-child(1) {
             animation-delay: -0.32s;
         }
+
         .dot:nth-child(2) {
             animation-delay: -0.16s;
         }
@@ -101,408 +120,73 @@
                 transform: scale(0);
             }
             40% {
-                transform: scale(1.5);
+                transform: scale(1.0);
             }
         }
-        
-        .positive { color: #16a34a; }
-        .dark .positive { color: #4ade80; }
-        .negative { color: #dc2626; }
-        .dark .negative { color: #f87171; }
-        .blinking-text-animation { animation: blinking-text 1.0s infinite; }
-        @keyframes blinking-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-        #button-loader .dot {
-            width: 8px;
-            height: 8px;
-        }
-
-        /* Style untuk tombol toggle indikator */
-        .toggle-btn {
-            background-color: #E7A13B;
-            color: #4b5563;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            border: 1px solid #d1d5db;
-        }
-        .toggle-btn:hover {
-            background-color: #d1d5db;
-        }
-        .toggle-btn.active {
-            background-color: #1755c6;
-            color: #121010;
-            border-color: #1c295c;
-        }
-        .dark .toggle-btn {
-            background-color: #1c1b1b;
-            color: #d1d5db;
-            border-color: #444;
-        }
-        .dark .toggle-btn:hover {
-            background-color: #444;
-        }
-        .dark .toggle-btn.active {
-            background-color: #4f3e01;
-            color: #ffffff;
-            border-color: #4A7C59;
-        }
-        .projection-results-container .card {
-            background-color: #1c1b1b;
-            border-color: #444;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .projection-results-container h4 {
-            font-size: 1rem;
-            color: #008c38;
-        }
-        .projection-results-container p {
-            color: #e0e0e0;
-        }
-        .btn-yellow {
-            background-color: #f59e0b; 
-            color: #1f2937; 
-            font-weight: 600;
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .btn-yellow:hover {
-            background-color: #b5a38d;
-        }
-        
+        /* Collapsible Content */
         .collapsible-content {
             display: grid;
             grid-template-rows: 0fr;
             transition: grid-template-rows 0.4s ease-in-out;
         }
+
         .collapsible-content.expanded {
             grid-template-rows: 1fr;
         }
+
         .collapsible-content > div {
             overflow: hidden;
         }
-        #trade-link:hover {
-            text-decoration: none;
-        }
-        /* === CSS BARU UNTUK KONFLUENSI CEPAT (MULAI) === */
-        .status-uptrend { color: #34d399; }
-        .dark .status-uptrend { color: #4ade80; }
-        .status-downtrend { color: #ef4444; }
-        .dark .status-downtrend { color: #f87171; }
-        .status-chop { color: #fbbf24; }
-        .dark .status-chop { color: #fcd34d; }
-
-        .confluence-bar-container {
-            background-color: #e5e7eb;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            height: 30px;
-            display: flex;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .dark .confluence-bar-container { background-color: #374151; }
-
-        .confluence-bar {
-            height: 100%;
-            transition: width 0.5s ease-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.875rem;
-            color: #111827;
-        }
-
-        .confluence-bar-bullish { background: linear-gradient(to right, #22c55e, #86efac); }
-        .confluence-bar-bearish { background: linear-gradient(to right, #ef4444, #fca5a5); }
-        /* === CSS BARU UNTUK KONFLUENSI CEPAT (SELESAI) === */
-        .dark .btn-yellow {
-            color: #120f0f;
-        }
-        /* === TAMBAHKAN BLOK CSS DI BAWAH INI === */
-        .btn-secondary {
-            background-color: #ff1869; /* gray-500 */
-            color: #070707;
-            font-weight: 600;
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .btn-secondary:hover {
-            background-color: #226756; /* gray-600 */
-        }
-        .dark .btn-secondary {
-            background-color: lab(42.97% -24.5 -10.46); /* gray-600 */
-        }
-        .dark .btn-secondary:hover {
-            background-color: hsl(189, 95%, 25%); /* gray-700 */
-        }   
-        .tooltip-trigger {
-            cursor: help;
-            border-bottom: 1px dashed rgba(128, 128, 128, 0.5);
-        }
-
-        #custom-tooltip {
-            position: absolute;
-            background-color: #141517; /* dark:bg-gray-800 */
-            color: #e2e8f0; /* dark:text-gray-200 */
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #e48005; /* dark:border-gray-600 */
-            font-size: 0.875rem;
-            line-height: 1.5;
-            z-index: 100;
-            max-width: 320px;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-            pointer-events: none;
-        }
-
-        #custom-tooltip::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 100%;
-            transform: translateX(-50%);
-            border-width: 6px;
-            border-style: solid;
-            border-color: #2d3748 transparent transparent transparent;
-        }
-
-        #custom-tooltip strong {
-            color: #63b3ed; /* dark:text-blue-400 */
-            display: block;
-            margin-bottom: 4px;
-            border-bottom: 1px solid #4a5568;
-            padding-bottom: 4px;
-        }
-
-        #ai-narrative-content .prose h3 {
-            margin-top: 1.25rem; /* Beri jarak di atas setiap judul (###) */
-            margin-bottom: 0.5rem;
-        }
-
-        #ai-narrative-content .prose ul {
-            margin-top: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        #ai-narrative-content .prose li {
-            margin-bottom: 0.5rem; /* Beri jarak antar poin-poin (*) */
-        }
-        .vwap-mode-btn {
-            background-color: #4a5568; /* gray-600 */
-            color: #e2e8f0; /* gray-200 */
-            border: 1px solid #718096; /* gray-500 */
-            opacity: 0.6;
-        }
-        .vwap-mode-btn.active {
-            background-color: #f59e0b; /* yellow-500 */
-            color: #1f2937; /* gray-800 */
-            opacity: 1;
-            font-weight: bold;
-        }
-        .hybrid-bar {
-            background-color: #2d3748;
-            border-radius: 4px;
-            height: 12px;
-            width: 100px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid #4a5568;
-        }
-        .pump-strength {
-            background-color: #48bb78;
-            height: 100%;
-            position: absolute;
-            left: 0;
-            top: 0;
-            transition: width 0.3s ease-in-out;
-        }
-        .dump-risk {
-            background-color: #f56565;
-            height: 100%;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: width 0.3s ease-in-out;
-        }
-        /* === CSS BARU UNTUK SKOR TENSI (MULAI) === */
-        .tension-bar-bg {
-            background-color: #374151; /* dark:bg-gray-700 */
-            border-radius: 9999px;
-            height: 8px;
-            width: 100%;
-            margin: 4px auto 0;
-            overflow: hidden;
-            border: 1px solid #4b5563;
-        }
-        .tension-bar-fill {
-            height: 100%;
-            border-radius: 9999px;
-            transition: width 0.5s ease-in-out;
-            background: linear-gradient(to right, #fcd34d, #f59e0b, #ef4444); /* yellow to orange to red */
-        }
-        /* === CSS BARU UNTUK SKOR TENSI (SELESAI) === */
-        /* === CSS BARU UNTUK KALKULATOR BINANCE STYLE (MULAI) === */
-        .calc-binance-style .btn-group {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 1.5rem;
-        }
-        .calc-binance-style .btn-group button {
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            background-color: #2c2f36;
-            border: 1px solid #3a3f4a;
-            color: #e0e0e0;
-            font-weight: 500;
-            transition: background-color 0.2s, border-color 0.2s;
-        }
-        .calc-binance-style .btn-group button:hover {
-            background-color: #3a3f4a;
-        }
-        .calc-binance-style .btn-group button.active {
-            background-color: #f0b90b;
-            color: #14151a;
-            border-color: #f0b90b;
-        }
-        .calc-binance-style .input-group {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-        .calc-binance-style .input-field {
-            width: 100%;
-            padding: 12px 12px 12px 12px;
-            background-color: #2c2f36;
-            border: 1px solid #3a3f4a;
-            border-radius: 8px;
-            color: #e0e0e0;
-            font-size: 1.1em;
-        }
-        .calc-binance-style .input-label-top {
-            font-size: 0.8em;
-            color: #848e9c;
-            margin-bottom: 8px;
-        }
-        .calc-binance-style .input-suffix {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #848e9c;
-            font-weight: 600;
-        }
-        .calc-binance-style .margin-slider {
-            width: 100%;
-            -webkit-appearance: none;
-            appearance: none;
-            height: 4px;
-            background: #3a3f4a;
-            outline: none;
-            border-radius: 2px;
-            margin: 1.5rem 0;
-        }
-        .calc-binance-style .margin-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            background: #f0b90b;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-        .calc-binance-style .slider-ticks {
-            display: flex;
-            justify-content: space-between;
+        /* Tambahan styling untuk analisis pasar */
+        .regime-tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
             font-size: 0.75rem;
-            color: #848e9c;
-            padding: 0 2px;
-        }
-        .calc-binance-style .tpsl-section {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px dashed #3a3f4a;
-        }
-        .calc-binance-style .exec-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 1.5rem;
-        }
-        .calc-binance-style .exec-buttons button {
-            padding: 14px;
-            font-size: 1.1em;
             font-weight: 600;
-            border: none;
-            border-radius: 8px;
+            margin-right: 0.5rem;
+        }
+        
+        .uptrend { background-color: #10B981; color: white; }
+        .downtrend { background-color: #EF4444; color: white; }
+        .ranging { background-color: #F59E0B; color: white; }
+        .sideways { background-color: #6B7280; color: white; }
+        .volatile { background-color: #8B5CF6; color: white; }
+        
+        .market-condition-bar {
+            height: 8px;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+        }
+        
+        .time-segment {
+            display: inline-block;
+            height: 30px;
+            margin-right: 2px;
             cursor: pointer;
+            position: relative;
         }
-        .calc-binance-style .btn-buy { background-color: #2ebd85; color: white; }
-        .calc-binance-style .btn-sell { background-color: #f6465d; color: white; }
-        .calc-binance-style .calc-result-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 1rem;
-            font-size: 0.85em;
-            color: #848e9c;
+        
+        .time-segment:hover::after {
+            content: attr(data-date);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1F2937;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
         }
-        .calc-binance-style .calc-result-grid span:nth-child(even) {
-            text-align: right;
-            font-weight: 600;
-            color: #e0e0e0;
+        
+        .recommendation-card {
+            border-left: 4px solid #F59E0B;
+            background-color: #1F2937;
         }
-        /* === CSS BARU UNTUK KALKULATOR BINANCE STYLE (SELESAI) === */
-        /* === CSS UNTUK MODAL TRAILING STOP === */
-        #ts-modal-content .input-field {
-            width: 100%;
-            padding: 12px;
-            background-color: #2c2f36;
-            border: 1px solid #3a3f4a;
-            border-radius: 8px;
-            color: #e0e0e0;
-            font-size: 1.1em;
-        }
-        #ts-modal-close-btn {
-            font-size: 2rem;
-            line-height: 1;
-        }
-        .mtf-clickable-box {
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .mtf-clickable-box:hover {
-            background-color: #4b5563; /* Sesuaikan warna hover jika perlu */
-        }
-        /* === PERBAIKAN UNTUK INPUT KECIL (TAMBAHKAN INI) === */
-        .input-primary.small-input {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-           
-        }
-        .input-primary.small-input::-webkit-inner-spin-button,
-        .input-primary.small-input::-webkit-outer-spin-button {
-            -webkit-appearance: none; /* Sembunyikan panah di Chrome/Safari */
-            margin: 0;
-        }
-        /* === AKHIR DARI KODE TAMBAHAN === */
     </style>
 </head>
 <body class="antialiased">
@@ -510,165 +194,2619 @@
     <div id="main-content-container" class="px-4 pb-8 sm:px-6 lg:px-8">
         <header class="py-4 flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold text-gray-800">BACKTESTING ENGINE</h1>
-                <p class="text-yellow-500 font-mono mt-1 text-sm">🔬</p>
+                <h1 class="text-xl font-bold"></h1>
             </div>
-            <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none">
-                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
-                <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414 1.414zM-.707 7.072l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z"></path></svg>
-            </button>
         </header>
-    <main>
 
-                <section id="backtesting-section" class="card p-6">
-                    <button id="toggle-backtesting-btn" class="w-full flex justify-between items-center text-left mb-4">
-                        <h2 class="text-xl font-bold">🔬 Mesin Backtesting</h2>
-                        <svg id="toggle-backtesting-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-
-                    <div id="backtesting-content-wrapper" class="collapsible-content">
-                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-6">
-
+        <main class="space-y-8">
+            <section id="backtesting-section" class="card p-6">
+                <button id="toggle-backtesting-btn" class="w-full flex justify-between items-center text-left mb-4">
+                    <h2 class="text-base font-bold">🔬 Mesin Backtesting</h2>
+                    <svg id="toggle-backtesting-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+                <div id="backtesting-content-wrapper" class="collapsible-content expanded">
+                    <div class="pt-4 mt-4 border-t border-gray-700 space-y-4">
+                        <div>
                             <div class="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
                                 <div>
-                                    <label for="backtest-symbol-input" class="block text-sm font-medium text-gray-400">Simbol Aset</label>
+                                    <label for="backtest-symbol-input" class="block text-sm font-medium text-gray-400">
+                                        Simbol Aset
+                                    </label>
                                     <input type="text" id="backtest-symbol-input" value="BTCUSDT" class="input-primary uppercase mt-1">
                                 </div>
                                 <div>
-                                    <label for="backtest-start-date" class="block text-sm font-medium text-gray-400">Tanggal Mulai</label>
+                                    <label for="backtest-start-date" class="block text-sm font-medium text-gray-400">
+                                        Tanggal Mulai
+                                    </label>
                                     <input type="date" id="backtest-start-date" class="input-primary mt-1">
                                 </div>
                                 <div>
-                                    <label for="backtest-end-date" class="block text-sm font-medium text-gray-400">Tanggal Selesai</label>
+                                    <label for="backtest-end-date" class="block text-sm font-medium text-gray-400">
+                                        Tanggal Selesai
+                                    </label>
                                     <input type="date" id="backtest-end-date" class="input-primary mt-1">
                                 </div>
                                 <div>
-                                    <label for="backtest-timeframe-select" class="block text-sm font-medium text-gray-400">Timeframe</label>
+                                    <label for="backtest-timeframe-select" class="block text-sm font-medium text-gray-400">
+                                        Timeframe
+                                    </label>
                                     <select id="backtest-timeframe-select" class="input-primary mt-1">
-                                        <option value="15m">15m</option>
-                                        <option value="1h" selected>1h</option>
+                                        <option value="1m">1m</option>
+                                        <option value="3m">3m</option>
+                                        <option value="5m">5m</option>
+                                        <option value="15m" selected>15m</option>
+                                        <option value="1h">1h</option>
                                         <option value="4h">4h</option>
                                         <option value="1d">1d</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="backtest-initial-balance" class="block text-sm font-medium text-gray-400">Modal Awal ($)</label>
+                                    <label for="backtest-initial-balance" class="block text-sm font-medium text-gray-400">
+                                        Modal Awal ($)
+                                    </label>
                                     <input type="number" id="backtest-initial-balance" value="1000" class="input-primary small-input mt-1">
                                 </div>
                                 <div>
-                                    <label for="backtest-leverage-input" class="block text-sm font-medium text-gray-400">Leverage</label>
+                                    <label for="backtest-leverage-input" class="block text-sm font-medium text-gray-400">
+                                        Leverage
+                                    </label>
                                     <input type="number" id="backtest-leverage-input" value="10" class="input-primary small-input mt-1">
                                 </div>
-                                <button id="start-backtest-btn" class="btn-primary w-full">
-                                    <span>▶️ Mulai Simulasi</span>
-                                    <div class="loader w-5 h-5 hidden">
-                                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                                    </div>
-                                </button>
-                            </div>
-
-                            <div id="backtest-progress-container" class="hidden">
-                                <p id="backtest-status-text" class="text-center text-sm text-yellow-400 mb-2">Mengambil data...</p>
-                                <div class="w-full bg-gray-700 rounded-full h-2.5">
-                                    <div id="backtest-progress-bar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+                                <div class="col-span-2 flex gap-2">
+                                    <button id="start-backtest-btn" class="btn-primary w-full">
+                                        <span>▶️ Mulai Simulasi</span>
+                                        <div class="loader w-5 h-5 hidden"></div>
+                                    </button>
+                                    <button id="stop-backtest-btn" class="btn-secondary w-full hidden">
+                                        <span>⏹️ STOP</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div id="backtest-results-container" class="hidden">
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center p-4 bg-gray-800/50 rounded-lg">
-                                    <div>
-                                        <p class="text-xs text-gray-500">Total Profit/Loss</p>
-                                        <p id="backtest-result-pnl" class="font-mono font-bold text-lg">-</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-500">Win Rate</p>
-                                        <p id="backtest-result-winrate" class="font-mono font-bold text-lg">-</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-500">Profit Factor</p>
-                                        <p id="backtest-result-profit-factor" class="font-mono font-bold text-lg">-</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-500">Total Perdagangan</p>
-                                        <p id="backtest-result-total-trades" class="font-mono font-bold text-lg">-</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="backtest-logbook-container" class="hidden mt-8">
-                                <div class="flex justify-between items-center mb-2">
-                                    <h4 class="font-semibold text-gray-400">📖 Logbook Pengujian</h4>
-                                    <button id="clear-logbook-btn" class="btn-secondary !text-xs !py-1 !px-2">Hapus Riwayat</button>
-                                </div>
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full text-sm text-left text-gray-400">
-                                        <thead class="text-xs text-gray-400 uppercase bg-gray-700/50">
-                                            <tr>
-                                                <th scope="col" class="px-4 py-2">Aset</th>
-                                                <th scope="col" class="px-4 py-2">TF</th>
-                                                <th scope="col" class="px-4 py-2">PNL (%)</th>
-                                                <th scope="col" class="px-4 py-2">Win Rate</th>
-                                                <th scope="col" class="px-4 py-2">Profit Factor</th>
-                                                <th scope="col" class="px-4 py-2">Periode</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="logbook-body">
-                                            </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div id="backtest-trade-log-container" class="hidden">
-                                <h4 class="font-semibold text-gray-400 mb-2">Riwayat Perdagangan Simulasi</h4>
-                                <div id="backtest-trade-log" class="space-y-2 text-xs max-h-60 overflow-y-auto p-2 bg-gray-900/50 rounded-md">
-                                    </div>
-                            </div>
 
+                            <div class="mt-3 text-right text-xs text-gray-400 flex items-center justify-end gap-4">
+                                <label for="candle-count-input">Atur Jml. Candle:</label>
+                                <input type="number" id="candle-count-input" placeholder="misal: 5000" class="input-primary small-input !w-28 text-center bg-gray-900/50">
+                                <span class="border-l border-gray-600 pl-4">Estimasi: <span id="candle-count-display" class="font-bold text-yellow-400">...</span></span>
+                            </div>
                         </div>
                     </div>
-                </section>
-                <section id="strategy-lab-section" class="card p-6 mt-6">
-                <button id="toggle-lab-btn" class="w-full flex justify-between items-center text-left mb-4">
-                    <h2 class="text-xl font-bold">🧪 Strategy Lab & Tuning</h2>
+                </div>
+            </section>
+
+            <section id="strategy-lab-section" class="card p-6">
+                 <button id="toggle-lab-btn" class="w-full flex justify-between items-center text-left mb-4">
+                    <h2 class="text-base font-bold">🧪 Strategy Lab & Tuning</h2>
                     <svg id="toggle-lab-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                 </button>
-
                 <div id="lab-content-wrapper" class="collapsible-content expanded">
                     <div class="pt-4 mt-4 border-t border-gray-700 space-y-6">
                         <div>
-                            <h3 class="font-semibold text-lg mb-3">Parameter Eksekusi Scalping</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div>
-                                    <label class="block text-xs text-gray-400">R:R Ratio (TP)</label>
-                                    <input type="number" step="0.1" id="lab-rr-ratio" value="1.5" class="input-primary small-input mt-1">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-400">EMA Entry</label>
-                                    <input type="number" id="lab-ema-period" value="9" class="input-primary small-input mt-1">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-400">Swing Lookback (SL)</label>
-                                    <input type="number" id="lab-swing-lookback" value="15" class="input-primary small-input mt-1">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-400">Bias Threshold (+)</label>
-                                    <input type="number" id="lab-bias-threshold" value="15" class="input-primary small-input mt-1">
-                                </div>
-                            </div>
+                            <h3 class="font-semibold text-lg mb-3">Mode Strategi</h3>
+                            <select id="lab-strategy-mode" class="input-primary mt-1">
+                                <option value="pullbackTrend" selected>Pullback Trend (Blue Chip / Major)</option>
+                                <option value="dumpSniper">Dump Sniper (Shitcoin / High Risk)</option>
+                                <option value="scalpingKontekstual">Scalping Kontekstual (Mirip index.html)</option>
+                                <option value="moshaBreakout">MOSHA Breakout (Multi-Timeframe)</option> 
+                            </select>
                         </div>
 
+                        <div>
+                            <h3 class="font-semibold text-lg mb-3">Preset Bobot Rezim Pasar</h3>
+                            <select id="lab-regime-preset" class="input-primary mt-1">
+                                <option value="default" selected>Default (Hybrid)</option>
+                                <option value="trending">Trending Market (Follow Trend)</option>
+                                <option value="ranging">Ranging Market (Mean Reversion)</option>
+                                <option value="lowVolatility">Low Volatility (Breakout)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-lg mb-3">Parameter Eksekusi & Risiko</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+                                <!-- Parameter Umum untuk Semua Strategi -->
+                                <div><label class="block text-xs text-gray-400">R:R Ratio (TP)</label><input type="number" step="0.1" id="lab-rr-ratio" value="1.5" class="input-primary small-input mt-1"></div>
+                                <div><label class="block text-xs text-gray-400">Risk per Trade (%)</label><input type="number" id="lab-risk-percent" value="10" class="input-primary small-input mt-1"></div>
+                                <div><label class="block text-xs text-gray-400">Margin Mode</label><select id="lab-margin-mode" class="input-primary mt-1"><option value="cross" selected>Cross</option><option value="isolated">Isolated</option></select></div>
+                                
+                                <!-- Parameter Khusus Pullback/Scalping -->
+                                <div id="ema-param"><label class="block text-xs text-gray-400">EMA Entry</label><input type="number" id="lab-ema-period" value="9" class="input-primary small-input mt-1"></div>
+                                <div id="swing-param"><label class="block text-xs text-gray-400">Swing Lookback (SL)</label><input type="number" id="lab-swing-lookback" value="15" class="input-primary small-input mt-1"></div>
+                                <div id="bias-param"><label class="block text-xs text-gray-400">Bias/Dump Threshold</label><input type="number" id="lab-bias-threshold" value="15" class="input-primary small-input mt-1"></div>
+                                
+                                <!-- Parameter Khusus MOSHA -->
+                                <div id="mosha-lookback-param"><label class="block text-xs text-gray-400">MOSHA Lookback</label><input type="number" id="lab-mosha-lookback" value="20" class="input-primary small-input mt-1"></div>
+                                <div id="mosha-phase-param"><label class="block text-xs text-gray-400">Min. Phase</label><select id="lab-mosha-min-phase" class="input-primary mt-1"><option value="1">Phase 1</option><option value="2" selected>Phase 2</option><option value="3">Phase 3</option></select></div>
+                            </div>
+                        </div>
                         <details>
-                            <summary class="cursor-pointer text-sm text-gray-400 hover:text-white">
-                                Tuning Bobot Konfluensi (Advanced)
-                            </summary>
-                            <div id="lab-weights-tuning" class="mt-4 pt-4 border-t border-gray-600 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4">
-                                </div>
+                            <summary class="cursor-pointer text-sm text-gray-400 hover:text-white">Tuning Bobot Konfluensi (Advanced)</summary>
+                            <div id="lab-weights-tuning" class="mt-4 pt-4 border-t border-gray-600 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4"></div>
                         </details>
                     </div>
                 </div>
             </section>
+
+            <!-- Bagian Rekomendasi Tuning -->
+            <section id="tuning-recommendation-section" class="card p-6 hidden">
+                <h2 class="text-xl font-bold mb-4">🎯 Rekomendasi Tuning</h2>
+                <div id="tuning-recommendation-content" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-semibold mb-3 text-yellow-400">Konfluensi yang Perlu Diperbaiki</h3>
+                            <ul id="weak-confluences-list" class="text-sm space-y-2"></ul>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-3 text-yellow-400">Parameter Optimal</h3>
+                            <ul id="optimal-params-list" class="text-sm space-y-2"></ul>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-semibold mb-3 text-blue-400">Saran Regime Pasar</h3>
+                            <ul id="regime-suggestions-list" class="text-sm space-y-2"></ul>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-3 text-gray-300">Saran Umum</h3>
+                            <ul id="general-suggestions-list" class="text-sm space-y-2"></ul>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-3 text-green-300">📋 Action Plan</h3>
+                        <ul id="action-plan-list" class="text-sm space-y-2"></ul>
+                    </div>
+                    
+                    <div class="flex gap-2 pt-4 border-t border-gray-700">
+                        <button id="apply-tuning-btn" class="btn-primary">
+                            <span>⚙️ Terapkan ke Index.HTML</span>
+                        </button>
+                        <button id="export-config-btn" class="btn-secondary">
+                            <span>📥 Ekspor Konfigurasi</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bagian Analisis Kondisi Pasar -->
+            <section id="market-analysis-section" class="card p-6 hidden">
+                <h2 class="text-xl font-bold mb-4">📊 Analisis Kondisi Pasar</h2>
+                <div id="market-analysis-content" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="font-semibold mb-2">Distribusi Kondisi Pasar</h3>
+                            <div id="market-condition-chart"></div>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2">Segmentasi Waktu Berdasarkan Kondisi</h3>
+                            <div id="time-segmentation-chart" class="mt-2"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-card p-4 rounded-md">
+                        <h3 class="font-semibold mb-2 text-yellow-400">💡 Rekomendasi Berdasarkan Kondisi Pasar</h3>
+                        <ul id="market-recommendations" class="text-sm space-y-2"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <div id="backtest-progress-container" class="hidden my-4">
+                <p id="backtest-status-text" class="text-center text-sm text-yellow-400 mb-2">Mengambil data...</p>
+                <div class="w-full bg-gray-700 rounded-full h-2.5"><div id="backtest-progress-bar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div></div>
+            </div>
+
+            <div id="backtest-results-container" class="hidden card p-4">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div><p class="text-xs text-gray-500">Total Profit/Loss</p><p id="backtest-result-pnl" class="font-mono font-bold text-lg">-</p></div>
+                    <div><p class="text-xs text-gray-500">Win Rate</p><p id="backtest-result-winrate" class="font-mono font-bold text-lg">-</p></div>
+                    <div><p class="text-xs text-gray-500">Profit Factor</p><p id="backtest-result-profit-factor" class="font-mono font-bold text-lg">-</p></div>
+                    <div><p class="text-xs text-gray-500">Total Perdagangan</p><p id="backtest-result-total-trades" class="font-mono font-bold text-lg">-</p></div>
                 </div>
             </div>
+            
+<!-- Ganti div dengan section dan tambahkan tombol toggle -->
+<section id="logbook-section" class="card p-6">
+    <button id="toggle-logbook-btn" class="w-full flex justify-between items-center text-left mb-4">
+        <h2 class="text-xl font-bold">📖 Logbook Pengujian</h2>
+        <svg id="toggle-logbook-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+    </button>
+    
+    <div id="logbook-content-wrapper" class="collapsible-content expanded">
+        <div class="pt-4 mt-4 border-t border-gray-700">
+            <div class="flex justify-between items-center mb-2">
+                <h4 class="font-semibold text-gray-400">Riwayat Backtest</h4>
+                <button id="clear-logbook-btn" class="btn-secondary !text-xs !py-1 !px-2">Hapus Riwayat</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left text-gray-400">
+                    <thead class="text-xs text-gray-400 uppercase bg-gray-700/50">
+                        <tr>
+                            <th scope="col" class="px-4 py-2 cursor-pointer hover:bg-gray-600" data-sort-key="symbol">Aset</th>
+                            <th scope="col" class="px-4 py-2 cursor-pointer hover:bg-gray-600" data-sort-key="timeframe">TF</th>
+                            <th scope="col" class="px-4 py-2 cursor-pointer hover:bg-gray-600" data-sort-key="pnlPercent">PNL (%)</th>
+                            <th scope="col" class="px-4 py-2 cursor-pointer hover:bg-gray-600" data-sort-key="winRate">Win Rate</th>
+                            <th scope="col" class="px-4 py-2 cursor-pointer hover:bg-gray-600" data-sort-key="profitFactor">Profit Factor</th>
+                            <th scope="col" class="px-4 py-2 cursor-pointer hover:bg-gray-600" data-sort-key="totalTrades">Jml. Trade</th>
+                            <th scope="col" class="px-4 py-2 cursor-pointer hover:bg-gray-600" data-sort-key="startDate">Periode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logbook-body"></tbody>
+                </table>
+            </div>
         </div>
-    </main>
-<script src="backtester.js"></script>
+    </div>
+</section>
+
+            <div id="backtest-trade-log-container" class="hidden card p-4">
+                <h4 class="font-semibold text-gray-400 mb-2">Riwayat Perdagangan Simulasi</h4>
+                <div id="backtest-trade-log" class="space-y-2 text-xs max-h-60 overflow-y-auto p-2 bg-gray-900/50 rounded-md"></div>
+            </div>
+            
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ===================================================================
+    // BAGIAN 1: DEKLARASI ELEMEN DOM & STATE GLOBAL
+    // ===================================================================
+    const backtestSymbolInput = document.getElementById('backtest-symbol-input');
+    const backtestStartDate = document.getElementById('backtest-start-date');
+    const backtestEndDate = document.getElementById('backtest-end-date');
+    const backtestTimeframeSelect = document.getElementById('backtest-timeframe-select');
+    const backtestInitialBalance = document.getElementById('backtest-initial-balance');
+    const backtestLeverageInput = document.getElementById('backtest-leverage-input');
+    const startBacktestBtn = document.getElementById('start-backtest-btn');
+    const stopBacktestBtn = document.getElementById('stop-backtest-btn');
+    const backtestProgressContainer = document.getElementById('backtest-progress-container');
+    const backtestStatusText = document.getElementById('backtest-status-text');
+    const backtestProgressBar = document.getElementById('backtest-progress-bar');
+    const backtestResultsContainer = document.getElementById('backtest-results-container');
+    const backtestPnl = document.getElementById('backtest-result-pnl');
+    const backtestWinrate = document.getElementById('backtest-result-winrate');
+    const backtestProfitFactor = document.getElementById('backtest-result-profit-factor');
+    const backtestTotalTrades = document.getElementById('backtest-result-total-trades');
+    const backtestLogbookContainer = document.getElementById('backtest-logbook-container');
+    const backtestTradeLogContainer = document.getElementById('backtest-trade-log-container');
+    const backtestTradeLog = document.getElementById('backtest-trade-log');
+    const candleCountInput = document.getElementById('candle-count-input');
+    const labStrategyMode = document.getElementById('lab-strategy-mode');
+    const labRegimePreset = document.getElementById('lab-regime-preset');
+    const labRrRatioInput = document.getElementById('lab-rr-ratio');
+    const labEmaPeriodInput = document.getElementById('lab-ema-period');
+    const labSwingLookbackInput = document.getElementById('lab-swing-lookback');
+    const labBiasThresholdInput = document.getElementById('lab-bias-threshold');
+    const labRiskPercentInput = document.getElementById('lab-risk-percent');
+    const labMarginModeSelect = document.getElementById('lab-margin-mode');
+    const labWeightsContainer = document.getElementById('lab-weights-tuning');
+    const tuningRecommendationSection = document.getElementById('tuning-recommendation-section');
+    const weakConfluencesList = document.getElementById('weak-confluences-list');
+    const optimalParamsList = document.getElementById('optimal-params-list');
+    const applyTuningBtn = document.getElementById('apply-tuning-btn');
+    const exportConfigBtn = document.getElementById('export-config-btn');
+    
+    let logbookSortState = { key: 'id', direction: 'desc' };
+    let lastRecommendations = null;
+
+    // ===================================================================
+    // BAGIAN 2: PUSTAKA FUNGSI KALKULASI MURNI (VERSI LENGKAP & SINKRON)
+    // ===================================================================
+    let userSettings = {
+        presets: {
+            // Preset bobot default yang seimbang
+            'default': {
+                weights: { ma: 2, rsiDivergence: 2.5, macd: 2, pivot: 2, vwap: 2, ichimoku: 3, candlePattern: 1.5, obvDivergence: 3.0, bbSqueeze: 1.5, psar: 1, roc: 1, bollingerBands: 1, rsi: 1.5, stoch: 1, linreg: 1 }
+            },
+            // Preset untuk pasar trending, fokus pada indikator tren
+            'trending': {
+                weights: { ma: 3.0, rsiDivergence: 1.0, macd: 2.5, pivot: 1.5, vwap: 2.5, ichimoku: 3.0, candlePattern: 1.5, obvDivergence: 2.0, bbSqueeze: 0.5, psar: 2.5, roc: 1.5, bollingerBands: 1, rsi: 1.0, stoch: 0.5, linreg: 2.0 }
+            },
+            // Preset untuk pasar ranging, fokus pada osilator
+            'ranging': {
+                weights: { ma: 1.0, rsiDivergence: 3.0, macd: 1.5, pivot: 2.0, vwap: 1.0, ichimoku: 1.0, candlePattern: 2.0, obvDivergence: 2.5, bbSqueeze: 1.0, psar: 0.5, roc: 1.0, bollingerBands: 2.5, rsi: 2.5, stoch: 2.0, linreg: 1.5 }
+            },
+            // Preset untuk volatilitas rendah, fokus antisipasi breakout
+            'lowVolatility': {
+                weights: { ma: 1.0, rsiDivergence: 1.5, macd: 2.0, pivot: 1.0, vwap: 1.0, ichimoku: 0.5, candlePattern: 1.5, obvDivergence: 1.0, bbSqueeze: 3.5, psar: 0.5, roc: 2.0, bollingerBands: 2.0, rsi: 2.0, stoch: 1.5, linreg: 1.0 }
+            }
+        }
+    };
+
+    const calculateEMA = (data, period) => {
+        if (!data || data.length < period) return [];
+        const k = 2 / (period + 1);
+        let emaArray = [];
+        if (data.length > 0) {
+            let sum = 0;
+            for (let i = 0; i < period; i++) { sum += data[i] || 0; }
+            emaArray[period - 1] = sum / period;
+            for (let i = period; i < data.length; i++) {
+                if (emaArray[i - 1] === undefined) {
+                    let sma = 0;
+                    for (let j = 0; j < period; j++) { sma += data[i - j] || 0; }
+                    emaArray[i - 1] = sma / period;
+                }
+                emaArray[i] = (data[i] * k) + (emaArray[i - 1] * (1 - k));
+            }
+        }
+        return emaArray;
+    };
+
+    const calculateSMA = (data, period) => {
+        if (!data || data.length < period) return [];
+        let sma = Array(period - 1).fill(undefined);
+        for (let i = period - 1; i < data.length; i++) {
+            const slice = data.slice(i - period + 1, i + 1);
+            sma.push(slice.reduce((a, b) => a + b, 0) / period);
+        }
+        return sma;
+    };
+
+    const calculateRSI = (closes, period = 14) => {
+        if (!closes || closes.length <= period) return [];
+        let gains = [], losses = [];
+        for (let i = 1; i < closes.length; i++) {
+            const diff = closes[i] - closes[i - 1];
+            gains.push(diff > 0 ? diff : 0);
+            losses.push(diff < 0 ? -diff : 0);
+        }
+        let rsi = [];
+        let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        if (avgLoss === 0) {
+             rsi[period-1] = 100;
+        } else {
+             rsi[period-1] = 100 - (100 / (1 + (avgGain / avgLoss)));
+        }
+        for (let i = period; i < gains.length; i++) {
+            avgGain = (avgGain * (period - 1) + gains[i]) / period;
+            avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+            if (avgLoss === 0) { rsi.push(100); } 
+            else { rsi.push(100 - (100 / (1 + (avgGain / avgLoss)))); }
+        }
+        return rsi;
+    };
+    
+    const calculateMACD = (closes, fast = 12, slow = 26, signal = 9) => {
+        if (closes.length < slow + signal) return { status: 'Netral' };
+        const emaFast = calculateEMA(closes, fast);
+        const emaSlow = calculateEMA(closes, slow);
+        const macdLine = emaFast.map((val, i) => (emaSlow[i] !== undefined) ? val - emaSlow[i] : undefined);
+        const signalLine = calculateEMA(macdLine.filter(v => v !== undefined), signal);
+        const lastMacd = macdLine.filter(v => v !== undefined).pop() || 0;
+        const lastSig = signalLine.filter(v => v !== undefined).pop() || 0;
+        const prevMacdLine = macdLine.filter(v => v !== undefined).slice(-2, -1)[0] || 0;
+        const prevSignalLine = signalLine.filter(v => v !== undefined).slice(-2, -1)[0] || 0;
+        let status = 'Netral';
+        if (prevMacdLine <= prevSignalLine && lastMacd > lastSig) status = 'Bullish Cross';
+        else if (prevMacdLine >= prevSignalLine && lastMacd < lastSig) status = 'Bearish Cross';
+        return { status };
+    };
+
+    function calculatePivotPoints(prevDayKline) {
+        if (!prevDayKline || prevDayKline.length < 5) return null;
+        const high = parseFloat(prevDayKline[2]);
+        const low = parseFloat(prevDayKline[3]);
+        const close = parseFloat(prevDayKline[4]);
+        if (isNaN(high) || isNaN(low) || isNaN(close)) return null;
+        return { P: (high + low + close) / 3 };
+    }
+
+    function calculateVWAP(klines, period = 20) {
+        if (!klines || klines.length < period) return 0;
+        let sumPV = 0, sumV = 0;
+        const dataSlice = klines.slice(-period);
+        dataSlice.forEach(k => {
+            const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
+            sumPV += ((high + low + close) / 3) * vol;
+            sumV += vol;
+        });
+        return sumV > 0 ? sumPV / sumV : 0;
+    }
+
+    function calculateIchimokuCloud(klines) {
+        if (klines.length < 52) return { status: 'Netral' };
+        const getHighLow = (slice) => ({ high: Math.max(...slice.map(k => parseFloat(k[2]))), low: Math.min(...slice.map(k => parseFloat(k[3]))) });
+        let tenkan = [], kijun = [];
+        for (let i = 0; i < klines.length; i++) {
+            const tenkanHighLow = i >= 8 ? getHighLow(klines.slice(i - 8, i + 1)) : {};
+            tenkan.push(tenkanHighLow.high ? (tenkanHighLow.high + tenkanHighLow.low) / 2 : undefined);
+            const kijunHighLow = i >= 25 ? getHighLow(klines.slice(i - 25, i + 1)) : {};
+            kijun.push(kijunHighLow.high ? (kijunHighLow.high + kijunHighLow.low) / 2 : undefined);
+        }
+        const lastPrice = parseFloat(klines[klines.length - 1][4]);
+        const lastTenkan = tenkan[tenkan.length - 1], lastKijun = kijun[kijun.length - 1];
+        if (lastTenkan > lastKijun && lastPrice > lastKijun) return { status: "BULLISH" };
+        if (lastTenkan < lastKijun && lastPrice < lastKijun) return { status: "BEARISH" };
+        return { status: 'Netral' };
+    }
+
+    const findCandlestickPatterns = (klines) => {
+        if (!klines || klines.length < 2) return { bias: 'NETRAL' };
+        const getCandle = (k) => {
+            const [o, h, l, c] = k.slice(1, 5).map(parseFloat);
+            return { open: o, close: c, isGreen: c > o, isRed: c < o };
+        };
+        const c1 = getCandle(klines[klines.length - 1]), c2 = getCandle(klines[klines.length - 2]);
+        if (c2.isRed && c1.isGreen && c1.close > c2.open) return { bias: 'BULLISH' };
+        if (c2.isGreen && c1.isRed && c1.close < c2.open) return { bias: 'BEARISH' };
+        return { bias: 'NETRAL' };
+    };
+    
+    const detectRSIDivergence = (closes, rsiValues, lookback = 30) => {
+        if (!closes || closes.length < lookback || !rsiValues || rsiValues.length < lookback) return { status: 'NONE' };
+        const recentCloses = closes.slice(-lookback), recentRSI = rsiValues.slice(-lookback);
+        const findPivots = (data, isHigh) => {
+            let pivots = [];
+            for (let i = 1; i < data.length - 1; i++) {
+                if ((isHigh && data[i] > data[i - 1] && data[i] > data[i + 1]) || (!isHigh && data[i] < data[i - 1] && data[i] < data[i + 1])) {
+                    pivots.push({ index: i, value: data[i] });
+                }
+            }
+            return pivots;
+        };
+        const priceLows = findPivots(recentCloses, false), priceHighs = findPivots(recentCloses, true);
+        const rsiLows = findPivots(recentRSI, false), rsiHighs = findPivots(recentRSI, true);
+        if (priceLows.length >= 2 && rsiLows.length >= 2) {
+            const lastPriceLow = priceLows[priceLows.length - 1], prevPriceLow = priceLows[priceLows.length - 2];
+            const lastRsiLow = rsiLows.find(l => Math.abs(l.index - lastPriceLow.index) < 3), prevRsiLow = rsiLows.find(l => Math.abs(l.index - prevPriceLow.index) < 3);
+            if (lastPriceLow && prevPriceLow && lastRsiLow && prevRsiLow && lastPriceLow.value < prevPriceLow.value && lastRsiLow.value > prevRsiLow.value) return { status: 'BULLISH' };
+        }
+        if (priceHighs.length >= 2 && rsiHighs.length >= 2) {
+            const lastPriceHigh = priceHighs[priceHighs.length - 1], prevPriceHigh = priceHighs[priceHighs.length - 2];
+            const lastRsiHigh = rsiHighs.find(h => Math.abs(h.index - lastPriceHigh.index) < 3), prevRsiHigh = rsiHighs.find(h => Math.abs(h.index - prevPriceHigh.index) < 3);
+            if (lastPriceHigh && prevPriceHigh && lastRsiHigh && prevRsiHigh && lastPriceHigh.value > prevPriceHigh.value && lastRsiHigh.value < prevRsiHigh.value) return { status: 'BEARISH' };
+        }
+        return { status: 'NONE' };
+    };
+
+    function calculateParabolicSAR(klines, step = 0.02, max = 0.2) {
+        if (klines.length < 2) return { status: 'N/A' };
+        let sar = parseFloat(klines[0][3]); let ep = parseFloat(klines[0][2]); let af = step; let isUptrend = true;
+        for (let i = 1; i < klines.length; i++) {
+            const high = parseFloat(klines[i][2]); const low = parseFloat(klines[i][3]); const prevSar = sar;
+            if (isUptrend) { sar = prevSar + af * (ep - prevSar); if (low < sar) { isUptrend = false; sar = ep; ep = low; af = step; } else { if (high > ep) { ep = high; af = Math.min(max, af + step); } }
+            } else { sar = prevSar - af * (prevSar - ep); if (high > sar) { isUptrend = true; sar = ep; ep = high; af = step; } else { if (low < ep) { ep = low; af = Math.min(max, af + step); } } }
+        }
+        const lastClose = parseFloat(klines[klines.length - 1][4]);
+        return { status: lastClose > sar ? 'Bullish' : 'Bearish' };
+    }
+
+    function calculateROC(closes, period = 12) {
+        if (closes.length < period + 1) return { status: 'N/A' };
+        const currentClose = closes[closes.length - 1];
+        const pastClose = closes[closes.length - 1 - period];
+        if (pastClose === 0) return { status: 'N/A' };
+        const roc = ((currentClose - pastClose) / pastClose) * 100;
+        return { status: roc > 0 ? 'Positif' : 'Negatif' };
+    }
+
+    const calculateStochasticRSI = (closes, rsiPeriod = 14, stochPeriod = 14, kSmooth = 3, dSmooth = 3) => {
+        const rsiValues = calculateRSI(closes, rsiPeriod).filter(v => v !== undefined);
+        if (rsiValues.length < stochPeriod) return { k: 50, d: 50, status: 'Netral' };
+        const stochArr = [];
+        for (let i = stochPeriod - 1; i < rsiValues.length; i++) {
+            const window = rsiValues.slice(i - stochPeriod + 1, i + 1);
+            const minR = Math.min(...window);
+            const maxR = Math.max(...window);
+            const denom = maxR - minR;
+            stochArr.push(denom === 0 ? 0 : ((rsiValues[i] - minR) / denom) * 100);
+        }
+        const kLine = calculateSMA(stochArr, kSmooth);
+        const dLine = calculateSMA(kLine.filter(v => v !== undefined), dSmooth);
+        const lastK = kLine.filter(v => v !== undefined).pop() || 50;
+        const lastD = dLine.filter(v => v !== undefined).pop() || 50;
+        let status = 'Netral';
+        if (lastK > 80 && lastD > 80) status = 'Overbought';
+        else if (lastK < 20 && lastD < 20) status = 'Oversold';
+        return { k: lastK, d: lastD, status };
+    };
+
+    const calculateOBV = (klines) => {
+        if (!klines || klines.length < 2) return [];
+        let obv = [0]; 
+        for (let i = 1; i < klines.length; i++) {
+            const close = parseFloat(klines[i][4]);
+            const prevClose = parseFloat(klines[i-1][4]);
+            const volume = parseFloat(klines[i][5]);
+            if (close > prevClose) obv.push(obv[i-1] + volume);
+            else if (close < prevClose) obv.push(obv[i-1] - volume);
+            else obv.push(obv[i-1]);
+        }
+        return obv;
+    };
+
+    const detectOBVDivergence = (closes, klines, lookback = 30) => {
+    if (!closes || closes.length < lookback || !klines || klines.length < lookback) return { status: 'NONE', class: 'text-gray-500' };
+
+    const obvValues = calculateOBV(klines);
+    const recentCloses = closes.slice(-lookback);
+    const recentOBV = obvValues.slice(-lookback);
+
+    const findPivots = (data, isHigh) => {
+        let pivots = [];
+        for (let i = 1; i < data.length - 1; i++) {
+            if ((isHigh && data[i] > data[i - 1] && data[i] > data[i + 1]) || (!isHigh && data[i] < data[i - 1] && data[i] < data[i + 1])) {
+                pivots.push({ index: i, value: data[i] });
+            }
+        }
+        return pivots;
+    };
+
+    const priceLows = findPivots(recentCloses, false), priceHighs = findPivots(recentCloses, true);
+    const obvLows = findPivots(recentOBV, false), obvHighs = findPivots(recentOBV, true);
+
+    if (priceLows.length >= 2 && obvLows.length >= 2) {
+        const lastPriceLow = priceLows[priceLows.length - 1], prevPriceLow = priceLows[priceLows.length - 2];
+        const lastObvLow = obvLows.find(l => Math.abs(l.index - lastPriceLow.index) < 3), prevObvLow = obvLows.find(l => Math.abs(l.index - prevPriceLow.index) < 3);
+        if (lastPriceLow && prevPriceLow && lastObvLow && prevObvLow && lastPriceLow.value < prevPriceLow.value && lastObvLow.value > prevObvLow.value) return { status: 'BULLISH', class: 'positive blinking-text-animation' };
+    }
+    if (priceHighs.length >= 2 && obvHighs.length >= 2) {
+        const lastPriceHigh = priceHighs[priceHighs.length - 1], prevPriceHigh = priceHighs[priceHighs.length - 2];
+        const lastObvHigh = obvHighs.find(h => Math.abs(h.index - lastPriceHigh.index) < 3), prevObvHigh = obvHighs.find(h => Math.abs(h.index - prevPriceHigh.index) < 3);
+        if (lastPriceHigh && prevPriceHigh && lastObvHigh && prevObvHigh && lastPriceHigh.value > prevPriceHigh.value && lastObvHigh.value < prevObvHigh.value) return { status: 'BEARISH', class: 'negative blinking-text-animation' };
+    }
+    return { status: 'NONE', class: 'text-gray-500' };
+};
+
+    function calculateLinearRegressionChannel(closes, period = 14) {
+        if (closes.length < period) return { status: 'N/A' };
+        const y = closes.slice(-period); const n = period; const sumX = (n * (n - 1)) / 2; const sumY = y.reduce((a, b) => a + b, 0); const sumXY = y.reduce((acc, val, i) => acc + val * i, 0); const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
+        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        return { status: slope > 0 ? 'BULLISH' : 'BEARISH' };
+    }
+
+    const calculateBollingerBands = (closes, period = 20, stdDev = 2) => {
+        if (closes.length < period) return { status: 'N/A', squeezeStatus: 'N/A', width: 0 };
+        const middle = calculateSMA(closes, period);
+        let width = [];
+        for (let i = period - 1; i < closes.length; i++) {
+            if (middle[i] === undefined) { width.push(undefined); continue; };
+            const slice = closes.slice(i - period + 1, i + 1);
+            const sumSquaredDiff = slice.reduce((a, b) => a + Math.pow(b - middle[i], 2), 0);
+            const stdev = Math.sqrt(sumSquaredDiff / period);
+            width.push((stdev * stdDev * 2)); 
+        }
+        const lastWidth = width.filter(v => v !== undefined).pop();
+        let squeezeStatus = 'Normal';
+        if (width.length > 50) {
+            const recentWidths = width.slice(-50).filter(v => v !== undefined);
+            if (recentWidths.length > 0) {
+                const sortedWidths = [...recentWidths].sort((a,b) => a-b);
+                const threshold = sortedWidths[Math.floor(sortedWidths.length * 0.20)];
+                if (lastWidth < threshold) squeezeStatus = 'Squeeze!';
+            }
+        }
+        return { status: 'OK', squeezeStatus, width: lastWidth };
+    };
+
+    const calculateADX = (klines, period = 14) => {
+        if (!klines || klines.length < period * 2) return { value: 0, plusDI: 0, minusDI: 0 };
+        let highs = klines.map(k => parseFloat(k[2])), lows = klines.map(k => parseFloat(k[3])), closes = klines.map(k => parseFloat(k[4]));
+        let trs = [], plusDMs = [], minusDMs = [];
+        for (let i = 1; i < highs.length; i++) {
+            trs.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1])));
+            let upMove = highs[i] - highs[i - 1], downMove = lows[i - 1] - lows[i];
+            plusDMs.push(upMove > downMove && upMove > 0 ? upMove : 0);
+            minusDMs.push(downMove > upMove && downMove > 0 ? downMove : 0);
+        }
+        const rma = (data, p) => {
+            let rma = [], sum = 0;
+            for (let i = 0; i < data.length; i++) {
+                if (i < p) {
+                    sum += data[i];
+                    rma.push(i === p - 1 ? sum / p : undefined);
+                } else if(rma[i-1] !== undefined) {
+                    rma.push((rma[i - 1] * (p - 1) + data[i]) / p);
+                }
+            }
+            return rma;
+        };
+        let smoothedTR = rma(trs, period), smoothedPlusDM = rma(plusDMs, period), smoothedMinusDM = rma(minusDMs, period);
+        let plusDIs = [], minusDIs = [], dxs = [];
+        for (let i = 0; i < smoothedTR.length; i++) {
+            if (smoothedTR[i] === undefined) continue;
+            let plusDI = smoothedTR[i] > 0 ? (smoothedPlusDM[i] / smoothedTR[i]) * 100 : 0;
+            let minusDI = smoothedTR[i] > 0 ? (smoothedMinusDM[i] / smoothedTR[i]) * 100 : 0;
+            plusDIs.push(plusDI);
+            minusDIs.push(minusDI);
+            let diSum = plusDI + minusDI;
+            dxs.push(diSum > 0 ? (Math.abs(plusDI - minusDI) / diSum) * 100 : 0);
+        }
+        let adxValues = rma(dxs, period);
+        return { value: adxValues.filter(v=>v!==undefined).pop() || 0, plusDI: plusDIs.pop() || 0, minusDI: minusDIs.pop() || 0 };
+    };
+
+    function getConfluenceAnalysis(klines) {
+        if (!klines || klines.length < 50) {
+            return { skorBullish: 0, skorBearish: 0, detail: 'Not Enough Data' };
+        }
+
+        let skorBullish = 0;
+        let skorBearish = 0;
+        const closes = klines.map(k => parseFloat(k[4]));
+
+        const rsiValues = calculateRSI(closes);
+        const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
+        const macd = calculateMACD(closes);
+        const candlePattern = findCandlestickPatterns(klines);
+        const rsiDivergence = detectRSIDivergence(closes, rsiValues);
+
+        if (candlePattern.bias === 'BEARISH') skorBearish += 2.0;
+        if (macd.status === 'Bearish Cross') skorBearish += 2.0;
+        if (lastRsi > 70) skorBearish += 1.5;
+        if (rsiDivergence.status === 'BEARISH') skorBearish += 2.5;
+
+        if (candlePattern.bias === 'BULLISH') skorBullish += 2.0;
+        if (macd.status === 'Bullish Cross') skorBullish += 2.0;
+        if (lastRsi < 30) skorBullish += 1.5;
+        if (rsiDivergence.status === 'BULLISH') skorBullish += 2.5;
+        
+        const totalPossibleScore = 8.0;
+
+        return { 
+            skorBullish: (skorBullish / totalPossibleScore) * 10,
+            skorBearish: (skorBearish / totalPossibleScore) * 10,
+            detail: `Bull (${skorBullish.toFixed(1)}) vs Bear (${skorBearish.toFixed(1)})`
+        };
+    }
+
+    function detectMarketRegime(klinesSnapshot) {
+        const adxData = calculateADX(klinesSnapshot, 14);
+        const bbData = calculateBollingerBands(klinesSnapshot.map(k => parseFloat(k[4])));
+
+        if (bbData.squeezeStatus === 'Squeeze!') {
+            return 'lowVolatility';
+        }
+        if (adxData.value > 25) {
+            return 'trending';
+        }
+        return 'ranging';
+    }
+
+    function getUltimateSignalScore(indicator, signalData) {
+        const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+        const mapRange = (x, inMin, inMax, outMin, outMax) => {
+            const t = (x - inMin) / (inMax - inMin);
+            return outMin + clamp(t, 0, 1) * (outMax - outMin);
+        };       
+        const confidence = (typeof signalData?.confidence === 'number')
+            ? clamp(signalData.confidence, 0, 1)
+            : 1;
+        const text = (signalData?.status || signalData?.bias || signalData?.signal || '').toString().toUpperCase();
+        const biasSigned = (typeof signalData?.biasSigned === 'number')
+            ? Math.sign(signalData.biasSigned)
+            : null;
+        if (['ma','macd','rsi','stoch','psar','linreg','roc','pivot','vwap','ichimoku','candlePattern','bollingerBands'].includes(indicator)) {
+            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+            if (text.includes('BULL')) return +1 * confidence;
+            if (text.includes('BEAR')) return -1 * confidence;
+            return 0;
+        }
+        if (indicator === 'rsiDivergence' || indicator === 'obvDivergence') {
+            if (text.includes('BULL')) return +1 * confidence;
+            if (text.includes('BEAR')) return -1 * confidence;
+            return 0;
+        }
+        if (indicator === 'openInterest') {
+            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+            if (text.includes('UP')) return +1 * confidence;
+            if (text.includes('DOWN')) return -1 * confidence;
+            return 0;
+        }
+        if (indicator === 'funding' || indicator === 'fundingRate') {
+            const v = typeof signalData?.value === 'number' ? signalData.value : 0;
+            const s = Math.max(-1, Math.min(1, v / 0.0025));
+            return s * confidence;
+            }
+        if (indicator === 'lsr' || indicator === 'lsRatio') {
+            const v = typeof signalData?.value === 'number' ? signalData.value : 1;
+            const s = Math.max(-1, Math.min(1, (v - 1) / 0.3));
+            return s * confidence;
+            }
+        if (indicator === 'orderBookBias') {
+            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+            if (text.includes('BID')) return +1 * confidence;
+            if (text.includes('ASK')) return -1 * confidence;
+            return 0;
+        }
+        if (indicator === 'bbSqueeze') {
+            const st = (signalData?.status || '').toString().toUpperCase();
+            if (st.includes('RELEASE')) return +1 * confidence;
+            if (st.includes('ON')) return 0;
+            if (st.includes('OFF')) return 0.3 * confidence;
+            return 0;
+        }
+        return 0;
+    }
+
+    function createTFAlignmentSummary(klines, timeframes, marketType) {
+        const summary = {};
+        const getConfluenceAnalysis = (klines) => {
+            if (!klines || klines.length < 50) return { skorBullish: 0, skorBearish: 0, detail: 'Not Enough Data' };
+            let skorBullish = 0;
+            let skorBearish = 0;
+            const closes = klines.map(k => parseFloat(k[4]));
+            const rsiValues = calculateRSI(closes);
+            const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
+            const macd = calculateMACD(closes);
+            const candlePattern = findCandlestickPatterns(klines);
+            const rsiDivergence = detectRSIDivergence(closes, rsiValues);
+            if (candlePattern.bias === 'BEARISH') skorBearish += 2.0;
+            if (macd.status === 'Bearish Cross') skorBearish += 2.0;
+            if (lastRsi > 70) skorBearish += 1.5;
+            if (rsiDivergence.status === 'BEARISH') skorBearish += 2.5;
+            if (candlePattern.bias === 'BULLISH') skorBullish += 2.0;
+            if (macd.status === 'Bullish Cross') skorBullish += 2.0;
+            if (lastRsi < 30) skorBullish += 1.5;
+            if (rsiDivergence.status === 'BULLISH') skorBullish += 2.5;
+            const totalPossibleScore = 8.0;
+            return {
+                skorBullish: (skorBullish / totalPossibleScore) * 10,
+                skorBearish: (skorBearish / totalPossibleScore) * 10,
+                detail: `Bull (${skorBullish.toFixed(1)}) vs Bear (${skorBearish.toFixed(1)})`
+            };
+        };
+        let score = 0;
+        timeframes.forEach(tf => {
+            if (klines[tf] && klines[tf].length >= 50) {
+                const closes = klines[tf].map(k => parseFloat(k[4]));
+                const ema21 = calculateEMA(closes, 21);
+                const ema50 = calculateEMA(closes, 50);
+                const lastEma21 = ema21[ema21.length - 1];
+                const lastEma50 = ema50[ema50.length - 1];
+                summary[tf] = lastEma21 > lastEma50 ? 'UPTREND' : 'DOWNTREND';
+            } else {
+                summary[tf] = 'N/A';
+            }
+            if (summary[tf] === 'UPTREND') score++;
+            else if (summary[tf] === 'DOWNTREND') score--;
+        });
+        return { summary, score };
+    }
+
+    function calculateConfluenceScoreForCandle(klinesSnapshot, tunedWeights) {
+        if (klinesSnapshot.length < 200) return { bull: 0, bear: 0 };
+
+        const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+        const lastPrice = closes[closes.length - 1];
+        
+        const rsiValues = calculateRSI(closes);
+        const indicators = {
+            ma: { status: (calculateEMA(closes, 21).pop() > calculateEMA(closes, 50).pop()) ? 'BULLISH' : 'BEARISH' },
+            rsi: { last: rsiValues[rsiValues.length-1], status: rsiValues[rsiValues.length-1] > 70 ? 'Overbought' : (rsiValues[rsiValues.length-1] < 30 ? 'Oversold' : 'Netral') },
+            stoch: calculateStochasticRSI(closes),
+            rsiDivergence: detectRSIDivergence(closes, rsiValues),
+            obvDivergence: detectOBVDivergence(closes, klinesSnapshot),
+            macd: calculateMACD(closes),
+            pivot: { status: (lastPrice > (calculatePivotPoints(klinesSnapshot[klinesSnapshot.length - 2])?.P || lastPrice)) ? 'BULLISH' : 'BEARISH' },
+            vwap: { status: (lastPrice > calculateVWAP(klinesSnapshot)) ? 'BULLISH' : 'BEARISH' },
+            ichimoku: calculateIchimokuCloud(klinesSnapshot) || { status: 'Netral' },
+            candlePattern: findCandlestickPatterns(klinesSnapshot) || { bias: 'NETRAL' },
+            bollingerBands: calculateBollingerBands(closes),
+            psar: calculateParabolicSAR(klinesSnapshot),
+            roc: calculateROC(closes),
+            linreg: calculateLinearRegressionChannel(closes),
+            bbSqueeze: { status: calculateBollingerBands(closes).squeezeStatus }
+        };
+
+        const activeWeights = tunedWeights;
+        let totalBullScore = 0, totalBearScore = 0, maxPossibleScore = 0;
+
+        for (const indicator in activeWeights) {
+            if (indicators[indicator]) {
+                const weight = activeWeights[indicator];
+                const rawScore = getUltimateSignalScore(indicator, indicators[indicator]);
+                const weightedScore = rawScore * weight;
+
+                if (weightedScore > 0) totalBullScore += weightedScore;
+                if (weightedScore < 0) totalBearScore += Math.abs(weightedScore);
+                maxPossibleScore += Math.abs(weight);
+            }
+        }
+
+        const bullPercentage = maxPossibleScore > 0 ? (totalBullScore / maxPossibleScore) * 100 : 0;
+        const bearPercentage = maxPossibleScore > 0 ? (totalBearScore / maxPossibleScore) * 100 : 0;
+
+        return { bull: bullPercentage, bear: bearPercentage };
+    }
+// =====END===============================================================END
+// ===================================================================
+// BAGIAN 1: FUNGSI ANALISIS MOSHA YANG DISESUAIKAN (TANPA VOLUME)
+// ===================================================================
+function analyzeMOSHA(klinesSnapshot, lookbackPeriod = 20) {
+    // Define a default barriers object to return in all cases
+    const defaultBarriers = { supports: [], resistances: [], priceActionBarriers: {} };
+
+    if (!klinesSnapshot || klinesSnapshot.length < lookbackPeriod + 1) {
+        return { phase: 0, breakoutType: 'NONE', story: 'INSUFFICIENT_DATA', barriers: defaultBarriers }; // <-- FIX: Added default barriers
+    }
+
+    const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+    const highs = klinesSnapshot.map(k => parseFloat(k[2]));
+    const lows = klinesSnapshot.map(k => parseFloat(k[3]));
+    
+    const recentCloses = closes.slice(-lookbackPeriod - 1, -1);
+    const recentHighs = highs.slice(-lookbackPeriod - 1, -1);
+    const recentLows = lows.slice(-lookbackPeriod - 1, -1);
+    
+    const currentClose = closes[closes.length - 1];
+    const peakHigh = Math.max(...recentHighs);
+    const valleyLow = Math.min(...recentLows);
+    
+    let breakoutType = 'NONE';
+    if (currentClose > peakHigh) {
+        breakoutType = 'BULLISH';
+    } else if (currentClose < valleyLow) {
+        breakoutType = 'BEARISH';
+    }
+    
+    if (breakoutType === 'NONE') {
+        return { phase: 0, breakoutType, story: 'NO_BREAKOUT', barriers: defaultBarriers }; // <-- FIX: Added default barriers
+    }
+    
+    const retracementThreshold = 0.382;
+    const retracementDepth = breakoutType === 'BULLISH' 
+        ? (currentClose - valleyLow) * retracementThreshold
+        : (peakHigh - currentClose) * retracementThreshold;
+    
+    let phase = 1;
+    let story = `${breakoutType}_BREAKOUT`;
+    
+    if ((breakoutType === 'BULLISH' && currentClose > (valleyLow + retracementDepth)) ||
+        (breakoutType === 'BEARISH' && currentClose < (peakHigh - retracementDepth))) {
+        phase = 2;
+        story = `${breakoutType}_VALID_RETRACEMENT`;
+    }
+    
+    const continuationThreshold = 0.618;
+    const continuationDepth = (peakHigh - valleyLow) * continuationThreshold;
+    
+    if ((breakoutType === 'BULLISH' && currentClose > (valleyLow + continuationDepth)) ||
+        (breakoutType === 'BEARISH' && currentClose < (peakHigh - continuationDepth))) {
+        phase = 3;
+        story = `${breakoutType}_CONFIRMATION`;
+    }
+    
+    const barriers = identifyBarriers(klinesSnapshot, lookbackPeriod);
+    
+    return {
+        phase,
+        breakoutType,
+        story,
+        peakHigh,
+        valleyLow,
+        barriers
+    };
+}
+// ===================================================================
+// FUNGSI IDENTIFIKASI BARRIER SESUAI PLAYBOOK HALAMAN 34-36
+// ===================================================================
+// ===================================================================
+// FUNGSI IDENTIFIKASI BARRIER SESUAI PLAYBOOK HALAMAN 34-36
+// ===================================================================
+function identifyBarriers(klines, lookbackPeriod = 20) {
+    const highs = klines.map(k => parseFloat(k[2]));
+    const lows = klines.map(k => parseFloat(k[3]));
+    
+    const recentHighs = highs.slice(-lookbackPeriod);
+    const recentLows = lows.slice(-lookbackPeriod);
+    
+    // Barrier utama: support dan resistance signifikan
+    const supportLevels = identifySupportLevels(recentLows);
+    const resistanceLevels = identifyResistanceLevels(recentHighs);
+    
+    // Barrier berdasarkan price action (sesuai halaman 34 playbook)
+    const priceActionBarriers = identifyPriceActionBarriers(klines.slice(-lookbackPeriod));
+    
+    return {
+        supports: supportLevels,
+        resistances: resistanceLevels,
+        priceActionBarriers: priceActionBarriers
+    };
+}
+
+// ============== ⬇️ ADD THE FOLLOWING FUNCTIONS HERE ⬇️ ==============
+
+function identifySupportLevels(lows) {
+    const supports = [];
+    // Metode sederhana: identifikasi lembah lokal sebagai support
+    for (let i = 1; i < lows.length - 1; i++) {
+        if (lows[i] < lows[i - 1] && lows[i] < lows[i + 1]) {
+            supports.push(lows[i]);
+        }
+    }
+    // Tambahkan titik terendah absolut juga
+    if (lows.length > 0) {
+        const minLow = Math.min(...lows);
+        if (!supports.includes(minLow)) {
+            supports.push(minLow);
+        }
+    }
+    return supports;
+}
+
+function identifyResistanceLevels(highs) {
+    const resistances = [];
+    // Metode sederhana: identifikasi puncak lokal sebagai resistance
+    for (let i = 1; i < highs.length - 1; i++) {
+        if (highs[i] > highs[i - 1] && highs[i] > highs[i + 1]) {
+            resistances.push(highs[i]);
+        }
+    }
+    // Tambahkan titik tertinggi absolut juga
+    if (highs.length > 0) {
+        const maxHigh = Math.max(...highs);
+        if (!resistances.includes(maxHigh)) {
+            resistances.push(maxHigh);
+        }
+    }
+    return resistances;
+}
+
+function identifyPriceActionBarriers(klines) {
+    // Implementasi sederhana untuk barrier price action.
+    // Mengidentifikasi titik tengah dari rentang harga.
+    if (klines.length < 2) return {};
+    const highs = klines.map(k => parseFloat(k[2]));
+    const lows = klines.map(k => parseFloat(k[3]));
+    const highestHigh = Math.max(...highs);
+    const lowestLow = Math.min(...lows);
+    return {
+        rangeMidpoint: (highestHigh + lowestLow) / 2
+    };
+}
+function identifySwingPoints(klines, lookbackPeriod = 20) {
+    const highs = klines.map(k => parseFloat(k[2]));
+    const lows = klines.map(k => parseFloat(k[3]));
+    
+    const recentHighs = highs.slice(-lookbackPeriod);
+    const recentLows = lows.slice(-lookbackPeriod);
+    
+    const swingHighs = [];
+    const swingLows = [];
+    
+    // Identifikasi swing highs (puncak)
+    for (let i = 1; i < recentHighs.length - 1; i++) {
+        if (recentHighs[i] > recentHighs[i - 1] && recentHighs[i] > recentHighs[i + 1]) {
+            swingHighs.push(recentHighs[i]);
+        }
+    }
+    
+    // Identifikasi swing lows (lembah)
+    for (let i = 1; i < recentLows.length - 1; i++) {
+        if (recentLows[i] < recentLows[i - 1] && recentLows[i] < recentLows[i + 1]) {
+            swingLows.push(recentLows[i]);
+        }
+    }
+    
+    return {
+        highs: swingHighs,
+        lows: swingLows
+    };
+}
+// ===================================================================
+// FUNGSI STOP LOSS BERDASARKAN BARRIER (PLAYBOOK HALAMAN 38)
+// ===================================================================
+// ===================================================================
+// FUNGSI STOP LOSS BERDASARKAN BARRIER (PLAYBOOK HALAMAN 38)
+// ===================================================================
+function calculateBarrierBasedStopLoss(entryPrice, barriers, breakoutType, historicalData) {
+    // Defensive check to ensure 'barriers' and its properties exist
+    if (!barriers || !barriers.supports || !barriers.resistances) {
+        return calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData);
+    }
+
+    if (breakoutType === 'BULLISH' || breakoutType === 'LONG') {
+        const relevantSupports = barriers.supports.filter(s => s < entryPrice);
+        if (relevantSupports.length > 0) {
+            const nearestSupport = Math.max(...relevantSupports);
+            return nearestSupport * 0.998; // Buffer 0.2%
+        }
+    } else { // BEARISH or SHORT
+        const relevantResistances = barriers.resistances.filter(r => r > entryPrice);
+        if (relevantResistances.length > 0) {
+            const nearestResistance = Math.min(...relevantResistances);
+            return nearestResistance * 1.002; // Buffer 0.2%
+        }
+    }
+    
+    // Fallback if no relevant barrier is found
+    return calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData);
+}
+
+// Fungsi fallback untuk kalkulasi stop loss
+function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atrPeriod = 14, atrMultiplier = 2) {
+    if (!historicalData || historicalData.length < atrPeriod) {
+        // Fallback jika data tidak cukup
+        return breakoutType === 'BULLISH' || breakoutType === 'LONG' ? entryPrice * 0.98 : entryPrice * 1.02;
+    }
+    const atrValues = calculateATR(historicalData, atrPeriod);
+    const lastATR = atrValues[atrValues.length - 1] || (entryPrice * 0.01); // Handle jika ATR undefined
+    
+    if (breakoutType === 'BULLISH' || breakoutType === 'LONG') {
+        return entryPrice - (lastATR * atrMultiplier);
+    } else { // BEARISH or SHORT
+        return entryPrice + (lastATR * atrMultiplier);
+    }
+}
+
+// ===================================================================
+// BAGIAN BARU: FUNGSI ANALISIS KONDISI PASAR
+// ===================================================================
+    
+// Fungsi untuk mendeteksi kondisi pasar dari data historis
+    function analyzeMarketConditions(historicalData) {
+        if (!historicalData || historicalData.length < 100) {
+            return null;
+        }
+        
+        const closes = historicalData.map(k => parseFloat(k[4]));
+        const highs = historicalData.map(k => parseFloat(k[2]));
+        const lows = historicalData.map(k => parseFloat(k[3]));
+        
+        // 1. Hitung volatilitas
+        const volatilities = [];
+        for (let i = 1; i < closes.length; i++) {
+            const volatility = Math.abs((closes[i] - closes[i-1]) / closes[i-1]);
+            volatilities.push(volatility);
+        }
+        const avgVolatility = volatilities.reduce((a, b) => a + b, 0) / volatilities.length;
+        
+        // 2. Hitung EMA untuk menentukan trend
+        const ema21 = calculateEMA(closes, 21);
+        const ema50 = calculateEMA(closes, 50);
+        
+        // 3. Hitung ATR untuk volatilitas
+        const atr = calculateATR(historicalData, 14);
+        
+        // 4. Analisis kondisi pasar
+        const conditions = [];
+        const segmentSize = Math.floor(historicalData.length / 10); // Bagi jadi 10 segment
+        
+        for (let i = 0; i < 10; i++) {
+            const startIdx = i * segmentSize;
+            const endIdx = Math.min((i + 1) * segmentSize, historicalData.length - 1);
+            
+            const segmentCloses = closes.slice(startIdx, endIdx);
+            const segmentHighs = highs.slice(startIdx, endIdx);
+            const segmentLows = lows.slice(startIdx, endIdx);
+            
+            const segmentEma21 = ema21.slice(startIdx, endIdx);
+            const segmentEma50 = ema50.slice(startIdx, endIdx);
+            
+            // Hitung perubahan harga
+            const priceChange = (segmentCloses[segmentCloses.length - 1] - segmentCloses[0]) / segmentCloses[0] * 100;
+            
+            // Tentukan kondisi berdasarkan aturan
+            let condition;
+            if (Math.abs(priceChange) > 15) {
+                condition = priceChange > 0 ? 'uptrend' : 'downtrend';
+            } else if (atr[endIdx] / closes[endIdx] > 0.02) {
+                condition = 'volatile';
+            } else if (Math.abs(priceChange) < 5) {
+                condition = 'sideways';
+            } else {
+                condition = 'ranging';
+            }
+            
+            const startDate = new Date(historicalData[startIdx][0]).toLocaleDateString();
+            const endDate = new Date(historicalData[endIdx][0]).toLocaleDateString();
+            
+            conditions.push({
+                segment: i + 1,
+                startIdx,
+                endIdx,
+                startDate,
+                endDate,
+                condition,
+                priceChange
+            });
+        }
+        
+        return {
+            conditions,
+            avgVolatility,
+            totalCandles: historicalData.length
+        };
+    }
+    
+    // Fungsi untuk menghitung ATR (Average True Range)
+    function calculateATR(klines, period = 14) {
+        const trValues = [];
+        
+        for (let i = 1; i < klines.length; i++) {
+            const currentHigh = parseFloat(klines[i][2]);
+            const currentLow = parseFloat(klines[i][3]);
+            const previousClose = parseFloat(klines[i-1][4]);
+            
+            const tr1 = currentHigh - currentLow;
+            const tr2 = Math.abs(currentHigh - previousClose);
+            const tr3 = Math.abs(currentLow - previousClose);
+            
+            trValues.push(Math.max(tr1, tr2, tr3));
+        }
+        
+        // Hitung ATR
+        const atrValues = [trValues.slice(0, period).reduce((a, b) => a + b, 0) / period];
+        
+        for (let i = period; i < trValues.length; i++) {
+            atrValues.push((atrValues[atrValues.length - 1] * (period - 1) + trValues[i]) / period);
+        }
+        
+        return atrValues;
+    }
+    
+    // Fungsi untuk menampilkan hasil analisis kondisi pasar
+    function displayMarketAnalysis(analysis) {
+        const section = document.getElementById('market-analysis-section');
+        const conditionChart = document.getElementById('market-condition-chart');
+        const timeSegmentation = document.getElementById('time-segmentation-chart');
+        const recommendations = document.getElementById('market-recommendations');
+        
+        if (!analysis) {
+            section.classList.add('hidden');
+            return;
+        }
+        
+        section.classList.remove('hidden');
+        
+        // Hitung distribusi kondisi
+        const conditionCount = {
+            uptrend: 0,
+            downtrend: 0,
+            ranging: 0,
+            sideways: 0,
+            volatile: 0
+        };
+        
+        analysis.conditions.forEach(cond => {
+            conditionCount[cond.condition]++;
+        });
+        
+        // Tampilkan chart distribusi
+        conditionChart.innerHTML = '';
+        for (const [condition, count] of Object.entries(conditionCount)) {
+            if (count > 0) {
+                const percentage = (count / analysis.conditions.length * 100).toFixed(1);
+                conditionChart.innerHTML += `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="regime-tag ${condition}">${condition}</span>
+                        <span class="text-gray-400">${percentage}%</span>
+                    </div>
+                    <div class="market-condition-bar bg-gray-700">
+                        <div class="market-condition-bar ${condition}" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Tampilkan segmentasi waktu
+        timeSegmentation.innerHTML = '';
+        analysis.conditions.forEach(seg => {
+            timeSegmentation.innerHTML += `
+                <div class="time-segment ${seg.condition}" style="width: 9%;" 
+                     data-date="${seg.startDate} - ${seg.endDate}">
+                </div>
+            `;
+        });
+        
+        // Berikan rekomendasi
+        recommendations.innerHTML = '';
+        
+        // Rekomendasi berdasarkan kondisi pasar
+        if (conditionCount.uptrend + conditionCount.downtrend > conditionCount.sideways + conditionCount.ranging) {
+            recommendations.innerHTML += `
+                <li>✅ Pasar cenderung <strong>trending</strong>. Gunakan strategi trend-following dengan preset "trending".</li>
+            `;
+        } else {
+            recommendations.innerHTML += `
+                <li>✅ Pasar cenderung <strong>ranging/sideways</strong>. Gunakan strategi mean-reversion dengan preset "ranging".</li>
+            `;
+        }
+        
+        // Rekomendasi berdasarkan volatilitas
+        if (analysis.avgVolatility > 0.015) {
+            recommendations.innerHTML += `
+                <li>✅ Volatilitas <strong>tinggi</strong>. Pertimbangkan mengurangi leverage dan memperlebar stop loss.</li>
+            `;
+        } else {
+            recommendations.innerHTML += `
+                <li>✅ Volatilitas <strong>rendah</strong>. Pertimbangkan strategi breakout dengan preset "lowVolatility".</li>
+            `;
+        }
+        
+        // Rekomendasi jumlah candle
+        if (analysis.totalCandles < 1000) {
+            recommendations.innerHTML += `
+                <li>⚠️ Jumlah candle (${analysis.totalCandles}) <strong>terlalu sedikit</strong> untuk hasil yang akurat. 
+                Minimal 1000 candle direkomendasikan.</li>
+            `;
+        } else if (analysis.totalCandles < 5000) {
+            recommendations.innerHTML += `
+                <li>✅ Jumlah candle (${analysis.totalCandles}) <strong>cukup</strong> untuk analisis menengah.</li>
+            `;
+        } else {
+            recommendations.innerHTML += `
+                <li>✅ Jumlah candle (${analysis.totalCandles}) <strong>excellent</strong> untuk analisis komprehensif.</li>
+            `;
+        }
+        
+        // Rekomendasi berdasarkan distribusi kondisi
+        if (conditionCount.uptrend > conditionCount.downtrend) {
+            recommendations.innerHTML += `
+                <li>📈 Periode didominasi <strong>uptrend</strong>. Pastikan strategi Anda profitable dalam kondisi bullish.</li>
+            `;
+        } else if (conditionCount.downtrend > conditionCount.uptrend) {
+            recommendations.innerHTML += `
+                <li>📉 Periode didominasi <strong>downtrend</strong>. Pastikan strategi Anda profitable dalam kondisi bearish.</li>
+            `;
+        }
+    }
+    
+    
+    // ===================================================================
+    // BAGIAN 3: FUNGSI-FUNGSI PEMBANTU (HELPERS)
+    // ===================================================================
+    function applyRegimePreset(presetName) {
+        if (presetName === 'custom') return;
+        const weights = userSettings.presets[presetName].weights;
+        labWeightsContainer.querySelectorAll('input').forEach(input => {
+            const key = input.dataset.weightKey;
+            if (weights[key] !== undefined) {
+                input.value = weights[key];
+            }
+        });
+    }
+
+    function populateWeightsTuningPanel() {
+        // Menggunakan preset 'default' sebagai template untuk semua input yang mungkin
+        const allPossibleWeights = userSettings.presets.default.weights;
+        if (!labWeightsContainer) return;
+        labWeightsContainer.innerHTML = '';
+        for (const key in allPossibleWeights) {
+            const defaultValue = allPossibleWeights[key];
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label class="block text-xs text-gray-400 capitalize">
+                    ${key.replace(/([A-Z])/g, ' $1')}
+                </label>
+                <input type="number" step="0.1" data-weight-key="${key}" value="${defaultValue}" class="input-primary small-input mt-1">
+            `;
+            labWeightsContainer.appendChild(div);
+        }
+        // Listener untuk mengubah preset ke 'custom' jika ada input manual
+        labWeightsContainer.addEventListener('input', () => {
+            labRegimePreset.value = 'custom';
+        });
+    }
+
+    function attachLogbookRowListeners() {
+    document.querySelectorAll('.logbook-entry-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const entryId = row.dataset.entryId;
+            toggleLogbookDetails(entryId);
+        });
+    });
+}
+    function setButtonState(button, isLoading, text = null) {
+        const btnText = button.querySelector('span');
+        const btnLoader = button.querySelector('.loader');
+        button.disabled = isLoading;
+        if (btnText) btnText.classList.toggle('hidden', isLoading);
+        if (btnLoader) btnLoader.classList.toggle('hidden', !isLoading);
+        if (text && btnText && !isLoading) btnText.textContent = text;
+    }
+
+    function setupToggle(buttonId, contentWrapperId, iconId, startVisible = false) {
+        const button = document.getElementById(buttonId);
+        const contentWrapper = document.getElementById(contentWrapperId);
+        const icon = document.getElementById(iconId);
+        if (!button || !contentWrapper || !icon) return;
+        contentWrapper.classList.add('collapsible-content');
+        const applyState = (isVisible) => {
+            if (isVisible) {
+                contentWrapper.classList.add('expanded');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                contentWrapper.classList.remove('expanded');
+                icon.style.transform = 'rotate(-90deg)';
+            }
+        };
+        let isVisible = startVisible;
+        applyState(isVisible);
+        button.addEventListener('click', () => {
+            isVisible = !isVisible;
+            applyState(isVisible);
+        });
+    }
+
+    async function fetchBinanceKlines(symbol, interval, limit, endTime) {
+        const baseUrl = 'https://fapi.binance.com/fapi/v1';
+        const params = new URLSearchParams({ symbol, interval, limit, endTime });
+        const url = `${baseUrl}/klines?${params.toString()}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Binance API returned status ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error(`Gagal mengambil klines dari ${url}:`, error);
+            throw error;
+        }
+    }
+    function calculateShortConfluenceScore(klinesSnapshot) {
+    if (!klinesSnapshot || klinesSnapshot.length < 50) return { score: 0, breakdown: {} };
+
+    const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+    let score = 0;
+    let triggers = [];
+    const rsiValues = calculateRSI(closes, 14);
+    const lastRsi = rsiValues[rsiValues.length - 1];
+    if (lastRsi > 72) {
+        score += 3.5;
+        triggers.push('RSI Overbought');
+    }
+    const macd = calculateMACD(closes);
+    if (macd.status === 'Bearish Cross') {
+        score += 2.5;
+        triggers.push('MACD Cross');
+    }
+    const candlePattern = findCandlestickPatterns(klinesSnapshot);
+    if (candlePattern.bias === 'BEARISH') {
+        score += 2.0;
+        triggers.push('Candle Pattern');
+    }
+    const lookbackPeriod = 15;
+    const recentKlines = klinesSnapshot.slice(-lookbackPeriod);
+    if (recentKlines.length >= 3) {
+        let peakIndex = 0;
+        for (let i = 1; i < recentKlines.length; i++) {
+            if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[peakIndex][2])) peakIndex = i;
+        }
+        if (peakIndex > 0 && peakIndex < lookbackPeriod - 2) {
+            const triggerCandleArr = recentKlines[peakIndex + 1];
+            if (triggerCandleArr) {
+                const triggerCandle = { Open: parseFloat(triggerCandleArr[1]), Close: parseFloat(triggerCandleArr[4]) };
+                if (triggerCandle.Close < triggerCandle.Open) {
+                    score += 3.5;
+                    triggers.push('Red Candle After High');
+                }
+            }
+        }
+    }
+    const rsiDivergence = detectRSIDivergence(closes, rsiValues);
+    if (rsiDivergence.status === 'BEARISH') {
+        score += 4.0;
+        triggers.push('RSI Divergence');
+    }
+    return { score: Math.min(score, 10), triggers: triggers };
+}
+    function calculateAndDisplayCandleCount() {
+        try {
+            const startDate = new Date(backtestStartDate.value);
+            const endDate = new Date(backtestEndDate.value);
+            const timeframe = backtestTimeframeSelect.value;
+            const displayEl = document.getElementById('candle-count-display');
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate < startDate) {
+                displayEl.textContent = '...';
+                if (document.activeElement !== candleCountInput) candleCountInput.value = '';
+                return;
+            }
+            const timeframeMapMs = {
+                '1m': 60000,      // 1 menit = 60.000 ms
+                '3m': 180000,     // 3 menit = 180.000 ms
+                '5m': 300000,     // 5 menit = 300.000 ms
+                '15m': 900000,
+                '1h': 3600000,
+                '4h': 14400000,
+                '1d': 86400000
+                };
+            const timeframeMs = timeframeMapMs[timeframe];
+            if (!timeframeMs) { displayEl.textContent = 'N/A'; return; }
+            const durationMs = endDate.getTime() - startDate.getTime();
+            const candleCount = Math.floor(durationMs / timeframeMs);
+            displayEl.textContent = `${candleCount.toLocaleString('id-ID')} candle`;
+            if (document.activeElement !== candleCountInput) candleCountInput.value = candleCount;
+        } catch (e) { document.getElementById('candle-count-display').textContent = 'Error'; }
+    }
+
+    function updateDateRangeFromCandleCount() {
+        const candleCount = parseInt(candleCountInput.value);
+        let endDate = new Date(backtestEndDate.value);
+        if (isNaN(endDate.getTime())) {
+            endDate = new Date();
+            const yyyy = endDate.getFullYear();
+            const mm = String(endDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(endDate.getDate()).padStart(2, '0');
+            backtestEndDate.value = `${yyyy}-${mm}-${dd}`;
+        }
+        const timeframe = backtestTimeframeSelect.value;
+        if (isNaN(candleCount) || candleCount <= 0) return;
+        const timeframeMapMs = {
+                '1m': 60000,      // 1 menit = 60.000 ms
+                '3m': 180000,     // 3 menit = 180.000 ms
+                '5m': 300000,     // 5 menit = 300.000 ms
+                '15m': 900000,
+                '1h': 3600000,
+                '4h': 14400000,
+                '1d': 86400000
+                };
+        const timeframeMs = timeframeMapMs[timeframe];
+        if (!timeframeMs) return;
+        const durationMs = candleCount * timeframeMs;
+        const newStartDate = new Date(endDate.getTime() - durationMs);
+        const yyyy = newStartDate.getFullYear();
+        const mm = String(newStartDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(newStartDate.getDate()).padStart(2, '0');
+        backtestStartDate.value = `${yyyy}-${mm}-${dd}`;
+        calculateAndDisplayCandleCount();
+    }
+    
+    function populateWeightsTuningPanel() {
+        const weights = userSettings.presets.default.weights;
+        if (!labWeightsContainer) return;
+        labWeightsContainer.innerHTML = '';
+        for (const key in weights) {
+            const defaultValue = weights[key];
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <label class="block text-xs text-gray-400 capitalize">
+                    ${key.replace(/([A-Z])/g, ' $1')}
+                </label>
+                <input type="number" 
+                    step="0.1" 
+                    data-weight-key="${key}" 
+                    value="${defaultValue}" 
+                    class="input-primary small-input mt-1">
+            `;
+            labWeightsContainer.appendChild(div);
+        }
+    }
+    
+function saveResultToLogbook(settings, metrics) {
+    let logbookData = JSON.parse(localStorage.getItem('backtestLogbook')) || [];
+    const newEntry = {
+        id: Date.now(),
+        symbol: settings.symbol,
+        timeframe: settings.timeframe,
+        leverage: settings.leverage,
+        pnlPercent: (metrics.totalPnl / settings.initialBalance) * 100,
+        winRate: metrics.winRate,
+        profitFactor: metrics.profitFactor,
+        totalTrades: metrics.totalTrades,
+        startDate: new Date(settings.startDate).toLocaleDateString('id-ID'),
+        endDate: new Date(settings.endDate).toLocaleDateString('id-ID'),
+        params: {
+            strategy: settings.strategyMode,
+            rrRatio: settings.riskRewardRatio,
+            emaPeriod: settings.pullbackEmaPeriod,
+            swingLookback: settings.swingLookback,
+            biasThreshold: settings.biasThreshold,
+            riskPerTrade: (settings.riskPerTrade * 100), // Simpan sebagai persen lagi
+            marginMode: settings.marginMode
+        }
+    };
+    logbookData.unshift(newEntry);
+    if (logbookData.length > 20) logbookData.pop();
+    localStorage.setItem('backtestLogbook', JSON.stringify(logbookData));
+}
+
+function loadAndRenderLogbook(dataToRender) {
+    const logbookBody = document.getElementById('logbook-body');
+    const logbookSection = document.getElementById('logbook-section');
+    const logbookData = dataToRender || JSON.parse(localStorage.getItem('backtestLogbook')) || [];
+
+    if (logbookData.length > 0) {
+        logbookBody.innerHTML = logbookData.map(entry => {
+            const params = entry.params || {
+                strategy: 'N/A',
+                rrRatio: 'N/A',
+                emaPeriod: 'N/A',
+                swingLookback: 'N/A',
+                biasThreshold: 'N/A',
+                riskPerTrade: 'N/A',
+                marginMode: 'N/A'
+            };
+            const strategyName = (params.strategy === 'dumpSniper') ? 'Dump Sniper' :
+                     (params.strategy === 'scalpingKontekstual') ? 'Scalping Kontekstual' :
+                     'Pullback Trend';
+            const pnlText = (typeof entry.pnlPercent === 'number') ? entry.pnlPercent.toFixed(2) : '0.00';
+            const winRateText = (typeof entry.winRate === 'number') ? entry.winRate.toFixed(2) : '0.00';
+            const profitFactorText = (entry.profitFactor === Infinity) ? '∞' : (typeof entry.profitFactor === 'number' ? entry.profitFactor.toFixed(2) : '0.00');
+
+            return `
+                <tr class="logbook-entry-row border-b border-gray-700 hover:bg-gray-800/50 cursor-pointer" data-entry-id="${entry.id}">
+                    <td class="px-4 py-2 font-bold text-white">${entry.symbol}</td>
+                    <td class="px-4 py-2">${entry.timeframe}</td>
+                    <td class="px-4 py-2 font-mono ${parseFloat(pnlText) >= 0 ? 'positive' : 'negative'}">${pnlText}%</td>
+                    <td class="px-4 py-2 font-mono">${winRateText}%</td>
+                    <td class="px-4 py-2 font-mono">${profitFactorText}</td>
+                    <td class="px-4 py-2 font-mono text-center">${entry.totalTrades || 'N/A'}</td>
+                    <td class="px-4 py-2 text-gray-500">${entry.startDate} - ${entry.endDate}</td>
+                </tr>
+                <tr id="details-${entry.id}" class="hidden">
+                    <td colspan="7" class="p-4 bg-gray-900/50 text-xs">
+                        <div class="font-mono text-yellow-400 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                            <span>Strategy: <strong>${strategyName}</strong></span>
+                            <span>Leverage: <strong>${entry.leverage}x</strong></span>
+                            <span>R:R Ratio: <strong>${params.rrRatio}</strong></span>
+                            <span>EMA Entry: <strong>${params.emaPeriod}</strong></span>
+                            <span>Swing (SL): <strong>${params.swingLookback}</strong></span>
+                            <span>Threshold: <strong>${params.biasThreshold}</strong></span>
+                            <span>Risk: <strong>${params.riskPerTrade}%</strong></span>
+                            <span>Margin: <strong class="capitalize">${params.marginMode}</strong></span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        logbookSection.classList.remove('hidden');
+        
+        // Setelah HTML dibuat, tambahkan event listener
+        attachLogbookRowListeners();
+
+    } else { 
+        logbookSection.classList.add('hidden'); 
+    }
+}
+
+    function sortAndRenderLogbook() {
+        const logbookData = JSON.parse(localStorage.getItem('backtestLogbook')) || [];
+        const { key, direction } = logbookSortState;
+        const sortedData = [...logbookData].sort((a, b) => {
+            const valA = a[key]; const valB = b[key];
+            let comparison = (typeof valA === 'string') ? valA.localeCompare(valB) : valA - valB;
+            return direction === 'asc' ? comparison : -comparison;
+        });
+        loadAndRenderLogbook(sortedData);
+    }
+
+    function toggleLogbookDetails(id) {
+        const detailRow = document.getElementById(`details-${id}`);
+        if (detailRow) detailRow.classList.toggle('hidden');
+    }
+
+    function clearLogbook() {
+        if (confirm("Hapus seluruh riwayat pengujian?")) {
+            localStorage.removeItem('backtestLogbook');
+            loadAndRenderLogbook([]);
+        }
+    }
+// ===================================================================
+// FUNGSI GENERATE TUNING RECOMMENDATIONS YANG DISESUAIKAN UNTUK MOSHA
+// ===================================================================
+function generateTuningRecommendations(metrics, trades, settings) {
+    const recommendations = {
+        weakConfluences: [],
+        optimalParams: {},
+        regimeSuggestions: [],
+        generalSuggestions: [],
+        actionPlan: []
+    };
+    
+    // Simpan strategy mode untuk referensi nanti
+    recommendations.strategyMode = settings.strategyMode;
+    
+    // Untuk strategi MOSHA, hanya berikan rekomendasi yang relevan
+    if (settings.strategyMode === 'moshaBreakout') {
+        // Analisis performa berdasarkan parameter MOSHA
+        if (metrics.winRate < 45) {
+            recommendations.weakConfluences.push("Win rate rendah (<45%) - pertimbangkan meningkatkan Minimum Phase atau menambah filter tambahan");
+            recommendations.optimalParams.moshaMinPhase = Math.min(settings.moshaMinPhase + 1, 3); // Naikkan minimum phase
+        } else if (metrics.winRate > 65) {
+            recommendations.weakConfluences.push("Win rate tinggi namun mungkin missing opportunities - bisa turunkan sedikit Minimum Phase");
+            recommendations.optimalParams.moshaMinPhase = Math.max(settings.moshaMinPhase - 1, 1); // Turunkan minimum phase
+        }
+        
+        if (metrics.profitFactor < 1.2) {
+            recommendations.weakConfluences.push("Profit factor rendah - pertimbangkan mengatur ulang Risk/Reward ratio");
+            recommendations.optimalParams.riskRewardRatio = Math.min(settings.riskRewardRatio + 0.3, 2.5);
+        }
+        
+        // Analisis trades untuk rekomendasi yang lebih spesifik
+        const losingTrades = trades.filter(t => t.pnl < 0);
+        const winningTrades = trades.filter(t => t.pnl > 0);
+        
+        if (losingTrades.length > 0) {
+            const avgLoss = losingTrades.reduce((sum, trade) => sum + Math.abs(trade.pnl), 0) / losingTrades.length;
+            const avgWin = winningTrades.length > 0 ? 
+                winningTrades.reduce((sum, trade) => sum + trade.pnl, 0) / winningTrades.length : 0;
+                
+            if (avgLoss > avgWin * 1.5) {
+                recommendations.weakConfluences.push("Rata-rata loss lebih besar dari win - pertimbangkan tighter stop loss atau trailing stop");
+                recommendations.generalSuggestions.push("Pertimbangkan untuk menggunakan stop loss berbasis ATR (2-2.5x ATR) bukan fixed swing stop");
+            }
+        }
+
+        // Analisis berdasarkan regime pasar
+        if (metrics.winRate < 40 && metrics.profitFactor < 1.0) {
+            recommendations.regimeSuggestions.push("Strategi tidak performa baik di regime pasar ini - pertimbangkan untuk mengganti timeframe atau mengurangi trade frequency");
+        }
+
+        // Rekomendasi leverage dan risk
+        if (metrics.totalPnl < 0) {
+            recommendations.generalSuggestions.push("Kurangi leverage atau risk per trade untuk mengurangi drawdown");
+            recommendations.optimalParams.riskPerTrade = Math.max(settings.riskPerTrade * 100 - 5, 2); // Kurangi risk menjadi 2-5%
+        } else if (metrics.totalPnl / settings.initialBalance > 0.5) {
+            recommendations.generalSuggestions.push("Kinerja bagus - pertimbangkan untuk meningkatkan risk per trade secara bertahap");
+            recommendations.optimalParams.riskPerTrade = Math.min(settings.riskPerTrade * 100 + 2, 15); // Naikkan risk sedikit
+        }
+
+        // Rekomendasi khusus MOSHA
+        recommendations.generalSuggestions.push("Gunakan stop loss berbasis ATR (2-2.5x ATR) untuk mengelola risk sesuai konsep Barrier");
+        recommendations.generalSuggestions.push("Fokus pada fase 2 dan 3 untuk entry yang lebih aman");
+        
+        // Rekomendasi parameter MOSHA
+        if (metrics.winRate < 50) {
+            recommendations.optimalParams.moshaLookback = Math.min(settings.moshaLookback + 5, 30); // Naikkan lookback period
+        }
+        
+        // Action plan spesifik MOSHA
+        recommendations.actionPlan.push("Backtest dengan parameter MOSHA yang berbeda di 3 periode berbeda");
+        recommendations.actionPlan.push("Analisis trades yang gagal untuk mengidentifikasi pola breakout yang false");
+        recommendations.actionPlan.push("Gunakan multi timeframe analysis sesuai konsep Father-Mother-Baby");
+        recommendations.actionPlan.push("Fokus pada konfirmasi phase 2 dan 3 untuk mengurangi false breakout");
+        
+    } else {
+        // Rekomendasi untuk strategi lain (tetap sama)
+        if (metrics.winRate < 45) {
+            recommendations.weakConfluences.push("Win rate rendah (<45%) - pertimbangkan meningkatkan threshold konfluensi atau menambah filter tambahan");
+            recommendations.optimalParams.biasThreshold = Math.min(settings.biasThreshold - 3, 12); // Turunkan threshold
+            recommendations.optimalParams.riskRewardRatio = Math.max(settings.riskRewardRatio - 0.3, 1.2); // Turunkan RR ratio
+        } else if (metrics.winRate > 65) {
+            recommendations.weakConfluences.push("Win rate tinggi namun mungkin missing opportunities - bisa longgar sedikit threshold");
+            recommendations.optimalParams.biasThreshold = Math.max(settings.biasThreshold + 2, 5);
+        }
+        
+        if (metrics.profitFactor < 1.2) {
+            recommendations.weakConfluences.push("Profit factor rendah - pertimbangkan mengatur ulang Risk/Reward ratio dan manajemen risiko");
+            recommendations.optimalParams.riskRewardRatio = Math.min(settings.riskRewardRatio + 0.3, 2.5);
+            recommendations.optimalParams.riskPerTrade = Math.max(settings.riskPerTrade * 100 - 3, 3); // Kurangi risk per trade
+        }
+        
+        // Analisis trades untuk rekomendasi yang lebih spesifik
+        const losingTrades = trades.filter(t => t.pnl < 0);
+        const winningTrades = trades.filter(t => t.pnl > 0);
+        
+        if (losingTrades.length > 0) {
+            const avgLoss = losingTrades.reduce((sum, trade) => sum + Math.abs(trade.pnl), 0) / losingTrades.length;
+            const avgWin = winningTrades.length > 0 ? 
+                winningTrades.reduce((sum, trade) => sum + trade.pnl, 0) / winningTrades.length : 0;
+                
+            if (avgLoss > avgWin * 1.5) {
+                recommendations.weakConfluences.push("Rata-rata loss lebih besar dari win - pertimbangkan tighter stop loss atau trailing stop");
+                recommendations.generalSuggestions.push("Pertimbangkan untuk menggunakan stop loss berbasis ATR (2-2.5x ATR) bukan fixed swing stop");
+                recommendations.optimalParams.swingLookback = Math.min(settings.swingLookback + 5, 30); // Perlebar lookback untuk SL
+            }
+        }
+
+        // Analisis berdasarkan regime pasar
+        if (metrics.winRate < 40 && metrics.profitFactor < 1.0) {
+            recommendations.regimeSuggestions.push("Strategi tidak performa baik di regime pasar ini - pertimbangkan untuk mengganti preset regime atau timeframe");
+            recommendations.actionPlan.push("Coba backtest dengan preset 'trending' jika pasar sedang trending, atau 'ranging' jika pasar sideways");
+        }
+
+        // Rekomendasi leverage dan risk
+        if (metrics.totalPnl < 0) {
+            recommendations.generalSuggestions.push("Kurangi leverage atau risk per trade untuk mengurangi drawdown");
+            recommendations.optimalParams.riskPerTrade = Math.max(settings.riskPerTrade * 100 - 5, 2); // Kurangi risk menjadi 2-5%
+        } else if (metrics.totalPnl / settings.initialBalance > 0.5) {
+            recommendations.generalSuggestions.push("Kinerja bagus - pertimbangkan untuk meningkatkan risk per trade secara bertahap");
+            recommendations.optimalParams.riskPerTrade = Math.min(settings.riskPerTrade * 100 + 2, 15); // Naikkan risk sedikit
+        }
+
+        // Rekomendasi parameter tambahan berdasarkan analisis
+        if (metrics.winRate < 50) {
+            recommendations.optimalParams.emaPeriod = Math.min(settings.pullbackEmaPeriod + 3, 21); // Naikkan periode EMA
+        }
+        
+        // Rekomendasi umum
+        recommendations.generalSuggestions.push("Coba backtest di timeframe lain (15m, 4h, 1d) untuk membandingkan performa");
+        recommendations.generalSuggestions.push("Pertimbangkan untuk menambahkan filter volatilitas (ATR) untuk menghindari trading di kondisi low volatility");
+        
+        // Action plan spesifik
+        recommendations.actionPlan.push("Backtest dengan parameter baru di 3 periode berbeda untuk memvalidasi hasil");
+        recommendations.actionPlan.push("Analisis trades yang gagal untuk mengidentifikasi pola kerugian yang konsisten");
+        recommendations.actionPlan.push("Tambahkan filter waktu - hindari trading di sesi dengan likuiditas rendah");
+    }
+    
+    return recommendations;
+}
+// ===================================================================
+// FUNGSI DISPLAY TUNING RECOMMENDATIONS YANG DISESUAIKAN UNTUK MOSHA
+// ===================================================================
+function displayTuningRecommendations(recommendations) {
+    const section = document.getElementById('tuning-recommendation-section');
+    const weakList = document.getElementById('weak-confluences-list');
+    const paramsList = document.getElementById('optimal-params-list');
+    const regimeList = document.getElementById('regime-suggestions-list');
+    const generalList = document.getElementById('general-suggestions-list');
+    const actionList = document.getElementById('action-plan-list');
+
+    section.classList.remove('hidden');
+    
+    // Tampilkan konfluensi lemah
+    weakList.innerHTML = '';
+    if (recommendations.weakConfluences.length > 0) {
+        recommendations.weakConfluences.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'text-yellow-400 flex items-start';
+            li.innerHTML = `<span class="mr-2">⚠️</span><span>${item}</span>`;
+            weakList.appendChild(li);
+        });
+    } else {
+        weakList.innerHTML = '<li class="text-green-400">✅ Tidak ada area kritis yang teridentifikasi</li>';
+    }
+    
+    // Tampilkan parameter optimal
+    paramsList.innerHTML = '';
+    
+    // Untuk strategi MOSHA, sembunyikan parameter yang tidak relevan
+    const irrelevantParams = ['biasThreshold', 'emaPeriod', 'swingLookback'];
+    
+    if (Object.keys(recommendations.optimalParams).length > 0) {
+        for (const [key, value] of Object.entries(recommendations.optimalParams)) {
+            // Skip parameter yang tidak relevan untuk MOSHA
+            if (recommendations.strategyMode === 'moshaBreakout' && irrelevantParams.includes(key)) {
+                continue;
+            }
+            
+            const li = document.createElement('li');
+            li.className = 'flex justify-between';
+            li.innerHTML = `
+                <span class="font-medium">${formatParamName(key)}:</span>
+                <span class="text-yellow-400 font-mono">${typeof value === 'number' ? value.toFixed(2) : value}</span>
+            `;
+            paramsList.appendChild(li);
+        }
+    }
+    
+    // Jika tidak ada parameter yang ditampilkan, tambahkan pesan
+    if (paramsList.children.length === 0) {
+        paramsList.innerHTML = '<li class="text-gray-400">Tidak ada perubahan parameter yang disarankan</li>';
+    }
+
+    // Tampilkan saran regime
+    regimeList.innerHTML = '';
+    if (recommendations.regimeSuggestions.length > 0) {
+        recommendations.regimeSuggestions.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'text-blue-400 flex items-start';
+            li.innerHTML = `<span class="mr-2">🔄</span><span>${item}</span>`;
+            regimeList.appendChild(li);
+        });
+    } else {
+        regimeList.innerHTML = '<li class="text-gray-400">Tidak ada saran regime</li>';
+    }
+
+    // Tampilkan saran umum
+    generalList.innerHTML = '';
+    if (recommendations.generalSuggestions.length > 0) {
+        recommendations.generalSuggestions.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'text-gray-300 flex items-start';
+            li.innerHTML = `<span class="mr-2">💡</span><span>${item}</span>`;
+            generalList.appendChild(li);
+        });
+    } else {
+        generalList.innerHTML = '<li class="text-gray-400">Tidak ada saran umum</li>';
+    }
+    
+    // Tampilkan action plan
+    actionList.innerHTML = '';
+    if (recommendations.actionPlan.length > 0) {
+        recommendations.actionPlan.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'text-green-300 flex items-start';
+            li.innerHTML = `<span class="mr-2">📋</span><span>${item}</span>`;
+            actionList.appendChild(li);
+        });
+    } else {
+        actionList.innerHTML = '<li class="text-gray-400">Tidak ada action plan</li>';
+    }
+}
+
+
+// Helper function untuk format nama parameter
+function formatParamName(key) {
+    const nameMap = {
+        biasThreshold: 'Bias Threshold',
+        riskRewardRatio: 'Risk/Reward Ratio',
+        riskPerTrade: 'Risk per Trade (%)',
+        emaPeriod: 'EMA Period',
+        swingLookback: 'Swing Lookback',
+        moshaLookback: 'MOSHA Lookback',
+        moshaMinPhase: 'Min. Phase'
+    };
+    return nameMap[key] || key;
+}
+
+function toggleStrategyParams() {
+    const strategyMode = document.getElementById('lab-strategy-mode').value;
+
+    // Ambil elemen untuk setiap parameter secara individual
+    const moshaLookbackParam = document.getElementById('mosha-lookback-param');
+    const moshaPhaseParam = document.getElementById('mosha-phase-param');
+    const emaParam = document.getElementById('ema-param');
+    const swingParam = document.getElementById('swing-param');
+    const biasParam = document.getElementById('bias-param');
+
+    // Ambil juga bagian "Preset Bobot"
+    const presetH3 = findElementByText('h3', 'Preset Bobot Rezim Pasar');
+    const presetSection = presetH3 ? presetH3.closest('div') : null;
+
+    if (strategyMode === 'moshaBreakout') {
+        // Tampilkan parameter MOSHA
+        moshaLookbackParam.classList.remove('hidden');
+        moshaPhaseParam.classList.remove('hidden');
+
+        // Sembunyikan parameter strategi lain
+        emaParam.classList.add('hidden');
+        swingParam.classList.add('hidden');
+        biasParam.classList.add('hidden');
+        if (presetSection) {
+            presetSection.classList.add('hidden');
+        }
+
+    } else {
+        // Sembunyikan parameter MOSHA
+        moshaLookbackParam.classList.add('hidden');
+        moshaPhaseParam.classList.add('hidden');
+
+        // Tampilkan parameter strategi lain
+        emaParam.classList.remove('hidden');
+        swingParam.classList.remove('hidden');
+        biasParam.classList.remove('hidden');
+        if (presetSection) {
+            presetSection.classList.remove('hidden');
+        }
+    }
+}
+
+function findElementByText(selector, text) {
+    const elements = document.querySelectorAll(selector);
+    for (const element of elements) {
+        if (element.textContent.trim() === text.trim()) {
+            return element;
+        }
+    }
+    return null;
+}
+
+const presetH3 = findElementByText('h3', 'Preset Bobot Rezim Pasar');
+if (presetH3) {
+    const parentContainer = presetH3.closest('.card');
+    if (parentContainer) {
+        // Lanjutkan dengan kode yang Anda miliki
+    }
+}
+
+// Fungsi untuk mengekspor konfigurasi
+    function exportConfiguration(settings) {
+        const dataStr = JSON.stringify(settings, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `backtest-config-${new Date().toISOString().slice(0,10)}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    }
+
+
+    // ===================================================================
+    // BAGIAN 4: OBJEK UTAMA MESIN BACKTESTING
+    const backtester = {
+            state: {
+                isRunning: false,
+                isStopped: false,
+                settings: {}
+            },
+            stop() {
+                this.state.isStopped = true;
+            },
+            async run() {
+                if (this.state.isRunning) return;
+                this.state.isRunning = true;
+                this.state.isStopped = false;
+                setButtonState(startBacktestBtn, true, "Running...");
+                stopBacktestBtn.classList.remove('hidden');
+                this.resetUI();
+                try {
+                    this.gatherSettings();
+                    const historicalData = await this.fetchHistoricalData(this.state.settings.symbol, this.state.settings.timeframe, this.state.settings.startDate, this.state.settings.endDate);
+                    if (this.state.isStopped) {
+                        backtestStatusText.textContent = "Pengambilan data dihentikan.";
+                        return;
+                    }
+                    if (historicalData.length < 200) throw new Error("Data historis tidak cukup (min. 200 candle).");
+                    backtestStatusText.textContent = "Data berhasil diambil! Memulai simulasi...";
+                    backtestProgressBar.style.width = `100%`;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    let trades = [];
+                    switch (this.state.settings.strategyMode) {
+                        case 'pullbackTrend':
+                            trades = await this.runSimulation_pullbackTrend(historicalData);
+                            break;
+                        case 'dumpSniper':
+                            trades = await this.runSimulation_dumpSniper(historicalData);
+                            break;
+                        case 'scalpingKontekstual':
+                            trades = await this.runSimulation_scalpingKontekstual(historicalData);
+                            break;
+                        case 'moshaBreakout':
+                            trades = await this.runSimulation_moshaBreakout(historicalData);
+                            break;
+                        default:
+                            throw new Error("Mode strategi tidak dikenal.");
+                    }
+                    if (this.state.isStopped) {
+                        backtestStatusText.textContent = "Simulasi dihentikan oleh pengguna.";
+                        return;
+                    }
+                    const metrics = this.calculateMetrics(trades, this.state.settings.initialBalance);
+                    this.displayResults(metrics);
+                } catch (error) {
+                    console.error("Backtest Gagal:", error);
+                    backtestStatusText.textContent = `Error: ${error.message}`;
+                    backtestProgressBar.style.backgroundColor = '#ef4444';
+                } finally {
+                    this.state.isRunning = false;
+                    setButtonState(startBacktestBtn, false, "▶️ Mulai Simulasi");
+                    stopBacktestBtn.classList.add('hidden');
+                }
+            },
+
+            resetUI() {
+                backtestResultsContainer.classList.add('hidden');
+                backtestTradeLogContainer.classList.add('hidden');
+                backtestProgressContainer.classList.remove('hidden');
+                backtestProgressBar.style.backgroundColor = '#3b82f6';
+                backtestStatusText.textContent = "Mempersiapkan...";
+                backtestProgressBar.style.width = "0%";
+            },
+
+            gatherSettings() {
+                const tunedWeights = {};
+                labWeightsContainer.querySelectorAll('input').forEach(input => {
+                    tunedWeights[input.dataset.weightKey] = parseFloat(input.value) || 0;
+                });
+                this.state.settings = {
+                    symbol: backtestSymbolInput.value.toUpperCase().trim(),
+                    timeframe: backtestTimeframeSelect.value,
+                    startDate: new Date(backtestStartDate.value).getTime(),
+                    endDate: new Date(backtestEndDate.value).getTime(),
+                    initialBalance: parseFloat(backtestInitialBalance.value),
+                    leverage: parseInt(backtestLeverageInput.value) || 1,
+                    strategyMode: labStrategyMode.value,
+                    riskRewardRatio: parseFloat(labRrRatioInput.value) || 1.5,
+                    pullbackEmaPeriod: parseInt(labEmaPeriodInput.value) || 9,
+                    swingLookback: parseInt(labSwingLookbackInput.value) || 15,
+                    biasThreshold: parseInt(labBiasThresholdInput.value) || 15,
+                    weights: { ...userSettings.presets.default.weights,
+                        ...tunedWeights
+                    },
+                    riskPerTrade: (parseFloat(labRiskPercentInput.value) / 100) || 0.05,
+                    marginMode: labMarginModeSelect.value,
+                    // Parameter MOSHA
+                    moshaLookback: parseInt(document.getElementById('lab-mosha-lookback').value) || 20,
+                    moshaMinPhase: parseInt(document.getElementById('lab-mosha-min-phase').value) || 2
+                };
+                if (!this.state.settings.symbol || !this.state.settings.startDate || !this.state.settings.endDate) {
+                    throw new Error("Simbol, Tanggal Mulai, dan Tanggal Selesai harus diisi.");
+                }
+            },
+
+        async fetchHistoricalData() {
+            const { symbol, timeframe, startDate, endDate } = this.state.settings;
+            let allKlines = [];
+            let currentEndTime = endDate;
+            const limit = 1000;
+            
+            // Cek jika candle count diisi oleh pengguna untuk estimasi
+            if (!candleCountInput.value) calculateAndDisplayCandleCount();
+            const totalCandleCount = parseInt(candleCountInput.value);
+            const totalCalls = Math.ceil(totalCandleCount / limit);
+            let callsMade = 0;
+
+            while (currentEndTime > startDate && !this.state.isStopped) {
+                const fetchedKlines = await fetchBinanceKlines(symbol, timeframe, limit, currentEndTime);
+                if (fetchedKlines.length === 0) break;
+                allKlines = fetchedKlines.concat(allKlines);
+                currentEndTime = fetchedKlines[0][0] - 1;
+                callsMade++;
+
+                // Logika Progress Bar Tahap 1
+                const progress = Math.min(100, (callsMade / totalCalls) * 100);
+                backtestProgressBar.style.width = `${progress}%`;
+                backtestStatusText.textContent = `Mengambil data (${callsMade}/${totalCalls}) dari ${new Date(currentEndTime).toLocaleDateString('id-ID')}...`;
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            return allKlines.filter(k => k[0] >= startDate && k[0] <= endDate);
+        },
+
+        async runSimulation_pullbackTrend(historicalData) {
+            const {
+                initialBalance,
+                leverage,
+                riskRewardRatio,
+                pullbackEmaPeriod,
+                swingLookback,
+                biasThreshold,
+                weights,
+                riskPerTrade,
+                marginMode
+            } = this.state.settings;
+
+            let balance = initialBalance;
+            let position = null;
+
+            const trades = [];
+            for (let i = 200; i < historicalData.length; i++) {
+                const klinesSnapshot = historicalData.slice(0, i + 1);
+                const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+                const currentCandle = historicalData[i];
+                const currentLow = parseFloat(currentCandle[3]);
+                const currentHigh = parseFloat(currentCandle[2]);
+                const currentRegime = detectMarketRegime(klinesSnapshot);
+                const activeWeights = userSettings.presets[currentRegime].weights;
+                const score = calculateConfluenceScoreForCandle(klinesSnapshot, activeWeights);
+                const bias = (score.bull > score.bear + biasThreshold) ? 'LONG' : (score.bear > score.bull + biasThreshold) ? 'SHORT' : 'NETRAL';
+                if (position) {
+                    let exitReason = null, exitPrice = 0;
+                    if (position.type === 'LONG') {
+                        if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                        else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+                        else if (currentLow <= position.liqPrice) { exitReason = 'LIQUIDATION'; exitPrice = position.liqPrice; }
+                    } else { // SHORT
+                        if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                        else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+                        else if (currentHigh >= position.liqPrice) { exitReason = 'LIQUIDATION'; exitPrice = position.liqPrice; }
+                    }
+                    if (exitReason) {
+                        let pnl = 0;
+                        if (exitReason === 'LIQUIDATION' && marginMode === 'cross') { pnl = -balance; }
+                        else if (exitReason === 'LIQUIDATION' && marginMode === 'isolated') { pnl = -position.cost; }
+                        else { pnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size; }
+                        balance += pnl;
+                        trades.push({ ...position, exitPrice, pnl, exitDate: new Date(currentCandle[0]), reason: exitReason });
+                        position = null;
+                        if (balance <= 0) { console.error("MODAL HABIS!"); break; }
+                    }
+                }
+                if (!position && bias !== 'NETRAL') {
+                    const emaEntry = calculateEMA(closes, pullbackEmaPeriod).pop();
+                    if (emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
+                        const entryPrice = emaEntry;
+                        const recentKlines = klinesSnapshot.slice(-swingLookback);
+                        const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+                        const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+                        let stopLoss, takeProfit;
+                        if (bias === 'LONG') {
+                            stopLoss = recentSwingLow * 0.999;
+                            takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * riskRewardRatio);
+                        } else {
+                            stopLoss = recentSwingHigh * 1.001;
+                            takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * riskRewardRatio);
+                        }
+                        const cost = balance * riskPerTrade;
+                        const positionValue = cost * leverage;
+                        const sizeInAsset = positionValue / entryPrice;
+                        let liqPrice = 0;
+                        const maintenanceMarginRate = 0.005;
+                        if (marginMode === 'isolated') {
+                            const priceChange = (1 / leverage) * (1 - maintenanceMarginRate);
+                            liqPrice = bias === 'LONG' ? entryPrice * (1 - priceChange) : entryPrice * (1 + priceChange);
+                        } else { // cross
+                            const priceChange = (balance / positionValue) * (1 - maintenanceMarginRate);
+                            liqPrice = bias === 'LONG' ? entryPrice * (1 - priceChange) : entryPrice * (1 + priceChange);
+                        }
+                        position = { type: bias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage, liqPrice, entryDate: new Date(currentCandle[0]) };
+                    }
+                }
+                const progress = (i / historicalData.length) * 100;
+                backtestProgressBar.style.width = `${progress}%`;
+                backtestStatusText.textContent = `Simulasi: ${(progress).toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+            return trades;
+        },
+        async runSimulation_dumpSniper(historicalData) {
+                const {
+                    initialBalance,
+                    leverage,
+                    riskRewardRatio,
+                    swingLookback,
+                    biasThreshold,
+                    riskPerTrade,
+                    marginMode
+                } = this.state.settings;
+                let balance = initialBalance;
+                let position = null;
+                const trades = [];
+
+                for (let i = 200; i < historicalData.length; i++) {
+                    if (this.state.isStopped) break;
+
+                    const klinesSnapshot = historicalData.slice(0, i + 1);
+                    const currentCandle = historicalData[i];
+                    const currentPrice = parseFloat(currentCandle[4]);
+                    const currentHigh = parseFloat(currentCandle[2]);
+                    const currentLow = parseFloat(currentCandle[3]);
+
+                    if (position) {
+                        let exitReason = null,
+                            exitPrice = 0;
+                        if (currentHigh >= position.sl) {
+                            exitReason = 'Stop Loss';
+                            exitPrice = position.sl;
+                        } else if (currentLow <= position.tp) {
+                            exitReason = 'Take Profit';
+                            exitPrice = position.tp;
+                        }
+                        if (exitReason) {
+                            const pnl = (position.entryPrice - exitPrice) * position.size;
+                            balance += pnl;
+                            trades.push({ ...position,
+                                exitPrice,
+                                pnl,
+                                exitDate: new Date(currentCandle[0]),
+                                reason: exitReason
+                            });
+                            position = null;
+                            if (balance <= 0) {
+                                console.error("MODAL HABIS!");
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!position) {
+                        const currentRegime = detectMarketRegime(klinesSnapshot);
+                        if (currentRegime === 'trending' || currentRegime === 'choppy') {
+                            const dumpScoreData = calculateShortConfluenceScore(klinesSnapshot);
+                            const dumpScore = dumpScoreData.score;
+
+                            if (dumpScore >= biasThreshold) {
+                                const entryPrice = currentPrice;
+                                const recentKlines = klinesSnapshot.slice(-swingLookback);
+                                const stopLoss = Math.max(...recentKlines.map(k => parseFloat(k[2]))) * 1.001;
+                                const takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * riskRewardRatio);
+
+                                const cost = balance * riskPerTrade;
+                                const sizeInAsset = (cost * leverage) / entryPrice;
+                                position = {
+                                    type: 'SHORT',
+                                    entryPrice,
+                                    cost,
+                                    size: sizeInAsset,
+                                    sl: stopLoss,
+                                    tp: takeProfit,
+                                    leverage,
+                                    entryDate: new Date(currentCandle[0])
+                                };
+                            }
+                        }
+                    }
+
+                    const progress = (i / historicalData.length) * 100;
+                    backtestProgressBar.style.width = `${progress}%`;
+                    backtestStatusText.textContent = `Simulasi: ${(progress).toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+                return trades;
+            },
+
+            async runSimulation_scalpingKontekstual(historicalData) {
+                const {
+                    initialBalance,
+                    leverage,
+                    riskRewardRatio,
+                    pullbackEmaPeriod,
+                    swingLookback,
+                    riskPerTrade,
+                    marginMode
+                } = this.state.settings;
+
+                let balance = initialBalance;
+                let position = null;
+                const trades = [];
+
+                for (let i = 200; i < historicalData.length; i++) {
+                    if (this.state.isStopped) break;
+
+                    const klinesSnapshot = historicalData.slice(0, i + 1);
+                    const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+                    const currentCandle = historicalData[i];
+                    const currentLow = parseFloat(currentCandle[3]);
+                    const currentHigh = parseFloat(currentCandle[2]);
+
+                    // INTI LOGIKA: Menggunakan getConfluenceAnalysis
+                    const analysis = getConfluenceAnalysis(klinesSnapshot);
+                    let bias = 'NETRAL';
+                    // Meniru logika sinyal di index.html: selisih skor harus signifikan
+                    if (analysis.skorBullish > analysis.skorBearish + 1.5) bias = 'LONG';
+                    if (analysis.skorBearish > analysis.skorBullish + 1.5) bias = 'SHORT';
+
+                    // Logika manajemen posisi (keluar dari trade)
+                    if (position) {
+                        let exitReason = null,
+                            exitPrice = 0;
+                        if (position.type === 'LONG') {
+                            if (currentLow <= position.sl) {
+                                exitReason = 'Stop Loss';
+                                exitPrice = position.sl;
+                            } else if (currentHigh >= position.tp) {
+                                exitReason = 'Take Profit';
+                                exitPrice = position.tp;
+                            }
+                        } else { // SHORT
+                            if (currentHigh >= position.sl) {
+                                exitReason = 'Stop Loss';
+                                exitPrice = position.sl;
+                            } else if (currentLow <= position.tp) {
+                                exitReason = 'Take Profit';
+                                exitPrice = position.tp;
+                            }
+                        }
+                        if (exitReason) {
+                            const pnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
+                            balance += pnl;
+                            trades.push({ ...position,
+                                exitPrice,
+                                pnl,
+                                exitDate: new Date(currentCandle[0]),
+                                reason: exitReason
+                            });
+                            position = null;
+                            if (balance <= 0) {
+                                console.error("MODAL HABIS!");
+                                break;
+                            }
+                        }
+                    }
+
+                    // Logika entry (masuk ke trade)
+                    if (!position && bias !== 'NETRAL') {
+                        const emaEntry = calculateEMA(closes, pullbackEmaPeriod).pop();
+                        if (emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
+                            const entryPrice = emaEntry;
+                            const recentKlines = klinesSnapshot.slice(-swingLookback);
+                            const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+                            const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+
+                            let stopLoss, takeProfit;
+                            if (bias === 'LONG') {
+                                stopLoss = recentSwingLow * 0.999;
+                                takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * riskRewardRatio);
+                            } else { // SHORT
+                                stopLoss = recentSwingHigh * 1.001;
+                                takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * riskRewardRatio);
+                            }
+
+                            const cost = balance * riskPerTrade;
+                            const sizeInAsset = (cost * leverage) / entryPrice;
+                            position = {
+                                type: bias,
+                                entryPrice,
+                                cost,
+                                size: sizeInAsset,
+                                sl: stopLoss,
+                                tp: takeProfit,
+                                leverage,
+                                entryDate: new Date(currentCandle[0])
+                            };
+                        }
+                    }
+            
+                    // Update progress bar
+                    const progress = (i / historicalData.length) * 100;
+                    backtestProgressBar.style.width = `${progress}%`;
+                    backtestStatusText.textContent = `Simulasi: ${(progress).toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+                return trades;
+            },
+
+async runSimulation_moshaBreakout(historicalData) {
+    const {
+        initialBalance,
+        leverage,
+        riskRewardRatio,
+        riskPerTrade,
+        marginMode,
+        moshaLookback,
+        moshaMinPhase
+    } = this.state.settings;
+
+    let balance = initialBalance;
+    let position = null;
+    const trades = [];
+    const minPhase = parseInt(moshaMinPhase) || 2;
+
+    for (let i = 200; i < historicalData.length; i++) {
+        if (this.state.isStopped) break;
+
+        const klinesSnapshot = historicalData.slice(0, i + 1);
+        const currentCandle = historicalData[i];
+        const currentPrice = parseFloat(currentCandle[4]);
+        const currentHigh = parseFloat(currentCandle[2]);
+        const currentLow = parseFloat(currentCandle[3]);
+
+        // Analisis MOSHA sesuai playbook - 100% price action tanpa volume
+        const moshaAnalysis = analyzeMOSHA(klinesSnapshot, moshaLookback);
+        
+        // Kelola posisi yang sudah ada
+        if (position) {
+            let exitReason = null, exitPrice = 0;
+            
+            // Gunakan barrier-based stop loss (sesuai halaman 38 playbook)
+            const barrierStopLoss = calculateBarrierBasedStopLoss(
+                position.entryPrice, 
+                moshaAnalysis.barriers, 
+                position.type,
+                klinesSnapshot
+            );
+            
+            if (position.type === 'LONG') {
+                if (currentLow <= barrierStopLoss) {
+                    exitReason = 'Stop Loss (Barrier)';
+                    exitPrice = barrierStopLoss;
+                } else if (currentHigh >= position.tp) {
+                    exitReason = 'Take Profit';
+                    exitPrice = position.tp;
+                } else if (currentLow <= position.liqPrice) {
+                    exitReason = 'LIQUIDATION';
+                    exitPrice = position.liqPrice;
+                }
+            } else { // SHORT
+                if (currentHigh >= barrierStopLoss) {
+                    exitReason = 'Stop Loss (Barrier)';
+                    exitPrice = barrierStopLoss;
+                } else if (currentLow <= position.tp) {
+                    exitReason = 'Take Profit';
+                    exitPrice = position.tp;
+                } else if (currentHigh >= position.liqPrice) {
+                    exitReason = 'LIQUIDATION';
+                    exitPrice = position.liqPrice;
+                }
+            }
+            
+            if (exitReason) {
+                let pnl = 0;
+                if (exitReason === 'LIQUIDATION' && marginMode === 'cross') {
+                    pnl = -balance;
+                } else if (exitReason === 'LIQUIDATION' && marginMode === 'isolated') {
+                    pnl = -position.cost;
+                } else {
+                    pnl = position.type === 'LONG' 
+                        ? (exitPrice - position.entryPrice) * position.size 
+                        : (position.entryPrice - exitPrice) * position.size;
+                }
+                
+                balance += pnl;
+                trades.push({
+                    ...position,
+                    exitPrice,
+                    pnl,
+                    exitDate: new Date(currentCandle[0]),
+                    reason: exitReason,
+                    moshaPhase: position.moshaPhase
+                });
+                
+                position = null;
+                if (balance <= 0) {
+                    console.error("MODAL HABIS!");
+                    break;
+                }
+            }
+        }
+        
+        // Entry baru berdasarkan sinyal MOSHA (hanya phase 2 dan 3)
+        if (!position && moshaAnalysis.phase >= minPhase) {
+            const entryPrice = currentPrice;
+            
+            // Hitung stop loss berdasarkan barrier (roadblock)
+            const stopLoss = calculateBarrierBasedStopLoss(
+                entryPrice, 
+                moshaAnalysis.barriers, 
+                moshaAnalysis.breakoutType === 'BULLISH' ? 'LONG' : 'SHORT',
+                klinesSnapshot
+            );
+            
+            // Hitung take profit berdasarkan risk/reward ratio
+            const takeProfit = moshaAnalysis.breakoutType === 'BULLISH'
+                ? entryPrice + (entryPrice - stopLoss) * riskRewardRatio
+                : entryPrice - (stopLoss - entryPrice) * riskRewardRatio;
+            
+            const cost = balance * riskPerTrade;
+            const positionValue = cost * leverage;
+            const sizeInAsset = positionValue / entryPrice;
+            
+            // Hitung liquidation price berdasarkan margin mode
+            let liqPrice = 0;
+            const maintenanceMarginRate = 0.005;
+            
+            if (marginMode === 'isolated') {
+                const priceChange = (1 / leverage) * (1 - maintenanceMarginRate);
+                liqPrice = moshaAnalysis.breakoutType === 'BULLISH' 
+                    ? entryPrice * (1 - priceChange) 
+                    : entryPrice * (1 + priceChange);
+            } else { // cross
+                const priceChange = (balance / positionValue) * (1 - maintenanceMarginRate);
+                liqPrice = moshaAnalysis.breakoutType === 'BULLISH' 
+                    ? entryPrice * (1 - priceChange) 
+                    : entryPrice * (1 + priceChange);
+            }
+            
+            position = {
+                type: moshaAnalysis.breakoutType === 'BULLISH' ? 'LONG' : 'SHORT',
+                entryPrice,
+                cost,
+                size: sizeInAsset,
+                sl: stopLoss,
+                tp: takeProfit,
+                leverage,
+                liqPrice,
+                entryDate: new Date(currentCandle[0]),
+                moshaPhase: moshaAnalysis.phase
+            };
+        }
+
+        // Update progress bar
+        const progress = (i / historicalData.length) * 100;
+        backtestProgressBar.style.width = `${progress}%`;
+        backtestStatusText.textContent = `Simulasi: ${progress.toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
+        
+        // Berikan jeda untuk UI update
+        await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    
+    return trades;
+},
+        calculateMetrics(trades, initialBalance) {
+            let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0;
+            trades.forEach(trade => {
+                totalPnl += trade.pnl;
+                if (trade.pnl > 0) {
+                    grossProfit += trade.pnl;
+                    wins++;
+                } else {
+                    grossLoss += Math.abs(trade.pnl);
+                }
+            });
+            const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
+            const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
+            return {
+                totalPnl,
+                winRate,
+                profitFactor,
+                totalTrades: trades.length,
+                finalBalance: initialBalance + totalPnl,
+                trades
+            };
+        },
+        // Dalam objek backtester
+        displayResults(metrics, trades) {
+            backtestPnl.textContent = `${metrics.totalPnl.toFixed(2)} USD (${((metrics.totalPnl / this.state.settings.initialBalance) * 100).toFixed(2)}%)`;
+            backtestPnl.className = `font-mono font-bold text-lg ${metrics.totalPnl >= 0 ? 'positive' : 'negative'}`;
+            backtestWinrate.textContent = `${metrics.winRate.toFixed(2)}%`;
+            const profitFactorText = (metrics.profitFactor === Infinity) ? '∞' : metrics.profitFactor.toFixed(2);
+            backtestProfitFactor.textContent = profitFactorText;
+            backtestTotalTrades.textContent = metrics.totalTrades;
+            backtestTradeLog.innerHTML = metrics.trades.map(trade =>
+                `<div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'}">
+                    <div class="flex justify-between items-center font-mono">
+                        <span>${trade.type} @ ${trade.entryPrice.toFixed(4)} -> ${trade.exitPrice.toFixed(4)}</span>
+                        <span class="${trade.pnl >= 0 ? 'positive' : 'negative'}">${trade.pnl.toFixed(2)}</span>
+                    </div>
+                    <div class="text-gray-500 text-[10px]">${new Date(trade.entryDate).toLocaleString('id-ID')} -> ${new Date(trade.exitDate).toLocaleString('id-ID')}</div>
+                </div>`
+            ).join('');
+            backtestResultsContainer.classList.remove('hidden');
+            backtestTradeLogContainer.classList.remove('hidden');
+            backtestProgressContainer.classList.add('hidden');
+            saveResultToLogbook(this.state.settings, metrics);
+            sortAndRenderLogbook();
+
+            // Generate dan tampilkan rekomendasi tuning
+            const recommendations = generateTuningRecommendations(metrics, metrics.trades, this.state.settings);
+            displayTuningRecommendations(recommendations);
+            window.lastRecommendations = recommendations;
+        }
+    };
+    
+    // ===================================================================
+    // BAGIAN 5: INISIALISASI & PENGHUBUNGAN EVENT
+    // ===================================================================
+    setupToggle('toggle-backtesting-btn', 'backtesting-content-wrapper', 'toggle-backtesting-icon', true);
+    setupToggle('toggle-lab-btn', 'lab-content-wrapper', 'toggle-lab-icon', true);
+    setupToggle('toggle-logbook-btn', 'logbook-content-wrapper', 'toggle-logbook-icon', false);
+    populateWeightsTuningPanel();
+    calculateAndDisplayCandleCount();
+    sortAndRenderLogbook();
+    startBacktestBtn.addEventListener('click', () => backtester.run());
+    backtestStartDate.addEventListener('change', calculateAndDisplayCandleCount);
+    backtestEndDate.addEventListener('change', calculateAndDisplayCandleCount);
+    backtestTimeframeSelect.addEventListener('change', calculateAndDisplayCandleCount);
+    candleCountInput.addEventListener('change', updateDateRangeFromCandleCount);
+    stopBacktestBtn.addEventListener('click', () => backtester.stop());
+    const clearBtn = document.getElementById('clear-logbook-btn');
+    if (clearBtn) clearBtn.addEventListener('click', clearLogbook);
+    labRegimePreset.addEventListener('change', () => {
+        applyRegimePreset(labRegimePreset.value);
+    });    
+    document.querySelectorAll('#backtest-logbook-container thead th').forEach(header => {
+        header.addEventListener('click', () => {
+            const sortKey = header.dataset.sortKey;
+            if (!sortKey) return;
+            if (logbookSortState.key === sortKey) {
+                logbookSortState.direction = logbookSortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                logbookSortState.key = sortKey;
+                logbookSortState.direction = 'desc';
+            }
+            sortAndRenderLogbook();
+        });
+    });
+
+    document.getElementById('lab-strategy-mode').addEventListener('change', toggleStrategyParams);
+    window.addEventListener('load', toggleStrategyParams);
+
+    document.getElementById('apply-tuning-btn')?.addEventListener('click', function() {
+        const recommendations = JSON.parse(JSON.stringify(window.lastRecommendations || {}));
+        applyTuningToIndexHTML(recommendations);
+    });
+    
+    document.getElementById('export-config-btn')?.addEventListener('click', function() {
+        const settings = JSON.parse(JSON.stringify(backtester.state.settings || {}));
+        exportConfiguration(settings);
+    });
+    applyTuningBtn.addEventListener('click', () => {
+        if (lastRecommendations) {
+            applyTuningToIndexHTML(lastRecommendations);
+        } else {
+            alert("Tidak ada rekomendasi tuning yang tersedia. Jalankan backtest terlebih dahulu.");
+        }
+    });
+
+    // Event listener untuk tombol export config
+    exportConfigBtn.addEventListener('click', () => {
+        backtester.gatherSettings();
+        exportConfiguration(backtester.state.settings);
+    });
+
+    // Integrasi analisis pasar ke backtester
+    const originalRun = backtester.run;
+    backtester.run = async function() {
+        const result = await originalRun.apply(this, arguments);
+        
+        // Lakukan analisis kondisi pasar setelah backtest selesai
+        if (this.state.historicalData) {
+            const marketAnalysis = analyzeMarketConditions(this.state.historicalData);
+            displayMarketAnalysis(marketAnalysis);
+        }
+        
+        return result;
+    };
+
+    const originalFetchHistoricalData = backtester.fetchHistoricalData;
+    backtester.fetchHistoricalData = async function() {
+        const data = await originalFetchHistoricalData.apply(this, arguments);
+        this.state.historicalData = data;
+        return data;
+    };
+    setTimeout(toggleStrategyParams, 100);
+});
+
+
+</script>
+
 </body>
 </html>
