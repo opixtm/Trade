@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BACKTESTING ENGINE</title>
+    <title>BACKTESTING ENGINE - UNIFIED</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* General & Typography */
@@ -281,18 +281,16 @@
                 </button>
                 <div id="lab-content-wrapper" class="collapsible-content expanded">
                     <div class="pt-4 mt-4 border-t border-gray-700 space-y-6">
+                        
                         <div>
-                            <h3 class="font-semibold text-lg mb-3">Mode Strategi</h3>
-                            <select id="lab-strategy-mode" class="input-primary mt-1">
-                                <option value="pullbackTrend" selected>Pullback Trend (Blue Chip / Major)</option>
-                                <option value="dumpSniper">Dump Sniper (Shitcoin / High Risk)</option>
-                                <option value="scalpingKontekstual">Scalping Kontekstual (Mirip index.html)</option>
-                                <option value="moshaBreakout">MOSHA Breakout (Multi-Timeframe)</option> 
-                            </select>
+                            <h3 class="font-semibold text-lg mb-3">Strategi Aktif</h3>
+                            <div class="p-3 bg-gray-900/50 rounded-md text-center">
+                                <p class="font-bold text-yellow-400">Unified Contextual Engine</p>
+                                <p class="text-xs text-gray-400 mt-1">Satu mesin yang secara otomatis beradaptasi dengan kondisi pasar.</p>
+                            </div>
                         </div>
-
                         <div>
-                            <h3 class="font-semibold text-lg mb-3">Preset Bobot Rezim Pasar</h3>
+                            <h3 class="font-semibold text-lg mb-3">Preset Bobot (Otomatis berdasarkan Rezim)</h3>
                             <select id="lab-regime-preset" class="input-primary mt-1">
                                 <option value="default" selected>Default (Hybrid)</option>
                                 <option value="trending">Trending Market (Follow Trend)</option>
@@ -304,19 +302,12 @@
                         <div>
                             <h3 class="font-semibold text-lg mb-3">Parameter Eksekusi & Risiko</h3>
                             <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
-                                <!-- Parameter Umum untuk Semua Strategi -->
                                 <div><label class="block text-xs text-gray-400">R:R Ratio (TP)</label><input type="number" step="0.1" id="lab-rr-ratio" value="1.5" class="input-primary small-input mt-1"></div>
+                                <div><label class="block text-xs text-gray-400">EMA Entry</label><input type="number" id="lab-ema-period" value="9" class="input-primary small-input mt-1"></div>
+                                <div><label class="block text-xs text-gray-400">Swing Lookback (SL)</label><input type="number" id="lab-swing-lookback" value="15" class="input-primary small-input mt-1"></div>
+                                <div><label class="block text-xs text-gray-400">Bias/Dump Threshold</label><input type="number" id="lab-bias-threshold" value="15" class="input-primary small-input mt-1"></div>
                                 <div><label class="block text-xs text-gray-400">Risk per Trade (%)</label><input type="number" id="lab-risk-percent" value="10" class="input-primary small-input mt-1"></div>
                                 <div><label class="block text-xs text-gray-400">Margin Mode</label><select id="lab-margin-mode" class="input-primary mt-1"><option value="cross" selected>Cross</option><option value="isolated">Isolated</option></select></div>
-                                
-                                <!-- Parameter Khusus Pullback/Scalping -->
-                                <div id="ema-param"><label class="block text-xs text-gray-400">EMA Entry</label><input type="number" id="lab-ema-period" value="9" class="input-primary small-input mt-1"></div>
-                                <div id="swing-param"><label class="block text-xs text-gray-400">Swing Lookback (SL)</label><input type="number" id="lab-swing-lookback" value="15" class="input-primary small-input mt-1"></div>
-                                <div id="bias-param"><label class="block text-xs text-gray-400">Bias/Dump Threshold</label><input type="number" id="lab-bias-threshold" value="15" class="input-primary small-input mt-1"></div>
-                                
-                                <!-- Parameter Khusus MOSHA -->
-                                <div id="mosha-lookback-param"><label class="block text-xs text-gray-400">MOSHA Lookback</label><input type="number" id="lab-mosha-lookback" value="20" class="input-primary small-input mt-1"></div>
-                                <div id="mosha-phase-param"><label class="block text-xs text-gray-400">Min. Phase</label><select id="lab-mosha-min-phase" class="input-primary mt-1"><option value="1">Phase 1</option><option value="2" selected>Phase 2</option><option value="3">Phase 3</option></select></div>
                             </div>
                         </div>
                         <details>
@@ -327,7 +318,6 @@
                 </div>
             </section>
 
-            <!-- Bagian Rekomendasi Tuning -->
             <section id="tuning-recommendation-section" class="card p-6 hidden">
                 <h2 class="text-xl font-bold mb-4">🎯 Rekomendasi Tuning</h2>
                 <div id="tuning-recommendation-content" class="space-y-6">
@@ -369,7 +359,6 @@
                 </div>
             </section>
 
-            <!-- Bagian Analisis Kondisi Pasar -->
             <section id="market-analysis-section" class="card p-6 hidden">
                 <h2 class="text-xl font-bold mb-4">📊 Analisis Kondisi Pasar</h2>
                 <div id="market-analysis-content" class="space-y-4">
@@ -405,7 +394,6 @@
                 </div>
             </div>
             
-<!-- Ganti div dengan section dan tambahkan tombol toggle -->
 <section id="logbook-section" class="card p-6">
     <button id="toggle-logbook-btn" class="w-full flex justify-between items-center text-left mb-4">
         <h2 class="text-xl font-bold">📖 Logbook Pengujian</h2>
@@ -474,7 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const backtestTradeLogContainer = document.getElementById('backtest-trade-log-container');
     const backtestTradeLog = document.getElementById('backtest-trade-log');
     const candleCountInput = document.getElementById('candle-count-input');
-    const labStrategyMode = document.getElementById('lab-strategy-mode');
     const labRegimePreset = document.getElementById('lab-regime-preset');
     const labRrRatioInput = document.getElementById('lab-rr-ratio');
     const labEmaPeriodInput = document.getElementById('lab-ema-period');
@@ -1014,232 +1001,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return { bull: bullPercentage, bear: bearPercentage };
     }
-// =====END===============================================================END
-// ===================================================================
-// BAGIAN 1: FUNGSI ANALISIS MOSHA YANG DISESUAIKAN (TANPA VOLUME)
-// ===================================================================
-function analyzeMOSHA(klinesSnapshot, lookbackPeriod = 20) {
-    // Define a default barriers object to return in all cases
-    const defaultBarriers = { supports: [], resistances: [], priceActionBarriers: {} };
-
-    if (!klinesSnapshot || klinesSnapshot.length < lookbackPeriod + 1) {
-        return { phase: 0, breakoutType: 'NONE', story: 'INSUFFICIENT_DATA', barriers: defaultBarriers }; // <-- FIX: Added default barriers
-    }
-
-    const closes = klinesSnapshot.map(k => parseFloat(k[4]));
-    const highs = klinesSnapshot.map(k => parseFloat(k[2]));
-    const lows = klinesSnapshot.map(k => parseFloat(k[3]));
     
-    const recentCloses = closes.slice(-lookbackPeriod - 1, -1);
-    const recentHighs = highs.slice(-lookbackPeriod - 1, -1);
-    const recentLows = lows.slice(-lookbackPeriod - 1, -1);
+    // ===================================================================
+    // BAGIAN BARU: FUNGSI ANALISIS KONDISI PASAR
+    // ===================================================================
     
-    const currentClose = closes[closes.length - 1];
-    const peakHigh = Math.max(...recentHighs);
-    const valleyLow = Math.min(...recentLows);
-    
-    let breakoutType = 'NONE';
-    if (currentClose > peakHigh) {
-        breakoutType = 'BULLISH';
-    } else if (currentClose < valleyLow) {
-        breakoutType = 'BEARISH';
-    }
-    
-    if (breakoutType === 'NONE') {
-        return { phase: 0, breakoutType, story: 'NO_BREAKOUT', barriers: defaultBarriers }; // <-- FIX: Added default barriers
-    }
-    
-    const retracementThreshold = 0.382;
-    const retracementDepth = breakoutType === 'BULLISH' 
-        ? (currentClose - valleyLow) * retracementThreshold
-        : (peakHigh - currentClose) * retracementThreshold;
-    
-    let phase = 1;
-    let story = `${breakoutType}_BREAKOUT`;
-    
-    if ((breakoutType === 'BULLISH' && currentClose > (valleyLow + retracementDepth)) ||
-        (breakoutType === 'BEARISH' && currentClose < (peakHigh - retracementDepth))) {
-        phase = 2;
-        story = `${breakoutType}_VALID_RETRACEMENT`;
-    }
-    
-    const continuationThreshold = 0.618;
-    const continuationDepth = (peakHigh - valleyLow) * continuationThreshold;
-    
-    if ((breakoutType === 'BULLISH' && currentClose > (valleyLow + continuationDepth)) ||
-        (breakoutType === 'BEARISH' && currentClose < (peakHigh - continuationDepth))) {
-        phase = 3;
-        story = `${breakoutType}_CONFIRMATION`;
-    }
-    
-    const barriers = identifyBarriers(klinesSnapshot, lookbackPeriod);
-    
-    return {
-        phase,
-        breakoutType,
-        story,
-        peakHigh,
-        valleyLow,
-        barriers
-    };
-}
-// ===================================================================
-// FUNGSI IDENTIFIKASI BARRIER SESUAI PLAYBOOK HALAMAN 34-36
-// ===================================================================
-// ===================================================================
-// FUNGSI IDENTIFIKASI BARRIER SESUAI PLAYBOOK HALAMAN 34-36
-// ===================================================================
-function identifyBarriers(klines, lookbackPeriod = 20) {
-    const highs = klines.map(k => parseFloat(k[2]));
-    const lows = klines.map(k => parseFloat(k[3]));
-    
-    const recentHighs = highs.slice(-lookbackPeriod);
-    const recentLows = lows.slice(-lookbackPeriod);
-    
-    // Barrier utama: support dan resistance signifikan
-    const supportLevels = identifySupportLevels(recentLows);
-    const resistanceLevels = identifyResistanceLevels(recentHighs);
-    
-    // Barrier berdasarkan price action (sesuai halaman 34 playbook)
-    const priceActionBarriers = identifyPriceActionBarriers(klines.slice(-lookbackPeriod));
-    
-    return {
-        supports: supportLevels,
-        resistances: resistanceLevels,
-        priceActionBarriers: priceActionBarriers
-    };
-}
-
-// ============== ⬇️ ADD THE FOLLOWING FUNCTIONS HERE ⬇️ ==============
-
-function identifySupportLevels(lows) {
-    const supports = [];
-    // Metode sederhana: identifikasi lembah lokal sebagai support
-    for (let i = 1; i < lows.length - 1; i++) {
-        if (lows[i] < lows[i - 1] && lows[i] < lows[i + 1]) {
-            supports.push(lows[i]);
-        }
-    }
-    // Tambahkan titik terendah absolut juga
-    if (lows.length > 0) {
-        const minLow = Math.min(...lows);
-        if (!supports.includes(minLow)) {
-            supports.push(minLow);
-        }
-    }
-    return supports;
-}
-
-function identifyResistanceLevels(highs) {
-    const resistances = [];
-    // Metode sederhana: identifikasi puncak lokal sebagai resistance
-    for (let i = 1; i < highs.length - 1; i++) {
-        if (highs[i] > highs[i - 1] && highs[i] > highs[i + 1]) {
-            resistances.push(highs[i]);
-        }
-    }
-    // Tambahkan titik tertinggi absolut juga
-    if (highs.length > 0) {
-        const maxHigh = Math.max(...highs);
-        if (!resistances.includes(maxHigh)) {
-            resistances.push(maxHigh);
-        }
-    }
-    return resistances;
-}
-
-function identifyPriceActionBarriers(klines) {
-    // Implementasi sederhana untuk barrier price action.
-    // Mengidentifikasi titik tengah dari rentang harga.
-    if (klines.length < 2) return {};
-    const highs = klines.map(k => parseFloat(k[2]));
-    const lows = klines.map(k => parseFloat(k[3]));
-    const highestHigh = Math.max(...highs);
-    const lowestLow = Math.min(...lows);
-    return {
-        rangeMidpoint: (highestHigh + lowestLow) / 2
-    };
-}
-function identifySwingPoints(klines, lookbackPeriod = 20) {
-    const highs = klines.map(k => parseFloat(k[2]));
-    const lows = klines.map(k => parseFloat(k[3]));
-    
-    const recentHighs = highs.slice(-lookbackPeriod);
-    const recentLows = lows.slice(-lookbackPeriod);
-    
-    const swingHighs = [];
-    const swingLows = [];
-    
-    // Identifikasi swing highs (puncak)
-    for (let i = 1; i < recentHighs.length - 1; i++) {
-        if (recentHighs[i] > recentHighs[i - 1] && recentHighs[i] > recentHighs[i + 1]) {
-            swingHighs.push(recentHighs[i]);
-        }
-    }
-    
-    // Identifikasi swing lows (lembah)
-    for (let i = 1; i < recentLows.length - 1; i++) {
-        if (recentLows[i] < recentLows[i - 1] && recentLows[i] < recentLows[i + 1]) {
-            swingLows.push(recentLows[i]);
-        }
-    }
-    
-    return {
-        highs: swingHighs,
-        lows: swingLows
-    };
-}
-// ===================================================================
-// FUNGSI STOP LOSS BERDASARKAN BARRIER (PLAYBOOK HALAMAN 38)
-// ===================================================================
-// ===================================================================
-// FUNGSI STOP LOSS BERDASARKAN BARRIER (PLAYBOOK HALAMAN 38)
-// ===================================================================
-function calculateBarrierBasedStopLoss(entryPrice, barriers, breakoutType, historicalData) {
-    // Defensive check to ensure 'barriers' and its properties exist
-    if (!barriers || !barriers.supports || !barriers.resistances) {
-        return calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData);
-    }
-
-    if (breakoutType === 'BULLISH' || breakoutType === 'LONG') {
-        const relevantSupports = barriers.supports.filter(s => s < entryPrice);
-        if (relevantSupports.length > 0) {
-            const nearestSupport = Math.max(...relevantSupports);
-            return nearestSupport * 0.998; // Buffer 0.2%
-        }
-    } else { // BEARISH or SHORT
-        const relevantResistances = barriers.resistances.filter(r => r > entryPrice);
-        if (relevantResistances.length > 0) {
-            const nearestResistance = Math.min(...relevantResistances);
-            return nearestResistance * 1.002; // Buffer 0.2%
-        }
-    }
-    
-    // Fallback if no relevant barrier is found
-    return calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData);
-}
-
-// Fungsi fallback untuk kalkulasi stop loss
-function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atrPeriod = 14, atrMultiplier = 2) {
-    if (!historicalData || historicalData.length < atrPeriod) {
-        // Fallback jika data tidak cukup
-        return breakoutType === 'BULLISH' || breakoutType === 'LONG' ? entryPrice * 0.98 : entryPrice * 1.02;
-    }
-    const atrValues = calculateATR(historicalData, atrPeriod);
-    const lastATR = atrValues[atrValues.length - 1] || (entryPrice * 0.01); // Handle jika ATR undefined
-    
-    if (breakoutType === 'BULLISH' || breakoutType === 'LONG') {
-        return entryPrice - (lastATR * atrMultiplier);
-    } else { // BEARISH or SHORT
-        return entryPrice + (lastATR * atrMultiplier);
-    }
-}
-
-// ===================================================================
-// BAGIAN BARU: FUNGSI ANALISIS KONDISI PASAR
-// ===================================================================
-    
-// Fungsi untuk mendeteksi kondisi pasar dari data historis
     function analyzeMarketConditions(historicalData) {
         if (!historicalData || historicalData.length < 100) {
             return null;
@@ -1249,7 +1015,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
         const highs = historicalData.map(k => parseFloat(k[2]));
         const lows = historicalData.map(k => parseFloat(k[3]));
         
-        // 1. Hitung volatilitas
         const volatilities = [];
         for (let i = 1; i < closes.length; i++) {
             const volatility = Math.abs((closes[i] - closes[i-1]) / closes[i-1]);
@@ -1257,32 +1022,22 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
         }
         const avgVolatility = volatilities.reduce((a, b) => a + b, 0) / volatilities.length;
         
-        // 2. Hitung EMA untuk menentukan trend
         const ema21 = calculateEMA(closes, 21);
         const ema50 = calculateEMA(closes, 50);
         
-        // 3. Hitung ATR untuk volatilitas
         const atr = calculateATR(historicalData, 14);
         
-        // 4. Analisis kondisi pasar
         const conditions = [];
-        const segmentSize = Math.floor(historicalData.length / 10); // Bagi jadi 10 segment
+        const segmentSize = Math.floor(historicalData.length / 10);
         
         for (let i = 0; i < 10; i++) {
             const startIdx = i * segmentSize;
             const endIdx = Math.min((i + 1) * segmentSize, historicalData.length - 1);
             
             const segmentCloses = closes.slice(startIdx, endIdx);
-            const segmentHighs = highs.slice(startIdx, endIdx);
-            const segmentLows = lows.slice(startIdx, endIdx);
             
-            const segmentEma21 = ema21.slice(startIdx, endIdx);
-            const segmentEma50 = ema50.slice(startIdx, endIdx);
-            
-            // Hitung perubahan harga
             const priceChange = (segmentCloses[segmentCloses.length - 1] - segmentCloses[0]) / segmentCloses[0] * 100;
             
-            // Tentukan kondisi berdasarkan aturan
             let condition;
             if (Math.abs(priceChange) > 15) {
                 condition = priceChange > 0 ? 'uptrend' : 'downtrend';
@@ -1299,12 +1054,9 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             
             conditions.push({
                 segment: i + 1,
-                startIdx,
-                endIdx,
                 startDate,
                 endDate,
                 condition,
-                priceChange
             });
         }
         
@@ -1315,7 +1067,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
         };
     }
     
-    // Fungsi untuk menghitung ATR (Average True Range)
     function calculateATR(klines, period = 14) {
         const trValues = [];
         
@@ -1331,7 +1082,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             trValues.push(Math.max(tr1, tr2, tr3));
         }
         
-        // Hitung ATR
         const atrValues = [trValues.slice(0, period).reduce((a, b) => a + b, 0) / period];
         
         for (let i = period; i < trValues.length; i++) {
@@ -1341,7 +1091,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
         return atrValues;
     }
     
-    // Fungsi untuk menampilkan hasil analisis kondisi pasar
     function displayMarketAnalysis(analysis) {
         const section = document.getElementById('market-analysis-section');
         const conditionChart = document.getElementById('market-condition-chart');
@@ -1355,7 +1104,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
         
         section.classList.remove('hidden');
         
-        // Hitung distribusi kondisi
         const conditionCount = {
             uptrend: 0,
             downtrend: 0,
@@ -1368,7 +1116,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             conditionCount[cond.condition]++;
         });
         
-        // Tampilkan chart distribusi
         conditionChart.innerHTML = '';
         for (const [condition, count] of Object.entries(conditionCount)) {
             if (count > 0) {
@@ -1385,7 +1132,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             }
         }
         
-        // Tampilkan segmentasi waktu
         timeSegmentation.innerHTML = '';
         analysis.conditions.forEach(seg => {
             timeSegmentation.innerHTML += `
@@ -1395,10 +1141,8 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             `;
         });
         
-        // Berikan rekomendasi
         recommendations.innerHTML = '';
         
-        // Rekomendasi berdasarkan kondisi pasar
         if (conditionCount.uptrend + conditionCount.downtrend > conditionCount.sideways + conditionCount.ranging) {
             recommendations.innerHTML += `
                 <li>✅ Pasar cenderung <strong>trending</strong>. Gunakan strategi trend-following dengan preset "trending".</li>
@@ -1409,7 +1153,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             `;
         }
         
-        // Rekomendasi berdasarkan volatilitas
         if (analysis.avgVolatility > 0.015) {
             recommendations.innerHTML += `
                 <li>✅ Volatilitas <strong>tinggi</strong>. Pertimbangkan mengurangi leverage dan memperlebar stop loss.</li>
@@ -1420,7 +1163,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             `;
         }
         
-        // Rekomendasi jumlah candle
         if (analysis.totalCandles < 1000) {
             recommendations.innerHTML += `
                 <li>⚠️ Jumlah candle (${analysis.totalCandles}) <strong>terlalu sedikit</strong> untuk hasil yang akurat. 
@@ -1436,7 +1178,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             `;
         }
         
-        // Rekomendasi berdasarkan distribusi kondisi
         if (conditionCount.uptrend > conditionCount.downtrend) {
             recommendations.innerHTML += `
                 <li>📈 Periode didominasi <strong>uptrend</strong>. Pastikan strategi Anda profitable dalam kondisi bullish.</li>
@@ -1447,7 +1188,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             `;
         }
     }
-    
     
     // ===================================================================
     // BAGIAN 3: FUNGSI-FUNGSI PEMBANTU (HELPERS)
@@ -1464,7 +1204,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
     }
 
     function populateWeightsTuningPanel() {
-        // Menggunakan preset 'default' sebagai template untuk semua input yang mungkin
         const allPossibleWeights = userSettings.presets.default.weights;
         if (!labWeightsContainer) return;
         labWeightsContainer.innerHTML = '';
@@ -1479,7 +1218,6 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             `;
             labWeightsContainer.appendChild(div);
         }
-        // Listener untuk mengubah preset ke 'custom' jika ada input manual
         labWeightsContainer.addEventListener('input', () => {
             labRegimePreset.value = 'custom';
         });
@@ -1538,6 +1276,7 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
             throw error;
         }
     }
+
     function calculateShortConfluenceScore(klinesSnapshot) {
     if (!klinesSnapshot || klinesSnapshot.length < 50) return { score: 0, breakdown: {} };
 
@@ -1597,9 +1336,9 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
                 return;
             }
             const timeframeMapMs = {
-                '1m': 60000,      // 1 menit = 60.000 ms
-                '3m': 180000,     // 3 menit = 180.000 ms
-                '5m': 300000,     // 5 menit = 300.000 ms
+                '1m': 60000,
+                '3m': 180000,
+                '5m': 300000,
                 '15m': 900000,
                 '1h': 3600000,
                 '4h': 14400000,
@@ -1627,9 +1366,9 @@ function calculateATRBasedStopLoss(entryPrice, breakoutType, historicalData, atr
         const timeframe = backtestTimeframeSelect.value;
         if (isNaN(candleCount) || candleCount <= 0) return;
         const timeframeMapMs = {
-                '1m': 60000,      // 1 menit = 60.000 ms
-                '3m': 180000,     // 3 menit = 180.000 ms
-                '5m': 300000,     // 5 menit = 300.000 ms
+                '1m': 60000,
+                '3m': 180000,
+                '5m': 300000,
                 '15m': 900000,
                 '1h': 3600000,
                 '4h': 14400000,
@@ -1686,7 +1425,7 @@ function saveResultToLogbook(settings, metrics) {
             emaPeriod: settings.pullbackEmaPeriod,
             swingLookback: settings.swingLookback,
             biasThreshold: settings.biasThreshold,
-            riskPerTrade: (settings.riskPerTrade * 100), // Simpan sebagai persen lagi
+            riskPerTrade: (settings.riskPerTrade * 100),
             marginMode: settings.marginMode
         }
     };
@@ -1711,9 +1450,7 @@ function loadAndRenderLogbook(dataToRender) {
                 riskPerTrade: 'N/A',
                 marginMode: 'N/A'
             };
-            const strategyName = (params.strategy === 'dumpSniper') ? 'Dump Sniper' :
-                     (params.strategy === 'scalpingKontekstual') ? 'Scalping Kontekstual' :
-                     'Pullback Trend';
+            const strategyName = 'Unified Contextual';
             const pnlText = (typeof entry.pnlPercent === 'number') ? entry.pnlPercent.toFixed(2) : '0.00';
             const winRateText = (typeof entry.winRate === 'number') ? entry.winRate.toFixed(2) : '0.00';
             const profitFactorText = (entry.profitFactor === Infinity) ? '∞' : (typeof entry.profitFactor === 'number' ? entry.profitFactor.toFixed(2) : '0.00');
@@ -1746,7 +1483,6 @@ function loadAndRenderLogbook(dataToRender) {
         }).join('');
         logbookSection.classList.remove('hidden');
         
-        // Setelah HTML dibuat, tambahkan event listener
         attachLogbookRowListeners();
 
     } else { 
@@ -1776,87 +1512,20 @@ function loadAndRenderLogbook(dataToRender) {
             loadAndRenderLogbook([]);
         }
     }
-// ===================================================================
-// FUNGSI GENERATE TUNING RECOMMENDATIONS YANG DISESUAIKAN UNTUK MOSHA
-// ===================================================================
-function generateTuningRecommendations(metrics, trades, settings) {
-    const recommendations = {
-        weakConfluences: [],
-        optimalParams: {},
-        regimeSuggestions: [],
-        generalSuggestions: [],
-        actionPlan: []
-    };
-    
-    // Simpan strategy mode untuk referensi nanti
-    recommendations.strategyMode = settings.strategyMode;
-    
-    // Untuk strategi MOSHA, hanya berikan rekomendasi yang relevan
-    if (settings.strategyMode === 'moshaBreakout') {
-        // Analisis performa berdasarkan parameter MOSHA
-        if (metrics.winRate < 45) {
-            recommendations.weakConfluences.push("Win rate rendah (<45%) - pertimbangkan meningkatkan Minimum Phase atau menambah filter tambahan");
-            recommendations.optimalParams.moshaMinPhase = Math.min(settings.moshaMinPhase + 1, 3); // Naikkan minimum phase
-        } else if (metrics.winRate > 65) {
-            recommendations.weakConfluences.push("Win rate tinggi namun mungkin missing opportunities - bisa turunkan sedikit Minimum Phase");
-            recommendations.optimalParams.moshaMinPhase = Math.max(settings.moshaMinPhase - 1, 1); // Turunkan minimum phase
-        }
-        
-        if (metrics.profitFactor < 1.2) {
-            recommendations.weakConfluences.push("Profit factor rendah - pertimbangkan mengatur ulang Risk/Reward ratio");
-            recommendations.optimalParams.riskRewardRatio = Math.min(settings.riskRewardRatio + 0.3, 2.5);
-        }
-        
-        // Analisis trades untuk rekomendasi yang lebih spesifik
-        const losingTrades = trades.filter(t => t.pnl < 0);
-        const winningTrades = trades.filter(t => t.pnl > 0);
-        
-        if (losingTrades.length > 0) {
-            const avgLoss = losingTrades.reduce((sum, trade) => sum + Math.abs(trade.pnl), 0) / losingTrades.length;
-            const avgWin = winningTrades.length > 0 ? 
-                winningTrades.reduce((sum, trade) => sum + trade.pnl, 0) / winningTrades.length : 0;
-                
-            if (avgLoss > avgWin * 1.5) {
-                recommendations.weakConfluences.push("Rata-rata loss lebih besar dari win - pertimbangkan tighter stop loss atau trailing stop");
-                recommendations.generalSuggestions.push("Pertimbangkan untuk menggunakan stop loss berbasis ATR (2-2.5x ATR) bukan fixed swing stop");
-            }
-        }
 
-        // Analisis berdasarkan regime pasar
-        if (metrics.winRate < 40 && metrics.profitFactor < 1.0) {
-            recommendations.regimeSuggestions.push("Strategi tidak performa baik di regime pasar ini - pertimbangkan untuk mengganti timeframe atau mengurangi trade frequency");
-        }
-
-        // Rekomendasi leverage dan risk
-        if (metrics.totalPnl < 0) {
-            recommendations.generalSuggestions.push("Kurangi leverage atau risk per trade untuk mengurangi drawdown");
-            recommendations.optimalParams.riskPerTrade = Math.max(settings.riskPerTrade * 100 - 5, 2); // Kurangi risk menjadi 2-5%
-        } else if (metrics.totalPnl / settings.initialBalance > 0.5) {
-            recommendations.generalSuggestions.push("Kinerja bagus - pertimbangkan untuk meningkatkan risk per trade secara bertahap");
-            recommendations.optimalParams.riskPerTrade = Math.min(settings.riskPerTrade * 100 + 2, 15); // Naikkan risk sedikit
-        }
-
-        // Rekomendasi khusus MOSHA
-        recommendations.generalSuggestions.push("Gunakan stop loss berbasis ATR (2-2.5x ATR) untuk mengelola risk sesuai konsep Barrier");
-        recommendations.generalSuggestions.push("Fokus pada fase 2 dan 3 untuk entry yang lebih aman");
+    function generateTuningRecommendations(metrics, trades, settings) {
+        const recommendations = {
+            weakConfluences: [],
+            optimalParams: {},
+            regimeSuggestions: [],
+            generalSuggestions: [],
+            actionPlan: []
+        };
         
-        // Rekomendasi parameter MOSHA
-        if (metrics.winRate < 50) {
-            recommendations.optimalParams.moshaLookback = Math.min(settings.moshaLookback + 5, 30); // Naikkan lookback period
-        }
-        
-        // Action plan spesifik MOSHA
-        recommendations.actionPlan.push("Backtest dengan parameter MOSHA yang berbeda di 3 periode berbeda");
-        recommendations.actionPlan.push("Analisis trades yang gagal untuk mengidentifikasi pola breakout yang false");
-        recommendations.actionPlan.push("Gunakan multi timeframe analysis sesuai konsep Father-Mother-Baby");
-        recommendations.actionPlan.push("Fokus pada konfirmasi phase 2 dan 3 untuk mengurangi false breakout");
-        
-    } else {
-        // Rekomendasi untuk strategi lain (tetap sama)
         if (metrics.winRate < 45) {
             recommendations.weakConfluences.push("Win rate rendah (<45%) - pertimbangkan meningkatkan threshold konfluensi atau menambah filter tambahan");
-            recommendations.optimalParams.biasThreshold = Math.min(settings.biasThreshold - 3, 12); // Turunkan threshold
-            recommendations.optimalParams.riskRewardRatio = Math.max(settings.riskRewardRatio - 0.3, 1.2); // Turunkan RR ratio
+            recommendations.optimalParams.biasThreshold = Math.min(settings.biasThreshold - 3, 12);
+            recommendations.optimalParams.riskRewardRatio = Math.max(settings.riskRewardRatio - 0.3, 1.2);
         } else if (metrics.winRate > 65) {
             recommendations.weakConfluences.push("Win rate tinggi namun mungkin missing opportunities - bisa longgar sedikit threshold");
             recommendations.optimalParams.biasThreshold = Math.max(settings.biasThreshold + 2, 5);
@@ -1865,10 +1534,9 @@ function generateTuningRecommendations(metrics, trades, settings) {
         if (metrics.profitFactor < 1.2) {
             recommendations.weakConfluences.push("Profit factor rendah - pertimbangkan mengatur ulang Risk/Reward ratio dan manajemen risiko");
             recommendations.optimalParams.riskRewardRatio = Math.min(settings.riskRewardRatio + 0.3, 2.5);
-            recommendations.optimalParams.riskPerTrade = Math.max(settings.riskPerTrade * 100 - 3, 3); // Kurangi risk per trade
+            recommendations.optimalParams.riskPerTrade = Math.max(settings.riskPerTrade * 100 - 3, 3);
         }
         
-        // Analisis trades untuk rekomendasi yang lebih spesifik
         const losingTrades = trades.filter(t => t.pnl < 0);
         const winningTrades = trades.filter(t => t.pnl > 0);
         
@@ -1880,212 +1548,131 @@ function generateTuningRecommendations(metrics, trades, settings) {
             if (avgLoss > avgWin * 1.5) {
                 recommendations.weakConfluences.push("Rata-rata loss lebih besar dari win - pertimbangkan tighter stop loss atau trailing stop");
                 recommendations.generalSuggestions.push("Pertimbangkan untuk menggunakan stop loss berbasis ATR (2-2.5x ATR) bukan fixed swing stop");
-                recommendations.optimalParams.swingLookback = Math.min(settings.swingLookback + 5, 30); // Perlebar lookback untuk SL
+                recommendations.optimalParams.swingLookback = Math.min(settings.swingLookback + 5, 30);
             }
         }
 
-        // Analisis berdasarkan regime pasar
         if (metrics.winRate < 40 && metrics.profitFactor < 1.0) {
             recommendations.regimeSuggestions.push("Strategi tidak performa baik di regime pasar ini - pertimbangkan untuk mengganti preset regime atau timeframe");
             recommendations.actionPlan.push("Coba backtest dengan preset 'trending' jika pasar sedang trending, atau 'ranging' jika pasar sideways");
         }
 
-        // Rekomendasi leverage dan risk
         if (metrics.totalPnl < 0) {
             recommendations.generalSuggestions.push("Kurangi leverage atau risk per trade untuk mengurangi drawdown");
-            recommendations.optimalParams.riskPerTrade = Math.max(settings.riskPerTrade * 100 - 5, 2); // Kurangi risk menjadi 2-5%
+            recommendations.optimalParams.riskPerTrade = Math.max(settings.riskPerTrade * 100 - 5, 2);
         } else if (metrics.totalPnl / settings.initialBalance > 0.5) {
             recommendations.generalSuggestions.push("Kinerja bagus - pertimbangkan untuk meningkatkan risk per trade secara bertahap");
-            recommendations.optimalParams.riskPerTrade = Math.min(settings.riskPerTrade * 100 + 2, 15); // Naikkan risk sedikit
+            recommendations.optimalParams.riskPerTrade = Math.min(settings.riskPerTrade * 100 + 2, 15);
         }
 
-        // Rekomendasi parameter tambahan berdasarkan analisis
         if (metrics.winRate < 50) {
-            recommendations.optimalParams.emaPeriod = Math.min(settings.pullbackEmaPeriod + 3, 21); // Naikkan periode EMA
+            recommendations.optimalParams.emaPeriod = Math.min(settings.pullbackEmaPeriod + 3, 21);
         }
         
-        // Rekomendasi umum
         recommendations.generalSuggestions.push("Coba backtest di timeframe lain (15m, 4h, 1d) untuk membandingkan performa");
         recommendations.generalSuggestions.push("Pertimbangkan untuk menambahkan filter volatilitas (ATR) untuk menghindari trading di kondisi low volatility");
         
-        // Action plan spesifik
         recommendations.actionPlan.push("Backtest dengan parameter baru di 3 periode berbeda untuk memvalidasi hasil");
         recommendations.actionPlan.push("Analisis trades yang gagal untuk mengidentifikasi pola kerugian yang konsisten");
         recommendations.actionPlan.push("Tambahkan filter waktu - hindari trading di sesi dengan likuiditas rendah");
-    }
-    
-    return recommendations;
-}
-// ===================================================================
-// FUNGSI DISPLAY TUNING RECOMMENDATIONS YANG DISESUAIKAN UNTUK MOSHA
-// ===================================================================
-function displayTuningRecommendations(recommendations) {
-    const section = document.getElementById('tuning-recommendation-section');
-    const weakList = document.getElementById('weak-confluences-list');
-    const paramsList = document.getElementById('optimal-params-list');
-    const regimeList = document.getElementById('regime-suggestions-list');
-    const generalList = document.getElementById('general-suggestions-list');
-    const actionList = document.getElementById('action-plan-list');
 
-    section.classList.remove('hidden');
-    
-    // Tampilkan konfluensi lemah
-    weakList.innerHTML = '';
-    if (recommendations.weakConfluences.length > 0) {
-        recommendations.weakConfluences.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'text-yellow-400 flex items-start';
-            li.innerHTML = `<span class="mr-2">⚠️</span><span>${item}</span>`;
-            weakList.appendChild(li);
-        });
-    } else {
-        weakList.innerHTML = '<li class="text-green-400">✅ Tidak ada area kritis yang teridentifikasi</li>';
+        return recommendations;
     }
-    
-    // Tampilkan parameter optimal
-    paramsList.innerHTML = '';
-    
-    // Untuk strategi MOSHA, sembunyikan parameter yang tidak relevan
-    const irrelevantParams = ['biasThreshold', 'emaPeriod', 'swingLookback'];
-    
-    if (Object.keys(recommendations.optimalParams).length > 0) {
-        for (const [key, value] of Object.entries(recommendations.optimalParams)) {
-            // Skip parameter yang tidak relevan untuk MOSHA
-            if (recommendations.strategyMode === 'moshaBreakout' && irrelevantParams.includes(key)) {
-                continue;
+
+    function displayTuningRecommendations(recommendations) {
+        const section = document.getElementById('tuning-recommendation-section');
+        const weakList = document.getElementById('weak-confluences-list');
+        const paramsList = document.getElementById('optimal-params-list');
+        const regimeList = document.getElementById('regime-suggestions-list');
+        const generalList = document.getElementById('general-suggestions-list');
+        const actionList = document.getElementById('action-plan-list');
+
+        section.classList.remove('hidden');
+        
+        weakList.innerHTML = '';
+        if (recommendations.weakConfluences.length > 0) {
+            recommendations.weakConfluences.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'text-yellow-400 flex items-start';
+                li.innerHTML = `<span class="mr-2">⚠️</span><span>${item}</span>`;
+                weakList.appendChild(li);
+            });
+        } else {
+            weakList.innerHTML = '<li class="text-green-400">✅ Tidak ada area kritis yang teridentifikasi</li>';
+        }
+        
+        paramsList.innerHTML = '';
+        if (Object.keys(recommendations.optimalParams).length > 0) {
+            for (const [key, value] of Object.entries(recommendations.optimalParams)) {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between';
+                li.innerHTML = `
+                    <span class="font-medium">${formatParamName(key)}:</span>
+                    <span class="text-yellow-400 font-mono">${typeof value === 'number' ? value.toFixed(2) : value}</span>
+                `;
+                paramsList.appendChild(li);
             }
-            
-            const li = document.createElement('li');
-            li.className = 'flex justify-between';
-            li.innerHTML = `
-                <span class="font-medium">${formatParamName(key)}:</span>
-                <span class="text-yellow-400 font-mono">${typeof value === 'number' ? value.toFixed(2) : value}</span>
-            `;
-            paramsList.appendChild(li);
+        } else {
+            paramsList.innerHTML = '<li class="text-gray-400">Tidak ada perubahan parameter yang disarankan</li>';
+        }
+
+        regimeList.innerHTML = '';
+        if (recommendations.regimeSuggestions.length > 0) {
+            recommendations.regimeSuggestions.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'text-blue-400 flex items-start';
+                li.innerHTML = `<span class="mr-2">🔄</span><span>${item}</span>`;
+                regimeList.appendChild(li);
+            });
+        } else {
+            regimeList.innerHTML = '<li class="text-gray-400">Tidak ada saran regime</li>';
+        }
+
+        generalList.innerHTML = '';
+        if (recommendations.generalSuggestions.length > 0) {
+            recommendations.generalSuggestions.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'text-gray-300 flex items-start';
+                li.innerHTML = `<span class="mr-2">💡</span><span>${item}</span>`;
+                generalList.appendChild(li);
+            });
+        } else {
+            generalList.innerHTML = '<li class="text-gray-400">Tidak ada saran umum</li>';
+        }
+        
+        actionList.innerHTML = '';
+        if (recommendations.actionPlan.length > 0) {
+            recommendations.actionPlan.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'text-green-300 flex items-start';
+                li.innerHTML = `<span class="mr-2">📋</span><span>${item}</span>`;
+                actionList.appendChild(li);
+            });
+        } else {
+            actionList.innerHTML = '<li class="text-gray-400">Tidak ada action plan</li>';
         }
     }
+
+    function formatParamName(key) {
+        const nameMap = {
+            biasThreshold: 'Bias Threshold',
+            riskRewardRatio: 'Risk/Reward Ratio',
+            riskPerTrade: 'Risk per Trade (%)',
+            emaPeriod: 'EMA Period',
+            swingLookback: 'Swing Lookback'
+        };
+        return nameMap[key] || key;
+    }
+
+function applyTuningToIndexHTML(recommendations) {
+    localStorage.setItem('tuningRecommendations', JSON.stringify({
+        ...recommendations,
+        appliedAt: new Date().toISOString()
+    }));
     
-    // Jika tidak ada parameter yang ditampilkan, tambahkan pesan
-    if (paramsList.children.length === 0) {
-        paramsList.innerHTML = '<li class="text-gray-400">Tidak ada perubahan parameter yang disarankan</li>';
-    }
-
-    // Tampilkan saran regime
-    regimeList.innerHTML = '';
-    if (recommendations.regimeSuggestions.length > 0) {
-        recommendations.regimeSuggestions.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'text-blue-400 flex items-start';
-            li.innerHTML = `<span class="mr-2">🔄</span><span>${item}</span>`;
-            regimeList.appendChild(li);
-        });
-    } else {
-        regimeList.innerHTML = '<li class="text-gray-400">Tidak ada saran regime</li>';
-    }
-
-    // Tampilkan saran umum
-    generalList.innerHTML = '';
-    if (recommendations.generalSuggestions.length > 0) {
-        recommendations.generalSuggestions.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'text-gray-300 flex items-start';
-            li.innerHTML = `<span class="mr-2">💡</span><span>${item}</span>`;
-            generalList.appendChild(li);
-        });
-    } else {
-        generalList.innerHTML = '<li class="text-gray-400">Tidak ada saran umum</li>';
-    }
-    
-    // Tampilkan action plan
-    actionList.innerHTML = '';
-    if (recommendations.actionPlan.length > 0) {
-        recommendations.actionPlan.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'text-green-300 flex items-start';
-            li.innerHTML = `<span class="mr-2">📋</span><span>${item}</span>`;
-            actionList.appendChild(li);
-        });
-    } else {
-        actionList.innerHTML = '<li class="text-gray-400">Tidak ada action plan</li>';
-    }
+    alert("Rekomendasi tuning telah disimpan. Buka index.html untuk menerapkan perubahan.");
 }
 
-
-// Helper function untuk format nama parameter
-function formatParamName(key) {
-    const nameMap = {
-        biasThreshold: 'Bias Threshold',
-        riskRewardRatio: 'Risk/Reward Ratio',
-        riskPerTrade: 'Risk per Trade (%)',
-        emaPeriod: 'EMA Period',
-        swingLookback: 'Swing Lookback',
-        moshaLookback: 'MOSHA Lookback',
-        moshaMinPhase: 'Min. Phase'
-    };
-    return nameMap[key] || key;
-}
-
-function toggleStrategyParams() {
-    const strategyMode = document.getElementById('lab-strategy-mode').value;
-
-    // Ambil elemen untuk setiap parameter secara individual
-    const moshaLookbackParam = document.getElementById('mosha-lookback-param');
-    const moshaPhaseParam = document.getElementById('mosha-phase-param');
-    const emaParam = document.getElementById('ema-param');
-    const swingParam = document.getElementById('swing-param');
-    const biasParam = document.getElementById('bias-param');
-
-    // Ambil juga bagian "Preset Bobot"
-    const presetH3 = findElementByText('h3', 'Preset Bobot Rezim Pasar');
-    const presetSection = presetH3 ? presetH3.closest('div') : null;
-
-    if (strategyMode === 'moshaBreakout') {
-        // Tampilkan parameter MOSHA
-        moshaLookbackParam.classList.remove('hidden');
-        moshaPhaseParam.classList.remove('hidden');
-
-        // Sembunyikan parameter strategi lain
-        emaParam.classList.add('hidden');
-        swingParam.classList.add('hidden');
-        biasParam.classList.add('hidden');
-        if (presetSection) {
-            presetSection.classList.add('hidden');
-        }
-
-    } else {
-        // Sembunyikan parameter MOSHA
-        moshaLookbackParam.classList.add('hidden');
-        moshaPhaseParam.classList.add('hidden');
-
-        // Tampilkan parameter strategi lain
-        emaParam.classList.remove('hidden');
-        swingParam.classList.remove('hidden');
-        biasParam.classList.remove('hidden');
-        if (presetSection) {
-            presetSection.classList.remove('hidden');
-        }
-    }
-}
-
-function findElementByText(selector, text) {
-    const elements = document.querySelectorAll(selector);
-    for (const element of elements) {
-        if (element.textContent.trim() === text.trim()) {
-            return element;
-        }
-    }
-    return null;
-}
-
-const presetH3 = findElementByText('h3', 'Preset Bobot Rezim Pasar');
-if (presetH3) {
-    const parentContainer = presetH3.closest('.card');
-    if (parentContainer) {
-        // Lanjutkan dengan kode yang Anda miliki
-    }
-}
-
-// Fungsi untuk mengekspor konfigurasi
     function exportConfiguration(settings) {
         const dataStr = JSON.stringify(settings, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -2119,32 +1706,18 @@ if (presetH3) {
                 this.resetUI();
                 try {
                     this.gatherSettings();
-                    const historicalData = await this.fetchHistoricalData(this.state.settings.symbol, this.state.settings.timeframe, this.state.settings.startDate, this.state.settings.endDate);
+                    const historicalData = await this.fetchHistoricalData();
                     if (this.state.isStopped) {
                         backtestStatusText.textContent = "Pengambilan data dihentikan.";
                         return;
                     }
                     if (historicalData.length < 200) throw new Error("Data historis tidak cukup (min. 200 candle).");
-                    backtestStatusText.textContent = "Data berhasil diambil! Memulai simulasi...";
-                    backtestProgressBar.style.width = `100%`;
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    let trades = [];
-                    switch (this.state.settings.strategyMode) {
-                        case 'pullbackTrend':
-                            trades = await this.runSimulation_pullbackTrend(historicalData);
-                            break;
-                        case 'dumpSniper':
-                            trades = await this.runSimulation_dumpSniper(historicalData);
-                            break;
-                        case 'scalpingKontekstual':
-                            trades = await this.runSimulation_scalpingKontekstual(historicalData);
-                            break;
-                        case 'moshaBreakout':
-                            trades = await this.runSimulation_moshaBreakout(historicalData);
-                            break;
-                        default:
-                            throw new Error("Mode strategi tidak dikenal.");
-                    }
+                    
+                    // ==================== PERUBAHAN DI SINI ====================
+                    // Panggil fungsi simulasi yang baru dan terpadu
+                    const trades = await this.runSimulation_unifiedContextual(historicalData);
+                    // ==================== AKHIR PERUBAHAN ====================
+
                     if (this.state.isStopped) {
                         backtestStatusText.textContent = "Simulasi dihentikan oleh pengguna.";
                         return;
@@ -2165,6 +1738,8 @@ if (presetH3) {
             resetUI() {
                 backtestResultsContainer.classList.add('hidden');
                 backtestTradeLogContainer.classList.add('hidden');
+                tuningRecommendationSection.classList.add('hidden');
+                document.getElementById('market-analysis-section').classList.add('hidden');
                 backtestProgressContainer.classList.remove('hidden');
                 backtestProgressBar.style.backgroundColor = '#3b82f6';
                 backtestStatusText.textContent = "Mempersiapkan...";
@@ -2183,7 +1758,6 @@ if (presetH3) {
                     endDate: new Date(backtestEndDate.value).getTime(),
                     initialBalance: parseFloat(backtestInitialBalance.value),
                     leverage: parseInt(backtestLeverageInput.value) || 1,
-                    strategyMode: labStrategyMode.value,
                     riskRewardRatio: parseFloat(labRrRatioInput.value) || 1.5,
                     pullbackEmaPeriod: parseInt(labEmaPeriodInput.value) || 9,
                     swingLookback: parseInt(labSwingLookbackInput.value) || 15,
@@ -2192,10 +1766,7 @@ if (presetH3) {
                         ...tunedWeights
                     },
                     riskPerTrade: (parseFloat(labRiskPercentInput.value) / 100) || 0.05,
-                    marginMode: labMarginModeSelect.value,
-                    // Parameter MOSHA
-                    moshaLookback: parseInt(document.getElementById('lab-mosha-lookback').value) || 20,
-                    moshaMinPhase: parseInt(document.getElementById('lab-mosha-min-phase').value) || 2
+                    marginMode: labMarginModeSelect.value
                 };
                 if (!this.state.settings.symbol || !this.state.settings.startDate || !this.state.settings.endDate) {
                     throw new Error("Simbol, Tanggal Mulai, dan Tanggal Selesai harus diisi.");
@@ -2208,78 +1779,90 @@ if (presetH3) {
             let currentEndTime = endDate;
             const limit = 1000;
             
-            // Cek jika candle count diisi oleh pengguna untuk estimasi
             if (!candleCountInput.value) calculateAndDisplayCandleCount();
-            const totalCandleCount = parseInt(candleCountInput.value);
+            const totalCandleCount = parseInt(candleCountInput.value) || ( (endDate - startDate) / (60000 * parseInt(timeframe)) );
             const totalCalls = Math.ceil(totalCandleCount / limit);
             let callsMade = 0;
 
             while (currentEndTime > startDate && !this.state.isStopped) {
                 const fetchedKlines = await fetchBinanceKlines(symbol, timeframe, limit, currentEndTime);
                 if (fetchedKlines.length === 0) break;
+                
+                // PERBAIKAN BUG KRONOLOGIS DI SINI
                 allKlines = fetchedKlines.concat(allKlines);
-                currentEndTime = fetchedKlines[0][0] - 1;
+                currentEndTime = fetchedKlines[0][0] - 1; 
+
                 callsMade++;
 
-                // Logika Progress Bar Tahap 1
                 const progress = Math.min(100, (callsMade / totalCalls) * 100);
                 backtestProgressBar.style.width = `${progress}%`;
                 backtestStatusText.textContent = `Mengambil data (${callsMade}/${totalCalls}) dari ${new Date(currentEndTime).toLocaleDateString('id-ID')}...`;
                 
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 300)); // Delay kecil untuk API
             }
             return allKlines.filter(k => k[0] >= startDate && k[0] <= endDate);
         },
 
-        async runSimulation_pullbackTrend(historicalData) {
+        // ==================== FUNGSI SIMULASI UTAMA YANG BARU ====================
+        async runSimulation_unifiedContextual(historicalData) {
             const {
-                initialBalance,
-                leverage,
-                riskRewardRatio,
-                pullbackEmaPeriod,
-                swingLookback,
-                biasThreshold,
-                weights,
-                riskPerTrade,
-                marginMode
+                initialBalance, leverage, riskRewardRatio, pullbackEmaPeriod,
+                swingLookback, biasThreshold, riskPerTrade, marginMode
             } = this.state.settings;
 
             let balance = initialBalance;
             let position = null;
-
             const trades = [];
+
             for (let i = 200; i < historicalData.length; i++) {
+                if (this.state.isStopped) break;
+
                 const klinesSnapshot = historicalData.slice(0, i + 1);
                 const closes = klinesSnapshot.map(k => parseFloat(k[4]));
                 const currentCandle = historicalData[i];
                 const currentLow = parseFloat(currentCandle[3]);
                 const currentHigh = parseFloat(currentCandle[2]);
+
+                // 1. OTOMATIS DETEKSI REZIM PASAR
                 const currentRegime = detectMarketRegime(klinesSnapshot);
-                const activeWeights = userSettings.presets[currentRegime].weights;
+
+                // 2. OTOMATIS PILIH PRESET BOBOT
+                // Jika preset di UI adalah custom, gunakan itu. Jika tidak, gunakan preset dari rezim.
+                const presetFromUI = labRegimePreset.value;
+                const activePresetName = (presetFromUI === 'custom') ? 'default' : currentRegime;
+                const baseWeights = userSettings.presets[activePresetName]?.weights || userSettings.presets.default.weights;
+                
+                const tunedWeights = {};
+                labWeightsContainer.querySelectorAll('input').forEach(input => {
+                    tunedWeights[input.dataset.weightKey] = parseFloat(input.value) || 0;
+                });
+                const activeWeights = (presetFromUI === 'custom') ? tunedWeights : baseWeights;
+
+                // 3. HITUNG SKOR KONFLUENCE DENGAN BOBOT KONTEKSTUAL
                 const score = calculateConfluenceScoreForCandle(klinesSnapshot, activeWeights);
                 const bias = (score.bull > score.bear + biasThreshold) ? 'LONG' : (score.bear > score.bull + biasThreshold) ? 'SHORT' : 'NETRAL';
+
+                // 4. MANAJEMEN POSISI (Sama seperti sebelumnya)
                 if (position) {
                     let exitReason = null, exitPrice = 0;
                     if (position.type === 'LONG') {
                         if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
                         else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
-                        else if (currentLow <= position.liqPrice) { exitReason = 'LIQUIDATION'; exitPrice = position.liqPrice; }
                     } else { // SHORT
                         if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
                         else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
-                        else if (currentHigh >= position.liqPrice) { exitReason = 'LIQUIDATION'; exitPrice = position.liqPrice; }
                     }
+
                     if (exitReason) {
-                        let pnl = 0;
-                        if (exitReason === 'LIQUIDATION' && marginMode === 'cross') { pnl = -balance; }
-                        else if (exitReason === 'LIQUIDATION' && marginMode === 'isolated') { pnl = -position.cost; }
-                        else { pnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size; }
+                        const pnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
                         balance += pnl;
                         trades.push({ ...position, exitPrice, pnl, exitDate: new Date(currentCandle[0]), reason: exitReason });
                         position = null;
                         if (balance <= 0) { console.error("MODAL HABIS!"); break; }
                     }
                 }
+
+                // 5. LOGIKA ENTRY (Sama seperti sebelumnya)
                 if (!position && bias !== 'NETRAL') {
                     const emaEntry = calculateEMA(closes, pullbackEmaPeriod).pop();
                     if (emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
@@ -2288,6 +1871,7 @@ if (presetH3) {
                         const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
                         const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
                         let stopLoss, takeProfit;
+
                         if (bias === 'LONG') {
                             stopLoss = recentSwingLow * 0.999;
                             takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * riskRewardRatio);
@@ -2295,381 +1879,23 @@ if (presetH3) {
                             stopLoss = recentSwingHigh * 1.001;
                             takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * riskRewardRatio);
                         }
+                        
                         const cost = balance * riskPerTrade;
-                        const positionValue = cost * leverage;
-                        const sizeInAsset = positionValue / entryPrice;
-                        let liqPrice = 0;
-                        const maintenanceMarginRate = 0.005;
-                        if (marginMode === 'isolated') {
-                            const priceChange = (1 / leverage) * (1 - maintenanceMarginRate);
-                            liqPrice = bias === 'LONG' ? entryPrice * (1 - priceChange) : entryPrice * (1 + priceChange);
-                        } else { // cross
-                            const priceChange = (balance / positionValue) * (1 - maintenanceMarginRate);
-                            liqPrice = bias === 'LONG' ? entryPrice * (1 - priceChange) : entryPrice * (1 + priceChange);
-                        }
-                        position = { type: bias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage, liqPrice, entryDate: new Date(currentCandle[0]) };
+                        const sizeInAsset = (cost * leverage) / entryPrice;
+                        position = { type: bias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage, entryDate: new Date(currentCandle[0]) };
                     }
                 }
+                
+                // Update progress
                 const progress = (i / historicalData.length) * 100;
                 backtestProgressBar.style.width = `${progress}%`;
-                backtestStatusText.textContent = `Simulasi: ${(progress).toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
+                backtestStatusText.textContent = `Simulasi (${currentRegime}): ${(progress).toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
             return trades;
         },
-        async runSimulation_dumpSniper(historicalData) {
-                const {
-                    initialBalance,
-                    leverage,
-                    riskRewardRatio,
-                    swingLookback,
-                    biasThreshold,
-                    riskPerTrade,
-                    marginMode
-                } = this.state.settings;
-                let balance = initialBalance;
-                let position = null;
-                const trades = [];
+        // ==================== AKHIR FUNGSI SIMULASI BARU ====================
 
-                for (let i = 200; i < historicalData.length; i++) {
-                    if (this.state.isStopped) break;
-
-                    const klinesSnapshot = historicalData.slice(0, i + 1);
-                    const currentCandle = historicalData[i];
-                    const currentPrice = parseFloat(currentCandle[4]);
-                    const currentHigh = parseFloat(currentCandle[2]);
-                    const currentLow = parseFloat(currentCandle[3]);
-
-                    if (position) {
-                        let exitReason = null,
-                            exitPrice = 0;
-                        if (currentHigh >= position.sl) {
-                            exitReason = 'Stop Loss';
-                            exitPrice = position.sl;
-                        } else if (currentLow <= position.tp) {
-                            exitReason = 'Take Profit';
-                            exitPrice = position.tp;
-                        }
-                        if (exitReason) {
-                            const pnl = (position.entryPrice - exitPrice) * position.size;
-                            balance += pnl;
-                            trades.push({ ...position,
-                                exitPrice,
-                                pnl,
-                                exitDate: new Date(currentCandle[0]),
-                                reason: exitReason
-                            });
-                            position = null;
-                            if (balance <= 0) {
-                                console.error("MODAL HABIS!");
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!position) {
-                        const currentRegime = detectMarketRegime(klinesSnapshot);
-                        if (currentRegime === 'trending' || currentRegime === 'choppy') {
-                            const dumpScoreData = calculateShortConfluenceScore(klinesSnapshot);
-                            const dumpScore = dumpScoreData.score;
-
-                            if (dumpScore >= biasThreshold) {
-                                const entryPrice = currentPrice;
-                                const recentKlines = klinesSnapshot.slice(-swingLookback);
-                                const stopLoss = Math.max(...recentKlines.map(k => parseFloat(k[2]))) * 1.001;
-                                const takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * riskRewardRatio);
-
-                                const cost = balance * riskPerTrade;
-                                const sizeInAsset = (cost * leverage) / entryPrice;
-                                position = {
-                                    type: 'SHORT',
-                                    entryPrice,
-                                    cost,
-                                    size: sizeInAsset,
-                                    sl: stopLoss,
-                                    tp: takeProfit,
-                                    leverage,
-                                    entryDate: new Date(currentCandle[0])
-                                };
-                            }
-                        }
-                    }
-
-                    const progress = (i / historicalData.length) * 100;
-                    backtestProgressBar.style.width = `${progress}%`;
-                    backtestStatusText.textContent = `Simulasi: ${(progress).toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
-                    await new Promise(resolve => setTimeout(resolve, 0));
-                }
-                return trades;
-            },
-
-            async runSimulation_scalpingKontekstual(historicalData) {
-                const {
-                    initialBalance,
-                    leverage,
-                    riskRewardRatio,
-                    pullbackEmaPeriod,
-                    swingLookback,
-                    riskPerTrade,
-                    marginMode
-                } = this.state.settings;
-
-                let balance = initialBalance;
-                let position = null;
-                const trades = [];
-
-                for (let i = 200; i < historicalData.length; i++) {
-                    if (this.state.isStopped) break;
-
-                    const klinesSnapshot = historicalData.slice(0, i + 1);
-                    const closes = klinesSnapshot.map(k => parseFloat(k[4]));
-                    const currentCandle = historicalData[i];
-                    const currentLow = parseFloat(currentCandle[3]);
-                    const currentHigh = parseFloat(currentCandle[2]);
-
-                    // INTI LOGIKA: Menggunakan getConfluenceAnalysis
-                    const analysis = getConfluenceAnalysis(klinesSnapshot);
-                    let bias = 'NETRAL';
-                    // Meniru logika sinyal di index.html: selisih skor harus signifikan
-                    if (analysis.skorBullish > analysis.skorBearish + 1.5) bias = 'LONG';
-                    if (analysis.skorBearish > analysis.skorBullish + 1.5) bias = 'SHORT';
-
-                    // Logika manajemen posisi (keluar dari trade)
-                    if (position) {
-                        let exitReason = null,
-                            exitPrice = 0;
-                        if (position.type === 'LONG') {
-                            if (currentLow <= position.sl) {
-                                exitReason = 'Stop Loss';
-                                exitPrice = position.sl;
-                            } else if (currentHigh >= position.tp) {
-                                exitReason = 'Take Profit';
-                                exitPrice = position.tp;
-                            }
-                        } else { // SHORT
-                            if (currentHigh >= position.sl) {
-                                exitReason = 'Stop Loss';
-                                exitPrice = position.sl;
-                            } else if (currentLow <= position.tp) {
-                                exitReason = 'Take Profit';
-                                exitPrice = position.tp;
-                            }
-                        }
-                        if (exitReason) {
-                            const pnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
-                            balance += pnl;
-                            trades.push({ ...position,
-                                exitPrice,
-                                pnl,
-                                exitDate: new Date(currentCandle[0]),
-                                reason: exitReason
-                            });
-                            position = null;
-                            if (balance <= 0) {
-                                console.error("MODAL HABIS!");
-                                break;
-                            }
-                        }
-                    }
-
-                    // Logika entry (masuk ke trade)
-                    if (!position && bias !== 'NETRAL') {
-                        const emaEntry = calculateEMA(closes, pullbackEmaPeriod).pop();
-                        if (emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
-                            const entryPrice = emaEntry;
-                            const recentKlines = klinesSnapshot.slice(-swingLookback);
-                            const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
-                            const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-
-                            let stopLoss, takeProfit;
-                            if (bias === 'LONG') {
-                                stopLoss = recentSwingLow * 0.999;
-                                takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * riskRewardRatio);
-                            } else { // SHORT
-                                stopLoss = recentSwingHigh * 1.001;
-                                takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * riskRewardRatio);
-                            }
-
-                            const cost = balance * riskPerTrade;
-                            const sizeInAsset = (cost * leverage) / entryPrice;
-                            position = {
-                                type: bias,
-                                entryPrice,
-                                cost,
-                                size: sizeInAsset,
-                                sl: stopLoss,
-                                tp: takeProfit,
-                                leverage,
-                                entryDate: new Date(currentCandle[0])
-                            };
-                        }
-                    }
-            
-                    // Update progress bar
-                    const progress = (i / historicalData.length) * 100;
-                    backtestProgressBar.style.width = `${progress}%`;
-                    backtestStatusText.textContent = `Simulasi: ${(progress).toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
-                    await new Promise(resolve => setTimeout(resolve, 0));
-                }
-                return trades;
-            },
-
-async runSimulation_moshaBreakout(historicalData) {
-    const {
-        initialBalance,
-        leverage,
-        riskRewardRatio,
-        riskPerTrade,
-        marginMode,
-        moshaLookback,
-        moshaMinPhase
-    } = this.state.settings;
-
-    let balance = initialBalance;
-    let position = null;
-    const trades = [];
-    const minPhase = parseInt(moshaMinPhase) || 2;
-
-    for (let i = 200; i < historicalData.length; i++) {
-        if (this.state.isStopped) break;
-
-        const klinesSnapshot = historicalData.slice(0, i + 1);
-        const currentCandle = historicalData[i];
-        const currentPrice = parseFloat(currentCandle[4]);
-        const currentHigh = parseFloat(currentCandle[2]);
-        const currentLow = parseFloat(currentCandle[3]);
-
-        // Analisis MOSHA sesuai playbook - 100% price action tanpa volume
-        const moshaAnalysis = analyzeMOSHA(klinesSnapshot, moshaLookback);
-        
-        // Kelola posisi yang sudah ada
-        if (position) {
-            let exitReason = null, exitPrice = 0;
-            
-            // Gunakan barrier-based stop loss (sesuai halaman 38 playbook)
-            const barrierStopLoss = calculateBarrierBasedStopLoss(
-                position.entryPrice, 
-                moshaAnalysis.barriers, 
-                position.type,
-                klinesSnapshot
-            );
-            
-            if (position.type === 'LONG') {
-                if (currentLow <= barrierStopLoss) {
-                    exitReason = 'Stop Loss (Barrier)';
-                    exitPrice = barrierStopLoss;
-                } else if (currentHigh >= position.tp) {
-                    exitReason = 'Take Profit';
-                    exitPrice = position.tp;
-                } else if (currentLow <= position.liqPrice) {
-                    exitReason = 'LIQUIDATION';
-                    exitPrice = position.liqPrice;
-                }
-            } else { // SHORT
-                if (currentHigh >= barrierStopLoss) {
-                    exitReason = 'Stop Loss (Barrier)';
-                    exitPrice = barrierStopLoss;
-                } else if (currentLow <= position.tp) {
-                    exitReason = 'Take Profit';
-                    exitPrice = position.tp;
-                } else if (currentHigh >= position.liqPrice) {
-                    exitReason = 'LIQUIDATION';
-                    exitPrice = position.liqPrice;
-                }
-            }
-            
-            if (exitReason) {
-                let pnl = 0;
-                if (exitReason === 'LIQUIDATION' && marginMode === 'cross') {
-                    pnl = -balance;
-                } else if (exitReason === 'LIQUIDATION' && marginMode === 'isolated') {
-                    pnl = -position.cost;
-                } else {
-                    pnl = position.type === 'LONG' 
-                        ? (exitPrice - position.entryPrice) * position.size 
-                        : (position.entryPrice - exitPrice) * position.size;
-                }
-                
-                balance += pnl;
-                trades.push({
-                    ...position,
-                    exitPrice,
-                    pnl,
-                    exitDate: new Date(currentCandle[0]),
-                    reason: exitReason,
-                    moshaPhase: position.moshaPhase
-                });
-                
-                position = null;
-                if (balance <= 0) {
-                    console.error("MODAL HABIS!");
-                    break;
-                }
-            }
-        }
-        
-        // Entry baru berdasarkan sinyal MOSHA (hanya phase 2 dan 3)
-        if (!position && moshaAnalysis.phase >= minPhase) {
-            const entryPrice = currentPrice;
-            
-            // Hitung stop loss berdasarkan barrier (roadblock)
-            const stopLoss = calculateBarrierBasedStopLoss(
-                entryPrice, 
-                moshaAnalysis.barriers, 
-                moshaAnalysis.breakoutType === 'BULLISH' ? 'LONG' : 'SHORT',
-                klinesSnapshot
-            );
-            
-            // Hitung take profit berdasarkan risk/reward ratio
-            const takeProfit = moshaAnalysis.breakoutType === 'BULLISH'
-                ? entryPrice + (entryPrice - stopLoss) * riskRewardRatio
-                : entryPrice - (stopLoss - entryPrice) * riskRewardRatio;
-            
-            const cost = balance * riskPerTrade;
-            const positionValue = cost * leverage;
-            const sizeInAsset = positionValue / entryPrice;
-            
-            // Hitung liquidation price berdasarkan margin mode
-            let liqPrice = 0;
-            const maintenanceMarginRate = 0.005;
-            
-            if (marginMode === 'isolated') {
-                const priceChange = (1 / leverage) * (1 - maintenanceMarginRate);
-                liqPrice = moshaAnalysis.breakoutType === 'BULLISH' 
-                    ? entryPrice * (1 - priceChange) 
-                    : entryPrice * (1 + priceChange);
-            } else { // cross
-                const priceChange = (balance / positionValue) * (1 - maintenanceMarginRate);
-                liqPrice = moshaAnalysis.breakoutType === 'BULLISH' 
-                    ? entryPrice * (1 - priceChange) 
-                    : entryPrice * (1 + priceChange);
-            }
-            
-            position = {
-                type: moshaAnalysis.breakoutType === 'BULLISH' ? 'LONG' : 'SHORT',
-                entryPrice,
-                cost,
-                size: sizeInAsset,
-                sl: stopLoss,
-                tp: takeProfit,
-                leverage,
-                liqPrice,
-                entryDate: new Date(currentCandle[0]),
-                moshaPhase: moshaAnalysis.phase
-            };
-        }
-
-        // Update progress bar
-        const progress = (i / historicalData.length) * 100;
-        backtestProgressBar.style.width = `${progress}%`;
-        backtestStatusText.textContent = `Simulasi: ${progress.toFixed(2)}% | Candle: ${i}/${historicalData.length}`;
-        
-        // Berikan jeda untuk UI update
-        await new Promise(resolve => setTimeout(resolve, 0));
-    }
-    
-    return trades;
-},
         calculateMetrics(trades, initialBalance) {
             let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0;
             trades.forEach(trade => {
@@ -2692,8 +1918,8 @@ async runSimulation_moshaBreakout(historicalData) {
                 trades
             };
         },
-        // Dalam objek backtester
-        displayResults(metrics, trades) {
+        
+        displayResults(metrics) {
             backtestPnl.textContent = `${metrics.totalPnl.toFixed(2)} USD (${((metrics.totalPnl / this.state.settings.initialBalance) * 100).toFixed(2)}%)`;
             backtestPnl.className = `font-mono font-bold text-lg ${metrics.totalPnl >= 0 ? 'positive' : 'negative'}`;
             backtestWinrate.textContent = `${metrics.winRate.toFixed(2)}%`;
@@ -2715,7 +1941,6 @@ async runSimulation_moshaBreakout(historicalData) {
             saveResultToLogbook(this.state.settings, metrics);
             sortAndRenderLogbook();
 
-            // Generate dan tampilkan rekomendasi tuning
             const recommendations = generateTuningRecommendations(metrics, metrics.trades, this.state.settings);
             displayTuningRecommendations(recommendations);
             window.lastRecommendations = recommendations;
@@ -2742,7 +1967,7 @@ async runSimulation_moshaBreakout(historicalData) {
     labRegimePreset.addEventListener('change', () => {
         applyRegimePreset(labRegimePreset.value);
     });    
-    document.querySelectorAll('#backtest-logbook-container thead th').forEach(header => {
+    document.querySelectorAll('#logbook-section thead th').forEach(header => {
         header.addEventListener('click', () => {
             const sortKey = header.dataset.sortKey;
             if (!sortKey) return;
@@ -2755,9 +1980,6 @@ async runSimulation_moshaBreakout(historicalData) {
             sortAndRenderLogbook();
         });
     });
-
-    document.getElementById('lab-strategy-mode').addEventListener('change', toggleStrategyParams);
-    window.addEventListener('load', toggleStrategyParams);
 
     document.getElementById('apply-tuning-btn')?.addEventListener('click', function() {
         const recommendations = JSON.parse(JSON.stringify(window.lastRecommendations || {}));
@@ -2776,18 +1998,15 @@ async runSimulation_moshaBreakout(historicalData) {
         }
     });
 
-    // Event listener untuk tombol export config
     exportConfigBtn.addEventListener('click', () => {
         backtester.gatherSettings();
         exportConfiguration(backtester.state.settings);
     });
 
-    // Integrasi analisis pasar ke backtester
     const originalRun = backtester.run;
     backtester.run = async function() {
         const result = await originalRun.apply(this, arguments);
         
-        // Lakukan analisis kondisi pasar setelah backtest selesai
         if (this.state.historicalData) {
             const marketAnalysis = analyzeMarketConditions(this.state.historicalData);
             displayMarketAnalysis(marketAnalysis);
@@ -2802,10 +2021,7 @@ async runSimulation_moshaBreakout(historicalData) {
         this.state.historicalData = data;
         return data;
     };
-    setTimeout(toggleStrategyParams, 100);
 });
-
-
 </script>
 
 </body>
