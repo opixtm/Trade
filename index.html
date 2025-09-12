@@ -545,505 +545,801 @@
                 <p class="text-yellow-500 font-mono mt-1 text-sm">🏁</p>
             </div>
             <button id="theme-toggle" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none">
-                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
+                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                 <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414 1.414zM-.707 7.072l.707-.707a1 1 0 10-1.414-1.414l-.707.707a1 1 0 001.414 1.414zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z"></path></svg>
             </button>
         </header>
 
     <main>
 
-                        <div class="space-y-6 mb-8">
-                            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                                <div>
-                                    <input type="password" id="gemini-api-key" class="input-primary" placeholder="Your API Key...">
-                                    <p class="text-sm text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
-                                </div>
-                                
-                            </section>
-                            <section id="settings-card" class="card p-4">
-                                <button id="toggle-settings-btn" class="w-full flex justify-between items-center text-left">
-                                    <h2 class="text-lg font-bold">Indicators Settings</h2>
-                                    <svg id="toggle-settings-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>                                
-                                </button>
-                                <div id="settings-content-wrapper" class="collapsible-content">
-                                    <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                                            <div>
-                                                <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Parameter Indikator</h3>
-                                                <div class="space-y-2 text-sm">
-                                                    <div class="flex items-center justify-between"><label for="setting-rsi-period" class="text-gray-500">Periode RSI</label><input type="number" id="setting-rsi-period" class="input-primary !w-20 text-center" value="14"></div>
-                                                    <div class="flex items-center justify-between">
-                                                        <label for="setting-stoch-rsi-period" class="text-gray-500">Stoch RSI (RSI/Stoch/K/D)</label>
-                                                        <div class="flex gap-1">
-                                                            <input type="number" id="setting-stoch-rsi-period" class="input-primary !w-12 text-center" value="14">
-                                                            <input type="number" id="setting-stoch-stoch-period" class="input-primary !w-12 text-center" value="14">
-                                                            <input type="number" id="setting-stoch-k-smooth" class="input-primary !w-12 text-center" value="3">
-                                                            <input type="number" id="setting-stoch-d-smooth" class="input-primary !w-12 text-center" value="3">
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex items-center justify-between"><label for="setting-macd-fast" class="text-gray-500">MACD Fast/Slow/Signal</label><div class="flex gap-1"><input type="number" id="setting-macd-fast" class="input-primary !w-16 text-center" value="12"><input type="number" id="setting-macd-slow" class="input-primary !w-16 text-center" value="26"><input type="number" id="setting-macd-signal" class="input-primary !w-16 text-center" value="9"></div></div>
-                                                    <div class="flex items-center justify-between">
-                                                        <label for="setting-weight-obv-divergence" class="text-gray-500">Bobot Divergensi OBV</label>
-                                                        <input type="number" step="0.1" id="setting-weight-obv-divergence" class="input-primary !w-20 text-center" value="3.0">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div>
-                                                <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Bobot Skor Konfluensi</h3>
-                                                <div class="space-y-2 text-sm">
-                                                    <div class="flex items-center justify-between"><label for="setting-weight-divergence" class="text-gray-500">Bobot Divergensi RSI</label><input type="number" step="0.1" id="setting-weight-divergence" class="input-primary !w-20 text-center" value="2.5"></div>
-                                                    <div class="flex items-center justify-between"><label for="setting-weight-macd" class="text-gray-500">Bobot MACD Cross</label><input type="number" step="0.1" id="setting-weight-macd" class="input-primary !w-20 text-center" value="2.0"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                            <div class="flex items-center justify-between">
-                                                <label for="preset-select" class="font-semibold text-gray-700 dark:text-gray-300">TradingStyle</label>
-                                                <select id="preset-select" class="input-primary !w-auto text-sm">
-                                                    <option value="default">Default</option>
-                                                    <option value="scalper">Scalper</option>
-                                                    <option value="dayTrader">Day Trader</option>
-                                                    <option value="swingTrader">Swing Trader</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="text-right mt-4"><button id="save-settings-btn" class="btn-primary">💾</button></div>
-                                        <p id="settings-saved-msg" class="text-green-500 text-sm mt-2 text-center hidden">SAVED!</p>
-                                    </div>
-                                </div>
-                            </section>
-                                <div id="initial-placeholder" class="text-center py-5">
-                                
-                                </div>
-                            <div id="loader-overlay" class="... flex-col ...">
-                                <div class="loader">
-                                    <div class="dot"></div>
-                                    <p class="text-4xl font-mono text-gray-500">SPOT</p>
-                                    <div class="dot"></div>
-                                    <p class="text-4xl font-mono text-gray-500">PERPETUAL</p>
-                                    <div class="dot"></div>
-                                </div>
-                                <p id="loader-text" class="text-white font-semibold mt-4 text-center blinking-text-animation">Let's Go........</p>
-                            </div>
-                            <section id="top-movers-section" class="card p-6">
-                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                                    <h2 class="text-sm font-semibold">Top Performers</h2>
-                                    <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                                        <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
-                                            <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
-                                            <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
-                                            <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
-                                            <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
-                                            <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
-                                            <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
-                                        </div>
-                                        <div class="flex gap-2 items-center">
-                                            <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
-                                                <option value="5000">5s</option>
-                                                <option value="10000">10s</option>
-                                                <option value="30000">30s</option>
-                                                <option value="60000">60s</option>
-                                                <option value="120000" selected>120s</option>
-                                            </select>
-                                            <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 gap-4">
-                                    <div>
-                                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Top Movers (by TF)</h3>
-                                        <div id="gainers-list" class="space-y-2"></div>
-                                    </div>                       
-                                </div>
-                            </section>
-                            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                                <div>
-                                    <div class="flex flex-col sm:flex-row gap-4">
-                                        <input type="text" id="asset-input" list="asset-list" class="input-primary text-sm flex-grow uppercase" placeholder="Ketik Simbol Aset (cth: BTCUSDT)" value="BTCUSDT">
-                                        <datalist id="asset-list"></datalist>
-                                        <select id="market-type-select" class="input-primary text-sm !w-auto">
-                                            <option value="spot">Spot</option>
-                                            <option value="futures" selected>Perp</option>
-                                        </select>
-                                        <select id="timeframe-select" class="input-primary text-sm !w-auto">
-                                            <option value="1m">1m</option><option value="3m">3m</option><option value="5m"selected>5m</option><option value="15m">15m</option><option value="30m">30m</option><option value="1h">1h</option><option value="2h">2h</option><option value="4h">4h</option><option value="1d">1d</option><option value="1w">W</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="md:col-span-2 flex gap-4">
-                                    <button id="analyze-asset-btn" class="btn-primary w-full font-bold text-xl">
-                                        <span id="button-text">GET DATA</span>
-                                        <div id="button-loader" class="loader hidden">
-                                        <div class="dot"></div>
-                                        <div class="dot"></div>
-                                        <div class="dot"></div>
-                                        </div>
-                                    </button>
-                                    <p id="asset-error" class="text-red-600 text-sm mt-2 text-center hidden"></p>
-                                    <button id="reset-btn" class="btn-secondary !w-auto">RESET</button>
-                                </div>
-                            </section>
+        <div class="space-y-6 mb-8">
+            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div>
+                    <input type="password" id="gemini-api-key" class="input-primary" placeholder="Your API Key...">
+                    <p class="text-sm text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
+                </div>
+            </section>
 
-                        </div>
-
-            <div id="dashboard-content" class="hidden">
-                <div class="space-y-8">               
-                <div class="flex flex-col gap-8">
-
-                <section id="current-state-section" class="card p-6">
-                    <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
-                        <h2 id="current-state-title" class="text-xl font-semibold">Current Market Condition</h2>
-                        <svg id="toggle-market-state-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                    </button>
-                    <div id="current-state-content-wrapper" class="collapsible-content expanded">
-                        <div class="space-y-6">
-                            <h2 class="text-lg font-semibold text-center">Calculated Timeframe <span id="quick-confluence-timeframe">5m</span></h2>
-                            <div class="flex items-center gap-4 my-2">
-                                <div id="quick-finalBearishScore" class="text-2xl font-bold status-downtrend text-right w-1/5">🐻 0%</div>
-                                <div class="confluence-bar-container w-3/5">
-                                    <div id="quick-confluenceBarBearish" class="confluence-bar confluence-bar-bearish" style="width: 50%;"></div>
-                                    <div id="quick-confluenceBarBullish" class="confluence-bar confluence-bar-bullish" style="width: 50%;"></div>
-                                </div>
-                                <div id="quick-finalBullishScore" class="text-2xl font-bold status-uptrend text-left w-1/5">0% 🐂</div>
-                            </div>
-                            <div id="verdict-container" class="text-center">
-                                <p id="quick-finalVerdict" class="font-semibold"></p>
-                                <div id="tension-score-container" class="mt-3 text-xs"></div>
-                            </div>
-                            <div id="confluence-breakdown-container" class="mt-4 text-xs text-center space-y-2 hidden">
-                                <div class="grid grid-cols-2 gap-2 text-left">
-                                    <div id="top-bullish-contributors"></div>
-                                    <div id="top-bearish-contributors"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-2 pt-6 border-t border-gray-200 dark:border-gray-700">
-                                <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
-                                    <div class="h-16 flex items-center justify-center my-2"></div>
-                                    <p id="candlestick-pattern" class="font-semibold">NONE</p>
-                                </div>
-                                <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
-                                    <p id="chart-pattern-label" class="text-xs text-gray-500">Chart Pattern</p>
-                                    <p id="chart-pattern" class="font-semibold">NONE</p>
-                                </div>
-                            </div>
-                            <hr class="border-gray-200 dark:border-gray-700/50 my-4">
+            <section id="settings-card" class="card p-4">
+                <button id="toggle-settings-btn" class="w-full flex justify-between items-center text-left">
+                    <h2 class="text-lg font-bold">Indicators Settings</h2>
+                    <svg id="toggle-settings-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div id="settings-content-wrapper" class="collapsible-content">
+                    <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                             <div>
-                                <h3 class="text-xl font-bold mb-4 text-center">Order Book</h3>
-                                <div id="full-order-book-container" class="space-y-2 text-sm"><p class="text-center text-gray-500">FETCHING DATA...</p></div>
-                                <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                    <span class="text-gray-500">Order Book Bias</span><span id="order-book-bias" class="font-mono">-</span>
-                                </div>
-                            </div>
-                            <hr class="border-gray-200 dark:border-gray-700/50 my-4">
-                            <div>
-                                <h3 class="text-lg font-bold mb-4 text-center">CVD Order Flow</h3>
-                                <div class="chart-container" style="height: 150px;"><canvas id="cvdChart"></canvas></div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="confluence-details-section" class="card p-6">
-                    <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
-                        <h2 class="text-lg font-bold">Timeframe [ NOW ] -<span id="confluence-timeframe-display"> 5m</span></h2>
-                        <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <div id="confluence-content-wrapper" class="collapsible-content">
-                        <div>
-                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                                <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">KEY LEVEL</h3>
-                                <div class="space-y-1 text-sm">
-                                    <div class="flex justify-between"><span class="text-red-500">VAH</span><span id="vpvr-vah" class="font-mono">-</span></div>
-                                    <div class="flex justify-between"><span class="font-bold text-blue-500" data-tooltip="Point of Control (POC)|...">Point of Control (POC)</span><span id="vpvr-poc" class="font-mono font-bold">-</span></div>
-                                    <div class="flex justify-between"><span class="text-green-500">VAL</span><span id="vpvr-val" class="font-mono">-</span></div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500">24H</span><span id="range-24h" class="font-mono font-semibold">-</span></div>
-
-                                    <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500" data-tooltip="Daily Pivot (P)|...">Daily Pivot (P)</span>
-                                            <span id="pivot-p" class="font-mono font-semibold text-blue-500">-</span>
-                                        </div>
-                                        <div id="pivot-levels-container" class="text-xs text-gray-400 space-y-1 mt-1 pl-4 hidden">
-                                            <div class="flex justify-between"><span>R1 / S1</span><span id="pivot-r1s1" class="font-mono">-</span></div>
-                                            <div class="flex justify-between"><span>R2 / S2</span><span id="pivot-r2s2" class="font-mono">-</span></div>
-                                            <div class="flex justify-between"><span>R3 / S3</span><span id="pivot-r3s3" class="font-mono">-</span></div>
+                                <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Parameter Indikator</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center justify-between">
+                                        <label for="setting-rsi-period" class="text-gray-500">Periode RSI</label>
+                                        <input type="number" id="setting-rsi-period" class="input-primary !w-20 text-center" value="14">
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <label for="setting-stoch-rsi-period" class="text-gray-500">Stoch RSI (RSI/Stoch/K/D)</label>
+                                        <div class="flex gap-1">
+                                            <input type="number" id="setting-stoch-rsi-period" class="input-primary !w-12 text-center" value="14">
+                                            <input type="number" id="setting-stoch-stoch-period" class="input-primary !w-12 text-center" value="14">
+                                            <input type="number" id="setting-stoch-k-smooth" class="input-primary !w-12 text-center" value="3">
+                                            <input type="number" id="setting-stoch-d-smooth" class="input-primary !w-12 text-center" value="3">
                                         </div>
                                     </div>
-
-                                    <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="VWAP (Volume-Weighted Average Price)|...">VWAP</span><div class="flex items-center gap-2"><div id="vwap-mode-buttons" class="flex text-xs"><button data-mode="rolling" class="vwap-mode-btn active px-2 py-0.5 rounded-l-md" data-tooltip="Rolling VWAP|...">R</button><button data-mode="session" class="vwap-mode-btn px-2 py-0.5" data-tooltip="Session VWAP|...">S</button><button data-mode="anchored" class="vwap-mode-btn px-2 py-0.5 rounded-r-md" data-tooltip="Anchored VWAP|...">A</button></div><span id="vwap-20d" class="font-mono text-yellow-500">-</span></div></div>
-                                </div>
-                            </div>
-                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                                <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">MOMENTUM</h3>
-                                <div class="space-y-1 text-sm">
-                                    <div class="flex justify-between items-center"><span class="text-gray-500">RSI (14)</span><div><span id="rsi-value" class="font-mono text-xs">-</span> <span id="rsi-status" class="tag tag-gray"></span></div></div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500">Stoch RSI (%K/%D)</span><div><span id="stoch-value" class="font-mono text-xs">-</span> <span id="stoch-status" class="tag tag-gray"></span></div></div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500">MACD</span><div><span id="macd-status" class="font-mono font-semibold">-</span> <span id="macd-hist" class="font-mono text-xs ml-1">-</span></div></div>
-                                    <div class="flex justify-between items-center"><span class="text-blue-500" data-tooltip="Bollinger Squeeze|...">Bollinger Squeeze</span><span id="bollinger-squeeze-status" class="font-mono">-</span></div>
-                                    <div class="flex justify-between items-center"><span class="text-yellow-500">BB Reversal</span><span id="bollinger-rejection-status" class="font-mono">-</span></div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500">BB Walk the Bands</span><span id="bollinger-walk-status" class="font-mono">-</span></div>
-                                    <div><div class="flex justify-between items-center"><span class="text-gray-500">Bollinger Bands</span><span id="bollinger-bands-status" class="font-mono">-</span></div><div class="text-right text-xs text-gray-400 font-mono"><span id="bb-upper-value">-</span> / <span id="bb-middle-value">-</span> / <span id="bb-lower-value">-</span></div></div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="RSI Divergence|...">RSI Divergence</span><span id="rsi-divergence" class="font-mono font-semibold text-xs">-</span></div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Linear Regression Channel|...">LinReg Channel</span><span id="linreg-status" class="font-mono">-</span></div>
-                                    <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                        <span class="text-gray-500" data-tooltip="On-Balance Volume|Indikator momentum yang menggunakan volume untuk memprediksi perubahan harga.">OBV</span>
-                                        <span id="obv-value" class="font-mono font-semibold">-</span>
-                                    </div>
-                                    <div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Ichimoku Bias|...">Ichimoku Bias</span><span id="ichimoku-bias" class="font-mono font-semibold">-</span></div>
-                                </div>
-                            </div>
-                            <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                                <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">Asset Info</h3>
-                                <div class="hidden">
-                                    <input type="text" id="correlation-asset-input" class="input-primary" value="BTCUSDT">
-                                </div>
-
-                                <div class="space-y-1 text-sm">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-gray-500">BTC Correlation (30D)</span>
-                                        <div>
-                                            <span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span>
-                                            <span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span>
+                                    <div class="flex items-center justify-between">
+                                        <label for="setting-macd-fast" class="text-gray-500">MACD Fast/Slow/Signal</label>
+                                        <div class="flex gap-1">
+                                            <input type="number" id="setting-macd-fast" class="input-primary !w-16 text-center" value="12">
+                                            <input type="number" id="setting-macd-slow" class="input-primary !w-16 text-center" value="26">
+                                            <input type="number" id="setting-macd-signal" class="input-primary !w-16 text-center" value="9">
                                         </div>
                                     </div>
-                                <div class="space-y-1 text-sm">
-                                    <div class="flex justify-between items-center"><span class="text-gray-500">BTC Dominance</span><span id="btc-dominance" class="font-mono">-</span></div>
-                                    <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50"><span class="text-gray-500">Market Cap</span><span id="market-cap" class="font-mono">-</span></div>
+                                    <div class="flex items-center justify-between">
+                                        <label for="setting-weight-obv-divergence" class="text-gray-500">Bobot Divergensi OBV</label>
+                                        <input type="number" step="0.1" id="setting-weight-obv-divergence" class="input-primary !w-20 text-center" value="3.0">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="scalping-setup-section" class="card p-6">
-                    <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
-                        <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
-                        <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <div id="scalping-content-wrapper" class="collapsible-content expanded">
-                        <div>
-                            <div id="hybrid-breakdown-module" class="mb-4">
-                                <div class="flex items-center justify-between text-xs text-gray-400"><span>Bullish Momentum</span><span>Bearish Pressure Score</span></div>
-                                <div class="confluence-bar-container w-full h-8 mt-1"><div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div><div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div></div>
-                                <div class="flex items-center justify-between text-sm mt-1"><span id="main-pump-score" class="positive font-bold">0%</span><span id="main-dump-score" class="negative font-bold">0/10</span></div>
-                                <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">⚠ PLEASE CHECK YOU ARE IN THE RIGHT TIMEFRAME ⚠️</p>
-                                <details class="mt-3"><summary class="cursor-pointer text-xs text-gray-400 hover:text-white transition-colors flex justify-between items-center"><span>Bearish Pressure Score Trigger▾</span><select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()"><option value="1m">1m</option><option value="3m">3m</option><option value="5m" selected="">5m</option><option value="15m">15m</option><option value="30m">30m</option><option value="1h">1h</option></select></summary><div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1"><p class="text-xs text-center text-gray-600">Pilih timeframe...</p></div></details>
-                            </div>
-                            <div class="pt-2 mt-2 border-t border-dashed border-gray-700/50"><div id="scalping-resistance-info" class="flex justify-between items-center text-sm"><span class="text-gray-500">Nearest Resistance</span><span class="font-mono font-semibold text-red-400">-</span></div><div id="scalping-wall-container" class="text-center text-xs pt-2 space-y-1"><div id="buy-wall-display" class="text-green-500 font-semibold">— No Buy Wall Detected —</div><div id="sell-wall-display" class="text-red-500 font-semibold">— No Sell Wall Detected —</div></div></div>
-                            <div id="tf-alignment-summary" class="pt-2 mt-2 border-t border-dashed border-gray-600/50"></div>
-                            <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50"><div class="flex justify-between items-center text-sm"><span class="text-gray-500">EMA 21/50</span><span id="ma-status" class="font-mono font-semibold">-</span></div><div class="text-right text-xs text-gray-400 font-mono"><span id="ema-21-value">-</span> / <span id="ema-50-value">-</span></div></div>
-                            <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50 text-sm"><details><summary class="cursor-pointer text-center text-gray-500 text-xs mb-2 list-none">👇🏻 Click for More 👇🏻</summary><div class="mt-2"><div class="space-y-1"><div class="flex justify-between items-center"><span class="text-gray-500">Parabolic SAR</span><span id="psar-status" class="font-mono text-sm">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500" data-tooltip="Rate of Change (ROC)|...">Rate of Change (ROC)</span><span id="roc-status" class="font-mono text-sm">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|...">ADX 14</span><div><span id="adx-value" class="font-mono font-semibold text-sm">-</span><span class="text-xs positive" id="plus-di-value"></span> /<span class="text-xs negative" id="minus-di-value"></span></div></div></div><div class="mt-2 pt-2 border-t border-dashed border-gray-700/20 space-y-1"><div class="flex justify-between items-start"><div><span class="text-gray-500 text-sm">A T R</span><span id="atr-status-badge" class="tag tag-gray ml-2">...</span></div><div class="text-right"><p id="atr-percent-value" class="font-mono text-blue-500 font-semibold">-</p><p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p></div></div><div id="ls-umum-container" class="flex justify-between items-center"><span class="text-gray-500">L/S Ratio</span><span id="ls-ratio-umum" class="font-mono">-</span></div><div id="ls-top-container" class="flex justify-between items-center"><span class="text-gray-500">L/S Ratio (Top)</span><span id="ls-ratio-top" class="font-mono">-</span></div><div id="futures-data-container" class="hidden space-y-1"><div class="flex justify-between items-center"><span class="text-gray-500">Funding Interval</span><span id="funding-rate-interval" class="font-mono">-</span></div><div class="flex justify-between items-center"><span class="text-yellow-500">Funding Rate</span><span id="funding-rate" class="font-mono text-yellow-500">-</span></div><div class="flex justify-between items-center"><span class="text-gray-500">Open Interest</span><span id="open-interest">-</span></div></div></div></div></details></div>
-                            <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"><p class="text-sm text-gray-500">FETCHING DATA...</p></div>
-                        </div>
-                    </div>
-                </section>
-            
-                <section id="onchain-card" class="card p-6">
-                    <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
-                        <h2 class="text-xl font-bold">On-Chain</h2>
-                        <svg id="toggle-onchain-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <div id="onchain-content-wrapper" class="collapsible-content">
-                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                            <div id="specific-token-analysis" class="mb-4"><h3 id="specific-token-title" class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Analisis Token Spesifik</h3><div id="specific-token-content" class="text-sm space-y-1"><p class="text-xs text-gray-500 text-center">SEARCHING...</p></div></div>
-                            <div><h3 class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Pool Trending Teratas</h3><div id="trending-pools-content" class="text-sm space-y-2"><div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div></div></div>
-                        </div>
-                    </div>
-                </section>
-            
-                <section id="sentiment-display-container" class="card p-6">
-                    <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
-                        <h2 class="text-xl font-bold">BTC Sentiment (via AI)</h2>
-                        <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <div id="sentiment-content-wrapper" class="collapsible-content">
-                        <p class="text-center text-gray-500">Ask AI first....</p>
-                    </div>
-                </section>
-            
-                <section id="ai-analysis-section" class="card p-6 relative">
-                    <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">AI ANALYZER</h2></div>
-                    <div id="ai-verdict-content-wrapper" class="collapsible-content expanded">
-                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                            <button id="run-comprehensive-ai-btn" class="btn-primary w-full mb-4"><span>ASK AI</span><div class="loader w-5 h-5 hidden"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></button>
-                            <div id="ai-content-container" class="hidden space-y-6">
-                                <div id="ai-narrative-content" class="prose prose-sm dark:prose-invert max-w-none text-gray-600 space-y-4"></div>
-                                <div><h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">🔮 Proyeksi Harga</h3><div id="projection-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
-                                <div><h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">♟️ Saran Strategis</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><h4 class="font-semibold text-green-500 mb-2">Untuk Calon Buyer</h4><p id="saran-buyer" class="text-lg font-bold"></p><p id="alasan-buyer" class="text-sm text-gray-500 mt-1"></p></div><div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><h4 class="font-semibold text-blue-500 mb-2">Untuk Holder</h4><p id="saran-holder" class="text-lg font-bold"></p><p id="alasan-holder" class="text-sm text-gray-500 mt-1"></p></div></div></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="absolute bottom-2 right-2"><button id="toggle-ai-verdict-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none"><svg id="toggle-ai-verdict-icon" class="w-5 h-5 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div>
-                </section>
-                <section id="trailing-stop-calc-section" class="card p-6">
-                    <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
-                        <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
-                        <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                    
-                    <div id="ts-calc-content-wrapper" class="collapsible-content">
-                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
                             
-                            <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
-                                ⚡️ Auto-fill dari Setup Scalping
-                            </button>
-
-                            <div class="btn-group">
-                                <button id="ts-mode-cross" class="active">Cross</button>
-                                <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
-                                <button id="ts-mode-isolated" class="">Isolated</button>
-                                <button id="ts-trailing-stop-options">⚙️ TS</button>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="input-group">
-                                    <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
-                                    <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
-                                </div>
-                                <div class="input-group">
-                                    <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
-                                    <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
-                                </div>
-                            </div>
-
                             <div>
-                                <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
-                                <div class="slider-ticks">
-                                    <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
-                                </div>
-                            </div>
-
-                            <div class="input-group mt-6">
-                                <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
-                                <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
-                            </div>
-
-                            <div class="tpsl-section">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
-                                    <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
-                                </div>
-                                <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
-                                    <div class="input-group">
-                                        <label for="ts-take-profit" class="input-label-top">Take Profit</label>
-                                        <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                                <h3 class="font-semibold mb-2 text-gray-700 dark:text-gray-300">Bobot Skor Konfluensi</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center justify-between">
+                                        <label for="setting-weight-divergence" class="text-gray-500">Bobot Divergensi RSI</label>
+                                        <input type="number" step="0.1" id="setting-weight-divergence" class="input-primary !w-20 text-center" value="2.5">
                                     </div>
-                                    <div class="input-group">
-                                        <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
-                                        <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
+                                    <div class="flex items-center justify-between">
+                                        <label for="setting-weight-macd" class="text-gray-500">Bobot MACD Cross</label>
+                                        <input type="number" step="0.1" id="setting-weight-macd" class="input-primary !w-20 text-center" value="2.0">
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="exec-buttons">
-                                <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
-                                <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
-                            </div>
-
-                            <div class="calc-result-grid">
-                                <span>Cost</span><span id="ts-result-cost">--</span>
-                                <span>Max</span><span id="ts-result-max">--</span>
-                                <span>Position Size</span><span id="ts-result-position-size">--</span>
-                                <span>Liq. Price</span><span id="ts-result-liq-price">--</span>
-                                <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span><span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
-                                <span>Harga Stop Loss TS</span><span id="ts-result-sl-price">--</span>
-                                <span>Potensi ROE</span><span id="ts-result-roe">--</span>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <label for="preset-select" class="font-semibold text-gray-700 dark:text-gray-300">TradingStyle</label>
+                                <select id="preset-select" class="input-primary !w-auto text-sm">
+                                    <option value="default">Default</option>
+                                    <option value="scalper">Scalper</option>
+                                    <option value="dayTrader">Day Trader</option>
+                                    <option value="swingTrader">Swing Trader</option>
+                                </select>
                             </div>
                         </div>
+                        <div class="text-right mt-4">
+                            <button id="save-settings-btn" class="btn-primary">💾</button>
+                        </div>
+                        <p id="settings-saved-msg" class="text-green-500 text-sm mt-2 text-center hidden">SAVED!</p>
                     </div>
+                </div>
+            </section>
 
-                    <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
-                        <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
-                                <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="form-group">
-                                    <label for="ts-modal-callback-rate">Callback Rate (%)</label>
-                                    <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
-                                    <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
-                                </div>
-                            </div>
-                            <div class="mt-6 text-right">
-                                <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
-                            </div>
+            <div id="initial-placeholder" class="text-center py-5"></div>
+
+            <div id="loader-overlay" class="... flex-col ...">
+                <div class="loader">
+                    <div class="dot"></div>
+                    <p class="text-4xl font-mono text-gray-500">SPOT</p>
+                    <div class="dot"></div>
+                    <p class="text-4xl font-mono text-gray-500">PERPETUAL</p>
+                    <div class="dot"></div>
+                </div>
+                <p id="loader-text" class="text-white font-semibold mt-4 text-center blinking-text-animation">Let's Go........</p>
+            </div>
+
+            <section id="top-movers-section" class="card p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <h2 class="text-sm font-semibold">Top Performers</h2>
+                    <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                        <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
+                            <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
+                            <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
+                            <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
+                            <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
+                            <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
+                            <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
+                                <option value="5000">5s</option>
+                                <option value="10000">10s</option>
+                                <option value="30000">30s</option>
+                                <option value="60000">60s</option>
+                                <option value="120000" selected>120s</option>
+                            </select>
+                            <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
                         </div>
                     </div>
-                </section>
-                <section id="paper-trading-section" class="card p-6">
-                    <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
-                        <h2 class="text-xl font-bold">Trading Simulation</h2>
-                        <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Top Movers (by TF)</h3>
+                        <div id="gainers-list" class="space-y-2"></div>
+                    </div>                       
+                </div>
+            </section>
+
+            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="text" id="asset-input" list="asset-list" class="input-primary text-sm flex-grow uppercase" placeholder="Ketik Simbol Aset (cth: BTCUSDT)" value="BTCUSDT">
+                        <datalist id="asset-list"></datalist>
+                        <select id="market-type-select" class="input-primary text-sm !w-auto">
+                            <option value="spot">Spot</option>
+                            <option value="futures" selected>Perp</option>
+                        </select>
+                        <select id="timeframe-select" class="input-primary text-sm !w-auto">
+                            <option value="1m">1m</option>
+                            <option value="3m">3m</option>
+                            <option value="5m"selected>5m</option>
+                            <option value="15m">15m</option>
+                            <option value="30m">30m</option>
+                            <option value="1h">1h</option>
+                            <option value="2h">2h</option>
+                            <option value="4h">4h</option>
+                            <option value="1d">1d</option>
+                            <option value="1w">W</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="md:col-span-2 flex gap-4">
+                    <button id="analyze-asset-btn" class="btn-primary w-full font-bold text-xl">
+                        <span id="button-text">GET DATA</span>
+                        <div id="button-loader" class="loader hidden">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
                     </button>
+                    <p id="asset-error" class="text-red-600 text-sm mt-2 text-center hidden"></p>
+                    <button id="reset-btn" class="btn-secondary !w-auto">RESET</button>
+                </div>
+            </section>
+        </div>
 
-                    <div id="paper-trading-content-wrapper" class="collapsible-content">
-                        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                                <div>
-                                    <p class="text-xs text-gray-500">Equity</p>
-                                    <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
+        <div id="dashboard-content" class="hidden">
+            <div class="space-y-8">               
+                <div class="flex flex-col gap-8">
+                    <section id="current-state-section" class="card p-6">
+                        <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
+                            <h2 id="current-state-title" class="text-xl font-semibold">Current Market Condition</h2>
+                            <svg id="toggle-market-state-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div id="current-state-content-wrapper" class="collapsible-content expanded">
+                            <div class="space-y-6">
+                                <h2 class="text-lg font-semibold text-center">Calculated Timeframe <span id="quick-confluence-timeframe">5m</span></h2>
+                                <div class="flex items-center gap-4 my-2">
+                                    <div id="quick-finalBearishScore" class="text-2xl font-bold status-downtrend text-right w-1/5">🐻 0%</div>
+                                    <div class="confluence-bar-container w-3/5">
+                                        <div id="quick-confluenceBarBearish" class="confluence-bar confluence-bar-bearish" style="width: 50%;"></div>
+                                        <div id="quick-confluenceBarBullish" class="confluence-bar confluence-bar-bullish" style="width: 50%;"></div>
+                                    </div>
+                                    <div id="quick-finalBullishScore" class="text-2xl font-bold status-uptrend text-left w-1/5">0% 🐂</div>
                                 </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">Unrealized PNL</p>
-                                    <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
+                                <div id="verdict-container" class="text-center">
+                                    <p id="quick-finalVerdict" class="font-semibold"></p>
+                                    <div id="tension-score-container" class="mt-3 text-xs"></div>
                                 </div>
-                                <div>
-                                    <p class="text-xs text-gray-500">Available Margin</p>
-                                    <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
+                                <div id="confluence-breakdown-container" class="mt-4 text-xs text-center space-y-2 hidden">
+                                    <div class="grid grid-cols-2 gap-2 text-left">
+                                        <div id="top-bullish-contributors"></div>
+                                        <div id="top-bearish-contributors"></div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-center">
-                                    <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
+                                <div class="space-y-2 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                    <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
+                                        <div class="h-16 flex items-center justify-center my-2"></div>
+                                        <p id="candlestick-pattern" class="font-semibold">NONE</p>
+                                    </div>
+                                    <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
+                                        <p id="chart-pattern-label" class="text-xs text-gray-500">Chart Pattern</p>
+                                        <p id="chart-pattern" class="font-semibold">NONE</p>
+                                    </div>
+                                </div>
+                                <hr class="border-gray-200 dark:border-gray-700/50 my-4">
+                                <div>
+                                    <h3 class="text-xl font-bold mb-4 text-center">Order Book</h3>
+                                    <div id="full-order-book-container" class="space-y-2 text-sm">
+                                        <p class="text-center text-gray-500">FETCHING DATA...</p>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                        <span class="text-gray-500">Order Book Bias</span>
+                                        <span id="order-book-bias" class="font-mono">-</span>
+                                    </div>
+                                </div>
+                                <hr class="border-gray-200 dark:border-gray-700/50 my-4">
+                                <div>
+                                    <h3 class="text-lg font-bold mb-4 text-center">CVD Order Flow</h3>
+                                    <div class="chart-container" style="height: 150px;">
+                                        <canvas id="cvdChart"></canvas>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                    </section>
 
-                            <div id="sim-active-position-container" class="hidden">
-                                <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
-                                <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
-                                    <div class="flex justify-between items-center">
-                                        <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
-                                        <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
-                                    </div>
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                        <div><span class="text-gray-400">Size:</span> <span id="sim-position-size" class="font-mono"></span></div>
-                                        <div><span class="text-gray-400">Entry:</span> <span id="sim-position-entry" class="font-mono"></span></div>
-                                        <div><span class="text-gray-400">Mark:</span> <span id="sim-position-mark" class="font-mono"></span></div>
-                                        <div><span class="text-gray-400">Liq:</span> <span id="sim-position-liq" class="font-mono"></span></div>
-                                    </div>
-                                    <div class="pt-2 border-t border-dashed border-gray-700">
-                                        <span class="text-gray-400">PNL (ROE %):</span>
-                                        <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
-                                    </div>
-                                </div>
-                            </div>
-
+                    <section id="confluence-details-section" class="card p-6">
+                        <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
+                            <h2 class="text-lg font-bold">Timeframe [ NOW ] -<span id="confluence-timeframe-display"> 5m</span></h2>
+                            <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div id="confluence-content-wrapper" class="collapsible-content">
                             <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="font-semibold text-gray-400">Trade History</h3>
-                                <div class="flex gap-2">
-                                    <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
-                                    <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
-                                    <input type="file" id="sim-import-input" class="hidden" accept=".csv">
+                                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                    <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">KEY LEVEL</h3>
+                                    <div class="space-y-1 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-red-500">VAH</span>
+                                            <span id="vpvr-vah" class="font-mono">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-bold text-blue-500" data-tooltip="Point of Control (POC)|...">Point of Control (POC)</span>
+                                            <span id="vpvr-poc" class="font-mono font-bold">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-green-500">VAL</span>
+                                            <span id="vpvr-val" class="font-mono">-</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500">24H</span>
+                                            <span id="range-24h" class="font-mono font-semibold">-</span>
+                                        </div>
+
+                                        <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500" data-tooltip="Daily Pivot (P)|...">Daily Pivot (P)</span>
+                                                <span id="pivot-p" class="font-mono font-semibold text-blue-500">-</span>
+                                            </div>
+                                            <div id="pivot-levels-container" class="text-xs text-gray-400 space-y-1 mt-1 pl-4 hidden">
+                                                <div class="flex justify-between">
+                                                    <span>R1 / S1</span>
+                                                    <span id="pivot-r1s1" class="font-mono">-</span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span>R2 / S2</span>
+                                                    <span id="pivot-r2s2" class="font-mono">-</span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span>R3 / S3</span>
+                                                    <span id="pivot-r3s3" class="font-mono">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500" data-tooltip="VWAP (Volume-Weighted Average Price)|...">VWAP</span>
+                                            <div class="flex items-center gap-2">
+                                                <div id="vwap-mode-buttons" class="flex text-xs">
+                                                    <button data-mode="rolling" class="vwap-mode-btn active px-2 py-0.5 rounded-l-md" data-tooltip="Rolling VWAP|...">R</button>
+                                                    <button data-mode="session" class="vwap-mode-btn px-2 py-0.5" data-tooltip="Session VWAP|...">S</button>
+                                                    <button data-mode="anchored" class="vwap-mode-btn px-2 py-0.5 rounded-r-md" data-tooltip="Anchored VWAP|...">A</button>
+                                                </div>
+                                                <span id="vwap-20d" class="font-mono text-yellow-500">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                    <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">MOMENTUM</h3>
+                                    <div class="space-y-1 text-sm">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500">RSI (14)</span>
+                                            <div>
+                                                <span id="rsi-value" class="font-mono text-xs">-</span>
+                                                <span id="rsi-status" class="tag tag-gray"></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500">Stoch RSI (%K/%D)</span>
+                                            <div>
+                                                <span id="stoch-value" class="font-mono text-xs">-</span>
+                                                <span id="stoch-status" class="tag tag-gray"></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500">MACD</span>
+                                            <div>
+                                                <span id="macd-status" class="font-mono font-semibold">-</span>
+                                                <span id="macd-hist" class="font-mono text-xs ml-1">-</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-blue-500" data-tooltip="Bollinger Squeeze|...">Bollinger Squeeze</span>
+                                            <span id="bollinger-squeeze-status" class="font-mono">-</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-yellow-500">BB Reversal</span>
+                                            <span id="bollinger-rejection-status" class="font-mono">-</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500">BB Walk the Bands</span>
+                                            <span id="bollinger-walk-status" class="font-mono">-</span>
+                                        </div>
+                                        <div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500">Bollinger Bands</span>
+                                                <span id="bollinger-bands-status" class="font-mono">-</span>
+                                            </div>
+                                            <div class="text-right text-xs text-gray-400 font-mono">
+                                                <span id="bb-upper-value">-</span> / <span id="bb-middle-value">-</span> / <span id="bb-lower-value">-</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500" data-tooltip="RSI Divergence|...">RSI Divergence</span>
+                                            <span id="rsi-divergence" class="font-mono font-semibold text-xs">-</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500" data-tooltip="Linear Regression Channel|...">LinReg Channel</span>
+                                            <span id="linreg-status" class="font-mono">-</span>
+                                        </div>
+                                        <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                            <span class="text-gray-500" data-tooltip="On-Balance Volume|Indikator momentum yang menggunakan volume untuk memprediksi perubahan harga.">OBV</span>
+                                            <span id="obv-value" class="font-mono font-semibold">-</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500" data-tooltip="Ichimoku Bias|...">Ichimoku Bias</span>
+                                            <span id="ichimoku-bias" class="font-mono font-semibold">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                    <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">Asset Info</h3>
+                                    <div class="hidden">
+                                        <input type="text" id="correlation-asset-input" class="input-primary" value="BTCUSDT">
+                                    </div>
+                                    <div class="space-y-1 text-sm">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-500">BTC Correlation (30D)</span>
+                                            <div>
+                                                <span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span>
+                                                <span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1 text-sm">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500">BTC Dominance</span>
+                                                <span id="btc-dominance" class="font-mono">-</span>
+                                            </div>
+                                            <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                                <span class="text-gray-500">Market Cap</span>
+                                                <span id="market-cap" class="font-mono">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
-                                <p class="text-center text-gray-600">No trade history yet.</p>
+                        </div>
+                    </section>
+
+                    <section id="scalping-setup-section" class="card p-6">
+                        <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
+                            <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
+                            <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div id="scalping-content-wrapper" class="collapsible-content expanded">
+                            <div>
+                                <div id="hybrid-breakdown-module" class="mb-4">
+                                    <div class="flex items-center justify-between text-xs text-gray-400">
+                                        <span>Bullish Momentum</span>
+                                        <span>Bearish Pressure Score</span>
+                                    </div>
+                                    <div class="confluence-bar-container w-full h-8 mt-1">
+                                        <div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div>
+                                        <div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm mt-1">
+                                        <span id="main-pump-score" class="positive font-bold">0%</span>
+                                        <span id="main-dump-score" class="negative font-bold">0/10</span>
+                                    </div>
+                                    <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">⚠ PLEASE CHECK YOU ARE IN THE RIGHT TIMEFRAME ⚠️</p>
+                                    <details class="mt-3">
+                                        <summary class="cursor-pointer text-xs text-gray-400 hover:text-white transition-colors flex justify-between items-center">
+                                            <span>Bearish Pressure Score Trigger▾</span>
+                                            <select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()">
+                                                <option value="1m">1m</option>
+                                                <option value="3m">3m</option>
+                                                <option value="5m" selected="">5m</option>
+                                                <option value="15m">15m</option>
+                                                <option value="30m">30m</option>
+                                                <option value="1h">1h</option>
+                                            </select>
+                                        </summary>
+                                        <div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1">
+                                            <p class="text-xs text-center text-gray-600">Pilih timeframe...</p>
+                                        </div>
+                                    </details>
+                                </div>
+                                <div class="pt-2 mt-2 border-t border-dashed border-gray-700/50">
+                                    <div id="scalping-resistance-info" class="flex justify-between items-center text-sm">
+                                        <span class="text-gray-500">Nearest Resistance</span>
+                                        <span class="font-mono font-semibold text-red-400">-</span>
+                                    </div>
+                                    <div id="scalping-wall-container" class="text-center text-xs pt-2 space-y-1">
+                                        <div id="buy-wall-display" class="text-green-500 font-semibold">— No Buy Wall Detected —</div>
+                                        <div id="sell-wall-display" class="text-red-500 font-semibold">— No Sell Wall Detected —</div>
+                                    </div>
+                                </div>
+                                <div id="tf-alignment-summary" class="pt-2 mt-2 border-t border-dashed border-gray-600/50"></div>
+                                <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                    <div class="flex justify-between items-center text-sm">
+                                        <span class="text-gray-500">EMA 21/50</span>
+                                        <span id="ma-status" class="font-mono font-semibold">-</span>
+                                    </div>
+                                    <div class="text-right text-xs text-gray-400 font-mono">
+                                        <span id="ema-21-value">-</span> / <span id="ema-50-value">-</span>
+                                    </div>
+                                </div>
+                                <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50 text-sm">
+                                    <details>
+                                        <summary class="cursor-pointer text-center text-gray-500 text-xs mb-2 list-none">👇🏻 Click for More 👇🏻</summary>
+                                        <div class="mt-2">
+                                            <div class="space-y-1">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500">Parabolic SAR</span>
+                                                    <span id="psar-status" class="font-mono text-sm">-</span>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500" data-tooltip="Rate of Change (ROC)|...">Rate of Change (ROC)</span>
+                                                    <span id="roc-status" class="font-mono text-sm">-</span>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|...">ADX 14</span>
+                                                    <div>
+                                                        <span id="adx-value" class="font-mono font-semibold text-sm">-</span>
+                                                        <span class="text-xs positive" id="plus-di-value"></span> /
+                                                        <span class="text-xs negative" id="minus-di-value"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 pt-2 border-t border-dashed border-gray-700/20 space-y-1">
+                                                <div class="flex justify-between items-start">
+                                                    <div>
+                                                        <span class="text-gray-500 text-sm">A T R</span>
+                                                        <span id="atr-status-badge" class="tag tag-gray ml-2">...</span>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <p id="atr-percent-value" class="font-mono text-blue-500 font-semibold">-</p>
+                                                        <p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p>
+                                                    </div>
+                                                </div>
+                                                <div id="ls-umum-container" class="flex justify-between items-center">
+                                                    <span class="text-gray-500">L/S Ratio</span>
+                                                    <span id="ls-ratio-umum" class="font-mono">-</span>
+                                                </div>
+                                                <div id="ls-top-container" class="flex justify-between items-center">
+                                                    <span class="text-gray-500">L/S Ratio (Top)</span>
+                                                    <span id="ls-ratio-top" class="font-mono">-</span>
+                                                </div>
+                                                <div id="futures-data-container" class="hidden space-y-1">
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-gray-500">Funding Interval</span>
+                                                        <span id="funding-rate-interval" class="font-mono">-</span>
+                                                    </div>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-yellow-500">Funding Rate</span>
+                                                        <span id="funding-rate" class="font-mono text-yellow-500">-</span>
+                                                    </div>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-gray-500">Open Interest</span>
+                                                        <span id="open-interest">-</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                                <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <p class="text-sm text-gray-500">FETCHING DATA...</p>
+                                </div>
                             </div>
                         </div>
+                    </section>
+                
+                    <section id="onchain-card" class="card p-6">
+                        <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
+                            <h2 class="text-xl font-bold">On-Chain</h2>
+                            <svg id="toggle-onchain-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div id="onchain-content-wrapper" class="collapsible-content">
+                            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                                <div id="specific-token-analysis" class="mb-4">
+                                    <h3 id="specific-token-title" class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Analisis Token Spesifik</h3>
+                                    <div id="specific-token-content" class="text-sm space-y-1">
+                                        <p class="text-xs text-gray-500 text-center">SEARCHING...</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-gray-400 border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">Pool Trending Teratas</h3>
+                                    <div id="trending-pools-content" class="text-sm space-y-2">
+                                        <div class="text-center py-2">
+                                            <div class="loader mx-auto h-6 w-6"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                
+                    <section id="sentiment-display-container" class="card p-6">
+                        <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
+                            <h2 class="text-xl font-bold">BTC Sentiment (via AI)</h2>
+                            <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div id="sentiment-content-wrapper" class="collapsible-content">
+                            <p class="text-center text-gray-500">Ask AI first....</p>
+                        </div>
+                    </section>
+                
+                    <section id="ai-analysis-section" class="card p-6 relative">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold">AI ANALYZER</h2>
+                        </div>
+                        <div id="ai-verdict-content-wrapper" class="collapsible-content expanded">
+                            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                                <button id="run-comprehensive-ai-btn" class="btn-primary w-full mb-4">
+                                    <span>ASK AI</span>
+                                    <div class="loader w-5 h-5 hidden">
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                    </div>
+                                </button>
+                                <div id="ai-content-container" class="hidden space-y-6">
+                                    <div id="ai-narrative-content" class="prose prose-sm dark:prose-invert max-w-none text-gray-600 space-y-4"></div>
+                                    <div>
+                                        <h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">🔮 Proyeksi Harga</h3>
+                                        <div id="projection-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">♟️ Saran Strategis</h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg">
+                                                <h4 class="font-semibold text-green-500 mb-2">Untuk Calon Buyer</h4>
+                                                <p id="saran-buyer" class="text-lg font-bold"></p>
+                                                <p id="alasan-buyer" class="text-sm text-gray-500 mt-1"></p>
+                                            </div>
+                                            <div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg">
+                                                <h4 class="font-semibold text-blue-500 mb-2">Untuk Holder</h4>
+                                                <p id="saran-holder" class="text-lg font-bold"></p>
+                                                <p id="alasan-holder" class="text-sm text-gray-500 mt-1"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-2 right-2">
+                            <button id="toggle-ai-verdict-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none">
+                                <svg id="toggle-ai-verdict-icon" class="w-5 h-5 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </section>
+                    
+                    <section id="trailing-stop-calc-section" class="card p-6">
+                        <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
+                            <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
+                            <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        
+                        <div id="ts-calc-content-wrapper" class="collapsible-content">
+                            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
+                                <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
+                                    ⚡️ Auto-fill dari Setup Scalping
+                                </button>
+                                <div class="btn-group">
+                                    <button id="ts-mode-cross" class="active">Cross</button>
+                                    <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
+                                    <button id="ts-mode-isolated" class="">Isolated</button>
+                                    <button id="ts-trailing-stop-options">⚙️ TS</button>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="input-group">
+                                        <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
+                                        <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
+                                        <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
+                                    <div class="slider-ticks">
+                                        <span>0%</span>
+                                        <span>25%</span>
+                                        <span>50%</span>
+                                        <span>75%</span>
+                                        <span>100%</span>
+                                    </div>
+                                </div>
+
+                                <div class="input-group mt-6">
+                                    <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
+                                    <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
+                                </div>
+
+                                <div class="tpsl-section">
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
+                                        <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
+                                    </div>
+                                    <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
+                                        <div class="input-group">
+                                            <label for="ts-take-profit" class="input-label-top">Take Profit</label>
+                                            <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
+                                            <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="exec-buttons">
+                                    <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
+                                    <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
+                                </div>
+
+                                <div class="calc-result-grid">
+                                    <span>Cost</span>
+                                    <span id="ts-result-cost">--</span>
+                                    <span>Max</span>
+                                    <span id="ts-result-max">--</span>
+                                    <span>Position Size</span>
+                                    <span id="ts-result-position-size">--</span>
+                                    <span>Liq. Price</span>
+                                    <span id="ts-result-liq-price">--</span>
+                                    <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span>
+                                    <span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
+                                    <span>Harga Stop Loss TS</span>
+                                    <span id="ts-result-sl-price">--</span>
+                                    <span>Potensi ROE</span>
+                                    <span id="ts-result-roe">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+                            <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
+                                    <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="form-group">
+                                        <label for="ts-modal-callback-rate">Callback Rate (%)</label>
+                                        <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
+                                        <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
+                                    </div>
+                                </div>
+                                <div class="mt-6 text-right">
+                                    <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section id="paper-trading-section" class="card p-6">
+                        <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
+                            <h2 class="text-xl font-bold">Trading Simulation</h2>
+                            <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+
+                        <div id="paper-trading-content-wrapper" class="collapsible-content">
+                            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Equity</p>
+                                        <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Unrealized PNL</p>
+                                        <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Available Margin</p>
+                                        <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
+                                    </div>
+                                    <div class="flex items-center justify-center">
+                                        <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
+                                    </div>
+                                </div>
+
+                                <div id="sim-active-position-container" class="hidden">
+                                    <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
+                                    <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
+                                        <div class="flex justify-between items-center">
+                                            <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
+                                            <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
+                                        </div>
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                            <div>
+                                                <span class="text-gray-400">Size:</span>
+                                                <span id="sim-position-size" class="font-mono"></span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-400">Entry:</span>
+                                                <span id="sim-position-entry" class="font-mono"></span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-400">Mark:</span>
+                                                <span id="sim-position-mark" class="font-mono"></span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-400">Liq:</span>
+                                                <span id="sim-position-liq" class="font-mono"></span>
+                                            </div>
+                                        </div>
+                                        <div class="pt-2 border-t border-dashed border-gray-700">
+                                            <span class="text-gray-400">PNL (ROE %):</span>
+                                            <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h3 class="font-semibold text-gray-400">Trade History</h3>
+                                        <div class="flex gap-2">
+                                            <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
+                                            <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
+                                            <input type="file" id="sim-import-input" class="hidden" accept=".csv">
+                                        </div>
+                                    </div>
+                                    <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
+                                        <p class="text-center text-gray-600">No trade history yet.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
     </main>
+
 <script>
 // =====================================================================================================================================================================
 // BAGIAN 1: DEKLARASI SEMUA ELEMEN DOM
@@ -2122,49 +2418,60 @@
     }
 // ===================================================================================================================================================================================================================================================================================
     function calculateATR(klines, period = 14) {
-        if (!klines || klines.length < period + 1) {
-            return { value: 0, status: 'N/A' };
-        }
+    if (!klines || klines.length < period + 1) {
+        return { value: 0, status: 'N/A', atrPercent: 0 };
+    }
 
-        let trs = [];
-        for (let i = 1; i < klines.length; i++) {
-            const high = parseFloat(klines[i][2]);
-            const low = parseFloat(klines[i][3]);
-            const prevClose = parseFloat(klines[i - 1][4]);
-            const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
-            trs.push(tr);
-        }
-
-        const atrValues = [];
+    let trs = [];
+    for (let i = 1; i < klines.length; i++) {
+        const high = parseFloat(klines[i][2]);
+        const low = parseFloat(klines[i][3]);
+        const prevClose = parseFloat(klines[i - 1][4]);
+        trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
+    }
+    
+    // Menggunakan metode RMA untuk menghaluskan True Range
+    const rma = (data, p) => {
+        let smoothed = [];
         let sum = 0;
-        for (let i = 0; i < trs.length; i++) {
-            sum += trs[i];
-            if (i >= period - 1) {
-                if (i > period - 1) {
-                    sum = sum - trs[i - period];
-                }
-                atrValues.push(sum / period);
-            } else {
-                atrValues.push(undefined);
+        for(let i=0; i<data.length; i++) {
+            if (i < p) {
+                sum += data[i];
+                if (i === p - 1) smoothed.push(sum/p);
+                else smoothed.push(undefined);
+            } else if (smoothed[i-1] !== undefined) {
+                smoothed.push((smoothed[i - 1] * (p - 1) + data[i]) / p);
             }
         }
-        
-        const atr = atrValues[atrValues.length - 1] || 0;
-        const lastClose = parseFloat(klines[klines.length - 1][4]);
-        const atrPercent = lastClose > 0 ? (atr / lastClose) * 100 : 0;
-
-        let status;
-        if (atrPercent > 5) {
-            status = 'Very High';
-        } else if (atrPercent > 2.5) {
-            status = 'High';
-        } else if (atrPercent < 1) {
-            status = 'Low';
-        } else {
-            status = 'Normal';
-        }
-        return { value: atr, status: status }; 
+        return smoothed;
+    };
+    
+    const atrValues = rma(trs, period);
+    const atr = atrValues.pop() || 0;
+    const lastClose = parseFloat(klines[klines.length - 1][4]);
+    const atrPercent = lastClose > 0 ? (atr / lastClose) * 100 : 0;
+    
+    let status;
+    if (atrPercent > 5) {
+        status = 'Very High';
+    } else if (atrPercent > 2.5) {
+        status = 'High';
+    } else if (atrPercent < 1) {
+        status = 'Low';
+    } else {
+        status = 'Normal';
     }
+    
+    return { value: atr, status: status, atrPercent: atrPercent }; 
+}
+
+function calculateATRPercentage(klines, period = 14) {
+    if (!klines || klines.length === 0) {
+        return 0; 
+    }
+    const atrResult = calculateATR(klines, period);
+    return atrResult.atrPercent;
+}
 // ===================================================================================================================================================================================================================================================================================
     const calculateEMA = (data, period) => {
         if (!data || data.length < period) return [];
@@ -2898,22 +3205,6 @@
         }
     } 
 // ===================================================================================================================================================================================================================================================================================
-    function calculateATRPercentage(klines, period = 14) {
-        if (!klines || klines.length === 0) {
-            return 0; 
-        }
-        
-        const atrResult = calculateATR(klines, period);
-        const atrValue = atrResult.value;
-        const lastClose = parseFloat(klines[klines.length - 1][4]);
-
-        if (lastClose === 0) {
-            return 0; 
-        }
-        const atrPercent = (atrValue / lastClose) * 100;
-        
-        return atrPercent;
-    }
 // ===================================================================================================================================================================================================================================================================================
     async function fetchGeckoTerminal(endpoint) {
         const baseUrl = 'https://api.geckoterminal.com/api/v2';
@@ -4832,6 +5123,8 @@ function detectMarketRegime(klines, bbData, adxData) {
         const keltnerChannels = calculateKeltnerChannels(klines);
         const activeMode = document.querySelector('.vwap-mode-btn.active')?.dataset.mode || 'rolling';
         const vwapValue = calculateVWAP(klines, activeMode);
+        const atr = calculateATR(klines); // Panggil fungsi yang lebih akurat
+        const atrPercent = calculateATRPercentage(klines); // Dapatkan persentase ATR
 
         let trendStatus = 'Netral';
         let trendClass = 'text-yellow-400';
@@ -4878,6 +5171,7 @@ function detectMarketRegime(klines, bbData, adxData) {
             obv: { value: lastObv, trend: lastObv > obvValues[obvValues.length - 2] ? 'Naik' : 'Turun' },
             pivot: { status: (lastPrice > pivotPoints?.P) ? 'Bullish' : 'Bearish', data: pivotPoints },
             atr: calculateATR(klines),
+            atr: atr,
             atrPercent: calculateATRPercentage(klines),
             candlePattern: findCandlestickPatterns(klines),
             chartPattern: findChartPatterns(klines),
