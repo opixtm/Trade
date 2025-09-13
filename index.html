@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -491,6 +492,21 @@
         .mtf-clickable-box:hover {
             background-color: #4b5563; /* Sesuaikan warna hover jika perlu */
         }
+        /* Dark Mode Styles */
+        .dark .positive { color: #4ade80; }
+        .dark .negative { color: #f87171; }
+        .dark .text-gray-800 { color: #E0E0E0; }
+        .dark .text-gray-500 { color: #d8d2d2; }
+        .dark .text-gray-600 { color: #dddddd; }
+        .dark .text-gray-700 { color: #e0e0e0; }
+
+        /* Chart Container Styles */
+        .chart-container { position: relative; width: 100%; }
+        #main-chart-container { height: 450px; }
+        .pane-chart-container { height: 150px; margin-top: 8px; border-top: 1px solid rgba(128, 128, 128, 0.2); padding-top: 8px;}
+        .pane-title { position: absolute; top: 15px; left: 15px; z-index: 10; font-size: 12px; font-weight: bold; color: #dddddd; }
+        .dark .pane-title { color: #d9d5d5; }
+        /* ... tambahkan CSS chart dan tooltip lain yang diperlukan dari ultimate copy 24.html di sini ... */
     </style>
 </head>
 <body class="antialiased">
@@ -720,6 +736,35 @@
         <div id="dashboard-content" class="hidden">
             <div class="space-y-8">               
                 <div class="flex flex-col gap-8">
+                    <button id="toggle-charts-btn" class="btn-yellow w-full">SHOW CHART</button>
+                    <section id="charts-wrapper" class="card p-6" style="display: none;">
+                        <h2 class="text-xl font-bold mb-4">Live Chart</h2>
+                        <div class="chart-container relative">
+                            <div class="pane-title">Price</div>
+                            <div id="main-chart-container"></div>
+                        </div>
+                        <div class="chart-container pane-chart-container relative">
+                            <div class="pane-title">Volume</div>
+                            <div id="volume-chart-container"></div>
+                        </div>
+                        <div class="chart-container pane-chart-container relative">
+                            <div class="pane-title">RSI (14)</div>
+                            <div id="rsi-chart-container"></div>
+                        </div>
+                        <div class="chart-container pane-chart-container relative">
+                            <div class="pane-title">Stochastic RSI</div>
+                            <div id="stoch-chart-container"></div>
+                        </div>
+                        <div class="chart-container pane-chart-container relative">
+                            <div class="pane-title">MACD</div>
+                            <div id="macd-chart-container"></div>
+                        </div>
+                        <div class="chart-container pane-chart-container relative">
+                            <div class="pane-title">Rate of Change (ROC)</div>
+                            <div id="roc-chart-container"></div>
+                        </div>
+                    </section>
+
                     <section id="current-state-section" class="card p-6">
                         <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
                             <h2 id="current-state-title" class="text-xl font-semibold">Current Market Condition</h2>
@@ -1376,6 +1421,8 @@
     const navAth = document.getElementById('nav-ath');
     const navAtl = document.getElementById('nav-atl');
     const resetBtn = document.getElementById('reset-btn');
+    const toggleChartsBtn = document.getElementById('toggle-charts-btn');
+    const chartsWrapper = document.getElementById('charts-wrapper');
 // =====================================================================================================================================================================
 // BAGIAN 2: KONSTANTA KONFIGURASI
 // =====================================================================================================================================================================
@@ -1497,7 +1544,7 @@
     let latestAsks = [];
     let liveAnalysisScores = {};
     let coinListCache = null;
-    let exchangeInfoCache = { spot: null, futures: null }; 
+    let exchangeInfoCache = { spot: null, futures: null };
     let cvdChartInstance = null;
     let liveCvdValue = 0;
     let liveCvdData = [];
@@ -1533,6 +1580,9 @@
         history: [], // Akan berisi [timestamp, totalDelta]
         lastTriggerResult: { triggered: false, points: 0 }
     };
+    let charts = [];
+    let candlestickSeries = null;
+    let isChartsVisible = false;
 // =====================================================================================================================================================================
 // OBJEK WEBSOCKET MANAGER HARUS DIDEKLARASIKAN DI AWAL
 // =====================================================================================================================================================================
@@ -2331,148 +2381,6 @@
 // ===================================================================================================================================================================================================================================================================================
     // == BLOK FUNGSI KALKULASI INDIKATOR BARU (MULAI) ==
 // ===================================================================================================================================================================================================================================================================================
-    function calculatePivotPoints(prevDayKline) {
-    // Pengecekan awal, jika tidak ada data sama sekali, langsung hentikan.
-    if (!prevDayKline || prevDayKline.length < 5) return null;
-
-    // Ambil nilai dan pastikan dikonversi menjadi angka.
-    const high = parseFloat(prevDayKline[2]);
-    const low = parseFloat(prevDayKline[3]);
-    const close = parseFloat(prevDayKline[4]);
-
-    // ---> INI BAGIAN PENTING <---
-    // Pengecekan kedua, jika salah satu data gagal di-parse menjadi angka, hentikan.
-    if (isNaN(high) || isNaN(low) || isNaN(close)) {
-        console.error("Gagal menghitung Pivot: Salah satu data (H, L, C) bukan angka yang valid.", {high, low, close});
-        return null;
-    }
-
-    // Jika semua data valid, lanjutkan perhitungan seperti biasa.
-    const P = (high + low + close) / 3;
-    const R1 = (2 * P) - low;
-    const S1 = (2 * P) - high;
-    const R2 = P + (high - low);
-    const S2 = P - (high - low);
-    const R3 = high + 2 * (P - low);
-    const S3 = low - 2 * (high - P);
-
-    return { P, R1, S1, R2, S2, R3, S3 };
-}
-// ===================================================================================================================================================================================================================================================================================
-    function calculateKeltnerChannels(klines, period = 20, multiplier = 2, atrPeriod = 10) {
-        if (!klines || klines.length < period) return { upper: [], middle: [], lower: [], width: [] };
-        const closes = klines.map(k => parseFloat(k[4]));
-        const emaMiddle = calculateEMA(closes, period);
-        const atr = calculateATR(klines, atrPeriod).value; 
-
-        const upper = emaMiddle.map(val => val !== undefined ? val + (atr * multiplier) : undefined);
-        const lower = emaMiddle.map(val => val !== undefined ? val - (atr * multiplier) : undefined);
-        const width = upper.map((u, i) => (u !== undefined && lower[i] !== undefined) ? u - lower[i] : undefined);
-        
-        return { upper, middle: emaMiddle, lower, width };
-    }
-// ===================================================================================================================================================================================================================================================================================
-    function calculateIchimokuCloud(klines, tenkanP = 9, kijunP = 26, senkouP = 52) {
-        if (klines.length < senkouP) return null;
-        
-        const result = { tenkan: [], kijun: [], senkouA: [], senkouB: [], chikou: [], status: 'Netral' };
-        const getHighLow = (slice) => ({ high: Math.max(...slice.map(k => parseFloat(k[2]))), low: Math.min(...slice.map(k => parseFloat(k[3]))) });
-        for (let i = 0; i < klines.length; i++) {
-            const tenkanHighLow = i >= tenkanP - 1 ? getHighLow(klines.slice(i - tenkanP + 1, i + 1)) : { high: 0, low: 0 };
-            result.tenkan.push(i >= tenkanP - 1 ? (tenkanHighLow.high + tenkanHighLow.low) / 2 : undefined);
-            const kijunHighLow = i >= kijunP - 1 ? getHighLow(klines.slice(i - kijunP + 1, i + 1)) : { high: 0, low: 0 };
-            result.kijun.push(i >= kijunP - 1 ? (kijunHighLow.high + kijunHighLow.low) / 2 : undefined);
-            result.chikou.push(parseFloat(klines[i][4]));
-        }
-        for (let i = 0; i < klines.length; i++) {
-            const senkouA_val = (result.tenkan[i] !== undefined && result.kijun[i] !== undefined) ? (result.tenkan[i] + result.kijun[i]) / 2 : undefined;
-            result.senkouA.push(senkouA_val);
-            const senkouB_HighLow = i >= senkouP - 1 ? getHighLow(klines.slice(i - senkouP + 1, i + 1)) : { high: 0, low: 0 };
-            result.senkouB.push(i >= senkouP - 1 ? (senkouB_HighLow.high + senkouB_HighLow.low) / 2 : undefined);
-        }
-
-        const lastPrice = parseFloat(klines[klines.length - 1][4]);
-        const lastTenkan = result.tenkan[result.tenkan.length - 1];
-        const lastKijun = result.kijun[result.kijun.length - 1];
-        
-        const currentSenkouA = result.senkouA[klines.length - 1 - kijunP];
-        const currentSenkouB = result.senkouB[klines.length - 1 - kijunP];
-        
-        const pastPriceForChikou = parseFloat(klines[klines.length - 1 - kijunP][4]);
-
-        const isBullish = lastPrice > currentSenkouA && lastPrice > currentSenkouB &&
-                        lastTenkan > lastKijun &&
-                        lastPrice > pastPriceForChikou;
-
-        const isBearish = lastPrice < currentSenkouA && lastPrice < currentSenkouB &&
-                        lastTenkan < lastKijun &&
-                        lastPrice < pastPriceForChikou;
-
-        if (isBullish) {
-            result.status = "Bullish";
-        } else if (isBearish) {
-            result.status = "Bearish";
-        }
-        
-        return result;
-    }
-// ===================================================================================================================================================================================================================================================================================
-    function calculateATR(klines, period = 14) {
-    if (!klines || klines.length < period + 1) {
-        return { value: 0, status: 'N/A', atrPercent: 0 };
-    }
-
-    let trs = [];
-    for (let i = 1; i < klines.length; i++) {
-        const high = parseFloat(klines[i][2]);
-        const low = parseFloat(klines[i][3]);
-        const prevClose = parseFloat(klines[i - 1][4]);
-        trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
-    }
-    
-    // Menggunakan metode RMA untuk menghaluskan True Range
-    const rma = (data, p) => {
-        let smoothed = [];
-        let sum = 0;
-        for(let i=0; i<data.length; i++) {
-            if (i < p) {
-                sum += data[i];
-                if (i === p - 1) smoothed.push(sum/p);
-                else smoothed.push(undefined);
-            } else if (smoothed[i-1] !== undefined) {
-                smoothed.push((smoothed[i - 1] * (p - 1) + data[i]) / p);
-            }
-        }
-        return smoothed;
-    };
-    
-    const atrValues = rma(trs, period);
-    const atr = atrValues.pop() || 0;
-    const lastClose = parseFloat(klines[klines.length - 1][4]);
-    const atrPercent = lastClose > 0 ? (atr / lastClose) * 100 : 0;
-    
-    let status;
-    if (atrPercent > 5) {
-        status = 'Very High';
-    } else if (atrPercent > 2.5) {
-        status = 'High';
-    } else if (atrPercent < 1) {
-        status = 'Low';
-    } else {
-        status = 'Normal';
-    }
-    
-    return { value: atr, status: status, atrPercent: atrPercent }; 
-}
-
-function calculateATRPercentage(klines, period = 14) {
-    if (!klines || klines.length === 0) {
-        return 0; 
-    }
-    const atrResult = calculateATR(klines, period);
-    return atrResult.atrPercent;
-}
-// ===================================================================================================================================================================================================================================================================================
     const calculateEMA = (data, period) => {
         if (!data || data.length < period) return [];
         const k = 2 / (period + 1);
@@ -2497,7 +2405,7 @@ function calculateATRPercentage(klines, period = 14) {
         }
         return sma;
     };
-// ===================================================================================================================================================================================================================================================================================
+
     const calculateRSI = (closes, period = userSettings.active.indicatorParams.rsi_period) => {
         if (!closes || closes.length <= period) return Array(closes?.length || 0).fill(undefined);
         let gains = [], losses = [];
@@ -2690,56 +2598,6 @@ function calculateATRPercentage(klines, period = 14) {
         return { poc, vah: profile[upperIdx].price + rowSize, val: profile[lowerIdx].price };
     };
 // =====================================================================================================================================================================
-    function CVDanalyze(klines, cvdData) {
-        if (!klines || klines.length < 2 || !cvdData || cvdData.length < 2) {
-        return { trend: 'N/A', divergence: 'N/A', summary: 'Data tidak cukup untuk analisa CVD.' };
-        }
-
-        const firstPrice = parseFloat(klines[0][4]);
-        const lastPrice = parseFloat(klines[klines.length - 1][4]);
-        const priceTrend = lastPrice > firstPrice ? 'Naik' : (lastPrice < firstPrice ? 'Turun' : 'Datar');
-
-        const firstCvd = cvdData[0].cvd;
-        const lastCvd = cvdData[cvdData.length - 1].cvd;
-        const cvdTrend = lastCvd > firstCvd ? 'Naik' : (lastCvd < firstCvd ? 'Turun' : 'Datar');
-
-        let divergence = 'NONE';
-        let summary = `Tren harga dan CVD bergerak selaras (${priceTrend}).`;
-
-            if (priceTrend === 'Naik' && cvdTrend === 'Turun') {
-                divergence = 'Bearish 👎';
-                summary = 'Harga naik tetapi tekanan beli melemah. Hati-hati, ini adalah sinyal divergensi bearish.';
-            } else if (priceTrend === 'Turun' && cvdTrend === 'Naik') {
-                divergence = 'Bullish 👍';
-                summary = 'Harga turun tetapi tekanan beli menguat. Ini adalah sinyal divergensi bullish yang potensial.';
-            }
-
-            return {
-                trend: cvdTrend,
-                divergence: divergence,
-                summary: summary
-            };
-    }
-    // ==============================================
-    const calculateCVD = (trades) => {
-        let cumulativeDeltaCoin = 0;
-        let cumulativeDeltaUsdt = 0;
-        return trades.map(t => {
-            const quantity = parseFloat(t.q);
-            const price = parseFloat(t.p);
-            const sign = t.m ? -1 : 1; 
-            
-            cumulativeDeltaCoin += quantity * sign;
-            cumulativeDeltaUsdt += (quantity * price) * sign;
-
-            return { 
-                time: t.T / 1000, 
-                cvd_coin: cumulativeDeltaCoin,
-                cvd_usdt: cumulativeDeltaUsdt 
-            };
-        });
-    };
-// =====================================================================================================================================================================
     const calculateADX = (klines, period = 14) => {
         if (!klines || klines.length < period * 2) return { adx: 'N/A', plusDI: 'N/A', minusDI: 'N/A' };
         let highs = klines.map(k => parseFloat(k[2])), lows = klines.map(k => parseFloat(k[3])), closes = klines.map(k => parseFloat(k[4]));
@@ -2901,8 +2759,237 @@ function calculateATRPercentage(klines, period = 14) {
         }
         return { status: 'NONE', class: 'text-gray-500' };
     };
-// ===================================================================================================================================================================================================================================================================================  
-    function getPatternSVG(patternName) {
+
+    const calculateCVD = (trades) => {
+        let cumulativeDeltaCoin = 0;
+        let cumulativeDeltaUsdt = 0;
+        return trades.map(t => {
+            const quantity = parseFloat(t.q);
+            const price = parseFloat(t.p);
+            const sign = t.m ? -1 : 1; 
+            
+            cumulativeDeltaCoin += quantity * sign;
+            cumulativeDeltaUsdt += (quantity * price) * sign;
+
+            return { 
+                time: t.T / 1000, 
+                cvd_coin: cumulativeDeltaCoin,
+                cvd_usdt: cumulativeDeltaUsdt 
+            };
+        });
+    };
+
+    function CVDanalyze(klines, cvdData) {
+        if (!klines || klines.length < 2 || !cvdData || cvdData.length < 2) {
+        return { trend: 'N/A', divergence: 'N/A', summary: 'Data tidak cukup untuk analisa CVD.' };
+        }
+
+        const firstPrice = parseFloat(klines[0][4]);
+        const lastPrice = parseFloat(klines[klines.length - 1][4]);
+        const priceTrend = lastPrice > firstPrice ? 'Naik' : (lastPrice < firstPrice ? 'Turun' : 'Datar');
+
+        const firstCvd = cvdData[0].cvd;
+        const lastCvd = cvdData[cvdData.length - 1].cvd;
+        const cvdTrend = lastCvd > firstCvd ? 'Naik' : (lastCvd < firstCvd ? 'Turun' : 'Datar');
+
+        let divergence = 'NONE';
+        let summary = `Tren harga dan CVD bergerak selaras (${priceTrend}).`;
+
+            if (priceTrend === 'Naik' && cvdTrend === 'Turun') {
+                divergence = 'Bearish 👎';
+                summary = 'Harga naik tetapi tekanan beli melemah. Hati-hati, ini adalah sinyal divergensi bearish.';
+            } else if (priceTrend === 'Turun' && cvdTrend === 'Naik') {
+                divergence = 'Bullish 👍';
+                summary = 'Harga turun tetapi tekanan beli menguat. Ini adalah sinyal divergensi bullish yang potensial.';
+            }
+
+            return {
+                trend: cvdTrend,
+                divergence: divergence,
+                summary: summary
+            };
+    }
+
+    function calculatePivotPoints(prevDayKline) {
+    // Pengecekan awal, jika tidak ada data sama sekali, langsung hentikan.
+    if (!prevDayKline || prevDayKline.length < 5) return null;
+
+    // Ambil nilai dan pastikan dikonversi menjadi angka.
+    const high = parseFloat(prevDayKline[2]);
+    const low = parseFloat(prevDayKline[3]);
+    const close = parseFloat(prevDayKline[4]);
+
+    // ---> INI BAGIAN PENTING <---
+    // Pengecekan kedua, jika salah satu data gagal di-parse menjadi angka, hentikan.
+    if (isNaN(high) || isNaN(low) || isNaN(close)) {
+        console.error("Gagal menghitung Pivot: Salah satu data (H, L, C) bukan angka yang valid.", {high, low, close});
+        return null;
+    }
+
+    // Jika semua data valid, lanjutkan perhitungan seperti biasa.
+    const P = (high + low + close) / 3;
+    const R1 = (2 * P) - low;
+    const S1 = (2 * P) - high;
+    const R2 = P + (high - low);
+    const S2 = P - (high - low);
+    const R3 = high + 2 * (P - low);
+    const S3 = low - 2 * (high - P);
+
+    return { P, R1, S1, R2, S2, R3, S3 };
+}
+// ===================================================================================================================================================================================================================================================================================
+    function calculateKeltnerChannels(klines, period = 20, multiplier = 2, atrPeriod = 10) {
+        if (!klines || klines.length < period) return { upper: [], middle: [], lower: [], width: [] };
+        const closes = klines.map(k => parseFloat(k[4]));
+        const emaMiddle = calculateEMA(closes, period);
+        const atr = calculateATR(klines, atrPeriod).value; 
+
+        const upper = emaMiddle.map(val => val !== undefined ? val + (atr * multiplier) : undefined);
+        const lower = emaMiddle.map(val => val !== undefined ? val - (atr * multiplier) : undefined);
+        const width = upper.map((u, i) => (u !== undefined && lower[i] !== undefined) ? u - lower[i] : undefined);
+        
+        return { upper, middle: emaMiddle, lower, width };
+    }
+// ===================================================================================================================================================================================================================================================================================
+    function calculateIchimokuCloud(klines, tenkanP = 9, kijunP = 26, senkouP = 52) {
+        if (klines.length < senkouP) return null;
+        
+        const result = { tenkan: [], kijun: [], senkouA: [], senkouB: [], chikou: [], status: 'Netral' };
+        const getHighLow = (slice) => ({ high: Math.max(...slice.map(k => parseFloat(k[2]))), low: Math.min(...slice.map(k => parseFloat(k[3]))) });
+        for (let i = 0; i < klines.length; i++) {
+            const tenkanHighLow = i >= tenkanP - 1 ? getHighLow(klines.slice(i - tenkanP + 1, i + 1)) : { high: 0, low: 0 };
+            result.tenkan.push(i >= tenkanP - 1 ? (tenkanHighLow.high + tenkanHighLow.low) / 2 : undefined);
+            const kijunHighLow = i >= kijunP - 1 ? getHighLow(klines.slice(i - kijunP + 1, i + 1)) : { high: 0, low: 0 };
+            result.kijun.push(i >= kijunP - 1 ? (kijunHighLow.high + kijunHighLow.low) / 2 : undefined);
+            result.chikou.push(parseFloat(klines[i][4]));
+        }
+        for (let i = 0; i < klines.length; i++) {
+            const senkouA_val = (result.tenkan[i] !== undefined && result.kijun[i] !== undefined) ? (result.tenkan[i] + result.kijun[i]) / 2 : undefined;
+            result.senkouA.push(senkouA_val);
+            const senkouB_HighLow = i >= senkouP - 1 ? getHighLow(klines.slice(i - senkouP + 1, i + 1)) : { high: 0, low: 0 };
+            result.senkouB.push(i >= senkouP - 1 ? (senkouB_HighLow.high + senkouB_HighLow.low) / 2 : undefined);
+        }
+
+        const lastPrice = parseFloat(klines[klines.length - 1][4]);
+        const lastTenkan = result.tenkan[result.tenkan.length - 1];
+        const lastKijun = result.kijun[result.kijun.length - 1];
+        
+        const currentSenkouA = result.senkouA[klines.length - 1 - kijunP];
+        const currentSenkouB = result.senkouB[klines.length - 1 - kijunP];
+        
+        const pastPriceForChikou = parseFloat(klines[klines.length - 1 - kijunP][4]);
+
+        const isBullish = lastPrice > currentSenkouA && lastPrice > currentSenkouB &&
+                        lastTenkan > lastKijun &&
+                        lastPrice > pastPriceForChikou;
+
+        const isBearish = lastPrice < currentSenkouA && lastPrice < currentSenkouB &&
+                        lastTenkan < lastKijun &&
+                        lastPrice < pastPriceForChikou;
+
+        if (isBullish) {
+            result.status = "Bullish";
+        } else if (isBearish) {
+            result.status = "Bearish";
+        }
+        
+        return result;
+    }
+// ===================================================================================================================================================================================================================================================================================
+    function calculateATR(klines, period = 14) {
+    if (!klines || klines.length < period + 1) {
+        return { value: 0, status: 'N/A', atrPercent: 0 };
+    }
+
+    let trs = [];
+    for (let i = 1; i < klines.length; i++) {
+        const high = parseFloat(klines[i][2]);
+        const low = parseFloat(klines[i][3]);
+        const prevClose = parseFloat(klines[i - 1][4]);
+        trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
+    }
+    
+    // Menggunakan metode RMA untuk menghaluskan True Range
+    const rma = (data, p) => {
+        let smoothed = [];
+        let sum = 0;
+        for(let i=0; i<data.length; i++) {
+            if (i < p) {
+                sum += data[i];
+                if (i === p - 1) smoothed.push(sum/p);
+                else smoothed.push(undefined);
+            } else if (smoothed[i-1] !== undefined) {
+                smoothed.push((smoothed[i - 1] * (p - 1) + data[i]) / p);
+            }
+        }
+        return smoothed;
+    };
+    
+    const atrValues = rma(trs, period);
+    const atr = atrValues.pop() || 0;
+    const lastClose = parseFloat(klines[klines.length - 1][4]);
+    const atrPercent = lastClose > 0 ? (atr / lastClose) * 100 : 0;
+    
+    let status;
+    if (atrPercent > 5) {
+        status = 'Very High';
+    } else if (atrPercent > 2.5) {
+        status = 'High';
+    } else if (atrPercent < 1) {
+        status = 'Low';
+    } else {
+        status = 'Normal';
+    }
+    
+    return { value: atr, status: status, atrPercent: atrPercent }; 
+}
+
+    function calculateATRPercentage(klines, period = 14) {
+        if (!klines || klines.length === 0) {
+            return 0; 
+        }
+        const atrResult = calculateATR(klines, period);
+        return atrResult.atrPercent;
+    }
+// ===================================================================================================================================================================================================================================================================================
+function analyzeBollingerBandsPriceAction(klines, bbData) {
+        if (!klines || klines.length < 2 || !bbData || bbData.upper.length < 2) {
+            return { rejection: 'NONE', walkTheBands: 'NONE' };
+        }
+
+        const lastKline = klines[klines.length - 1];
+        const prevKline = klines[klines.length - 2];
+        const lastUpper = bbData.upper.pop()?.value;
+        const lastLower = bbData.lower.pop()?.value;
+        const prevUpper = bbData.upper.pop()?.value;
+        const prevLower = bbData.lower.pop()?.value;
+        const lastClose = parseFloat(lastKline[4]);
+        const prevClose = parseFloat(prevKline[4]);
+
+        let rejection = 'NONE';
+        // Logika Rejection Bullish
+        if (prevClose < prevLower && lastClose > lastLower && lastClose > prevClose) {
+            rejection = 'Bullish Rejection (Lower BB)';
+        }
+        // Logika Rejection Bearish
+        if (prevClose > prevUpper && lastClose < lastUpper && lastClose < prevClose) {
+            rejection = 'Bearish Rejection (Upper BB)';
+        }
+
+        let walkTheBands = 'NONE';
+        // Logika Walk the Bands Bullish
+        if (lastClose >= lastUpper && prevClose >= prevUpper) {
+            walkTheBands = 'Bullish (Upper BB)';
+        }
+        // Logika Walk the Bands Bearish
+        if (lastClose <= lastLower && prevClose <= prevLower) {
+            walkTheBands = 'Bearish (Lower BB)';
+        }
+        
+        return { rejection, walkTheBands };
+    }
+
+function getPatternSVG(patternName) {
         const svgHeader = `<svg viewBox="0 0 110 60" class="w-24 h-auto mx-auto my-2">`;
         const svgFooter = `</svg>`;
         const green = '#26a69a', red = '#ef5350', gray = '#2A1E27';
@@ -3172,9 +3259,7 @@ function calculateATRPercentage(klines, period = 14) {
 
         return { pattern: 'Tidak Terdeteksi', class: 'text-gray-500' };
     }
-// =====================================================================================================================================================================
-// == BLOK FUNGSI BARU UNTUK DETEKSI POLA CHART (SELESAI) ==
-// =====================================================================================================================================================================
+
     function findLastSignificantSwing(klines) {
         const pivots = findPivots(klines.slice(-300), 5); 
         if (pivots.length < 3) return null;
@@ -3194,7 +3279,6 @@ function calculateATRPercentage(klines, period = 14) {
         return null;
     }
 
-// =====================================================================================================================================================================
     function calculateFibonacciExtension(swing) {
         if (!swing) return null;
         const impulseMove = Math.abs(swing.B.price - swing.A.price);
@@ -3204,23 +3288,6 @@ function calculateATRPercentage(klines, period = 14) {
             return swing.C.price - (impulseMove * 1.618);
         }
     } 
-// ===================================================================================================================================================================================================================================================================================
-// ===================================================================================================================================================================================================================================================================================
-    async function fetchGeckoTerminal(endpoint) {
-        const baseUrl = 'https://api.geckoterminal.com/api/v2';
-        const url = `${baseUrl}/${endpoint}`;
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`GeckoTerminal API error: ${errorData.errors?.[0]?.title || response.statusText}`);
-            }
-            return response.json();
-        } catch (error) {
-            console.error(`Network Error fetching from GeckoTerminal ${endpoint}: ${error.message}`);
-            throw new Error(`Gagal mengambil data dari GeckoTerminal.`);
-        }
-    }
 // ===================================================================================================================================================================================================================================================================================
     function renderTrendingPools(poolsData) {
         let html = '';
@@ -3247,8 +3314,22 @@ function calculateATRPercentage(klines, period = 14) {
         });
         trendingPoolsContent.innerHTML = html;
     }
-// ===================================================================================================================================================================================================================================================================================
-// runFullAnalysis 
+
+    async function fetchGeckoTerminal(endpoint) {
+        const baseUrl = 'https://api.geckoterminal.com/api/v2';
+        const url = `${baseUrl}/${endpoint}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`GeckoTerminal API error: ${errorData.errors?.[0]?.title || response.statusText}`);
+            }
+            return response.json();
+        } catch (error) {
+            console.error(`Network Error fetching from GeckoTerminal ${endpoint}: ${error.message}`);
+            throw new Error(`Gagal mengambil data dari GeckoTerminal.`);
+        }
+    }
 // ===================================================================================================================================================================================================================================================================================
     async function runFullAnalysis(symbol = null) {
         if (candleCountdownInterval) clearInterval(candleCountdownInterval);
@@ -3259,11 +3340,11 @@ function calculateATRPercentage(klines, period = 14) {
         orderBookDOMElements = null;
         hideError();
         showLoader(true, 'Please Wait! Analyzing.............');
-
+        destroyCharts();
         specificTokenTitle.innerHTML = 'Analisis Token Spesifik';
         specificTokenContent.innerHTML = `<p class="text-xs text-gray-500 text-center">Mencari data on-chain...</p>`;
         trendingPoolsContent.innerHTML = `<div class="text-center py-2"><div class="loader mx-auto h-6 w-6"></div></div>`;
-    // =======================     
+   
         try {
             const aiContentContainer = document.getElementById('ai-content-container');
             if (aiContentContainer) aiContentContainer.classList.add('hidden');
@@ -3286,12 +3367,11 @@ function calculateATRPercentage(klines, period = 14) {
             const marketType = marketTypeSelect.value;
             const selectedTimeframe = timeframeSelect.value;
             
-            // Validasi Simbol
             await validateBinanceSymbol(binanceSymbol, marketType);
 
             showLoader(true, 'Fetching Market Data...');
             const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
-    // =======================         
+        
             let promisesToRun = [
                 fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 1000 }, marketType), 
                 fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1h', limit: 500 }, marketType), 
@@ -3323,61 +3403,51 @@ function calculateATRPercentage(klines, period = 14) {
             }
 
         const results = await Promise.allSettled(promisesToRun);
-        // ======================= 
-
-        // Ambil data mentah terlebih dahulu
         const rawKlines = results[0].status === 'fulfilled' ? results[0].value : null;
         const rawKlines1h = results[1].status === 'fulfilled' ? results[1].value : null;
         const rawKlines15m = results[2].status === 'fulfilled' ? results[2].value : null;
 
-        // Cek apakah data yang diterima cukup
         if (!rawKlines || rawKlines.length < 550) { 
             throw new Error(`Data historis tidak cukup untuk pemanasan (hanya ${rawKlines?.length} candle). Coba timeframe lebih tinggi atau aset lain.`);
         }
 
-        // POTONG DATA DI SINI! Ambil 500 candle terakhir untuk diolah
         const klines = rawKlines.slice(-500);
         const klines1h = rawKlines1h ? rawKlines1h.slice(-200) : null;
         const klines15m = rawKlines15m ? rawKlines15m.slice(-200) : null;
         const tickerData = results[3].status === 'fulfilled' ? results[3].value : null;
         const assetDailyKlines = results[4].status === 'fulfilled' ? results[4].value : null;
-        // ---> TAMBAHKAN KODE DI BAWAH INI <---
-        //console.warn("--- DEBUGGING DATA PIVOT ---");
+
         if (assetDailyKlines && assetDailyKlines.length >= 2) {
             
         } else {
-            //console.error("Status: GAGAL. Data harian tidak cukup atau gagal diambil.", assetDailyKlines);
+          
         }
-        //console.warn("------------------------------");
-// ---> BATAS AKHIR KODE TAMBAHAN <---
+       
         const btcDailyKlines = results[5].status === 'fulfilled' ? results[5].value : null;
         const orderBookData = results[6].status === 'fulfilled' ? results[6].value : null;
-        // Indeks setelah ini disesuaikan karena fetchUsdToIdrRate (bekas indeks 7) telah dihapus
-        const globalData = results[7].status === 'fulfilled' ? results[7].value : null;      // <-- DIUBAH ke 7
-        const coinGeckoData = results[8].status === 'fulfilled' ? results[8].value : null;   // <-- DIUBAH ke 8
-    // ======================= 
+        const globalData = results[7].status === 'fulfilled' ? results[7].value : null;      
+        const coinGeckoData = results[8].status === 'fulfilled' ? results[8].value : null;   
+    
         let openInterestData = null, fundingRateData = null, lsRatioUmumData = null, lsRatioTopData = null;
-      if (marketType === 'futures' && results.length > 9) { // <-- Ubah 10 menjadi 9
-            openInterestData = results[9].status === 'fulfilled' ? results[9].value : null;   // <-- Ubah 10 menjadi 9
-            fundingRateData = results[10].status === 'fulfilled' ? results[10].value : null;  // <-- Ubah 11 menjadi 10
-            lsRatioUmumData = results[11].status === 'fulfilled' ? results[11].value : null;  // <-- Ubah 12 menjadi 11
-            lsRatioTopData = results[12].status === 'fulfilled' ? results[12].value : null;   // <-- Ubah 13 menjadi 12
-        }
+        if (marketType === 'futures' && results.length > 9) { 
+                openInterestData = results[9].status === 'fulfilled' ? results[9].value : null;  
+                fundingRateData = results[10].status === 'fulfilled' ? results[10].value : null;  
+                lsRatioUmumData = results[11].status === 'fulfilled' ? results[11].value : null;  
+                lsRatioTopData = results[12].status === 'fulfilled' ? results[12].value : null;
+            }
 
-    // ======================= AWAL BLOK PERBAIKAN =======================
         realtimeCache.main.multiTfKlines = {};
         const defaultDumpTf = document.getElementById('dump-trigger-timeframe-select').value;
         if (selectedTimeframe !== defaultDumpTf) {
             console.log(`Pre-fetching data untuk default dump TF: ${defaultDumpTf}`);
             try {
                 const dumpTfKlines = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: defaultDumpTf, limit: 200 }, marketType);
-                // Simpan data ini ke dalam "wadah" multi-timeframe
                 realtimeCache.main.multiTfKlines[defaultDumpTf] = dumpTfKlines;
             } catch (e) {
                 console.warn(`Gagal pre-fetch data untuk ${defaultDumpTf}:`, e);
             }
         }
-    // ======================= AKHIR BLOK PERBAIKAN =======================
+    
         if (!klines || !tickerData) {
             throw new Error("Gagal memuat data esensial (Kline & Ticker) dari Binance. Coba lagi.");
         }
@@ -3410,7 +3480,7 @@ function calculateATRPercentage(klines, period = 14) {
                 },
                 liveScores: { pumpStrength: 0, dumpRisk: 0 }
             };
-    // ======================= 
+   
             showLoader(true, 'Calculating Data...');
             
             const allTrades = await fetchBinanceAPIData('aggTrades', { symbol: binanceSymbol, limit: 1000 }, marketType);
@@ -3456,21 +3526,18 @@ function calculateATRPercentage(klines, period = 14) {
             const mainTfStream = `${symbolLower}@kline_${selectedTimeframe}`;
             const dumpTf = document.getElementById('dump-trigger-timeframe-select').value;
             const dumpTfStream = `${symbolLower}@kline_${dumpTf}`;
-
-            // Siapkan stream dasar
             const streamsToSub = [
                 mainTfStream,
                 `${symbolLower}@aggTrade`,
                 `${symbolLower}@depth20@100ms`
             ];
 
-            // Tambahkan stream untuk dump TF HANYA JIKA berbeda dari main TF
             if (mainTfStream !== dumpTfStream) {
                 streamsToSub.push(dumpTfStream);
             }
 
             WebSocketManager.subscribe(streamsToSub);
-    // ======================= 
+
             (async () => {
                 try {
                     const searchQuery = (await getCoinGeckoId(baseAsset).then(id => fetchCoinGeckoData(id)).catch(() => null))?.platforms?.ethereum || baseAsset;
@@ -3494,7 +3561,7 @@ function calculateATRPercentage(klines, period = 14) {
                         const liquidity = attrs.reserve_in_usd ? (parseFloat(attrs.reserve_in_usd) / 1000000).toFixed(2) : 'N/A';
                         let staticContentHtml = `<div class="flex justify-between items-baseline"><span class="text-gray-500 capitalize">Harga DEX (${dexName})</span><span class="font-bold text-lg text-yellow-400">${price}</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Volume 24j DEX</span><span>$${volume}jt</span></div><div class="flex justify-between items-baseline"><span class="text-gray-500">Likuiditas Pool</span><span>$${liquidity}jt</span></div>`;
                         specificTokenContent.innerHTML = staticContentHtml;
-    // ======================= // ======================= 
+  
                         try {
                             const poolAddress = attrs.address;
                             const tradesData = await fetchGeckoTerminal(`networks/${networkName}/pools/${poolAddress}/trades`);
@@ -3531,7 +3598,7 @@ function calculateATRPercentage(klines, period = 14) {
                     specificTokenContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data token spesifik: ${dexError.message}</p>`;
                 }
             })();
-        // ======================= 
+        
             (async () => {
                 try {
                     const trendingData = await fetchGeckoTerminal('networks/trending_pools');
@@ -3540,7 +3607,7 @@ function calculateATRPercentage(klines, period = 14) {
                     trendingPoolsContent.innerHTML = `<p class="text-xs text-red-500 text-center">Gagal memuat data trending: ${trendingError.message}</p>`;
                 }
             })();
-        // ======================= 
+        
         } catch (error) {
             console.error("Analisis Gagal:", error);
             showError(error.message);
@@ -3554,41 +3621,39 @@ function calculateATRPercentage(klines, period = 14) {
     }
 // ===========end of async function runFullAnalysis(symbol = null) {====================================================================================================
 
-function detectMarketRegime(klines, bbData, adxData) {
-    const closes = klines.map(k => parseFloat(k[4]));
-    const lastPrice = closes[closes.length - 1];
-    const ema50 = calculateEMA(closes, 50).pop();
-    const ema200 = calculateEMA(closes, 200).pop();
+    function detectMarketRegime(klines, bbData, adxData) {
+        const closes = klines.map(k => parseFloat(k[4]));
+        const lastPrice = closes[closes.length - 1];
+        const ema50 = calculateEMA(closes, 50).pop();
+        const ema200 = calculateEMA(closes, 200).pop();
 
-    // --- Prioritas 1: Deteksi Volatilitas Rendah (Squeeze) ---
-    if (bbData && bbData.width && bbData.width.length > 100) {
-        const recentWidths = bbData.width.slice(-100); // Analisis 100 periode terakhir
-        const currentWidth = recentWidths[recentWidths.length - 1];
-        const averageWidth = recentWidths.reduce((a, b) => a + b, 0) / recentWidths.length;
-        
-        // Jika lebar BB saat ini berada di 20% terendah dalam 100 periode, anggap Squeeze
-        const sortedWidths = [...recentWidths].sort((a, b) => a - b);
-        const threshold = sortedWidths[Math.floor(sortedWidths.length * 0.20)]; 
+        // --- Prioritas 1: Deteksi Volatilitas Rendah (Squeeze) ---
+        if (bbData && bbData.width && bbData.width.length > 100) {
+            const recentWidths = bbData.width.slice(-100); // Analisis 100 periode terakhir
+            const currentWidth = recentWidths[recentWidths.length - 1];
+            const averageWidth = recentWidths.reduce((a, b) => a + b, 0) / recentWidths.length;
+            
+            // Jika lebar BB saat ini berada di 20% terendah dalam 100 periode, anggap Squeeze
+            const sortedWidths = [...recentWidths].sort((a, b) => a - b);
+            const threshold = sortedWidths[Math.floor(sortedWidths.length * 0.20)]; 
 
-        if (currentWidth < threshold) {
-            return 'lowVolatility'; // Pasar sedang terkompresi, bersiap untuk breakout.
+            if (currentWidth < threshold) {
+                return 'lowVolatility'; 
+            }
         }
+
+        // --- Prioritas 2: Deteksi Tren Kuat ---
+        const adxValue = parseFloat(adxData.adx);
+        if (adxValue > 25) { 
+            if (lastPrice > ema50 && ema50 > ema200) {
+                return 'bullTrend'; 
+            }
+            if (lastPrice < ema50 && ema50 < ema200) {
+                return 'bearTrend'; 
+            }
+        }
+        return 'ranging'; 
     }
-
-    // --- Prioritas 2: Deteksi Tren Kuat ---
-    const adxValue = parseFloat(adxData.adx);
-    if (adxValue > 25) { // ADX menunjukkan adanya tren kuat
-        if (lastPrice > ema50 && ema50 > ema200) {
-            return 'bullTrend'; // Tren naik yang kuat.
-        }
-        if (lastPrice < ema50 && ema50 < ema200) {
-            return 'bearTrend'; // Tren turun yang kuat.
-        }
-    }
-
-    // --- Fallback: Pasar Ranging / Chop ---
-    return 'ranging'; // Jika tidak ada kondisi di atas yang terpenuhi.
-}
 
 // ===================================================================================================================================================================================================================================================================================
     async function getConfluenceScoreForSymbol(symbol) {
@@ -4075,6 +4140,12 @@ function detectMarketRegime(klines, bbData, adxData) {
         populateConfluenceDetailsWidget();
         populateCorrelationWidget(); 
         
+        if (isChartsVisible) {
+            renderAllCharts();
+        } else {
+            destroyCharts(); 
+            toggleChartsBtn.textContent = 'SHOW CHART';
+        }
         
         renderCvdChart();
         updateQuickConfluenceWidget();
@@ -4537,6 +4608,219 @@ function detectMarketRegime(klines, bbData, adxData) {
         }
     }
 // ===================================================================================================================================================================================================================================================================================
+// --- 7. CHART RENDERING ENGINE (REBUILT) ---   
+    function getChartBaseOptions(height) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        return {
+            width: document.getElementById('charts-wrapper').clientWidth - 48, 
+            height: height,
+            layout: { background: { color: isDarkMode ? '#0e0d0d' : '#FFFFFF' }, textColor: isDarkMode ? '#D1D5DB' : '#374151' },
+            grid: { vertLines: { color: 'transparent' }, horzLines: { color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' } },
+            timeScale: { 
+                timeVisible: true, 
+                secondsVisible: false, 
+                borderColor: isDarkMode ? '#4B5563' : '#D1D5DB',
+                lockVisibleTimeRangeOnResize: true,
+                rightOffset: -30, 
+                barSpacing: 6,
+                minBarSpacing: 3,
+                horzTouchDrag: true, 
+                vertTouchDrag: false, 
+                mouseScroll: false, 
+                pinchToZoom: true, 
+                tickMarkFormatter: (time) => {
+                    const date = new Date(time * 1000);
+                    return date.toLocaleTimeString('id-ID', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+            },
+            crosshair: { 
+                mode: LightweightCharts.CrosshairMode.Normal,
+                horzLine: {
+                    visible: true,
+                    labelVisible: true
+                },
+                vertLine: {
+                    visible: true,
+                    labelVisible: true
+                }
+            },
+            rightPriceScale: { 
+                borderColor: isDarkMode ? '#4B5563' : '#D1D5DB',
+                visible: true,
+                scaleMargins: {
+                    top: 0.1,
+                    bottom: 0.1
+                }
+            },
+            localization: {
+                timeFormatter: (time) => {
+                    const date = new Date(time * 1000);
+                    return date.toLocaleString('id-ID', {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit',
+                        timeZone: 'Asia/Jakarta'
+                    });
+                }
+            }
+        };
+    }
+// =======================================================
+    function syncCharts(...chartsToSync) {
+        chartsToSync.forEach(chart => {
+            if(!chart) return;
+            chart.timeScale().subscribeVisibleTimeRangeChange(timeRange => {
+                chartsToSync.forEach(otherChart => {
+                    if (chart !== otherChart && otherChart) {
+                        otherChart.timeScale().setVisibleRange(timeRange);
+                    }
+                });
+            });
+        });
+    }   
+// [PERBAIKAN] FUNGSI renderAllCharts dengan logika perbaikan
+    function renderAllCharts() {
+        if (!realtimeCache.main.klines) return;
+        
+        destroyCharts();
+
+        const { klines, calculatedData } = realtimeCache.main;
+        const closes = klines.map(k => parseFloat(k[4]));    
+        const formattedKlines = klines
+            .filter(k => k && k.length >= 5 && k.slice(1, 5).every(v => v !== null && !isNaN(parseFloat(v))))
+            .map(d => ({ 
+                time: d[0] / 1000,
+                open: parseFloat(d[1]), 
+                high: parseFloat(d[2]), 
+                low: parseFloat(d[3]), 
+                close: parseFloat(d[4]), 
+                volume: parseFloat(d[5])
+            }));
+
+        if (formattedKlines.length === 0) return;
+
+        const formatLineData = (data, klineData, offset = 5) => data
+            .map((value, index) => {
+                const klineIndex = index + offset;
+                if (klineData[klineIndex]) {
+                    const time = klineData[klineIndex][0] / 1000;
+                    return { time, value };
+                }
+                return null;
+            })
+            .filter(d => d && d.value !== undefined && d.value !== null && !isNaN(d.value));
+
+        
+        const rocPlotData = calculateROC_forPlot(closes, 12);
+        const ema50PlotData = formatLineData(calculateEMA(closes, 50), klines);
+        const bbPlotData = calculateBollingerBands_forPlot(closes, 20, 2, klines);
+        const macdData = calculatedData.macd;
+        const macdLinePlotData = formatLineData(macdData.macdLine, klines);
+        const signalLinePlotData = formatLineData(macdData.signalLine, klines, (userSettings.active.indicatorParams.macd_slow - 1));
+        const histogramPlotData = macdData.histogram
+            .map((item, index) => {
+                if (klines[index] && item !== undefined) {
+                    return {
+                        time: klines[index][0] / 1000,
+                        value: item.value,
+                        color: item.color
+                    };
+                }
+                return null;
+            })
+            .filter(d => d);
+        const volumePlotData = formattedKlines.map(d => ({
+            time: d.time,
+            value: d.volume,
+            color: d.close >= d.open ? 'rgba(4, 150, 120, 0.5)' : 'rgba(220, 50, 80, 0.5)'
+        }));
+       
+        const mainChart = LightweightCharts.createChart(document.getElementById('main-chart-container'), getChartBaseOptions(450));
+        charts.push(mainChart);
+        candlestickSeries = mainChart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false, wickUpColor: '#26a69a', wickDownColor: '#ef5350' });
+        candlestickSeries.setData(formattedKlines);        
+        mainChart.addLineSeries({ color: 'yellow', lineWidth: 2, priceLineVisible: false, lastValueVisible: true, title: '' }).setData(ema50PlotData);
+        mainChart.addLineSeries({ color: 'gray', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(bbPlotData.upper);
+        mainChart.addLineSeries({ color: 'white', lineWidth: 2, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(bbPlotData.middle);
+        mainChart.addLineSeries({ color: 'gray', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(bbPlotData.lower);
+        const volumeChart = LightweightCharts.createChart(document.getElementById('volume-chart-container'), getChartBaseOptions(100)); // Tinggi lebih kecil
+        charts.push(volumeChart);
+        volumeChart.addHistogramSeries({ priceFormat: { type: 'volume' } }).setData(volumePlotData);        
+        const vpvr = calculatedData.vpvr;
+            if (vpvr.poc > 0) candlestickSeries.createPriceLine({ price: vpvr.poc, color: '#fbbf24', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Solid, axisLabelVisible: true, title: 'P' });
+            if (vpvr.vah > 0) candlestickSeries.createPriceLine({ price: vpvr.vah, color: '#F4511E', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'H' });
+            if (vpvr.val > 0) candlestickSeries.createPriceLine({ price: vpvr.val, color: '#399BC8', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'L' });        
+        const pivots = calculatedData.pivot.data;
+            if (pivots) {
+                candlestickSeries.createPriceLine({ price: pivots.P, color: '#ffc107', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Solid, axisLabelVisible: true, title: 'Piv' });
+                candlestickSeries.createPriceLine({ price: pivots.R1, color: '#f44336', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'R1' });
+                candlestickSeries.createPriceLine({ price: pivots.S1, color: '#4caf50', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'S1' });
+            }
+
+        // 2. Tampilkan VWAP
+        const vwapValue = calculatedData.vwap.value;
+            if (vwapValue > 0) {
+                candlestickSeries.createPriceLine({ price: vwapValue, color: '#03a9f4', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dotted, axisLabelVisible: true, title: 'VW' });
+            }
+
+        // 3. Tampilkan Ichimoku Cloud
+        const ichimokuData = calculatedData.ichimoku.data;
+            if (ichimokuData) {
+                const KijunP = 26; 
+                
+                
+                const senkouA_plot = ichimokuData.senkouA.map((val, idx) => klines[idx + KijunP] ? { time: klines[idx + KijunP][0] / 1000, value: val } : null).filter(Boolean);
+                const senkouB_plot = ichimokuData.senkouB.map((val, idx) => klines[idx + KijunP] ? { time: klines[idx + KijunP][0] / 1000, value: val } : null).filter(Boolean);
+                const cloudSeriesA = mainChart.addAreaSeries({ priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, lineWidth: 1, color: 'rgba(38, 166, 154, 0.2)' });
+                const cloudSeriesB = mainChart.addAreaSeries({ priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, lineWidth: 1, color: 'rgba(239, 83, 80, 0.2)' });
+                cloudSeriesA.setData(senkouA_plot);
+                cloudSeriesB.setData(senkouB_plot);
+                mainChart.addLineSeries({ color: '#2962FF', lineWidth: 1, priceLineVisible: false, lastValueVisible: false }).setData(formatLineData(ichimokuData.tenkan, klines));
+                mainChart.addLineSeries({ color: '#D50000', lineWidth: 1, priceLineVisible: false, lastValueVisible: false }).setData(formatLineData(ichimokuData.kijun, klines));
+            }
+        
+        const rsiChart = LightweightCharts.createChart(document.getElementById('rsi-chart-container'), getChartBaseOptions(150));
+        charts.push(rsiChart);
+        const rsiSeries = rsiChart.addLineSeries({ color: '#c792ea', lineWidth: 2, lastValueVisible: true, priceLineVisible: false });
+        rsiSeries.setData(formatLineData(calculatedData.rsi.values, klines));
+        rsiSeries.createPriceLine({ price: 70, color: '#ef5350', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: false, title: '' });
+        rsiSeries.createPriceLine({ price: 30, color: '#26a69a', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: false, title: '' });
+
+        const stochChart = LightweightCharts.createChart(document.getElementById('stoch-chart-container'), getChartBaseOptions(150));
+        charts.push(stochChart);
+        const stochData = calculatedData.stoch;
+        const stochKSeries = stochChart.addLineSeries({ color: '#2196F3', lineWidth: 2, title: '', lastValueVisible: true, priceLineVisible: false });
+        stochKSeries.setData(formatLineData(stochData.kLine, klines, stochData.dOffset));
+        stochChart.addLineSeries({ color: '#FF9800', lineWidth: 2, title: '', lastValueVisible: true, priceLineVisible: false }).setData(formatLineData(stochData.dLine, klines, stochData.dOffset));
+        stochKSeries.createPriceLine({ price: 80, color: '#ef5350', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: false, title: '' });
+        stochKSeries.createPriceLine({ price: 20, color: '#26a69a', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: false, title: '' });
+
+        const rocChart = LightweightCharts.createChart(document.getElementById('roc-chart-container'), getChartBaseOptions(150));
+        charts.push(rocChart);
+        const rocSeries = rocChart.addLineSeries({ color: '#f472b6', lineWidth: 2, lastValueVisible: true, priceLineVisible: false });
+        rocSeries.setData(rocPlotData);
+        rocSeries.createPriceLine({ price: 0, color: '#9E9E9E', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dotted, axisLabelVisible: true, title: '0' });        
+        const macdChart = LightweightCharts.createChart(document.getElementById('macd-chart-container'), getChartBaseOptions(150));
+        charts.push(macdChart);
+        macdChart.addHistogramSeries({ base: 0 }).setData(histogramPlotData);
+        macdChart.addLineSeries({ color: '#2962FF', lineWidth: 2, title: 'MACD', lastValueVisible: false, priceLineVisible: false }).setData(macdLinePlotData);
+        macdChart.addLineSeries({ color: '#FF6D00', lineWidth: 2, title: 'Signal', lastValueVisible: false, priceLineVisible: false }).setData(signalLinePlotData);
+        const allCharts = [mainChart, volumeChart, rsiChart, stochChart, macdChart, rocChart];
+        
+        syncCharts(...allCharts);
+
+        const initialRange = mainChart.timeScale().getVisibleRange();
+        if (initialRange) {
+            allCharts.forEach(chart => {
+                if (chart !== mainChart && chart) {
+                    chart.timeScale().setVisibleRange(initialRange);
+                }
+            });
+        }
+    }   
+// [PERBAIKAN] Fungsi kalkulasi untuk plotting Bollinger Bands
     function calculateBollingerBands_forPlot(closes, period = 20, stdDev = 2, klines) {
         if (closes.length < period) return { upper: [], middle: [], lower: [] };
         const middle = calculateSMA(closes, period);
@@ -4557,19 +4841,26 @@ function detectMarketRegime(klines, bbData, adxData) {
         }
         return { upper: upper.filter(d => d), middle: middleData.filter(d => d.value !== undefined), lower: lower.filter(d => d) };
     }
-// ===================================================================================================================================================================================================================================================================================
-    function calculateROC_forPlot(closes, period = 12) {
-        if (closes.length < period + 1) return [];
-        const rocData = [];
-        for (let i = period; i < closes.length; i++) {
-            const currentClose = closes[i];
-            const pastClose = closes[i - period];
-            if (pastClose !== 0) {
-                const roc = ((currentClose - pastClose) / pastClose) * 100;
-                rocData.push({ time: realtimeCache.main.klines[i][0] / 1000, value: roc });
+// =======================================================
+    function calculateBollingerBands_forPlot(closes, period = 20, stdDev = 2, klines) {
+        if (closes.length < period) return { upper: [], middle: [], lower: [] };
+        const middle = calculateSMA(closes, period);
+        const upper = [], middleData = [], lower = [];
+        for (let i = period - 1; i < closes.length; i++) {
+            if (middle[i] === undefined) {
+                upper.push(undefined);
+                lower.push(undefined);
+                continue;
             }
+            const slice = closes.slice(i - period + 1, i + 1);
+            const sumSquaredDiff = slice.reduce((a, b) => a + Math.pow(b - middle[i], 2), 0);
+            const stdev = Math.sqrt(sumSquaredDiff / period);
+            const time = klines[i][0] / 1000;
+            upper.push({ time, value: middle[i] + (stdev * stdDev) });
+            lower.push({ time, value: middle[i] - (stdev * stdDev) });
+            middleData.push({ time, value: middle[i] });
         }
-        return rocData;
+        return { upper: upper.filter(d => d), middle: middleData.filter(d => d.value !== undefined), lower: lower.filter(d => d) };
     }
 // ===================================================================================================================================================================================================================================================================================
     function calculateLinearRegressionChannel_forPlot(klines, period = 14, stdDev = 2) {
@@ -4601,45 +4892,134 @@ function detectMarketRegime(klines, bbData, adxData) {
         }
         return { upper, middle, lower };
     }
-// ===================================================================================================================================================================================================================================================================================
-    function analyzeBollingerBandsPriceAction(klines, bbData) {
-        if (!klines || klines.length < 2 || !bbData || bbData.upper.length < 2) {
-            return { rejection: 'NONE', walkTheBands: 'NONE' };
+    function calculateROC_forPlot(closes, period = 12) {
+        if (closes.length < period + 1) return [];
+        const rocData = [];
+        for (let i = period; i < closes.length; i++) {
+            const currentClose = closes[i];
+            const pastClose = closes[i - period];
+            if (pastClose !== 0) {
+                const roc = ((currentClose - pastClose) / pastClose) * 100;
+                rocData.push({ time: realtimeCache.main.klines[i][0] / 1000, value: roc });
+            }
         }
+        return rocData;
+    }
+// [PERBAIKAN] Fungsi kalkulasi Linear Regression Channel
+    function calculateLinearRegressionChannel_forPlot(klines, period = 14, stdDev = 2) {
+        const closes = klines.map(k => parseFloat(k[4]));
+        if (closes.length < period) return { upper: [], middle: [], lower: [] };
+        const upper = [], middle = [], lower = [];
+        for (let i = period - 1; i < closes.length; i++) {
+            const y = closes.slice(i - period + 1, i + 1);
+            const n = period; 
+            const sumX = (n * (n - 1)) / 2;
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = y.reduce((acc, val, j) => acc + val * j, 0);
+            const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            let sumErrSq = 0;
+            for (let j = 0; j < n; j++) {
+                const predictedY = intercept + slope * j;
+                sumErrSq += Math.pow(y[j] - predictedY, 2);
+            }
+            const stdErr = Math.sqrt(sumErrSq / (n - 2));
 
-        const lastKline = klines[klines.length - 1];
-        const prevKline = klines[klines.length - 2];
-        const lastUpper = bbData.upper.pop()?.value;
-        const lastLower = bbData.lower.pop()?.value;
-        const prevUpper = bbData.upper.pop()?.value;
-        const prevLower = bbData.lower.pop()?.value;
-        const lastClose = parseFloat(lastKline[4]);
-        const prevClose = parseFloat(prevKline[4]);
+            const middleValue = intercept + slope * (n - 1);
+            middle.push({ time: klines[i][0] / 1000, value: middleValue });
+            upper.push({ time: klines[i][0] / 1000, value: middleValue + (stdDev * stdErr) });
+            lower.push({ time: klines[i][0] / 1000, value: middleValue - (stdDev * stdErr) }); 
+        }
+        return { upper, middle, lower };
+    }
+    function calculateParabolicSAR_forPlot(klines, step = 0.02, max = 0.2) {
+        if (klines.length < 2) return [];
+        let sar = parseFloat(klines[0][3]);
+        let ep = parseFloat(klines[0][2]);
+        let af = step;
+        let isUptrend = true;
+        const sarData = [];
 
-        let rejection = 'NONE';
-        // Logika Rejection Bullish
-        if (prevClose < prevLower && lastClose > lastLower && lastClose > prevClose) {
-            rejection = 'Bullish Rejection (Lower BB)';
-        }
-        // Logika Rejection Bearish
-        if (prevClose > prevUpper && lastClose < lastUpper && lastClose < prevClose) {
-            rejection = 'Bearish Rejection (Upper BB)';
-        }
+        for (let i = 1; i < klines.length; i++) {
+            const time = klines[i][0] / 1000;
+            const high = parseFloat(klines[i][2]);
+            const low = parseFloat(klines[i][3]);
+            const prevSar = sar;
 
-        let walkTheBands = 'NONE';
-        // Logika Walk the Bands Bullish
-        if (lastClose >= lastUpper && prevClose >= prevUpper) {
-            walkTheBands = 'Bullish (Upper BB)';
+            if (isUptrend) {
+                sar = prevSar + af * (ep - prevSar);
+                if (low < sar) {
+                    isUptrend = false;
+                    sar = ep;
+                    ep = low;
+                    af = step;
+                } else {
+                    if (high > ep) {
+                        ep = high;
+                        af = Math.min(max, af + step);
+                    }
+                }
+            } else { 
+                sar = prevSar - af * (prevSar - ep);
+                if (high > sar) {
+                    isUptrend = true;
+                    sar = ep;
+                    ep = high;
+                    af = step;
+                } else {
+                    if (low < ep) {
+                        ep = low;
+                        af = Math.min(max, af + step);
+                    }
+                }
+            }
+            sarData.push({ time, value: sar });
         }
-        // Logika Walk the Bands Bearish
-        if (lastClose <= lastLower && prevClose <= prevLower) {
-            walkTheBands = 'Bearish (Lower BB)';
-        }
+        return sarData;
+    }
+// =======================================================
+    function destroyCharts() {
+        charts.forEach(chart => {
+            if (chart) {
+                chart.remove();
+            }
+        });
+        charts = [];
+        candlestickSeries = null;
         
-        return { rejection, walkTheBands };
+        const mainChartContainers = [
+            'main-chart-container', 
+            'rsi-chart-container', 
+            'stoch-chart-container', 
+            'macd-chart-container',
+            'roc-chart-container'
+        ];
+        mainChartContainers.forEach(id => {
+            const container = document.getElementById(id);
+            if (container) {
+                container.innerHTML = '';
+            }
+        });
     }
 // ===================================================================================================================================================================================================================================================================================
-    const processQueues = () => {
+    function toggleChartsVisibility() {
+        isChartsVisible = !isChartsVisible;
+        if (isChartsVisible) {
+            chartsWrapper.style.display = 'block';
+            toggleChartsBtn.textContent = 'HIDE CHART';
+            if (realtimeCache.main.klines) {
+                renderAllCharts();
+            }
+        } else {
+            chartsWrapper.style.display = 'none';
+            toggleChartsBtn.textContent = 'SHOW CHART';
+            destroyCharts();
+        }
+    }
+
+const processQueues = () => {
         let shouldUpdateMainUI = false;
         let shouldUpdateScalpingUI = false;
 
@@ -4661,45 +5041,41 @@ function detectMarketRegime(klines, bbData, adxData) {
                 // Cek apakah ini untuk timeframe utama
                 if (timeframe === mainTimeframe && realtimeCache.main.klines) {
                     const klinesCache = realtimeCache.main.klines;
-                    if (candle.x) { // Jika candle final (candle LAMA baru saja selesai)
+                    if (candle.x) { 
                         klinesCache.shift();
                         klinesCache.push(formattedCandle);
-                        newCandleJustStarted = true; // <-- Set penanda bahwa candle BARU akan segera dimulai
-                    } else { // Jika candle live (ini adalah tick pertama atau selanjutnya dari candle BARU)
+                        newCandleJustStarted = true;
+                    } else { 
                         klinesCache[klinesCache.length - 1] = formattedCandle;
-                        // Cek apakah ini tick pertama dari candle baru
                         if (newCandleJustStarted) {
-                            startCandleCountdown(); // <-- Panggil countdown di sini, di waktu yang TEPAT!
-                            newCandleJustStarted = false; // <-- Reset penanda agar tidak dipanggil terus
+                            startCandleCountdown(); 
+                            newCandleJustStarted = false; 
                         }
                     }
                     shouldUpdateMainUI = true;
                 }
-                // Cek apakah ini untuk timeframe scalping
+                
                 else if (timeframe === dumpTimeframe && realtimeCache.main.multiTfKlines[dumpTimeframe]) {
                     const klinesCache = realtimeCache.main.multiTfKlines[dumpTimeframe];
-                    if (candle.x) { // Jika candle final
+                    if (candle.x) { 
                         klinesCache.shift();
                         klinesCache.push(formattedCandle);
-                    } else { // Jika candle live
+                    } else { 
                         klinesCache[klinesCache.length - 1] = formattedCandle;
                     }
                     shouldUpdateScalpingUI = true;
                 }
             });
         }
-
         // 2. Proses antrean TRADE (Logika Lama yang Dikembalikan)
         if (tradeQueue.length > 0) {
             try {
                 const tradesToProcess = tradeQueue.splice(0, tradeQueue.length);
                 tradesToProcess.forEach(trade => {
                     const quantity = parseFloat(trade.q);
-                    // Di dalam loop forEach di processQueues
                     const price = parseFloat(trade.p);
 
-                    // === AWAL PERBAIKAN PENTING ===
-
+    
                     // 1. Perbarui harga di cache utama agar simulasi bisa membacanya
                     if (realtimeCache.main.tickerData) {
                         realtimeCache.main.tickerData.lastPrice = price;
@@ -4717,8 +5093,6 @@ function detectMarketRegime(klines, bbData, adxData) {
                     if (navPriceEl) {
                         navPriceEl.textContent = formatPrice(price);
                     }
-
-                    // === AKHIR PERBAIKAN PENTING ===
 
                     const now = trade.T;
                     const bucketTimestamp = Math.floor(now / CVD_AGGREGATION_INTERVAL_MS) * CVD_AGGREGATION_INTERVAL_MS;
@@ -4964,51 +5338,7 @@ function detectMarketRegime(klines, bbData, adxData) {
         return { upper, middle, lower, status };
     }
 // ===================================================================================================================================================================================================================================================================================
-    function calculateParabolicSAR_forPlot(klines, step = 0.02, max = 0.2) {
-        if (klines.length < 2) return [];
-        let sar = parseFloat(klines[0][3]);
-        let ep = parseFloat(klines[0][2]);
-        let af = step;
-        let isUptrend = true;
-        const sarData = [];
-
-        for (let i = 1; i < klines.length; i++) {
-            const time = klines[i][0] / 1000;
-            const high = parseFloat(klines[i][2]);
-            const low = parseFloat(klines[i][3]);
-            const prevSar = sar;
-
-            if (isUptrend) {
-                sar = prevSar + af * (ep - prevSar);
-                if (low < sar) {
-                    isUptrend = false;
-                    sar = ep;
-                    ep = low;
-                    af = step;
-                } else {
-                    if (high > ep) {
-                        ep = high;
-                        af = Math.min(max, af + step);
-                    }
-                }
-            } else { // Downtrend
-                sar = prevSar - af * (prevSar - ep);
-                if (high > sar) {
-                    isUptrend = true;
-                    sar = ep;
-                    ep = high;
-                    af = step;
-                } else {
-                    if (low < ep) {
-                        ep = low;
-                        af = Math.min(max, af + step);
-                    }
-                }
-            }
-            sarData.push({ time, value: sar });
-        }
-        return sarData;
-    }
+    
 // =====================================================================================================================================================================
     const calculateOBV = (klines) => {
         if (!klines || klines.length < 2) return [];
@@ -5227,7 +5557,7 @@ function detectMarketRegime(klines, bbData, adxData) {
         
         dashboardContent.classList.add('hidden');
         initialPlaceholder.classList.remove('hidden');
-
+        destroyCharts();
         realtimeCache.main = {};
         realtimeCache.movers = {}; 
         klineCache = {}; 
@@ -6640,7 +6970,7 @@ function initializeNewCalculator() {
         setupToggle('toggle-ai-verdict-btn', 'ai-verdict-content-wrapper', 'toggle-ai-verdict-icon', true);
         setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', true);
         setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', true);
-
+        toggleChartsBtn.addEventListener('click', () => toggleChartsVisibility());
         // Inisialisasi semua event listener tombol dan input
         window.addEventListener('resize', adjustContentPadding);
         document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
