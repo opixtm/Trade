@@ -256,42 +256,6 @@
             border-bottom: 1px dashed rgba(128, 128, 128, 0.5);
         }
 
-        #custom-tooltip {
-            position: absolute;
-            background-color: #141517; /* dark:bg-gray-800 */
-            color: #e2e8f0; /* dark:text-gray-200 */
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #e48005; /* dark:border-gray-600 */
-            font-size: 0.875rem;
-            line-height: 1.5;
-            z-index: 100;
-            max-width: 320px;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-            pointer-events: none;
-        }
-
-        #custom-tooltip::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 100%;
-            transform: translateX(-50%);
-            border-width: 6px;
-            border-style: solid;
-            border-color: #2d3748 transparent transparent transparent;
-        }
-
-        #custom-tooltip strong {
-            color: #63b3ed; /* dark:text-blue-400 */
-            display: block;
-            margin-bottom: 4px;
-            border-bottom: 1px solid #4a5568;
-            padding-bottom: 4px;
-        }
-
         #ai-narrative-content .prose h3 {
             margin-top: 1.25rem; /* Beri jarak di atas setiap judul (###) */
             margin-bottom: 0.5rem;
@@ -506,7 +470,6 @@
         .pane-chart-container { height: 150px; margin-top: 8px; border-top: 1px solid rgba(128, 128, 128, 0.2); padding-top: 8px;}
         .pane-title { position: absolute; top: 15px; left: 15px; z-index: 10; font-size: 12px; font-weight: bold; color: #dddddd; }
         .dark .pane-title { color: #d9d5d5; }
-        /* ... tambahkan CSS chart dan tooltip lain yang diperlukan dari ultimate copy 24.html di sini ... */
         .collapsible-content {
             display: grid;
             grid-template-rows: 0fr;
@@ -517,6 +480,66 @@
         }
         .collapsible-content > div {
             overflow: hidden;
+        }
+        /* Blinking Green Slow */
+        .blinking-green-slow {
+            animation: blinking-green-slow-animation 0.5s infinite;
+        }
+
+        @keyframes blinking-green-slow-animation {
+            0%, 100% {
+                color: #16a34a; /* Warna hijau solid */
+                opacity: 1;
+            }
+            50% {
+                color: #4ade80; /* Warna hijau terang saat berkedip */
+                opacity: 0.7;
+            }
+        }
+
+        .dark .blinking-green-slow {
+            animation: blinking-green-slow-animation-dark 1s infinite;
+        }
+
+        @keyframes blinking-green-slow-animation-dark {
+            0%, 100% {
+                color: #4ade80;
+                opacity: 1;
+            }
+            50% {
+                color: #16a34a;
+                opacity: 0.6;
+            }
+        }
+        /* Blinking Yellow Slow */
+        .blinking-yellow-slow {
+            animation: blinking-yellow-slow-animation 0.5s infinite;
+        }
+
+        @keyframes blinking-yellow-slow-animation {
+            0%, 100% {
+                color: #f59e0b; /* Warna kuning solid (yellow-500) */
+                opacity: 1;
+            }
+            50% {
+                color: #fcd34d; /* Warna kuning terang (yellow-300) */
+                opacity: 0.6;
+            }
+        }
+
+        .dark .blinking-yellow-slow {
+            animation: blinking-yellow-slow-animation-dark 1s infinite;
+        }
+
+        @keyframes blinking-yellow-slow-animation-dark {
+            0%, 100% {
+                color: #fcd34d;
+                opacity: 1;
+            }
+            50% {
+                color: #f59e0b;
+                opacity: 0.7;
+            }
         }
     </style>
 </head>
@@ -556,6 +579,7 @@
                 </div>
             </div>
             <a href="#" id="trade-link" class="text-right no-underline hidden flex items-baseline gap-2">
+                <span id="nav-timeframe" class="text-base font-semibold blinking-yellow-slow mr-2"></span>
                 <span id="nav-symbol" class="text-base font-bold text-blue-500 dark:text-green-500"></span>
                 <span id="nav-price" class="text-yellow-500 text-lg">-</span>
             </a>
@@ -674,37 +698,47 @@
                 <p id="loader-text" class="text-white font-semibold mt-4 text-center blinking-text-animation">Let's Go........</p>
             </div>
 
-            <section id="top-movers-section" class="card p-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                    <h2 class="text-sm font-semibold">Top Performers</h2>
-                    <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                        <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
-                            <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
-                            <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
-                            <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
-                            <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
-                            <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
-                            <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
-                                <option value="5000">5s</option>
-                                <option value="10000">10s</option>
-                                <option value="30000">30s</option>
-                                <option value="60000">60s</option>
-                                <option value="120000" selected>120s</option>
-                            </select>
-                            <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
-                        </div>
+<section id="top-movers-section" class="card p-6">
+    <button id="toggle-top-movers-btn" class="w-full flex justify-between items-center text-left mb-4">
+        <h2 class="text-2xl font-semibold blinking-green-slow">TOP PERFORMERS</h2>
+        <svg id="toggle-top-movers-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+    </button>
+    
+    <div id="top-movers-content-wrapper" class="collapsible-content">
+        <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                <div id="top-movers-controls" class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                    <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
+                        <button data-timeframe="1m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
+                        <button data-timeframe="3m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
+                        <button data-timeframe="5m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
+                        <button data-timeframe="15m" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
+                        <button data-timeframe="1h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
+                        <button data-timeframe="24h" class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
+                            <option value="5000">5s</option>
+                            <option value="10000">10s</option>
+                            <option value="30000">30s</option>
+                            <option value="60000">60s</option>
+                            <option value="120000" selected>120s</option>
+                        </select>
+                        <span id="refresh-countdown" class="text-xs text-gray-500 w-24 text-center"></span>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 gap-3">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Top Movers (by TF)</h3>
-                        <div id="gainers-list" class="space-y-2"></div>
-                    </div>                       
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 mb-2">Top Movers (by TF)</h3>
+                    <div id="gainers-list" class="space-y-2"></div>
                 </div>
-            </section>
+            </div>
+        </div>
+    </div>
+</section>
 
             <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
                 <div>
@@ -803,12 +837,12 @@
                         </div>
                     </section>
 
-                    <section id="ai-analysis-section" class="card p-6 relative hidden">
+                    <section id="ai-analysis-section" class="card p-6 relative">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-bold">AI ANALYZER</h2>
                         </div>
                         
-                        <div id="ai-content-container" class="space-y-6">
+                        <div id="ai-content-container" class="hidden space-y-6">
                             <div id="ai-narrative-content" class="prose prose-sm dark:prose-invert max-w-none text-gray-600 space-y-4"></div>
                             <div>
                                 <h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">🔮 Proyeksi Harga</h3>
@@ -832,23 +866,23 @@
                         </div>
                     </section>
                     <button id="toggle-ai-btn" class="btn-primary w-full mb-4">
-                                    <span>ASK AI</span>
-                                    <div class="loader w-5 h-5 hidden">
-                                        <div class="dot"></div>
-                                        <div class="dot"></div>
-                                        <div class="dot"></div>
-                                    </div>
-                                </button>
+                        <span>ASK AI</span>
+                        <div class="loader w-5 h-5 hidden">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </button>
 
                     <section id="sentiment-display-container" class="card p-6">
                         <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
-                            <h2 class="text-xl font-bold">BTC Sentiment (by AI)</h2>
+                            <h2 class="text-xl font-bold">Bitcoin Sentiment</h2>
                             <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
                         </button>
                         <div id="sentiment-content-wrapper" class="collapsible-content">
-                            <p class="text-center text-gray-500">Ask AI first....</p>
+                            <p class="text-center text-gray-500"></p>
                         </div>
                     </section>
                 </div>
@@ -1108,7 +1142,7 @@
                                             <span id="main-pump-score" class="positive font-bold">0%</span>
                                             <span id="main-dump-score" class="negative font-bold">0/10</span>
                                         </div>
-                                        <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">⚠ PLEASE CHECK YOU ARE IN THE RIGHT TIMEFRAME ⚠️</p>
+                                        <p class="text-center text-[10px] text-gray-500 mt-1 blinking-yellow-slow">⚠ PLEASE CHECK YOU ARE IN THE RIGHT TIMEFRAME ⚠️</p>
                                         <details open>
                                             <summary class="cursor-pointer text-xs text-gray-400 hover:text-white transition-colors flex justify-between items-center border-b border-gray-500">
                                                 <span>Bearish Pressure Score Trigger▾</span>
@@ -1447,8 +1481,7 @@
     const resetBtn = document.getElementById('reset-btn');
     const toggleChartsBtn = document.getElementById('toggle-charts-btn');
     const chartsWrapper = document.getElementById('charts-wrapper');
-    const toggleAiBtn = document.getElementById('toggle-ai-btn');
-    const aiContentContainer = document.getElementById('ai-content-container');
+    
 // =====================================================================================================================================================================
 // BAGIAN 2: KONSTANTA KONFIGURASI
 // =====================================================================================================================================================================
@@ -1609,6 +1642,7 @@
     let charts = [];
     let candlestickSeries = null;
     let isChartsVisible = false;
+    
 // =====================================================================================================================================================================
 // OBJEK WEBSOCKET MANAGER HARUS DIDEKLARASIKAN DI AWAL
 // =====================================================================================================================================================================
@@ -3851,28 +3885,18 @@ function findLastSignificantSwing(klines) {
         const comprehensiveBtn = document.getElementById('toggle-ai-btn');
         const btnText = comprehensiveBtn.querySelector('span');
         const btnLoader = comprehensiveBtn.querySelector('.loader');
-        const aiContentContainer = document.getElementById('ai-content-container');
         const aiNarrativeEl = document.getElementById('ai-narrative-content');
-
-        // Sembunyikan tombol 'ASK AI'
-        toggleAiBtn.querySelector('span').classList.add('hidden');
-        toggleAiBtn.querySelector('.loader').classList.remove('hidden');
-        toggleAiBtn.disabled = true;
-
-        
 
         btnText.classList.add('hidden');
         btnLoader.classList.remove('hidden');
         comprehensiveBtn.disabled = true;
+
         document.getElementById('projection-results-container').innerHTML = '';
         document.getElementById('saran-buyer').textContent = '-';
         document.getElementById('alasan-buyer').textContent = '';
         document.getElementById('saran-holder').textContent = '-';
         document.getElementById('alasan-holder').textContent = '';
-
-        aiNarrativeEl.innerHTML = '';
-        aiContentContainer.classList.remove('hidden');
-
+        
         try {
             const { 
                 binanceSymbol, 
@@ -3883,9 +3907,7 @@ function findLastSignificantSwing(klines) {
             } = realtimeCache.main;
             
             const marketType = marketTypeSelect.value;
-
             const tfAlignmentSummary = await createTFAlignmentSummary(binanceSymbol, marketType);
-
             const klines1d = await fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 200 }, marketType);
             const vwap20d = calculateVWAP(klines1d, 'rolling', 20);
             const obvValues = calculateOBV(klines1d);
@@ -3908,15 +3930,17 @@ function findLastSignificantSwing(klines) {
             
             const aiResponseText = await callGemini([{ text: prompt }], false);
             const parsedData = parseAIResponseWithTags(aiResponseText);
+            
             displayComprehensiveResults(parsedData);
-
+            
         } catch (error) {
             aiNarrativeEl.innerHTML = `<p class="text-red-500">Gagal mendapatkan analisa AI: ${error.message}</p>`;
+            isAiAnalysisVisible = false;
+            document.querySelector('#toggle-ai-btn span').textContent = 'ASK AI';
         } finally {
-            // Sembunyikan loader setelah selesai
-            toggleAiBtn.querySelector('span').classList.remove('hidden');
-            toggleAiBtn.querySelector('.loader').classList.add('hidden');
-            toggleAiBtn.disabled = false;
+            btnText.classList.remove('hidden');
+            btnLoader.classList.add('hidden');
+            comprehensiveBtn.disabled = false;
         }
     }
 // ===================================================================================================================================================================================================================================================================================
@@ -4294,6 +4318,11 @@ function findLastSignificantSwing(klines) {
         const navInfoContainer = document.getElementById('nav-info-container');
         const navStatsContainer = document.getElementById('nav-stats-container');
         const tradeLinkContainer = document.getElementById('trade-link');
+
+        const navTimeframeEl = document.getElementById('nav-timeframe');
+        if (navTimeframeEl) {
+            navTimeframeEl.textContent = timeframeSelect.value.toUpperCase();
+        }
 
         if (navInfoContainer) {
             navInfoContainer.classList.remove('hidden');
@@ -5422,7 +5451,7 @@ const processQueues = () => {
             document.getElementById('btc-dominance').textContent = `${globalData.data.market_cap_percentage.btc.toFixed(2)}%`;
         }
 
-        document.getElementById('current-state-title').innerHTML = `Current Market Condition <span class="text-yellow-500 font-semibold ml-2">💲 ${binanceSymbol}</span>`;
+        document.getElementById('current-state-title').innerHTML = `Current State<span class="text-yellow-500 font-semibold ml-2">💲 ${binanceSymbol}</span>`;
         document.getElementById('range-24h').textContent = `${formatPrice(parseFloat(tickerData.lowPrice)).replace('$', '')} - ${formatPrice(parseFloat(tickerData.highPrice)).replace('$', '')}`;
         
         const futuresContainer = document.getElementById('futures-data-container');
@@ -7180,11 +7209,12 @@ function initializeNewCalculator() {
         setupToggle('toggle-order-book-cvd-btn', 'order-book-cvd-content-wrapper', 'toggle-order-book-cvd-icon', false);
         setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', false);
         setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', false);
+        setupToggle('toggle-top-movers-btn', 'top-movers-content-wrapper', 'toggle-top-movers-icon', false);
         toggleChartsBtn.addEventListener('click', () => toggleChartsVisibility());
+        
         // Inisialisasi semua event listener tombol dan input
         window.addEventListener('resize', adjustContentPadding);
         document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
-        
         
         timeframeSelect.addEventListener('change', (e) => {
             adaptIndicatorParamsToTimeframe(e.target.value);
@@ -7228,10 +7258,7 @@ function initializeNewCalculator() {
                 updateVwapDisplay(mode);
             }
         });
-
-        document.getElementById('toggle-ai-btn').addEventListener('click', runComprehensiveAIAnalysis);
         
-
         tradeLink.addEventListener('click', (e) => {
             e.preventDefault();
             const binanceSymbol = realtimeCache.main.binanceSymbol;
@@ -7247,42 +7274,42 @@ function initializeNewCalculator() {
                 window.open(desktopUrl, '_blank');
             }
         });
-
-        aiContentContainer.style.maxHeight = '0px';
-        aiContentContainer.style.opacity = '0';
+        
+        resetBtn.addEventListener('click', resetDashboard);
+        
+        const toggleAiBtn = document.getElementById('toggle-ai-btn');
+        const aiContentContainer = document.getElementById('ai-content-container');
+        let isAiAnalysisVisible = false;
 
         toggleAiBtn.addEventListener('click', async () => {
+            const aiNarrativeEl = document.getElementById('ai-narrative-content');
+            
             if (isAiAnalysisVisible) {
-                // Sembunyikan analisis jika sudah ditampilkan
-                aiContentContainer.style.maxHeight = '0px';
-                aiContentContainer.style.opacity = '0';
+                // Logika untuk menyembunyikan panel
+                aiContentContainer.classList.add('hidden');
                 document.querySelector('#toggle-ai-btn span').textContent = 'ASK AI';
                 isAiAnalysisVisible = false;
-            } else {
-                // Jika belum ada analisis, jalankan analisis terlebih dahulu
-                const aiNarrativeEl = document.getElementById('ai-narrative-content');
-                if (aiNarrativeEl.innerHTML.trim() === '') {
-                    // Tampilkan loader saat analisis berjalan
-                    aiContentContainer.style.maxHeight = '500px'; 
-                    aiContentContainer.style.opacity = '1';
-                    aiNarrativeEl.innerHTML = '<p class="text-center text-gray-500">Analisa sedang diproses...</p>';
+                return;
+            }
 
-                    await runComprehensiveAIAnalysis();
-                    // Analisis selesai, tampilkan konten dan ubah tombol
-                    document.querySelector('#toggle-ai-btn span').textContent = 'HIDE ANALYSIS';
-                    aiContentContainer.style.maxHeight = '2000px'; 
-                    isAiAnalysisVisible = true;
-                } else {
-                    // Tampilkan analisis jika sudah ada
-                    aiContentContainer.style.maxHeight = '2000px'; 
-                    aiContentContainer.style.opacity = '1';
-                    document.querySelector('#toggle-ai-btn span').textContent = 'HIDE ANALYSIS';
-                    isAiAnalysisVisible = true;
-                }
+            // --- Perbaikan di sini ---
+            // Jika panel tidak terlihat, periksa apakah konten sudah ada
+            if (aiNarrativeEl.innerHTML.trim() === '' || !realtimeCache.main.calculatedData) {
+                // Jika konten belum ada, jalankan analisis baru
+                isAiAnalysisVisible = true;
+                aiContentContainer.classList.remove('hidden');
+                document.querySelector('#toggle-ai-btn span').textContent = 'HIDE ANALYSIS';
+                aiNarrativeEl.innerHTML = '<p class="text-center text-gray-500">Analisa sedang diproses...</p>';
+                await runComprehensiveAIAnalysis();
+            } else {
+                // Jika konten sudah ada, tampilkan saja tanpa memanggil API lagi
+                isAiAnalysisVisible = true;
+                aiContentContainer.classList.remove('hidden');
+                document.querySelector('#toggle-ai-btn span').textContent = 'HIDE ANALYSIS';
             }
         });
 
-        resetBtn.addEventListener('click', resetDashboard);
+        
         const tooltipElement = document.createElement('div');
         tooltipElement.id = 'custom-tooltip';
         document.body.appendChild(tooltipElement);
@@ -7300,7 +7327,7 @@ function initializeNewCalculator() {
         });
         
         const triggers = document.querySelectorAll('[data-tooltip]');
-    
+
         
         const dumpTfSelect = document.getElementById('dump-trigger-timeframe-select');
         const triggerListDiv = document.getElementById('trigger-breakdown-list');
@@ -7345,7 +7372,7 @@ function initializeNewCalculator() {
             }
         });
         
-            // Inisialisasi kalkulator dan simulasi (tanpa data eksternal)
+        // Inisialisasi kalkulator dan simulasi (tanpa data eksternal)
         initializeNewCalculator();
         paperTrade.init();
         
