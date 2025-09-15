@@ -507,6 +507,17 @@
         .pane-title { position: absolute; top: 15px; left: 15px; z-index: 10; font-size: 12px; font-weight: bold; color: #dddddd; }
         .dark .pane-title { color: #d9d5d5; }
         /* ... tambahkan CSS chart dan tooltip lain yang diperlukan dari ultimate copy 24.html di sini ... */
+        .collapsible-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.4s ease-in-out;
+        }
+        .collapsible-content.expanded {
+            grid-template-rows: 1fr;
+        }
+        .collapsible-content > div {
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -514,7 +525,7 @@
     <div id="sticky-nav-wrapper" class="sticky top-0 z-50 bg-[#FDFBF7]/80 dark:bg-[#121212]/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
         <div class="flex items-center justify-between py-2 px-4 sm:px-6 lg:px-8">
             
-            <div class="flex items-center gap-8">
+            <div class="flex items-center gap-3">
 
                 <div class="flex items-center gap-3">
                     <div id="nav-info-container" class="items-center gap-2 hidden md:flex">
@@ -531,7 +542,7 @@
                     </div>
                 </div>
 
-                <div id="nav-stats-container" class="items-center gap-4 font-mono text-[10px] hidden md:flex">
+                <div id="nav-stats-container" class="items-center gap-3 font-mono text-[10px] hidden md:flex">
                     <div class="flex flex-col text-left">
                         <div>
                             <span class="text-gray-400">ATH:</span>
@@ -569,7 +580,7 @@
     <main>
 
         <div class="space-y-6 mb-8">
-            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
                 <div>
                     <input type="password" id="gemini-api-key" class="input-primary" placeholder="Your API Key...">
                     <p class="text-sm text-gray-400 mt-1">API 🔑 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-500">GET KEY 👆🏻</a>.</p>
@@ -687,7 +698,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 gap-4">
+                <div class="grid grid-cols-1 gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-400 mb-2">Top Movers (by TF)</h3>
                         <div id="gainers-list" class="space-y-2"></div>
@@ -695,9 +706,9 @@
                 </div>
             </section>
 
-            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+            <section class="card p-6 grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
                 <div>
-                    <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <input type="text" id="asset-input" list="asset-list" class="input-primary text-sm flex-grow uppercase" placeholder="Ketik Simbol Aset (cth: BTCUSDT)" value="BTCUSDT">
                         <datalist id="asset-list"></datalist>
                         <select id="market-type-select" class="input-primary text-sm !w-auto">
@@ -718,7 +729,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="md:col-span-2 flex gap-4">
+                <div class="md:col-span-2 flex gap-3">
                     <button id="analyze-asset-btn" class="btn-primary w-full font-bold text-xl">
                         <span id="button-text">GET DATA</span>
                         <div id="button-loader" class="loader hidden">
@@ -735,8 +746,7 @@
 
         <div id="dashboard-content" class="hidden">
             <div class="space-y-8">               
-                <div class="flex flex-col gap-8">
-                    <button id="toggle-charts-btn" class="btn-yellow w-full">SHOW CHART</button>
+                <div class="flex flex-col gap-3">
                     <section id="charts-wrapper" class="card p-6" style="display: none;">
                         <h2 class="text-xl font-bold mb-4">Live Chart</h2>
                         <div class="chart-container relative">
@@ -764,349 +774,8 @@
                             <div id="roc-chart-container"></div>
                         </div>
                     </section>
+                    <button id="toggle-charts-btn" class="btn-yellow w-full">SHOW CHART</button>
 
-                    <section id="current-state-section" class="card p-6">
-                        <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
-                            <h2 id="current-state-title" class="text-xl font-semibold">Current Market Condition</h2>
-                            <svg id="toggle-market-state-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <div id="current-state-content-wrapper" class="collapsible-content expanded">
-                            <div class="space-y-6">
-                                <h2 class="text-lg font-semibold text-center">Calculated Timeframe <span id="quick-confluence-timeframe">5m</span></h2>
-                                <div class="flex items-center gap-4 my-2">
-                                    <div id="quick-finalBearishScore" class="text-2xl font-bold status-downtrend text-right w-1/5">🐻 0%</div>
-                                    <div class="confluence-bar-container w-3/5">
-                                        <div id="quick-confluenceBarBearish" class="confluence-bar confluence-bar-bearish" style="width: 50%;"></div>
-                                        <div id="quick-confluenceBarBullish" class="confluence-bar confluence-bar-bullish" style="width: 50%;"></div>
-                                    </div>
-                                    <div id="quick-finalBullishScore" class="text-2xl font-bold status-uptrend text-left w-1/5">0% 🐂</div>
-                                </div>
-                                <div id="verdict-container" class="text-center">
-                                    <p id="quick-finalVerdict" class="font-semibold"></p>
-                                    <div id="tension-score-container" class="mt-3 text-xs"></div>
-                                </div>
-                                <div id="confluence-breakdown-container" class="mt-4 text-xs text-center space-y-2 hidden">
-                                    <div class="grid grid-cols-2 gap-2 text-left">
-                                        <div id="top-bullish-contributors"></div>
-                                        <div id="top-bearish-contributors"></div>
-                                    </div>
-                                </div>
-                                <div class="space-y-2 pt-6 border-t border-gray-200 dark:border-gray-700">
-                                    <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
-                                        <div class="h-16 flex items-center justify-center my-2"></div>
-                                        <p id="candlestick-pattern" class="font-semibold">NONE</p>
-                                    </div>
-                                    <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
-                                        <p id="chart-pattern-label" class="text-xs text-gray-500">Chart Pattern</p>
-                                        <p id="chart-pattern" class="font-semibold">NONE</p>
-                                    </div>
-                                </div>
-                                <hr class="border-gray-200 dark:border-gray-700/50 my-4">
-                                <div>
-                                    <h3 class="text-xl font-bold mb-4 text-center">Order Book</h3>
-                                    <div id="full-order-book-container" class="space-y-2 text-sm">
-                                        <p class="text-center text-gray-500">FETCHING DATA...</p>
-                                    </div>
-                                    <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                        <span class="text-gray-500">Order Book Bias</span>
-                                        <span id="order-book-bias" class="font-mono">-</span>
-                                    </div>
-                                </div>
-                                <hr class="border-gray-200 dark:border-gray-700/50 my-4">
-                                <div>
-                                    <h3 class="text-lg font-bold mb-4 text-center">CVD Order Flow</h3>
-                                    <div class="chart-container" style="height: 150px;">
-                                        <canvas id="cvdChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section id="confluence-details-section" class="card p-6">
-                        <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
-                            <h2 class="text-lg font-bold">Timeframe [ NOW ] -<span id="confluence-timeframe-display"> 5m</span></h2>
-                            <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <div id="confluence-content-wrapper" class="collapsible-content">
-                            <div>
-                                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                                    <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">KEY LEVEL</h3>
-                                    <div class="space-y-1 text-sm">
-                                        <div class="flex justify-between">
-                                            <span class="text-red-500">VAH</span>
-                                            <span id="vpvr-vah" class="font-mono">-</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="font-bold text-blue-500" data-tooltip="Point of Control (POC)|...">Point of Control (POC)</span>
-                                            <span id="vpvr-poc" class="font-mono font-bold">-</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-green-500">VAL</span>
-                                            <span id="vpvr-val" class="font-mono">-</span>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500">24H</span>
-                                            <span id="range-24h" class="font-mono font-semibold">-</span>
-                                        </div>
-
-                                        <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                            <div class="flex justify-between items-center">
-                                                <span class="text-gray-500" data-tooltip="Daily Pivot (P)|...">Daily Pivot (P)</span>
-                                                <span id="pivot-p" class="font-mono font-semibold text-blue-500">-</span>
-                                            </div>
-                                            <div id="pivot-levels-container" class="text-xs text-gray-400 space-y-1 mt-1 pl-4 hidden">
-                                                <div class="flex justify-between">
-                                                    <span>R1 / S1</span>
-                                                    <span id="pivot-r1s1" class="font-mono">-</span>
-                                                </div>
-                                                <div class="flex justify-between">
-                                                    <span>R2 / S2</span>
-                                                    <span id="pivot-r2s2" class="font-mono">-</span>
-                                                </div>
-                                                <div class="flex justify-between">
-                                                    <span>R3 / S3</span>
-                                                    <span id="pivot-r3s3" class="font-mono">-</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500" data-tooltip="VWAP (Volume-Weighted Average Price)|...">VWAP</span>
-                                            <div class="flex items-center gap-2">
-                                                <div id="vwap-mode-buttons" class="flex text-xs">
-                                                    <button data-mode="rolling" class="vwap-mode-btn active px-2 py-0.5 rounded-l-md" data-tooltip="Rolling VWAP|...">R</button>
-                                                    <button data-mode="session" class="vwap-mode-btn px-2 py-0.5" data-tooltip="Session VWAP|...">S</button>
-                                                    <button data-mode="anchored" class="vwap-mode-btn px-2 py-0.5 rounded-r-md" data-tooltip="Anchored VWAP|...">A</button>
-                                                </div>
-                                                <span id="vwap-20d" class="font-mono text-yellow-500">-</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                                    <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">MOMENTUM</h3>
-                                    <div class="space-y-1 text-sm">
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500">RSI (14)</span>
-                                            <div>
-                                                <span id="rsi-value" class="font-mono text-xs">-</span>
-                                                <span id="rsi-status" class="tag tag-gray"></span>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500">Stoch RSI (%K/%D)</span>
-                                            <div>
-                                                <span id="stoch-value" class="font-mono text-xs">-</span>
-                                                <span id="stoch-status" class="tag tag-gray"></span>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500">MACD</span>
-                                            <div>
-                                                <span id="macd-status" class="font-mono font-semibold">-</span>
-                                                <span id="macd-hist" class="font-mono text-xs ml-1">-</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-blue-500" data-tooltip="Bollinger Squeeze|...">Bollinger Squeeze</span>
-                                            <span id="bollinger-squeeze-status" class="font-mono">-</span>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-yellow-500">BB Reversal</span>
-                                            <span id="bollinger-rejection-status" class="font-mono">-</span>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500">BB Walk the Bands</span>
-                                            <span id="bollinger-walk-status" class="font-mono">-</span>
-                                        </div>
-                                        <div>
-                                            <div class="flex justify-between items-center">
-                                                <span class="text-gray-500">Bollinger Bands</span>
-                                                <span id="bollinger-bands-status" class="font-mono">-</span>
-                                            </div>
-                                            <div class="text-right text-xs text-gray-400 font-mono">
-                                                <span id="bb-upper-value">-</span> / <span id="bb-middle-value">-</span> / <span id="bb-lower-value">-</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500" data-tooltip="RSI Divergence|...">RSI Divergence</span>
-                                            <span id="rsi-divergence" class="font-mono font-semibold text-xs">-</span>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500" data-tooltip="Linear Regression Channel|...">LinReg Channel</span>
-                                            <span id="linreg-status" class="font-mono">-</span>
-                                        </div>
-                                        <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                            <span class="text-gray-500" data-tooltip="On-Balance Volume|Indikator momentum yang menggunakan volume untuk memprediksi perubahan harga.">OBV</span>
-                                            <span id="obv-value" class="font-mono font-semibold">-</span>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500" data-tooltip="Ichimoku Bias|...">Ichimoku Bias</span>
-                                            <span id="ichimoku-bias" class="font-mono font-semibold">-</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
-                                    <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">Asset Info</h3>
-                                    <div class="hidden">
-                                        <input type="text" id="correlation-asset-input" class="input-primary" value="BTCUSDT">
-                                    </div>
-                                    <div class="space-y-1 text-sm">
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-gray-500">BTC Correlation (30D)</span>
-                                            <div>
-                                                <span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span>
-                                                <span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span>
-                                            </div>
-                                        </div>
-                                        <div class="space-y-1 text-sm">
-                                            <div class="flex justify-between items-center">
-                                                <span class="text-gray-500">BTC Dominance</span>
-                                                <span id="btc-dominance" class="font-mono">-</span>
-                                            </div>
-                                            <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                                <span class="text-gray-500">Market Cap</span>
-                                                <span id="market-cap" class="font-mono">-</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section id="scalping-setup-section" class="card p-6">
-                        <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
-                            <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
-                            <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        <div id="scalping-content-wrapper" class="collapsible-content expanded">
-                            <div>
-                                <div id="hybrid-breakdown-module" class="mb-4">
-                                    <div class="flex items-center justify-between text-xs text-gray-400">
-                                        <span>Bullish Momentum</span>
-                                        <span>Bearish Pressure Score</span>
-                                    </div>
-                                    <div class="confluence-bar-container w-full h-8 mt-1">
-                                        <div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div>
-                                        <div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div>
-                                    </div>
-                                    <div class="flex items-center justify-between text-sm mt-1">
-                                        <span id="main-pump-score" class="positive font-bold">0%</span>
-                                        <span id="main-dump-score" class="negative font-bold">0/10</span>
-                                    </div>
-                                    <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">⚠ PLEASE CHECK YOU ARE IN THE RIGHT TIMEFRAME ⚠️</p>
-                                    <details class="mt-3">
-                                        <summary class="cursor-pointer text-xs text-gray-400 hover:text-white transition-colors flex justify-between items-center">
-                                            <span>Bearish Pressure Score Trigger▾</span>
-                                            <select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()">
-                                                <option value="1m">1m</option>
-                                                <option value="3m">3m</option>
-                                                <option value="5m" selected="">5m</option>
-                                                <option value="15m">15m</option>
-                                                <option value="30m">30m</option>
-                                                <option value="1h">1h</option>
-                                            </select>
-                                        </summary>
-                                        <div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1">
-                                            <p class="text-xs text-center text-gray-600">Pilih timeframe...</p>
-                                        </div>
-                                    </details>
-                                </div>
-                                <div class="pt-2 mt-2 border-t border-dashed border-gray-700/50">
-                                    <div id="scalping-resistance-info" class="flex justify-between items-center text-sm">
-                                        <span class="text-gray-500">Nearest Resistance</span>
-                                        <span class="font-mono font-semibold text-red-400">-</span>
-                                    </div>
-                                    <div id="scalping-wall-container" class="text-center text-xs pt-2 space-y-1">
-                                        <div id="buy-wall-display" class="text-green-500 font-semibold">— No Buy Wall Detected —</div>
-                                        <div id="sell-wall-display" class="text-red-500 font-semibold">— No Sell Wall Detected —</div>
-                                    </div>
-                                </div>
-                                <div id="tf-alignment-summary" class="pt-2 mt-2 border-t border-dashed border-gray-600/50"></div>
-                                <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
-                                    <div class="flex justify-between items-center text-sm">
-                                        <span class="text-gray-500">EMA 21/50</span>
-                                        <span id="ma-status" class="font-mono font-semibold">-</span>
-                                    </div>
-                                    <div class="text-right text-xs text-gray-400 font-mono">
-                                        <span id="ema-21-value">-</span> / <span id="ema-50-value">-</span>
-                                    </div>
-                                </div>
-                                <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50 text-sm">
-                                    <details>
-                                        <summary class="cursor-pointer text-center text-gray-500 text-xs mb-2 list-none">👇🏻 Click for More 👇🏻</summary>
-                                        <div class="mt-2">
-                                            <div class="space-y-1">
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-gray-500">Parabolic SAR</span>
-                                                    <span id="psar-status" class="font-mono text-sm">-</span>
-                                                </div>
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-gray-500" data-tooltip="Rate of Change (ROC)|...">Rate of Change (ROC)</span>
-                                                    <span id="roc-status" class="font-mono text-sm">-</span>
-                                                </div>
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|...">ADX 14</span>
-                                                    <div>
-                                                        <span id="adx-value" class="font-mono font-semibold text-sm">-</span>
-                                                        <span class="text-xs positive" id="plus-di-value"></span> /
-                                                        <span class="text-xs negative" id="minus-di-value"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="mt-2 pt-2 border-t border-dashed border-gray-700/20 space-y-1">
-                                                <div class="flex justify-between items-start">
-                                                    <div>
-                                                        <span class="text-gray-500 text-sm">A T R</span>
-                                                        <span id="atr-status-badge" class="tag tag-gray ml-2">...</span>
-                                                    </div>
-                                                    <div class="text-right">
-                                                        <p id="atr-percent-value" class="font-mono text-blue-500 font-semibold">-</p>
-                                                        <p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p>
-                                                    </div>
-                                                </div>
-                                                <div id="ls-umum-container" class="flex justify-between items-center">
-                                                    <span class="text-gray-500">L/S Ratio</span>
-                                                    <span id="ls-ratio-umum" class="font-mono">-</span>
-                                                </div>
-                                                <div id="ls-top-container" class="flex justify-between items-center">
-                                                    <span class="text-gray-500">L/S Ratio (Top)</span>
-                                                    <span id="ls-ratio-top" class="font-mono">-</span>
-                                                </div>
-                                                <div id="futures-data-container" class="hidden space-y-1">
-                                                    <div class="flex justify-between items-center">
-                                                        <span class="text-gray-500">Funding Interval</span>
-                                                        <span id="funding-rate-interval" class="font-mono">-</span>
-                                                    </div>
-                                                    <div class="flex justify-between items-center">
-                                                        <span class="text-yellow-500">Funding Rate</span>
-                                                        <span id="funding-rate" class="font-mono text-yellow-500">-</span>
-                                                    </div>
-                                                    <div class="flex justify-between items-center">
-                                                        <span class="text-gray-500">Open Interest</span>
-                                                        <span id="open-interest">-</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </details>
-                                </div>
-                                <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                    <p class="text-sm text-gray-500">FETCHING DATA...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                
                     <section id="onchain-card" class="card p-6">
                         <button id="toggle-onchain-btn" class="w-full flex justify-between items-center text-left mb-4">
                             <h2 class="text-xl font-bold">On-Chain</h2>
@@ -1133,10 +802,47 @@
                             </div>
                         </div>
                     </section>
-                
+
+                    <section id="ai-analysis-section" class="card p-6 relative hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold">AI ANALYZER</h2>
+                        </div>
+                        
+                        <div id="ai-content-container" class="space-y-6">
+                            <div id="ai-narrative-content" class="prose prose-sm dark:prose-invert max-w-none text-gray-600 space-y-4"></div>
+                            <div>
+                                <h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">🔮 Proyeksi Harga</h3>
+                                <div id="projection-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">♟️ Saran Strategis</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg">
+                                        <h4 class="font-semibold text-green-500 mb-2">Untuk Calon Buyer</h4>
+                                        <p id="saran-buyer" class="text-lg font-bold"></p>
+                                        <p id="alasan-buyer" class="text-sm text-gray-500 mt-1"></p>
+                                    </div>
+                                    <div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg">
+                                        <h4 class="font-semibold text-blue-500 mb-2">Untuk Holder</h4>
+                                        <p id="saran-holder" class="text-lg font-bold"></p>
+                                        <p id="alasan-holder" class="text-sm text-gray-500 mt-1"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <button id="toggle-ai-btn" class="btn-primary w-full mb-4">
+                                    <span>ASK AI</span>
+                                    <div class="loader w-5 h-5 hidden">
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                    </div>
+                                </button>
+
                     <section id="sentiment-display-container" class="card p-6">
                         <button id="toggle-sentiment-btn" class="w-full flex justify-between items-center text-left mb-4">
-                            <h2 class="text-xl font-bold">BTC Sentiment (via AI)</h2>
+                            <h2 class="text-xl font-bold">BTC Sentiment (by AI)</h2>
                             <svg id="toggle-sentiment-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
@@ -1145,243 +851,561 @@
                             <p class="text-center text-gray-500">Ask AI first....</p>
                         </div>
                     </section>
+                </div>
                 
-                    <section id="ai-analysis-section" class="card p-6 relative">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-xl font-bold">AI ANALYZER</h2>
-                        </div>
-                        <div id="ai-verdict-content-wrapper" class="collapsible-content expanded">
-                            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                                <button id="run-comprehensive-ai-btn" class="btn-primary w-full mb-4">
-                                    <span>ASK AI</span>
-                                    <div class="loader w-5 h-5 hidden">
-                                        <div class="dot"></div>
-                                        <div class="dot"></div>
-                                        <div class="dot"></div>
-                                    </div>
-                                </button>
-                                <div id="ai-content-container" class="hidden space-y-6">
-                                    <div id="ai-narrative-content" class="prose prose-sm dark:prose-invert max-w-none text-gray-600 space-y-4"></div>
-                                    <div>
-                                        <h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">🔮 Proyeksi Harga</h3>
-                                        <div id="projection-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">♟️ Saran Strategis</h3>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg">
-                                                <h4 class="font-semibold text-green-500 mb-2">Untuk Calon Buyer</h4>
-                                                <p id="saran-buyer" class="text-lg font-bold"></p>
-                                                <p id="alasan-buyer" class="text-sm text-gray-500 mt-1"></p>
-                                            </div>
-                                            <div class="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg">
-                                                <h4 class="font-semibold text-blue-500 mb-2">Untuk Holder</h4>
-                                                <p id="saran-holder" class="text-lg font-bold"></p>
-                                                <p id="alasan-holder" class="text-sm text-gray-500 mt-1"></p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="absolute bottom-2 right-2">
-                            <button id="toggle-ai-verdict-btn" class="p-1 rounded-full text-gray-400 hover:bg-gray-700 focus:outline-none">
-                                <svg id="toggle-ai-verdict-icon" class="w-5 h-5 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-3">
+                        <section id="current-state-section" class="card p-6">
+                            <button id="toggle-market-state-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <h2 id="current-state-title" class="text-xl font-semibold">Current Market</h2>
+                                <svg id="toggle-market-state-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                                 </svg>
                             </button>
-                        </div>
-                    </section>
-                    
-                    <section id="trailing-stop-calc-section" class="card p-6">
-                        <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
-                            <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
-                            <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                        
-                        <div id="ts-calc-content-wrapper" class="collapsible-content">
-                            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
-                                <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
-                                    ⚡️ Auto-fill dari Setup Scalping
-                                </button>
-                                <div class="btn-group">
-                                    <button id="ts-mode-cross" class="active">Cross</button>
-                                    <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
-                                    <button id="ts-mode-isolated" class="">Isolated</button>
-                                    <button id="ts-trailing-stop-options">⚙️ TS</button>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="input-group">
-                                        <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
-                                        <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
+                            <div id="current-state-content-wrapper" class="collapsible-content expanded">
+                                <div class="space-y-6">
+                                    <h2 class="text-lg font-semibold text-center">Calculated Timeframe <span id="quick-confluence-timeframe">5m</span></h2>
+                                    <div class="flex items-center gap-3 my-2">
+                                        <div id="quick-finalBearishScore" class="text-2xl font-bold status-downtrend text-right w-1/5">🐻 0%</div>
+                                        <div class="confluence-bar-container w-3/5">
+                                            <div id="quick-confluenceBarBearish" class="confluence-bar confluence-bar-bearish" style="width: 50%;"></div>
+                                            <div id="quick-confluenceBarBullish" class="confluence-bar confluence-bar-bullish" style="width: 50%;"></div>
+                                        </div>
+                                        <div id="quick-finalBullishScore" class="text-2xl font-bold status-uptrend text-left w-1/5">0% 🐂</div>
                                     </div>
-                                    <div class="input-group">
-                                        <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
-                                        <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
+                                    <div id="verdict-container" class="text-center">
+                                        <p id="quick-finalVerdict" class="font-semibold"></p>
+                                        <div id="tension-score-container" class="mt-3 text-xs"></div>
+                                    </div>
+                                    <div id="confluence-breakdown-container" class="mt-4 text-xs text-center space-y-2 hidden">
+                                        <div class="grid grid-cols-2 gap-2 text-left">
+                                            <div id="top-bullish-contributors"></div>
+                                            <div id="top-bearish-contributors"></div>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
+                                            <div class="h-16 flex items-center justify-center my-2"></div>
+                                            <p id="candlestick-pattern" class="font-semibold">NONE</p>
+                                        </div>
+                                        <div class="text-center p-2 rounded-md bg-gray-100 dark:bg-gray-800/50">
+                                            <p id="chart-pattern-label" class="text-xs text-gray-500">Chart Pattern</p>
+                                            <p id="chart-pattern" class="font-semibold">NONE</p>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+                        </section>
 
+                        <section id="confluence-details-section" class="card p-6">
+                            <button id="toggle-confluence-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <h2 class="text-lg font-bold">Timeframe [ NOW ] -<span id="confluence-timeframe-display"> 5m</span></h2>
+                                <svg id="toggle-confluence-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            <div id="confluence-content-wrapper" class="collapsible-content">
                                 <div>
-                                    <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
-                                    <div class="slider-ticks">
-                                        <span>0%</span>
-                                        <span>25%</span>
-                                        <span>50%</span>
-                                        <span>75%</span>
-                                        <span>100%</span>
-                                    </div>
-                                </div>
+                                    <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">KEY LEVEL</h3>
+                                        <div class="space-y-1 text-sm">
+                                            <div class="flex justify-between">
+                                                <span class="text-red-500">VAH</span>
+                                                <span id="vpvr-vah" class="font-mono">-</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="font-bold text-blue-500" data-tooltip="Point of Control (POC)|...">Point of Control (POC)</span>
+                                                <span id="vpvr-poc" class="font-mono font-bold">-</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-green-500">VAL</span>
+                                                <span id="vpvr-val" class="font-mono">-</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500">24H</span>
+                                                <span id="range-24h" class="font-mono font-semibold">-</span>
+                                            </div>
 
-                                <div class="input-group mt-6">
-                                    <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
-                                    <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
-                                </div>
+                                            <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500" data-tooltip="Daily Pivot (P)|...">Daily Pivot (P)</span>
+                                                    <span id="pivot-p" class="font-mono font-semibold text-blue-500">-</span>
+                                                </div>
+                                                <div id="pivot-levels-container" class="text-xs text-gray-400 space-y-1 mt-1 pl-4 hidden">
+                                                    <div class="flex justify-between">
+                                                        <span>R1 / S1</span>
+                                                        <span id="pivot-r1s1" class="font-mono">-</span>
+                                                    </div>
+                                                    <div class="flex justify-between">
+                                                        <span>R2 / S2</span>
+                                                        <span id="pivot-r2s2" class="font-mono">-</span>
+                                                    </div>
+                                                    <div class="flex justify-between">
+                                                        <span>R3 / S3</span>
+                                                        <span id="pivot-r3s3" class="font-mono">-</span>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                <div class="tpsl-section">
-                                    <div class="flex items-center gap-2">
-                                        <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
-                                        <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
-                                    </div>
-                                    <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
-                                        <div class="input-group">
-                                            <label for="ts-take-profit" class="input-label-top">Take Profit</label>
-                                            <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500" data-tooltip="VWAP (Volume-Weighted Average Price)|...">VWAP</span>
+                                                <div class="flex items-center gap-2">
+                                                    <div id="vwap-mode-buttons" class="flex text-xs">
+                                                        <button data-mode="rolling" class="vwap-mode-btn active px-2 py-0.5 rounded-l-md" data-tooltip="Rolling VWAP|...">R</button>
+                                                        <button data-mode="session" class="vwap-mode-btn px-2 py-0.5" data-tooltip="Session VWAP|...">S</button>
+                                                        <button data-mode="anchored" class="vwap-mode-btn px-2 py-0.5 rounded-r-md" data-tooltip="Anchored VWAP|...">A</button>
+                                                    </div>
+                                                    <span id="vwap-20d" class="font-mono text-yellow-500">-</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="input-group">
-                                            <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
-                                            <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
+                                    </div>
+
+                                    <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">MOMENTUM</h3>
+                                        <div class="space-y-1 text-sm">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500">RSI (14)</span>
+                                                <div>
+                                                    <span id="rsi-value" class="font-mono text-xs">-</span>
+                                                    <span id="rsi-status" class="tag tag-gray"></span>
+                                                </div>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500">Stoch RSI (%K/%D)</span>
+                                                <div>
+                                                    <span id="stoch-value" class="font-mono text-xs">-</span>
+                                                    <span id="stoch-status" class="tag tag-gray"></span>
+                                                </div>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500">MACD</span>
+                                                <div>
+                                                    <span id="macd-status" class="font-mono font-semibold">-</span>
+                                                    <span id="macd-hist" class="font-mono text-xs ml-1">-</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-blue-500" data-tooltip="Bollinger Squeeze|...">Bollinger Squeeze</span>
+                                                <span id="bollinger-squeeze-status" class="font-mono">-</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-yellow-500">BB Reversal</span>
+                                                <span id="bollinger-rejection-status" class="font-mono">-</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500">BB Walk the Bands</span>
+                                                <span id="bollinger-walk-status" class="font-mono">-</span>
+                                            </div>
+                                            <div>
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500">Bollinger Bands</span>
+                                                    <span id="bollinger-bands-status" class="font-mono">-</span>
+                                                </div>
+                                                <div class="text-right text-xs text-gray-400 font-mono">
+                                                    <span id="bb-upper-value">-</span> / <span id="bb-middle-value">-</span> / <span id="bb-lower-value">-</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500" data-tooltip="RSI Divergence|...">RSI Divergence</span>
+                                                <span id="rsi-divergence" class="font-mono font-semibold text-xs">-</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500" data-tooltip="Linear Regression Channel|...">LinReg Channel</span>
+                                                <span id="linreg-status" class="font-mono">-</span>
+                                            </div>
+                                            <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                                <span class="text-gray-500" data-tooltip="On-Balance Volume|Indikator momentum yang menggunakan volume untuk memprediksi perubahan harga.">OBV</span>
+                                                <span id="obv-value" class="font-mono font-semibold">-</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500" data-tooltip="Ichimoku Bias|...">Ichimoku Bias</span>
+                                                <span id="ichimoku-bias" class="font-mono font-semibold">-</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="exec-buttons">
-                                    <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
-                                    <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
-                                </div>
-
-                                <div class="calc-result-grid">
-                                    <span>Cost</span>
-                                    <span id="ts-result-cost">--</span>
-                                    <span>Max</span>
-                                    <span id="ts-result-max">--</span>
-                                    <span>Position Size</span>
-                                    <span id="ts-result-position-size">--</span>
-                                    <span>Liq. Price</span>
-                                    <span id="ts-result-liq-price">--</span>
-                                    <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span>
-                                    <span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
-                                    <span>Harga Stop Loss TS</span>
-                                    <span id="ts-result-sl-price">--</span>
-                                    <span>Potensi ROE</span>
-                                    <span id="ts-result-roe">--</span>
+                                    <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                                        <h3 class="font-semibold text-gray-700 dark:text-slate-400 mb-2">Asset Info</h3>
+                                        <div class="hidden">
+                                            <input type="text" id="correlation-asset-input" class="input-primary" value="BTCUSDT">
+                                        </div>
+                                        <div class="space-y-1 text-sm">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-gray-500">BTC Correlation (30D)</span>
+                                                <div>
+                                                    <span id="correlation-value" class="font-mono font-semibold text-gray-300">-</span>
+                                                    <span id="correlation-text" class="text-xs text-gray-500 ml-1">...</span>
+                                                </div>
+                                            </div>
+                                            <div class="space-y-1 text-sm">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-gray-500">BTC Dominance</span>
+                                                    <span id="btc-dominance" class="font-mono">-</span>
+                                                </div>
+                                                <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                                    <span class="text-gray-500">Market Cap</span>
+                                                    <span id="market-cap" class="font-mono">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
-                        <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
-                            <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
-                                    <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
-                                </div>
-                                <div class="space-y-4">
-                                    <div class="form-group">
-                                        <label for="ts-modal-callback-rate">Callback Rate (%)</label>
-                                        <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
-                                        <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
-                                    </div>
-                                </div>
-                                <div class="mt-6 text-right">
-                                    <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                    
-                    <section id="paper-trading-section" class="card p-6">
-                        <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
-                            <h2 class="text-xl font-bold">Trading Simulation</h2>
-                            <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-
-                        <div id="paper-trading-content-wrapper" class="collapsible-content">
-                            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                                    <div>
-                                        <p class="text-xs text-gray-500">Equity</p>
-                                        <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-500">Unrealized PNL</p>
-                                        <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-500">Available Margin</p>
-                                        <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
-                                    </div>
-                                    <div class="flex items-center justify-center">
-                                        <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
-                                    </div>
-                                </div>
-
-                                <div id="sim-active-position-container" class="hidden">
-                                    <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
-                                    <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
-                                        <div class="flex justify-between items-center">
-                                            <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
-                                            <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
-                                        </div>
-                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                            <div>
-                                                <span class="text-gray-400">Size:</span>
-                                                <span id="sim-position-size" class="font-mono"></span>
-                                            </div>
-                                            <div>
-                                                <span class="text-gray-400">Entry:</span>
-                                                <span id="sim-position-entry" class="font-mono"></span>
-                                            </div>
-                                            <div>
-                                                <span class="text-gray-400">Mark:</span>
-                                                <span id="sim-position-mark" class="font-mono"></span>
-                                            </div>
-                                            <div>
-                                                <span class="text-gray-400">Liq:</span>
-                                                <span id="sim-position-liq" class="font-mono"></span>
-                                            </div>
-                                        </div>
-                                        <div class="pt-2 border-t border-dashed border-gray-700">
-                                            <span class="text-gray-400">PNL (ROE %):</span>
-                                            <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
-                                        </div>
-                                    </div>
-                                </div>
-
+                        <section id="order-book-cvd-section" class="card p-6">
+                            <button id="toggle-order-book-cvd-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <h2 class="text-sm font-bold linking-text-animation">Order Book & CVD</h2>
+                                <svg id="toggle-order-book-cvd-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            <div id="order-book-cvd-content-wrapper" class="collapsible-content">
                                 <div>
-                                    <div class="flex justify-between items-center mb-2">
-                                        <h3 class="font-semibold text-gray-400">Trade History</h3>
-                                        <div class="flex gap-2">
-                                            <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
-                                            <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
-                                            <input type="file" id="sim-import-input" class="hidden" accept=".csv">
+                                    <hr class="border-gray-200 dark:border-gray-700/50 my-4">
+                                    <div>
+                                        <h3 class="text-xl font-bold mb-4 text-center">Order Book</h3>
+                                        <div id="full-order-book-container" class="space-y-2 text-sm">
+                                            <p class="text-center text-gray-500">FETCHING DATA...</p>
+                                        </div>
+                                        <div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                            <span class="text-gray-500">Order Book Bias</span>
+                                            <span id="order-book-bias" class="font-mono">-</span>
                                         </div>
                                     </div>
-                                    <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
-                                        <p class="text-center text-gray-600">No trade history yet.</p>
+                                    <hr class="border-gray-200 dark:border-gray-700/50 my-4">
+                                    <div>
+                                        <h3 class="text-lg font-bold mb-4 text-center">CVD Order Flow</h3>
+                                        <div class="chart-container" style="height: 150px;">
+                                            <canvas id="cvdChart"></canvas>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <section id="scalping-setup-section" class="card p-6">
+                            <button id="toggle-scalping-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <h2 class="text-xl font-bold">Scalping <span id="scalping-timeframe-display"></span></h2>
+                                <svg id="toggle-scalping-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            <div id="scalping-content-wrapper" class="collapsible-content expanded">
+                                <div>
+                                    <div id="hybrid-breakdown-module" class="mb-4">
+                                        <div class="flex items-center justify-between text-xs text-gray-400">
+                                            <span>Bullish Momentum</span>
+                                            <span>Bearish Pressure Score</span>
+                                        </div>
+                                        <div class="confluence-bar-container w-full h-8 mt-1">
+                                            <div id="main-pump-bar" class="confluence-bar confluence-bar-bullish" style="width: 0%;"></div>
+                                            <div id="main-dump-bar" class="confluence-bar confluence-bar-bearish" style="width: 0%;"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-sm mt-1">
+                                            <span id="main-pump-score" class="positive font-bold">0%</span>
+                                            <span id="main-dump-score" class="negative font-bold">0/10</span>
+                                        </div>
+                                        <p class="text-center text-[10px] text-gray-500 mt-1 blinking-text-animation">⚠ PLEASE CHECK YOU ARE IN THE RIGHT TIMEFRAME ⚠️</p>
+                                        <details open>
+                                            <summary class="cursor-pointer text-xs text-gray-400 hover:text-white transition-colors flex justify-between items-center border-b border-gray-500">
+                                                <span>Bearish Pressure Score Trigger▾</span>
+                                                <select id="dump-trigger-timeframe-select" class="input-primary !text-xs !w-auto !p-1 bg-gray-900/50 border-gray-600" onclick="event.stopPropagation()">
+                                                    <option value="1m">1m</option>
+                                                    <option value="3m">3m</option>
+                                                    <option value="5m" selected="">5m</option>
+                                                    <option value="15m">15m</option>
+                                                    <option value="30m">30m</option>
+                                                    <option value="1h">1h</option>
+                                                </select>
+                                            </summary>
+                                            <div id="trigger-breakdown-list" class="mt-2 pt-2 border-t border-gray-700/50 text-sm space-y-1">
+                                                <p class="text-xs text-center text-gray-600">Pilih timeframe...</p>
+                                            </div>
+                                        </details>
+                                    </div>
+                                    <div class="pt-2 mt-2 border-t border-dashed border-gray-700/50">
+                                        <div id="scalping-resistance-info" class="flex justify-between items-center text-sm">
+                                            <span class="text-gray-500">Nearest Resistance</span>
+                                            <span class="font-mono font-semibold text-red-400">-</span>
+                                        </div>
+                                        <div id="scalping-wall-container" class="text-center text-xs pt-2 space-y-1">
+                                            <div id="buy-wall-display" class="text-green-500 font-semibold">— No Buy Wall Detected —</div>
+                                            <div id="sell-wall-display" class="text-red-500 font-semibold">— No Sell Wall Detected —</div>
+                                        </div>
+                                    </div>
+                                    <div id="tf-alignment-summary" class="pt-2 mt-2 border-t border-dashed border-gray-600/50"></div>
+                                    <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-gray-500">EMA 21/50</span>
+                                            <span id="ma-status" class="font-mono font-semibold">-</span>
+                                        </div>
+                                        <div class="text-right text-xs text-gray-400 font-mono">
+                                            <span id="ema-21-value">-</span> / <span id="ema-50-value">-</span>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2 mt-2 border-t border-dashed border-gray-600/50 text-sm">
+                                        <details open>
+                                            <summary class="cursor-pointer text-gray-500 text-sm mb-2 list-none underline">↕ Hide/Unhide</summary>
+                                            <div class="mt-2">
+                                                <div class="space-y-1">
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-gray-500">Parabolic SAR</span>
+                                                        <span id="psar-status" class="font-mono text-sm">-</span>
+                                                    </div>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-gray-500" data-tooltip="Rate of Change (ROC)|...">Rate of Change (ROC)</span>
+                                                        <span id="roc-status" class="font-mono text-sm">-</span>
+                                                    </div>
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-gray-500 text-sm" data-tooltip="Kekuatan Tren (ADX)|...">ADX 14</span>
+                                                        <div>
+                                                            <span id="adx-value" class="font-mono font-semibold text-sm">-</span>
+                                                            <span class="text-xs positive" id="plus-di-value"></span> /
+                                                            <span class="text-xs negative" id="minus-di-value"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2 pt-2 border-t border-dashed border-gray-700/20 space-y-1">
+                                                    <div class="flex justify-between items-start">
+                                                        <div>
+                                                            <span class="text-gray-500 text-sm">A T R</span>
+                                                            <span id="atr-status-badge" class="tag tag-gray ml-2">...</span>
+                                                        </div>
+                                                        <div class="text-right">
+                                                            <p id="atr-percent-value" class="font-mono text-blue-500 font-semibold">-</p>
+                                                            <p id="atr-absolute-value" class="font-mono text-xs text-gray-400">-</p>
+                                                        </div>
+                                                    </div>
+                                                    <div id="ls-umum-container" class="flex justify-between items-center">
+                                                        <span class="text-gray-500">L/S Ratio</span>
+                                                        <span id="ls-ratio-umum" class="font-mono">-</span>
+                                                    </div>
+                                                    <div id="ls-top-container" class="flex justify-between items-center">
+                                                        <span class="text-gray-500">L/S Ratio (Top)</span>
+                                                        <span id="ls-ratio-top" class="font-mono">-</span>
+                                                    </div>
+                                                    <div id="futures-data-container" class="hidden space-y-1">
+                                                        <div class="flex justify-between items-center">
+                                                            <span class="text-gray-500">Funding Interval</span>
+                                                            <span id="funding-rate-interval" class="font-mono">-</span>
+                                                        </div>
+                                                        <div class="flex justify-between items-center">
+                                                            <span class="text-yellow-500">Funding Rate</span>
+                                                            <span id="funding-rate" class="font-mono text-yellow-500">-</span>
+                                                        </div>
+                                                        <div class="flex justify-between items-center">
+                                                            <span class="text-gray-500">Open Interest</span>
+                                                            <span id="open-interest">-</span>
+                                                        </div>
+                                                        <div id="fib-targets-container" class="mt-4 pt-4 border-t border-dashed border-gray-700">
+                                                            </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </details>
+                                    </div>
+                                    <div id="scalping-setup-content" class="text-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        <p class="text-sm text-gray-500">FETCHING DATA...</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+
+                        </section>
+
+                        <section id="trailing-stop-calc-section" class="card p-6">
+                            <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
+                                <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            
+                            <div id="ts-calc-content-wrapper" class="collapsible-content">
+                                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
+                                    <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
+                                        ⚡️ Auto-fill dari Setup Scalping
+                                    </button>
+                                    <div class="btn-group">
+                                        <button id="ts-mode-cross" class="active">Cross</button>
+                                        <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
+                                        <button id="ts-mode-isolated" class="">Isolated</button>
+                                        <button id="ts-trailing-stop-options">⚙️ TS</button>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="input-group">
+                                            <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
+                                            <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
+                                            <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
+                                        <div class="slider-ticks">
+                                            <span>0%</span>
+                                            <span>25%</span>
+                                            <span>50%</span>
+                                            <span>75%</span>
+                                            <span>100%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group mt-6">
+                                        <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
+                                        <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
+                                    </div>
+
+                                    <div class="tpsl-section">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
+                                            <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
+                                        </div>
+                                        <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
+                                            <div class="input-group">
+                                                <label for="ts-take-profit" class="input-label-top">Take Profit</label>
+                                                <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                                            </div>
+                                            <div class="input-group">
+                                                <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
+                                                <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="exec-buttons">
+                                        <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
+                                        <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
+                                    </div>
+
+                                    <div class="calc-result-grid">
+                                        <span>Cost</span>
+                                        <span id="ts-result-cost">--</span>
+                                        <span>Max</span>
+                                        <span id="ts-result-max">--</span>
+                                        <span>Position Size</span>
+                                        <span id="ts-result-position-size">--</span>
+                                        <span>Liq. Price</span>
+                                        <span id="ts-result-liq-price">--</span>
+                                        <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span>
+                                        <span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
+                                        <span>Harga Stop Loss TS</span>
+                                        <span id="ts-result-sl-price">--</span>
+                                        <span>Potensi ROE</span>
+                                        <span id="ts-result-roe">--</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+                                <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
+                                        <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="form-group">
+                                            <label for="ts-modal-callback-rate">Callback Rate (%)</label>
+                                            <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
+                                            <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
+                                        </div>
+                                    </div>
+                                    <div class="mt-6 text-right">
+                                        <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section id="paper-trading-section" class="card p-6">
+                            <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <h2 class="text-xl font-bold">Trading Simulation</h2>
+                                <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+
+                            <div id="paper-trading-content-wrapper" class="collapsible-content">
+                                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Equity</p>
+                                            <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Unrealized PNL</p>
+                                            <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Available Margin</p>
+                                            <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="sim-active-position-container" class="hidden">
+                                        <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
+                                        <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
+                                            <div class="flex justify-between items-center">
+                                                <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
+                                                <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
+                                            </div>
+                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                                <div>
+                                                    <span class="text-gray-400">Size:</span>
+                                                    <span id="sim-position-size" class="font-mono"></span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">Entry:</span>
+                                                    <span id="sim-position-entry" class="font-mono"></span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">Mark:</span>
+                                                    <span id="sim-position-mark" class="font-mono"></span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">Liq:</span>
+                                                    <span id="sim-position-liq" class="font-mono"></span>
+                                                </div>
+                                            </div>
+                                            <div class="pt-2 border-t border-dashed border-gray-700">
+                                                <span class="text-gray-400">PNL (ROE %):</span>
+                                                <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <h3 class="font-semibold text-gray-400">Trade History</h3>
+                                            <div class="flex gap-2">
+                                                <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
+                                                <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
+                                                <input type="file" id="sim-import-input" class="hidden" accept=".csv">
+                                            </div>
+                                        </div>
+                                        <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
+                                            <p class="text-center text-gray-600">No trade history yet.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
                 </div>
-            </div>
+                </div>
         </div>
     </main>
 
@@ -1423,6 +1447,8 @@
     const resetBtn = document.getElementById('reset-btn');
     const toggleChartsBtn = document.getElementById('toggle-charts-btn');
     const chartsWrapper = document.getElementById('charts-wrapper');
+    const toggleAiBtn = document.getElementById('toggle-ai-btn');
+    const aiContentContainer = document.getElementById('ai-content-container');
 // =====================================================================================================================================================================
 // BAGIAN 2: KONSTANTA KONFIGURASI
 // =====================================================================================================================================================================
@@ -1703,6 +1729,51 @@
 // =====================================================================================================================================================================
 // BAGIAN 4: DEFINISI FUNGSI-FUNGSI
 // =====================================================================================================================================================================
+    function getTimeAgo(date) {
+        if (!(date instanceof Date) || isNaN(date)) {
+            return 'beberapa saat lalu'; 
+        }
+        const seconds = Math.floor((new Date() - date) / 1000);
+        if (seconds < 0) return 'baru saja'; 
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " tahun lalu";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " bulan lalu";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " hari lalu";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " jam lalu";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " menit lalu";
+        return Math.floor(seconds) + " detik lalu";
+    }
+// =====================================================================================================================================================================
+    function getExplorerUrl(networkName) {
+        const explorerMap = {
+            'eth': 'https://etherscan.io', 
+            'ethereum': 'https://etherscan.io',
+            'solana': 'https://solscan.io',
+            'bsc': 'https://bscscan.com',
+            'arbitrum': 'https://arbiscan.io',
+            'base': 'https://basescan.org'
+        };
+        const baseUrl = explorerMap[networkName] || `https://${networkName}.info`;
+        // Kembalikan URL terpisah untuk dompet dan transaksi
+        return {
+            address: `${baseUrl}/address/`,
+            tx: `${baseUrl}/tx/`
+        };
+    }
+// =====================================================================================================================================================================
+    function getHolderCategory(usdValue) {
+        if (usdValue >= 500000) return { name: 'Humpback', class: 'text-purple-400' };
+        if (usdValue >= 100000) return { name: 'Whale', class: 'text-blue-400' };
+        if (usdValue >= 50000) return { name: 'Tuna', class: 'text-teal-400' };
+        if (usdValue >= 10000) return { name: 'Dolphin', class: 'text-cyan-400' };
+        if (usdValue >= 1000) return { name: 'Crab', class: 'text-yellow-400' };
+        return { name: 'Shrimp', class: 'text-gray-400' };
+    } 
+    
     function setButtonState(button, isLoading, text = null) {
         const btnText = button.querySelector('span');
         const btnLoader = button.querySelector('.loader');
@@ -2811,32 +2882,26 @@
     }
 
     function calculatePivotPoints(prevDayKline) {
-    // Pengecekan awal, jika tidak ada data sama sekali, langsung hentikan.
-    if (!prevDayKline || prevDayKline.length < 5) return null;
+        if (!prevDayKline || prevDayKline.length < 5) return null;
+        const high = parseFloat(prevDayKline[2]);
+        const low = parseFloat(prevDayKline[3]);
+        const close = parseFloat(prevDayKline[4]);
 
-    // Ambil nilai dan pastikan dikonversi menjadi angka.
-    const high = parseFloat(prevDayKline[2]);
-    const low = parseFloat(prevDayKline[3]);
-    const close = parseFloat(prevDayKline[4]);
+        if (isNaN(high) || isNaN(low) || isNaN(close)) {
+            console.error("Gagal menghitung Pivot: Salah satu data (H, L, C) bukan angka yang valid.", {high, low, close});
+            return null;
+        }
 
-    // ---> INI BAGIAN PENTING <---
-    // Pengecekan kedua, jika salah satu data gagal di-parse menjadi angka, hentikan.
-    if (isNaN(high) || isNaN(low) || isNaN(close)) {
-        console.error("Gagal menghitung Pivot: Salah satu data (H, L, C) bukan angka yang valid.", {high, low, close});
-        return null;
+        const P = (high + low + close) / 3;
+        const R1 = (2 * P) - low;
+        const S1 = (2 * P) - high;
+        const R2 = P + (high - low);
+        const S2 = P - (high - low);
+        const R3 = high + 2 * (P - low);
+        const S3 = low - 2 * (high - P);
+
+        return { P, R1, S1, R2, S2, R3, S3 };
     }
-
-    // Jika semua data valid, lanjutkan perhitungan seperti biasa.
-    const P = (high + low + close) / 3;
-    const R1 = (2 * P) - low;
-    const S1 = (2 * P) - high;
-    const R2 = P + (high - low);
-    const S2 = P - (high - low);
-    const R3 = high + 2 * (P - low);
-    const S3 = low - 2 * (high - P);
-
-    return { P, R1, S1, R2, S2, R3, S3 };
-}
 // ===================================================================================================================================================================================================================================================================================
     function calculateKeltnerChannels(klines, period = 20, multiplier = 2, atrPeriod = 10) {
         if (!klines || klines.length < period) return { upper: [], middle: [], lower: [], width: [] };
@@ -2908,8 +2973,7 @@
         const prevClose = parseFloat(klines[i - 1][4]);
         trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
     }
-    
-    // Menggunakan metode RMA untuk menghaluskan True Range
+
     const rma = (data, p) => {
         let smoothed = [];
         let sum = 0;
@@ -2952,7 +3016,7 @@
         return atrResult.atrPercent;
     }
 // ===================================================================================================================================================================================================================================================================================
-function analyzeBollingerBandsPriceAction(klines, bbData) {
+    function analyzeBollingerBandsPriceAction(klines, bbData) {
         if (!klines || klines.length < 2 || !bbData || bbData.upper.length < 2) {
             return { rejection: 'NONE', walkTheBands: 'NONE' };
         }
@@ -2967,21 +3031,17 @@ function analyzeBollingerBandsPriceAction(klines, bbData) {
         const prevClose = parseFloat(prevKline[4]);
 
         let rejection = 'NONE';
-        // Logika Rejection Bullish
         if (prevClose < prevLower && lastClose > lastLower && lastClose > prevClose) {
             rejection = 'Bullish Rejection (Lower BB)';
         }
-        // Logika Rejection Bearish
         if (prevClose > prevUpper && lastClose < lastUpper && lastClose < prevClose) {
             rejection = 'Bearish Rejection (Upper BB)';
         }
 
         let walkTheBands = 'NONE';
-        // Logika Walk the Bands Bullish
         if (lastClose >= lastUpper && prevClose >= prevUpper) {
             walkTheBands = 'Bullish (Upper BB)';
         }
-        // Logika Walk the Bands Bearish
         if (lastClose <= lastLower && prevClose <= prevLower) {
             walkTheBands = 'Bearish (Lower BB)';
         }
@@ -2989,7 +3049,7 @@ function analyzeBollingerBandsPriceAction(klines, bbData) {
         return { rejection, walkTheBands };
     }
 
-function getPatternSVG(patternName) {
+    function getPatternSVG(patternName) {
         const svgHeader = `<svg viewBox="0 0 110 60" class="w-24 h-auto mx-auto my-2">`;
         const svgFooter = `</svg>`;
         const green = '#26a69a', red = '#ef5350', gray = '#2A1E27';
@@ -3004,7 +3064,7 @@ function getPatternSVG(patternName) {
                 <rect x="${x}" y="${bodyY}" width="20" height="${bodyHeight > 0 ? bodyHeight : 0.5}" fill="${color}"/>
             `;
         };
-    // ======================================
+
         switch(patternName) {
             // --- POLA BULLISH ---
             case 'BULLISH_ENGULFING':
@@ -3051,52 +3111,7 @@ function getPatternSVG(patternName) {
         return svgHeader + content + svgFooter;
     }
 // =====================================================================================================================================================================
-    function getTimeAgo(date) {
-        if (!(date instanceof Date) || isNaN(date)) {
-            return 'beberapa saat lalu'; 
-        }
-        const seconds = Math.floor((new Date() - date) / 1000);
-        if (seconds < 0) return 'baru saja'; 
-        let interval = seconds / 31536000;
-        if (interval > 1) return Math.floor(interval) + " tahun lalu";
-        interval = seconds / 2592000;
-        if (interval > 1) return Math.floor(interval) + " bulan lalu";
-        interval = seconds / 86400;
-        if (interval > 1) return Math.floor(interval) + " hari lalu";
-        interval = seconds / 3600;
-        if (interval > 1) return Math.floor(interval) + " jam lalu";
-        interval = seconds / 60;
-        if (interval > 1) return Math.floor(interval) + " menit lalu";
-        return Math.floor(seconds) + " detik lalu";
-    }
-// =====================================================================================================================================================================
-    function getExplorerUrl(networkName) {
-        const explorerMap = {
-            'eth': 'https://etherscan.io', 
-            'ethereum': 'https://etherscan.io',
-            'solana': 'https://solscan.io',
-            'bsc': 'https://bscscan.com',
-            'arbitrum': 'https://arbiscan.io',
-            'base': 'https://basescan.org'
-        };
-        const baseUrl = explorerMap[networkName] || `https://${networkName}.info`;
-        // Kembalikan URL terpisah untuk dompet dan transaksi
-        return {
-            address: `${baseUrl}/address/`,
-            tx: `${baseUrl}/tx/`
-        };
-    }
-// =====================================================================================================================================================================
-    function getHolderCategory(usdValue) {
-        if (usdValue >= 500000) return { name: 'Humpback', class: 'text-purple-400' };
-        if (usdValue >= 100000) return { name: 'Whale', class: 'text-blue-400' };
-        if (usdValue >= 50000) return { name: 'Tuna', class: 'text-teal-400' };
-        if (usdValue >= 10000) return { name: 'Dolphin', class: 'text-cyan-400' };
-        if (usdValue >= 1000) return { name: 'Crab', class: 'text-yellow-400' };
-        return { name: 'Shrimp', class: 'text-gray-400' };
-    }
-// =====================================================================================================================================================================
-     function findPivots(klines, lookback = 10) {
+    function findPivots(klines, lookback = 10) {
         const pivots = [];
         if (klines.length < lookback * 2 + 1) return [];
 
@@ -3260,35 +3275,186 @@ function getPatternSVG(patternName) {
         return { pattern: 'Tidak Terdeteksi', class: 'text-gray-500' };
     }
 
-    function findLastSignificantSwing(klines) {
-        const pivots = findPivots(klines.slice(-300), 5); 
-        if (pivots.length < 3) return null;
+    // GANTI FUNGSI LAMA DENGAN VERSI BARU YANG LEBIH CERDAS INI
+function findLastSignificantSwing(klines) {
+    // Kita cari di 300 candle terakhir dengan sensitivitas pivot 5
+    const pivots = findPivots(klines.slice(-300), 5);
+    
+    // Jika pivot yang ditemukan kurang dari 3, mustahil membentuk pola A-B-C
+    if (pivots.length < 3) return null;
 
-        const lastPivot = pivots[pivots.length - 1];
-        const prevPivot = pivots[pivots.length - 2];
-        const prevPrevPivot = pivots[pivots.length - 3];
+    // Loop mundur dari pivot paling akhir untuk mencari pola yang valid
+    for (let i = pivots.length - 1; i >= 2; i--) {
+        const p3 = pivots[i];     // Ini adalah kandidat titik C
+        const p2 = pivots[i - 1]; // Ini adalah kandidat titik B
+        const p1 = pivots[i - 2]; // Ini adalah kandidat titik A
 
-        // Swing untuk potensi LONG (kita mencari titik A, B, C: Low -> High -> Low)
-        if (lastPivot.type === 'low' && prevPivot.type === 'high' && prevPrevPivot.type === 'low') {
-            return { A: prevPrevPivot, B: prevPivot, C: lastPivot, type: 'UP' };
+        // Mencari pola NAIK (Low -> High -> Higher Low)
+        if (p1.type === 'low' && p2.type === 'high' && p3.type === 'low') {
+            // Kondisi krusial: Titik C harus lebih tinggi dari A
+            if (p3.price > p1.price) {
+                // Pola valid ditemukan! Langsung kembalikan hasilnya.
+                return { A: p1, B: p2, C: p3, type: 'UP' };
+            }
         }
-        // Swing untuk potensi SHORT (kita mencari titik A, B, C: High -> Low -> High)
-        if (lastPivot.type === 'high' && prevPivot.type === 'low' && prevPrevPivot.type === 'high') {
-            return { A: prevPrevPivot, B: prevPivot, C: lastPivot, type: 'DOWN' };
+
+        // Mencari pola TURUN (High -> Low -> Lower High)
+        if (p1.type === 'high' && p2.type === 'low' && p3.type === 'high') {
+            // Kondisi krusial: Titik C harus lebih rendah dari A
+            if (p3.price < p1.price) {
+                // Pola valid ditemukan! Langsung kembalikan hasilnya.
+                return { A: p1, B: p2, C: p3, type: 'DOWN' };
+            }
         }
-        return null;
     }
 
-    function calculateFibonacciExtension(swing) {
-        if (!swing) return null;
-        const impulseMove = Math.abs(swing.B.price - swing.A.price);
-        if (swing.type === 'UP') {
-            return swing.C.price + (impulseMove * 1.618);
-        } else { 
-            return swing.C.price - (impulseMove * 1.618);
+    // Jika loop selesai dan tidak ada pola valid yang ditemukan
+    return null;
+}
+
+    function calculateAdvancedFibonacciExtension(swing) {
+        // 1. Validasi Input yang lebih kuat
+        if (!swing || !swing.A?.price || !swing.B?.price || !swing.C?.price || !swing.type) {
+            return null;
         }
-    } 
+
+        const priceA = parseFloat(swing.A.price);
+        const priceB = parseFloat(swing.B.price);
+        const priceC = parseFloat(swing.C.price);
+
+        if (isNaN(priceA) || isNaN(priceB) || isNaN(priceC)) {
+            return null;
+        }
+
+        // 2. Menghitung jarak impuls (A ke B)
+        const impulseMove = Math.abs(priceB - priceA);
+
+        // 3. Mendefinisikan Level-level Fibonacci
+        const fibLevels = [0, 0.618, 1.0, 1.272, 1.618, 2.618];
+        const calculatedLevels = {};
+
+        // 4. Menghitung setiap level
+        fibLevels.forEach(level => {
+            let targetPrice;
+            if (swing.type === 'UP') {
+                targetPrice = priceC + (impulseMove * level);
+            } else { // 'DOWN'
+                targetPrice = priceC - (impulseMove * level);
+            }
+            calculatedLevels[`level_${level.toString().replace('.', '_')}`] = targetPrice;
+        });
+
+        // 5. Mengembalikan Objek yang Informatif
+        return {
+            swingPoints: { A: priceA, B: priceB, C: priceC },
+            type: swing.type,
+            levels: calculatedLevels
+        };
+    }
 // ===================================================================================================================================================================================================================================================================================
+    // GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
+    let currentFibMode = 'extension'; // Variabel untuk menyimpan mode aktif
+
+    function displayFibonacciTargets() {
+        const extData = realtimeCache.main.fibExtensions;
+        const retData = realtimeCache.main.fibRetracements;
+        const container = document.getElementById('fib-targets-container');
+
+        if (!container) return;
+
+        // Tentukan data mana yang akan ditampilkan berdasarkan mode
+        const fibData = (currentFibMode === 'extension') ? extData : retData;
+        const modeTitle = (currentFibMode === 'extension') ? 'Extension' : 'Retracement';
+
+        if (!fibData || !fibData.levels) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+
+        const isUptrend = fibData.type === 'UP';
+        const titleColor = isUptrend ? 'positive' : 'negative';
+        
+        let html = `
+            <div class="flex justify-between items-center mb-2">
+                <h4 class="text-sm font-semibold ${titleColor}">🎯 Fibonacci ${modeTitle} Targets (${fibData.type})</h4>
+                <button id="toggle-fibo-mode-btn" class="btn-secondary !text-xs !py-1 !px-3">
+                    ${currentFibMode === 'extension' ? 'Show Retracement' : 'Show Extension'}
+                </button>
+            </div>
+        `;
+        
+        html += '<div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">';
+
+        for (const key in fibData.levels) {
+            const levelName = key.replace('level_', '').replace('.', '_');
+            const price = fibData.levels[key];
+            
+            html += `
+                <div class="flex justify-between items-center p-1 bg-gray-800/50 rounded">
+                    <span class="font-semibold text-gray-300">${levelName.replace('_', '.')}</span>
+                    <span class="font-mono ${titleColor}">${formatPrice(price)}</span>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+
+        // Tambahkan event listener ke tombol SETELAH tombol itu ada di DOM
+        const toggleBtn = document.getElementById('toggle-fibo-mode-btn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                // Ganti mode dan panggil ulang fungsi display & render chart
+                currentFibMode = (currentFibMode === 'extension') ? 'retracement' : 'extension';
+                displayFibonacciTargets();
+                renderAllCharts(); // Panggil render chart agar garis di chart juga berubah
+            });
+        }
+    }
+
+    /**
+ * Menghitung berbagai level Fibonacci Retracement berdasarkan 2 titik swing harga (A, B).
+ * @param {object} swing Objek yang merepresentasikan swing harga (A, B, C).
+ * @returns {object|null} Sebuah objek berisi level-level Retracement yang dihitung.
+ */
+    function calculateFibonacciRetracement(swing) {
+        if (!swing || !swing.A?.price || !swing.B?.price) {
+            return null;
+        }
+
+        const priceA = parseFloat(swing.A.price);
+        const priceB = parseFloat(swing.B.price);
+
+        if (isNaN(priceA) || isNaN(priceB)) {
+            return null;
+        }
+
+        const impulseMove = Math.abs(priceB - priceA);
+        
+        // Level-level standar untuk Retracement
+        const retracementLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+        const calculatedLevels = {};
+
+        retracementLevels.forEach(level => {
+            let targetPrice;
+            // Untuk tren NAIK (A rendah, B tinggi), retracement dihitung turun dari B.
+            if (swing.type === 'UP') {
+                targetPrice = priceB - (impulseMove * level);
+            } else { // 'DOWN' (A tinggi, B rendah), retracement dihitung naik dari B.
+                targetPrice = priceB + (impulseMove * level);
+            }
+            calculatedLevels[`level_${level.toString().replace('.', '_')}`] = targetPrice;
+        });
+
+        return {
+            swingPoints: { A: priceA, B: priceB },
+            type: swing.type,
+            levels: calculatedLevels
+        };
+    }
+
     function renderTrendingPools(poolsData) {
         let html = '';
         const topPools = poolsData.slice(0, 5); 
@@ -3348,7 +3514,7 @@ function getPatternSVG(patternName) {
         try {
             const aiContentContainer = document.getElementById('ai-content-container');
             if (aiContentContainer) aiContentContainer.classList.add('hidden');
-            const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
+            const comprehensiveBtn = document.getElementById('toggle-ai-btn');
             if (comprehensiveBtn) {
                 const btnText = comprehensiveBtn.querySelector('span');
                 const btnLoader = comprehensiveBtn.querySelector('.loader');
@@ -3503,6 +3669,10 @@ function getPatternSVG(patternName) {
             realtimeCache.main.tfAlignmentSummary = tfAlignmentSummary;
             const marketRegime = determineMarketRegime(klines, klines.map(k => parseFloat(k[4])));
             realtimeCache.main.marketRegime = marketRegime;
+            const swing = findLastSignificantSwing(klines);
+            realtimeCache.main.fibExtensions = calculateAdvancedFibonacciExtension(swing);
+            realtimeCache.main.fibRetracements = calculateFibonacciRetracement(swing);
+            
 
             updateDashboardUI();
             startCandleCountdown(); 
@@ -3678,11 +3848,18 @@ function getPatternSVG(patternName) {
             return;
         }
 
-        const comprehensiveBtn = document.getElementById('run-comprehensive-ai-btn');
+        const comprehensiveBtn = document.getElementById('toggle-ai-btn');
         const btnText = comprehensiveBtn.querySelector('span');
         const btnLoader = comprehensiveBtn.querySelector('.loader');
         const aiContentContainer = document.getElementById('ai-content-container');
         const aiNarrativeEl = document.getElementById('ai-narrative-content');
+
+        // Sembunyikan tombol 'ASK AI'
+        toggleAiBtn.querySelector('span').classList.add('hidden');
+        toggleAiBtn.querySelector('.loader').classList.remove('hidden');
+        toggleAiBtn.disabled = true;
+
+        
 
         btnText.classList.add('hidden');
         btnLoader.classList.remove('hidden');
@@ -3735,14 +3912,11 @@ function getPatternSVG(patternName) {
 
         } catch (error) {
             aiNarrativeEl.innerHTML = `<p class="text-red-500">Gagal mendapatkan analisa AI: ${error.message}</p>`;
-
         } finally {
-            const btnText = comprehensiveBtn.querySelector('span');
-            const btnLoader = comprehensiveBtn.querySelector('.loader');
-
-            btnText.classList.remove('hidden');
-            btnLoader.classList.add('hidden');
-            comprehensiveBtn.disabled = false;
+            // Sembunyikan loader setelah selesai
+            toggleAiBtn.querySelector('span').classList.remove('hidden');
+            toggleAiBtn.querySelector('.loader').classList.add('hidden');
+            toggleAiBtn.disabled = false;
         }
     }
 // ===================================================================================================================================================================================================================================================================================
@@ -3975,7 +4149,7 @@ function getPatternSVG(patternName) {
                         <p class="text-xs text-gray-500 mt-1">${p.alasan}</p>
                     </div>`;
             });
-            projectionContainer.className = `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4`;
+            projectionContainer.className = `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3`;
         } else {
             projectionContainer.innerHTML = '<p class="text-xs text-gray-500 col-span-full">Proyeksi harga tidak tersedia.</p>';
         }
@@ -4058,7 +4232,7 @@ function getPatternSVG(patternName) {
     }
 // ===================================================================================================================================================================================================================================================================================
     async function createTFAlignmentSummary(symbol, marketType) {
-        const timeframes = ['5m', '15m', '1h', '4h', '1d'];
+        const timeframes = ['1m', '5m', '15m', '1h', '4h', '1d'];
         const summary = {};
         
         let score = 0; 
@@ -4105,7 +4279,7 @@ function getPatternSVG(patternName) {
             alignmentHtml += `
                 <div class="text-center p-1 rounded-md bg-gray-800/50 flex-1 mtf-clickable-box" data-timeframe="${tf}">
                     <span class="font-semibold">${tf}</span><br>
-                    <span class="text-xl ${colorClass}">${trendIcon}</span>
+                    <span class="text-sm ${colorClass}">${trendIcon}</span>
                 </div>`;
         }
         
@@ -4150,6 +4324,7 @@ function getPatternSVG(patternName) {
         renderCvdChart();
         updateQuickConfluenceWidget();
         calculateAndDisplayScalpingSetup();
+        displayFibonacciTargets();
     }
 // ===================================================================================================================================================================================================================================================================================
     function startFundingRateTimer(nextFundingTime) {
@@ -4284,8 +4459,8 @@ function getPatternSVG(patternName) {
                 ${candleResult.svg || ''}
             </div>
             
-            <p id="candlestick-pattern" class="font-semibold ${candleResult.class}">${candleResult.pattern}</p>
-            ${candleResult.bias !== 'NETRAL' ? `<p class="text-xs font-bold ${biasClass}">${candleResult.bias}</p>` : ''}
+            <p id="candlestick-pattern" class="text-xs font-semibold ${candleResult.class}">${candleResult.pattern}</p>
+            ${candleResult.bias !== 'NETRAL' ? `<p class="text-xs font-semibold ${biasClass}">${candleResult.bias}</p>` : ''}
         `;
         const chartPatternEl = document.getElementById('chart-pattern');
         chartPatternEl.textContent = calculatedData.chartPattern.pattern;
@@ -4497,7 +4672,7 @@ function getPatternSVG(patternName) {
             `).join('');
 
             fullOrderBookContainer.innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
                         <h4 class="text-red-500 font-bold">ASKs (Jual)</h4>
                         <div id="asks-container">${asksHtml}</div>
@@ -4612,7 +4787,7 @@ function getPatternSVG(patternName) {
     function getChartBaseOptions(height) {
         const isDarkMode = document.documentElement.classList.contains('dark');
         return {
-            width: document.getElementById('charts-wrapper').clientWidth - 48, 
+            width: document.getElementById('charts-wrapper').clientWidth - 48,
             height: height,
             layout: { background: { color: isDarkMode ? '#0e0d0d' : '#FFFFFF' }, textColor: isDarkMode ? '#D1D5DB' : '#374151' },
             grid: { vertLines: { color: 'transparent' }, horzLines: { color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' } },
@@ -4686,6 +4861,7 @@ function getPatternSVG(patternName) {
         
         destroyCharts();
 
+        const chartWrapperWidth = document.getElementById('charts-wrapper').clientWidth;
         const { klines, calculatedData } = realtimeCache.main;
         const closes = klines.map(k => parseFloat(k[4]));    
         const formattedKlines = klines
@@ -4764,22 +4940,48 @@ function getPatternSVG(patternName) {
             if (vwapValue > 0) {
                 candlestickSeries.createPriceLine({ price: vwapValue, color: '#03a9f4', lineWidth: 2, lineStyle: LightweightCharts.LineStyle.Dotted, axisLabelVisible: true, title: 'VW' });
             }
+        // 4. Tampilkan Target/Level Fibonacci (Dinamis berdasarkan mode)
+        const fibData = (currentFibMode === 'extension') 
+            ? realtimeCache.main.fibExtensions 
+            : realtimeCache.main.fibRetracements;
 
-        // 3. Tampilkan Ichimoku Cloud
-        const ichimokuData = calculatedData.ichimoku.data;
-            if (ichimokuData) {
-                const KijunP = 26; 
-                
-                
-                const senkouA_plot = ichimokuData.senkouA.map((val, idx) => klines[idx + KijunP] ? { time: klines[idx + KijunP][0] / 1000, value: val } : null).filter(Boolean);
-                const senkouB_plot = ichimokuData.senkouB.map((val, idx) => klines[idx + KijunP] ? { time: klines[idx + KijunP][0] / 1000, value: val } : null).filter(Boolean);
-                const cloudSeriesA = mainChart.addAreaSeries({ priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, lineWidth: 1, color: 'rgba(38, 166, 154, 0.2)' });
-                const cloudSeriesB = mainChart.addAreaSeries({ priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, lineWidth: 1, color: 'rgba(239, 83, 80, 0.2)' });
-                cloudSeriesA.setData(senkouA_plot);
-                cloudSeriesB.setData(senkouB_plot);
-                mainChart.addLineSeries({ color: '#2962FF', lineWidth: 1, priceLineVisible: false, lastValueVisible: false }).setData(formatLineData(ichimokuData.tenkan, klines));
-                mainChart.addLineSeries({ color: '#D50000', lineWidth: 1, priceLineVisible: false, lastValueVisible: false }).setData(formatLineData(ichimokuData.kijun, klines));
+        if (fibData && fibData.levels && candlestickSeries) {
+            const isUptrend = fibData.type === 'UP';
+            // Gunakan warna berbeda untuk membedakan Retracement
+            const lineColor = (currentFibMode === 'extension')
+                ? (isUptrend ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)')
+                : 'rgba(255, 165, 0, 0.7)'; // Warna oranye untuk Retracement
+
+            const prefix = (currentFibMode === 'extension') ? 'Ext' : 'Ret';
+
+            for (const key in fibData.levels) {
+                const levelName = key.replace('level_', '').replace('_', '.');
+                const price = fibData.levels[key];
+                candlestickSeries.createPriceLine({
+                    price: price,
+                    color: lineColor,
+                    lineWidth: 1,
+                    lineStyle: LightweightCharts.LineStyle.Dashed,
+                    axisLabelVisible: true,
+                    title: `${prefix} ${levelName}`
+                });
             }
+        }
+        // 3. Tampilkan Ichimoku Cloud
+        //const ichimokuData = calculatedData.ichimoku.data;
+           // if (ichimokuData) {
+              //  const KijunP = 26; 
+                
+                
+              //  const senkouA_plot = ichimokuData.senkouA.map((val, idx) => klines[idx + KijunP] ? { time: klines[idx + KijunP][0] / 1000, value: val } : null).filter(Boolean);
+               // const senkouB_plot = ichimokuData.senkouB.map((val, idx) => klines[idx + KijunP] ? { time: klines[idx + KijunP][0] / 1000, value: val } : null).filter(Boolean);
+               // const cloudSeriesA = mainChart.addAreaSeries({ priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, lineWidth: 1, color: 'rgba(38, 166, 154, 0.2)' });
+              //  const cloudSeriesB = mainChart.addAreaSeries({ priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, lineWidth: 1, color: 'rgba(239, 83, 80, 0.2)' });
+              //  cloudSeriesA.setData(senkouA_plot);
+               // cloudSeriesB.setData(senkouB_plot);
+               // mainChart.addLineSeries({ color: '#2962FF', lineWidth: 1, priceLineVisible: false, lastValueVisible: false }).setData(formatLineData(ichimokuData.tenkan, klines));
+               // mainChart.addLineSeries({ color: '#D50000', lineWidth: 1, priceLineVisible: false, lastValueVisible: false }).setData(formatLineData(ichimokuData.kijun, klines));
+          //  }
         
         const rsiChart = LightweightCharts.createChart(document.getElementById('rsi-chart-container'), getChartBaseOptions(150));
         charts.push(rsiChart);
@@ -5005,19 +5207,27 @@ function getPatternSVG(patternName) {
     }
 // ===================================================================================================================================================================================================================================================================================
     function toggleChartsVisibility() {
-        isChartsVisible = !isChartsVisible;
-        if (isChartsVisible) {
-            chartsWrapper.style.display = 'block';
-            toggleChartsBtn.textContent = 'HIDE CHART';
-            if (realtimeCache.main.klines) {
-                renderAllCharts();
+    isChartsVisible = !isChartsVisible;
+    if (isChartsVisible) {
+        chartsWrapper.style.display = 'block';
+        toggleChartsBtn.textContent = 'HIDE CHART';
+
+        const observer = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const { width } = entry.contentRect;
+                if (width > 0) {
+                    renderAllCharts();
+                    observer.unobserve(entry.target); // Hentikan observer setelah chart dirender
+                }
             }
-        } else {
-            chartsWrapper.style.display = 'none';
-            toggleChartsBtn.textContent = 'SHOW CHART';
-            destroyCharts();
-        }
+        });
+        observer.observe(chartsWrapper); // Mulai mengamati div charts-wrapper
+    } else {
+        chartsWrapper.style.display = 'none';
+        toggleChartsBtn.textContent = 'SHOW CHART';
+        destroyCharts();
     }
+}
 
 const processQueues = () => {
         let shouldUpdateMainUI = false;
@@ -6238,7 +6448,7 @@ const processQueues = () => {
         } else {
             finalVerdictHtml = `
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
-                    <p class="font-semibold text-yellow-400">SIDEWAYS</p>
+                    <p class="font-semibold text-sm text-yellow-400">SIDEWAYS</p>
                     <p class="text-sm text-gray-400 mt-1">No Feasible Long/Short Setup. Do Not Trade.</p>
                 </div>
             `;
@@ -6250,14 +6460,14 @@ const processQueues = () => {
         // --- Langkah 4: BLOK RENDER TUNGGAL (STATIS) ---
         // Struktur HTML ini akan selalu sama, hanya isinya yang berubah.
         container.innerHTML = `
-            <div class="grid grid-cols-3 gap-4 text-center items-start">
+            <div class="grid grid-cols-3 gap-3 text-center items-start">
                 <div class="col-span-1">
                     <p class="text-xs text-gray-500">Contextual Bias (TF: 1H)</p>
                     <p class="text-[10px] font-mono ${trenUtamaClass}">1H Trend: ${trenUtama}</p> 
                     <p class="text-sm font-semiboldblinking-text-animation ${biasClass}">${biasKontekstual}</p>
                     <p class="text-xs text-gray-400 font-mono">${biasDetail}</p>
                 </div>
-                <div class="col-span-2 grid grid-cols-2 gap-4">
+                <div class="col-span-2 grid grid-cols-2 gap-3">
                     <div>
                         <p class="text-xs text-gray-500">Entry</p>
                         <p class="font-normal text-sm text-yellow-400">${formatPrice(entryPrice)}</p>
@@ -6270,7 +6480,7 @@ const processQueues = () => {
                     </div>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-4 text-center items-start">
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-3 gap-3 text-center items-start">
                 <div>
                     <p class="text-xs text-gray-500">TP 1 (Structural)</p>
                     <p class="font-normal ${tpColorClass}">${formatPrice(takeProfit1)}</p>
@@ -6286,7 +6496,7 @@ const processQueues = () => {
                     <p class="font-semibold text-sm">${tp3Display}</p>
                 </div>
             </div>
-            <div class="min-h-[90px] flex flex-col justify-center">
+            <div class="min-h-[55px] flex flex-col justify-center">
                 ${finalVerdictHtml}
             </div>
         `;
@@ -6967,9 +7177,9 @@ function initializeNewCalculator() {
         setupToggle('toggle-confluence-btn', 'confluence-content-wrapper', 'toggle-confluence-icon', true);
         setupToggle('toggle-onchain-btn', 'onchain-content-wrapper', 'toggle-onchain-icon', false);        
         setupToggle('toggle-settings-btn', 'settings-content-wrapper', 'toggle-settings-icon', false);
-        setupToggle('toggle-ai-verdict-btn', 'ai-verdict-content-wrapper', 'toggle-ai-verdict-icon', true);
-        setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', true);
-        setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', true);
+        setupToggle('toggle-order-book-cvd-btn', 'order-book-cvd-content-wrapper', 'toggle-order-book-cvd-icon', false);
+        setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', false);
+        setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', false);
         toggleChartsBtn.addEventListener('click', () => toggleChartsVisibility());
         // Inisialisasi semua event listener tombol dan input
         window.addEventListener('resize', adjustContentPadding);
@@ -7019,8 +7229,9 @@ function initializeNewCalculator() {
             }
         });
 
-        document.getElementById('run-comprehensive-ai-btn').addEventListener('click', runComprehensiveAIAnalysis);
+        document.getElementById('toggle-ai-btn').addEventListener('click', runComprehensiveAIAnalysis);
         
+
         tradeLink.addEventListener('click', (e) => {
             e.preventDefault();
             const binanceSymbol = realtimeCache.main.binanceSymbol;
@@ -7034,6 +7245,40 @@ function initializeNewCalculator() {
                 setTimeout(() => { window.location.href = desktopUrl; }, 1500);
             } else {
                 window.open(desktopUrl, '_blank');
+            }
+        });
+
+        aiContentContainer.style.maxHeight = '0px';
+        aiContentContainer.style.opacity = '0';
+
+        toggleAiBtn.addEventListener('click', async () => {
+            if (isAiAnalysisVisible) {
+                // Sembunyikan analisis jika sudah ditampilkan
+                aiContentContainer.style.maxHeight = '0px';
+                aiContentContainer.style.opacity = '0';
+                document.querySelector('#toggle-ai-btn span').textContent = 'ASK AI';
+                isAiAnalysisVisible = false;
+            } else {
+                // Jika belum ada analisis, jalankan analisis terlebih dahulu
+                const aiNarrativeEl = document.getElementById('ai-narrative-content');
+                if (aiNarrativeEl.innerHTML.trim() === '') {
+                    // Tampilkan loader saat analisis berjalan
+                    aiContentContainer.style.maxHeight = '500px'; 
+                    aiContentContainer.style.opacity = '1';
+                    aiNarrativeEl.innerHTML = '<p class="text-center text-gray-500">Analisa sedang diproses...</p>';
+
+                    await runComprehensiveAIAnalysis();
+                    // Analisis selesai, tampilkan konten dan ubah tombol
+                    document.querySelector('#toggle-ai-btn span').textContent = 'HIDE ANALYSIS';
+                    aiContentContainer.style.maxHeight = '2000px'; 
+                    isAiAnalysisVisible = true;
+                } else {
+                    // Tampilkan analisis jika sudah ada
+                    aiContentContainer.style.maxHeight = '2000px'; 
+                    aiContentContainer.style.opacity = '1';
+                    document.querySelector('#toggle-ai-btn span').textContent = 'HIDE ANALYSIS';
+                    isAiAnalysisVisible = true;
+                }
             }
         });
 
