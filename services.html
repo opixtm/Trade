@@ -3377,6 +3377,27 @@ async function evaluateFitness(population, historicalData) {
             tradeSpeed.textContent = `${tradesPerSecond.toFixed(1)} Trade/detik`;
         }
     }
+// ===== PATCH V2: Always send timeframe to worker =====
+function postBacktestMessage(action, extraData = {}) {
+    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
+    if (typeof worker !== 'undefined') {
+        worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
+    } else {
+        console.error("Worker is not defined!");
+    }
+}
+
+// Hook start backtest button supaya selalu kirim timeframe
+const startBtn = document.getElementById('start-backtest-btn');
+if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        postBacktestMessage("startBacktest", {
+            leverage: document.getElementById('backtest-leverage-input')?.value,
+            balance: document.getElementById('backtest-initial-balance')?.value
+        });
+    });
+}
+// ===== END PATCH V2 =====
 
 //======================================================================================================================================
     document.addEventListener('DOMContentLoaded', () => {
