@@ -580,24 +580,43 @@ const timeframeParameterMap = {
 
             return { bull: bullPercentage, bear: bearPercentage };
         }
-    function calculateMetrics(trades, initialBalance) {
-    if (trades.length === 0) return { totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0, finalBalance: initialBalance, maxDrawdown: 0, expectancy: 0, maxLosingStreak: 0 };
-    let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0, equityCurve = [initialBalance], peakEquity = initialBalance, maxDrawdown = 0, losingStreak = 0, maxLosingStreak = 0;
-    trades.forEach(trade => {
-        totalPnl += trade.pnl;
-        const currentEquity = initialBalance + totalPnl;
-        equityCurve.push(currentEquity);
-        peakEquity = Math.max(peakEquity, currentEquity);
-        const drawdown = ((peakEquity - currentEquity) / peakEquity) * 100;
-        maxDrawdown = Math.max(maxDrawdown, drawdown);
-        if (trade.pnl > 0) { wins++; losingStreak = 0; grossProfit += trade.pnl; } 
-        else { losingStreak++; maxLosingStreak = Math.max(maxLosingStreak, losingStreak); grossLoss += Math.abs(trade.pnl); }
-    });
-    const winRate = (wins / trades.length) * 100;
-    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
-    const expectancy = totalPnl / trades.length;
-    return { totalPnl, winRate, profitFactor, totalTrades: trades.length, finalBalance: initialBalance + totalPnl, maxDrawdown, expectancy, maxLosingStreak };
-}
+    function getConfluenceAnalysis(klines) {
+        if (!klines || klines.length < 50) {
+            return { skorBullish: 0, skorBearish: 0, detail: 'Not Enough Data' };
+        }
+
+        let skorBullish = 0;
+        let skorBearish = 0;
+        const closes = klines.map(k => parseFloat(k[4]));
+
+        // --- Kalkulasi Indikator Penting ---
+        const rsiValues = calculateRSI(closes);
+        const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
+        const macd = calculateMACD(closes, 12, 26, 9); // Gunakan parameter default di worker
+        const candlePattern = findCandlestickPatterns(klines);
+        const rsiDivergence = detectRSIDivergence(closes, rsiValues);
+
+        // --- Logika Penilaian Bearish ---
+        if (candlePattern.bias === 'BEARISH') skorBearish += 2.0;
+        if (macd.status === 'Bearish Cross') skorBearish += 2.0;
+        if (lastRsi > 70) skorBearish += 1.5; // Overbought
+        if (rsiDivergence.status === 'BEARISH') skorBearish += 2.5;
+
+        // --- Logika Penilaian Bullish ---
+        if (candlePattern.bias === 'BULLISH') skorBullish += 2.0;
+        if (macd.status === 'Bullish Cross') skorBullish += 2.0;
+        if (lastRsi < 30) skorBullish += 1.5; // Oversold
+        if (rsiDivergence.status === 'BULLISH') skorBullish += 2.5;
+        
+        // Total skor maksimal adalah 8
+        const totalPossibleScore = 8.0;
+
+        return { 
+            skorBullish: (skorBullish / totalPossibleScore) * 10,
+            skorBearish: (skorBearish / totalPossibleScore) * 10,
+            detail: `Bull (${skorBullish.toFixed(1)}) vs Bear (${skorBearish.toFixed(1)})`
+        };
+    }
 
 
 // === BAGIAN 3: FUNGSI UTAMA PEKERJAAN (RUN BACKTEST) ===
