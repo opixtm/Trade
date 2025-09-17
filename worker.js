@@ -588,166 +588,147 @@
 
 // === BAGIAN 3: FUNGSI UTAMA PEKERJAAN (RUN BACKTEST) ===
 
-async function runBacktestWithGenome(genome, historicalData) {
+function calculateMetrics(trades, initialBalance) {
+    if (trades.length === 0) return { totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0, finalBalance: initialBalance, maxDrawdown: 0, expectancy: 0, maxLosingStreak: 0 };
+    let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0, equityCurve = [initialBalance], peakEquity = initialBalance, maxDrawdown = 0, losingStreak = 0, maxLosingStreak = 0;
+    trades.forEach(trade => {
+        totalPnl += trade.pnl;
+        const currentEquity = initialBalance + totalPnl;
+        equityCurve.push(currentEquity);
+        peakEquity = Math.max(peakEquity, currentEquity);
+        const drawdown = ((peakEquity - currentEquity) / peakEquity) * 100;
+        maxDrawdown = Math.max(maxDrawdown, drawdown);
+        if (trade.pnl > 0) { wins++; losingStreak = 0; grossProfit += trade.pnl; } 
+        else { losingStreak++; maxLosingStreak = Math.max(maxLosingStreak, losingStreak); grossLoss += Math.abs(trade.pnl); }
+    });
+    const winRate = (trades.length > 0) ? (wins / trades.length) * 100 : 0;
+    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
+    const expectancy = trades.length > 0 ? totalPnl / trades.length : 0;
+    return { totalPnl, winRate, profitFactor, totalTrades: trades.length, finalBalance: initialBalance + totalPnl, maxDrawdown, expectancy, maxLosingStreak };
+}
+
+// === BAGIAN 3: FUNGSI UTAMA PEKERJAAN ===
+
+async function runBacktestWithGenome(genome, historicalData, timeframe) {
     const settings = {
-        initialBalance: 1000,
-        leverage: 10,
-        riskPerTrade: 0.01,
-        takerFee: 0.0004,
-        makerFee: 0.0002,
-        slippageModel: 'atrAdvanced',
-        atrSlippagePercent: 10,
-        randomSlippagePercent: 0.005,
-        marginMode: 'cross',
-        // Timpa pengaturan default dengan DNA dari genome
-        riskRewardRatio: genome.riskRewardRatio,
-        pullbackEmaPeriod: genome.pullbackEmaPeriod,
-        swingLookback: genome.swingLookback,
-        biasThreshold: genome.biasThreshold,
-        atrFilterThreshold: genome.atrFilterThreshold,
-        weights: genome.weights,
+        initialBalance: 1000, leverage: 10, riskPerTrade: 0.01,
+        takerFee: 0.0004, makerFee: 0.0002, slippageModel: 'atrAdvanced',
+        atrSlippagePercent: 10, randomSlippagePercent: 0.005, marginMode: 'cross',
+        ...genome
     };
 
-    // --- STEP 1: PRE-CALCULATION (MEMBUAT CACHE) ---
+    // STEP 1: PRE-CALCULATION (MEMBUAT CACHE)
     const analysisCache = [];
     const fullCloses = historicalData.map(k => parseFloat(k[4]));
-    const allEma21 = calculateEMA(fullCloses, 21);
-    const allEma50 = calculateEMA(fullCloses, 50);
-    const allRsiValues = calculateRSI(fullCloses);
+    
+    // Gunakan parameter dari genome untuk kalkulasi
+    const macdParams = timeframeParameterMap[timeframe] || timeframeParameterMap['15m'];
+    const allMacdData = calculateMACD(fullCloses, macdParams.macd_fast, macdParams.macd_slow, macdParams.macd_signal);
+    
     for (let i = 0; i < historicalData.length; i++) {
         if (i < 200) {
-            analysisCache.push(null);
-            continue;
+            analysisCache.push(null); continue;
         }
-        // DI SINI kita menggunakan slice, karena ini dilakukan satu kali per candle saat membuat cache
         const klinesSnapshot = historicalData.slice(0, i + 1);
-        const closesSnapshot = fullCloses.slice(0, i + 1);
-        const score = getConfluenceAnalysis(klinesSnapshot); // Menggunakan fungsi konfluensi sederhana
+        const score = getConfluenceAnalysis(klinesSnapshot);
         const atr = calculateATR(klinesSnapshot);
         analysisCache.push({ bullScore: score.skorBullish, bearScore: score.skorBearish, atrValue: atr.value });
     }
 
-// --- STEP 2: SIMULATION (MENGGUNAKAN CACHE) ---
-let balance = settings.initialBalance;
-let position = null;
-const trades = [];
-const MAINTENANCE_MARGIN_RATE = 0.005;
+    // STEP 2: SIMULATION (MENGGUNAKAN CACHE)
+    let balance = settings.initialBalance;
+    let position = null;
+    const trades = [];
+    
+    for (let i = 200; i < historicalData.length; i++) {
+        const cacheEntry = analysisCache[i];
+        if (!cacheEntry) continue;
 
-// ▼▼▼ GANTI LOOP LAMA ANDA DENGAN YANG LENGKAP INI ▼▼▼
-for (let i = 200; i < historicalData.length; i++) {
-    const cacheEntry = analysisCache[i];
-    if (!cacheEntry) continue;
+        const currentCandle = historicalData[i];
+        const currentLow = parseFloat(currentCandle[3]);
+        const currentHigh = parseFloat(currentCandle[2]);
 
-    const currentCandle = historicalData[i];
-    const currentLow = parseFloat(currentCandle[3]);
-    const currentHigh = parseFloat(currentCandle[2]);
-
-    // === BAGIAN 1: LOGIKA EXIT (YANG SUDAH ANDA TEMUKAN) ===
-    if (position) {
-        let exitReason = null, exitPrice = 0;
-        if (position.type === 'LONG') {
-            if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
-            else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
-        } else { // SHORT
-            if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
-            else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+        if (position) {
+            let exitReason = null, exitPrice = 0;
+            if (position.type === 'LONG') {
+                if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+            } else {
+                if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+            }
+            if(exitReason){
+                const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
+                const netPnl = rawPnl - ( (position.entryPrice * position.size * settings.takerFee) + (exitPrice * position.size * settings.makerFee) );
+                balance += netPnl;
+                trades.push({ ...position, exitPrice, pnl: netPnl, exitDate: new Date(currentCandle[0]), reason: exitReason });
+                position = null;
+                if (balance <= 0) break;
+            }
         }
-        if(exitReason){
-            const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
-            const entryValue = position.entryPrice * position.size;
-            const exitValue = exitPrice * position.size;
-            const entryFee = entryValue * settings.takerFee;
-            const exitFee = exitValue * settings.makerFee;
-            const totalFee = entryFee + exitFee;
-            const netPnl = rawPnl - totalFee;
-            balance += netPnl;
-            trades.push({ ...position, exitPrice, pnl: netPnl, fee: totalFee, exitDate: new Date(currentCandle[0]), reason: exitReason });
-            position = null;
-            if (balance <= 0) { break; } // Hentikan jika modal habis
+
+        if (!position && cacheEntry) {
+            const klinesSnapshot = historicalData.slice(0, i + 1);
+            const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
+            let entrySignal = false, detectedBias = 'NETRAL', entryPrice = 0;
+            const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+            const recentKlines = historicalData.slice(Math.max(0, i - settings.swingLookback), i);
+            const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+            const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+
+            if (currentRegime === 'bullTrend' || currentRegime === 'bearTrend') {
+                const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
+                const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
+                if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
+                    entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
+                }
+            } else if (currentRegime === 'ranging') {
+                const bollingerBands = calculateBollingerBands(closes); 
+                const lastLowerBand = bollingerBands.lower.filter(v=>v).pop();
+                const lastUpperBand = bollingerBands.upper.filter(v=>v).pop();
+                if (lastLowerBand > 0 && currentLow <= lastLowerBand) { 
+                    entrySignal = true; detectedBias = 'LONG'; entryPrice = currentLow; 
+                } else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) { 
+                    entrySignal = true; detectedBias = 'SHORT'; entryPrice = currentHigh; 
+                }
+            } else if (currentRegime === 'lowVolatility') {
+                if (currentHigh > recentSwingHigh) { 
+                    entrySignal = true; detectedBias = 'LONG'; entryPrice = recentSwingHigh; 
+                } else if (currentLow < recentSwingLow) { 
+                    entrySignal = true; detectedBias = 'SHORT'; entryPrice = recentSwingLow; 
+                }
+            }
+            
+            if (entrySignal && (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold))) {
+                let stopLoss, takeProfit;
+                if (detectedBias === 'LONG') {
+                    stopLoss = recentSwingLow * 0.999;
+                    takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
+                } else {
+                    stopLoss = recentSwingHigh * 1.001;
+                    takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio);
+                }
+                const cost = balance * settings.riskPerTrade;
+                const sizeInAsset = (cost * settings.leverage) / entryPrice;
+                position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
+            }
         }
     }
-
-    // === BAGIAN 2: LOGIKA ENTRY (YANG ANDA CARI) ===
-    if (!position && cacheEntry) {
-        const klinesSnapshot = historicalData.slice(0, i + 1);
-        const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
-        let entrySignal = false; 
-        let detectedBias = 'NETRAL'; 
-        let entryPrice = 0;
-        
-        const closes = klinesSnapshot.map(k => parseFloat(k[4]));
-        const recentKlines = historicalData.slice(Math.max(0, i - settings.swingLookback), i);
-        const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
-        const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-
-        if (currentRegime === 'bullTrend' || currentRegime === 'bearTrend') {
-            const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
-            const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
-            if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
-                entrySignal = true; 
-                detectedBias = bias; 
-                entryPrice = emaEntry;
-            }
-        } else if (currentRegime === 'ranging') {
-            const bollingerBands = calculateBollingerBands(closes); 
-            const lastUpperBand = bollingerBands.upper.pop(); 
-            const lastLowerBand = bollingerBands.lower.pop();
-            if (lastLowerBand > 0 && currentLow <= lastLowerBand) { 
-                entrySignal = true; 
-                detectedBias = 'LONG'; 
-                entryPrice = currentLow; 
-            } else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) { 
-                entrySignal = true; 
-                detectedBias = 'SHORT'; 
-                entryPrice = currentHigh; 
-            }
-        } else if (currentRegime === 'lowVolatility') {
-            if (currentHigh > recentSwingHigh) { 
-                entrySignal = true; 
-                detectedBias = 'LONG'; 
-                entryPrice = recentSwingHigh; 
-            } else if (currentLow < recentSwingLow) { 
-                entrySignal = true; 
-                detectedBias = 'SHORT'; 
-                entryPrice = recentSwingLow; 
-            }
-        }
-        
-        if (entrySignal && (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold))) {
-            let stopLoss, takeProfit;
-            if (detectedBias === 'LONG') {
-                stopLoss = recentSwingLow * 0.999;
-                takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
-            } else { // SHORT
-                stopLoss = recentSwingHigh * 1.001;
-                takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio);
-            }
-            const cost = balance * settings.riskPerTrade;
-            const sizeInAsset = (cost * settings.leverage) / entryPrice;
-            position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
-        }
-    }
-}
-// ▲▲▲ AKHIR DARI BLOK LOOP YANG LENGKAP ▲▲▲
 
     // --- STEP 3: METRICS ---
     const metrics = calculateMetrics(trades, settings.initialBalance);
     return metrics;
 }
 
-
 // === BAGIAN 4: "TELINGA" KARYAWAN ===
 self.onmessage = async function(e) {
-    const { genome, historicalData, fitnessMetric } = e.data;
-    
-    const metrics = await runBacktestWithGenome(genome, historicalData);
-    
+    const { genome, historicalData, timeframe, fitnessMetric } = e.data;
+    const metrics = await runBacktestWithGenome(genome, historicalData, timeframe);
     let fitnessScore = 0;
     if (fitnessMetric === 'Win Rate') {
         fitnessScore = metrics.winRate || 0;
     } else { // Default ke Profit Factor
         fitnessScore = metrics.profitFactor > 0 ? metrics.profitFactor : 0;
     }
-
     self.postMessage({ ...genome, fitness: fitnessScore, metrics: metrics });
 };

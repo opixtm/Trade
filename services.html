@@ -517,7 +517,7 @@
                     <div><label class="block text-sm text-gray-400">Ukuran Populasi</label><input type="number" id="population-size" value="50" class="input-primary mt-1" /></div>
                     <div><label class="block text-sm text-gray-400">Jumlah Generasi</label><input type="number" id="generation-count" value="200" class="input-primary mt-1" /></div>
                     <div><label class="block text-sm text-gray-400">Tingkat Mutasi (%)</label><input type="number" id="mutation-rate" value="5" class="input-primary mt-1" /></div><div><label class="block text-sm text-gray-400">Optimasi Berdasarkan</label>
-                        <select class="input-primary mt-1"><option selected>Profit Factor</option><option>Win Rate</option><option>Sharpe Ratio</option></select>
+                        <select id="optimization-metric-select" class="input-primary mt-1"><option selected>Profit Factor</option><option>Win Rate</option><option>Sharpe Ratio</option></select>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4 mt-4">
@@ -3099,9 +3099,10 @@
     }
 
 // Fungsi untuk mengevaluasi setiap strategi dalam populasi
-    async function evaluateFitness(population, historicalData) {
-    // Tentukan jumlah "Karyawan" yang akan dipekerjakan, idealnya satu kurang dari total core CPU Anda
-    const numWorkers = navigator.hardwareConcurrency ? navigator.hardwareConcurrency - 1 : 5;
+    // GANTI SELURUH FUNGSI evaluateFitness YANG LAMA DENGAN VERSI INI
+
+async function evaluateFitness(population, historicalData) {
+    const numWorkers = navigator.hardwareConcurrency ? Math.max(1, navigator.hardwareConcurrency - 1) : 5;
     const workers = [];
     for (let i = 0; i < numWorkers; i++) {
         workers.push(new Worker('worker.js'));
@@ -3110,33 +3111,38 @@
     const evaluatedPopulation = [];
     let populationIndex = 0;
 
-    // Ini adalah Promise yang akan dijalankan oleh setiap Karyawan
+    // Ambil pengaturan dari UI sekali saja sebelum memulai
+    const timeframe = backtestTimeframeSelect.value;
+    const fitnessMetric = document.getElementById('optimization-metric-select').value;
+
     const runWorker = (worker) => {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             if (populationIndex >= population.length) {
-                resolve(); // Selesaikan jika tidak ada lagi tugas
+                resolve();
                 return;
             }
 
             const genomeToTest = population[populationIndex];
             populationIndex++;
-
-            worker.postMessage({ genome: genomeToTest, historicalData: historicalData });
+            
+            // Kirim tugas LENGKAP ke worker, termasuk timeframe & metrik
+            worker.postMessage({ 
+                genome: genomeToTest, 
+                historicalData: historicalData,
+                timeframe: timeframe, // <= INFORMASI BARU
+                fitnessMetric: fitnessMetric // <= INFORMASI BARU
+            });
 
             worker.onmessage = (e) => {
                 evaluatedPopulation.push(e.data);
-                // Setelah selesai, ambil tugas berikutnya
-                runWorker(worker).then(resolve);
+                runWorker(worker).then(resolve).catch(reject);
             };
+            worker.onerror = (e) => reject(e.message);
         });
     };
 
-    // Jalankan semua Karyawan secara paralel
     await Promise.all(workers.map(worker => runWorker(worker)));
-
-    // Hentikan semua Karyawan setelah semua pekerjaan selesai
     workers.forEach(worker => worker.terminate());
-
     return evaluatedPopulation;
 }
 
