@@ -1,547 +1,753 @@
-// ===================================================================================
-// BAGIAN 1: INISIALISASI & KONTROL UTAMA WORKER
-// ===================================================================================
-
-// --- Variabel Global di dalam Worker ---
-let userSettings = {};
-let coinListCache = null;
-let exchangeInfoCache = { spot: null, futures: null };
-
-/**
- * Listener Utama: Menunggu Perintah dari index.html (UI Thread)
- * Saat menerima perintah 'startAnalysis', ia akan menjalankan seluruh proses.
- */
-self.onmessage = function(event) {
-    const { command, data } = event.data;
-
-    if (command === 'startAnalysis') {
-        // Menerima settings terbaru dari UI setiap kali analisis dimulai
-        // Ini memastikan worker selalu menggunakan parameter indikator yang benar
-        userSettings = data.settings;
-
-        // Memulai analisis dengan data yang dikirim dari UI
-        runFullAnalysis(data.symbol, data.timeframe, data.marketType, data.correlationAsset);
-    }
-};
-
-/**
- * Helper function untuk mengirim pesan kembali ke UI thread.
- * Memudahkan pengiriman status, progres, data, atau error.
- * @param {string} status - Tipe pesan ('progress', 'success', 'error').
- * @param {any} data - Konten pesan (objek payload atau string pesan).
- */
-function postStatus(status, data) {
-    if (status === 'error') {
-        self.postMessage({ status: 'error', message: data });
-    } else {
-        self.postMessage({ status, payload: data });
-    }
-}
-// ===================================================================================
-// BAGIAN 2: LOGIKA INTI PENGAMBILAN DATA
-// ===================================================================================
-
-/**
- * Fungsi Orkestrasi Utama.
- * Mengatur seluruh alur kerja: mengambil data mentah, menghitung indikator,
- * dan mengirim kembali hasil yang sudah matang ke UI.
- */
-async function runFullAnalysis(binanceSymbol, selectedTimeframe, marketType, correlationAsset) {
-    try {
-        postStatus('progress', 'Memvalidasi simbol...');
-        await validateBinanceSymbol(binanceSymbol, marketType);
-        const baseAsset = binanceSymbol.replace(/USDT$|^\d+/g, '');
-
-        postStatus('progress', 'Mengambil data pasar...');
-
-        let promisesToRun = [
-            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: selectedTimeframe, limit: 1000 }, marketType),
-            fetchBinanceAPIData('ticker/24hr', { symbol: binanceSymbol }, marketType),
-            fetchBinanceAPIData('klines', { symbol: binanceSymbol, interval: '1d', limit: 500 }, marketType),
-            fetchBinanceAPIData('klines', { symbol: correlationAsset, interval: '1d', limit: 500 }, 'spot'),
-            fetchBinanceAPIData('depth', { symbol: binanceSymbol, limit: 100 }, marketType),
-            fetch('https://api.coingecko.com/api/v3/global').then(res => res.json()),
-            (async () => {
-                try {
-                    const coinGeckoId = await getCoinGeckoId(baseAsset);
-                    return await fetchCoinGeckoData(coinGeckoId);
-                } catch (e) { return null; }
-            })(),
-            fetchBinanceAPIData('aggTrades', { symbol: binanceSymbol, limit: 1000 }, marketType),
-            createTFAlignmentSummary(binanceSymbol, marketType)
-        ];
-
-        if (marketType === 'futures') {
-            promisesToRun.push(
-                fetchBinanceAPIData('openInterest', { symbol: binanceSymbol }, 'futures'),
-                fetchBinanceAPIData('premiumIndex', { symbol: binanceSymbol }, 'futures'),
-                fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json()),
-                fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${binanceSymbol}&period=5m&limit=1`).then(res => res.json())
-            );
+    const calculateEMA = (data, period) => {
+        if (!data || data.length < period) {
+            return [];
         }
 
-        const results = await Promise.allSettled(promisesToRun);
-        const getResult = (index) => results[index].status === 'fulfilled' ? results[index].value : null;
+        const k = 2 / (period + 1);
+        let emaArray = [];
 
-        const rawKlines = getResult(0);
-        if (!rawKlines || rawKlines.length < 550) {
-            throw new Error(`Data historis tidak cukup (hanya ${rawKlines?.length} candle). Coba timeframe lebih tinggi.`);
+        if (data.length > 0) {
+            let sum = 0;
+            for (let i = 0; i < period; i++) {
+            sum += data[i] || 0;
+            }
+            emaArray[period - 1] = sum / period;
+            for (let i = period; i < data.length; i++) {
+            emaArray[i] = (data[i] * k) + (emaArray[i - 1] * (1 - k));
+            }
         }
 
-        postStatus('progress', 'Menghitung indikator...');
+        return emaArray;
+    };
+    
+    const calculateSMA = (data, period) => {
+        if (!data || data.length < period) {
+            return [];
+        }
+        
+        let sma = [];
+        let sum = 0;
 
-        const finalPayload = {
-            symbol: binanceSymbol,
-            tickerData: getResult(1),
-            klines: rawKlines.slice(-500),
-            orderBookData: getResult(4),
-            globalData: getResult(5),
-            coinGeckoData: getResult(6),
-            tfAlignmentSummary: getResult(8),
-            openInterestData: marketType === 'futures' ? getResult(9) : null,
-            fundingRateData: marketType === 'futures' ? getResult(10) : null,
-            lsRatioUmumData: marketType === 'futures' ? getResult(11) : null,
-            lsRatioTopData: marketType === 'futures' ? getResult(12) : null,
-            cvdData: calculateCVD(getResult(7)),
-            correlationData: null,
-            calculatedData: null,
+        // Hitung jumlah untuk jendela pertama
+        for (let i = 0; i < period; i++) {
+            sum += data[i];
+        }
+        sma.push(sum / period);
+
+        // Gunakan teknik "sliding window" untuk sisa data
+        // Kurangi elemen terlama, tambahkan elemen terbaru
+        for (let i = period; i < data.length; i++) {
+            sum = sum - data[i - period] + data[i];
+            sma.push(sum / period);
+        }
+
+        // Untuk menjaga kompatibilitas penuh dengan struktur data asli,
+        // kita tambahkan kembali 'undefined' di awal.
+        const alignedSma = [...Array(period - 1).fill(undefined), ...sma];
+        
+        return alignedSma;
+    };
+
+    const calculateRSI = (closes, period) => {
+        if (period === undefined) {
+            const timeframe = backtestTimeframeSelect.value;
+            period = timeframeParameterMap[timeframe]?.rsi_period || 14;
+        }
+        
+        if (!closes || closes.length <= period) {
+            return Array(closes.length).fill(undefined);
+        }
+        
+        let gains = [];
+        let losses = [];
+        for (let i = 1; i < closes.length; i++) {
+            const diff = closes[i] - closes[i - 1];
+            gains.push(diff > 0 ? diff : 0);
+            losses.push(diff < 0 ? -diff : 0);
+        }
+        let rsi = Array(period).fill(undefined);
+        let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        rsi[period - 1] = (avgLoss === 0) ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+        for (let i = period; i < gains.length; i++) {
+            avgGain = (avgGain * (period - 1) + gains[i]) / period;
+            avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+            rsi.push((avgLoss === 0) ? 100 : 100 - (100 / (1 + (avgGain / avgLoss))));
+        }
+        return rsi;
+    };
+    
+    const calculateMACD = (closes, fast, slow, signal) => {
+        if (fast === undefined) {
+            const timeframe = backtestTimeframeSelect.value;
+            const params = timeframeParameterMap[timeframe] || timeframeParameterMap['15m'];
+            fast = params.macd_fast;
+            slow = params.macd_slow;
+            signal = params.macd_signal;
+        }
+        
+        if (closes.length < slow) {
+            return { status: 'Netral', macdLine: [], signalLine: [], histogram: [] };
+        }
+        
+        const emaFast = calculateEMA(closes, fast);
+        const emaSlow = calculateEMA(closes, slow);
+        const macdLine = emaSlow.map((slowVal, i) => {
+            if (slowVal !== undefined && emaFast[i] !== undefined) {
+                return emaFast[i] - slowVal;
+            }
+            return undefined;
+        }).filter(v => v !== undefined);
+        const signalLine = calculateEMA(macdLine, signal);
+        const histogram = macdLine.map((macdVal, i) => {
+            const sigVal = signalLine[i] !== undefined ? signalLine[i] : (signalLine.length > 0 ? signalLine.pop() : undefined);
+            if (sigVal !== undefined) {
+                const histValue = macdVal - sigVal;
+                const prevHistValue = (i > 0 && macdLine[i - 1] !== undefined && signalLine[i - 1] !== undefined) ? (macdLine[i - 1] - signalLine[i - 1]) : 0;
+                return {
+                    value: histValue,
+                    color: histValue >= 0 ? (histValue >= prevHistValue ? '#26a69a' : '#80cbc4') : (histValue < prevHistValue ? '#ef5350' : '#e57373')
+                };
+            }
+            return undefined;
+        }).filter(v => v !== undefined);
+        const lastMacd = macdLine.pop() || 0;
+        const lastSig = signalLine.pop() || 0;
+        const prevMacdLine = macdLine.pop() || 0;
+        const prevSignalLine = signalLine.pop() || 0;
+        let status = 'Netral';
+        if (prevMacdLine <= prevSignalLine && lastMacd > lastSig) {
+            status = 'Bullish Cross';
+        } else if (prevMacdLine >= prevSignalLine && lastMacd < lastSig) {
+            status = 'Bearish Cross';
+        }
+        return { status, macdLine, signalLine, histogram };
+    };
+
+    const calculateStochasticRSI = (closes, rsiPeriod, stochPeriod, kSmooth, dSmooth) => {
+        if (rsiPeriod === undefined) {
+            const timeframe = backtestTimeframeSelect.value;
+            const params = timeframeParameterMap[timeframe] || timeframeParameterMap['15m'];
+            rsiPeriod = params.stoch_rsi_period;
+            stochPeriod = params.stoch_stoch_period;
+            kSmooth = params.stoch_k_smooth;
+            dSmooth = params.stoch_d_smooth;
+        }
+
+        const rsiValues = calculateRSI(closes, rsiPeriod);
+        const validRsi = rsiValues.filter(v => v !== undefined);
+        if (validRsi.length < stochPeriod) {
+            return { kLine: [], dLine: [], status: 'Netral' };
+        }
+        
+        let stochArr = [];
+        for (let i = stochPeriod - 1; i < validRsi.length; i++) {
+            const window = validRsi.slice(i - stochPeriod + 1, i + 1);
+            const minR = Math.min(...window);
+            const maxR = Math.max(...window);
+            const denom = maxR - minR;
+            stochArr.push(denom === 0 ? 0 : ((validRsi[i] - minR) / denom) * 100);
+        }
+        const kLineRaw = calculateSMA(stochArr, kSmooth);
+        const dLineRaw = calculateSMA(kLineRaw.filter(v => v !== undefined), dSmooth);
+        const kLine = kLineRaw.filter(v => v !== undefined);
+        const dLine = dLineRaw.filter(v => v !== undefined);
+        const lastK = kLine.pop() || 50;
+        const lastD = dLine.pop() || 50;
+        let status = 'Netral';
+        if (lastK > 80 && lastD > 80) status = 'Overbought';
+        else if (lastK < 20 && lastD < 20) status = 'Oversold';
+        return { kLine, dLine, status };
+    };
+
+    const detectRSIDivergence = (closes, rsiValues, lookback = 30) => {
+        if (!closes || closes.length < lookback || !rsiValues || rsiValues.length < lookback) return { status: 'NONE' };
+        const recentCloses = closes.slice(-lookback), recentRSI = rsiValues.slice(-lookback);
+        const findPivots = (data, isHigh) => {
+            let pivots = [];
+            for (let i = 1; i < data.length - 1; i++) {
+                if ((isHigh && data[i] > data[i - 1] && data[i] > data[i + 1]) || (!isHigh && data[i] < data[i - 1] && data[i] < data[i + 1])) {
+                    pivots.push({ index: i, value: data[i] });
+                }
+            }
+            return pivots;
+        };
+        const priceLows = findPivots(recentCloses, false), priceHighs = findPivots(recentCloses, true);
+        const rsiLows = findPivots(recentRSI, false), rsiHighs = findPivots(recentRSI, true);
+        if (priceLows.length >= 2 && rsiLows.length >= 2) {
+            const lastPriceLow = priceLows[priceLows.length - 1], prevPriceLow = priceLows[priceLows.length - 2];
+            const lastRsiLow = rsiLows.find(l => Math.abs(l.index - lastPriceLow.index) < 3), prevRsiLow = rsiLows.find(l => Math.abs(l.index - prevPriceLow.index) < 3);
+            if (lastPriceLow && prevPriceLow && lastRsiLow && prevRsiLow && lastPriceLow.value < prevPriceLow.value && lastRsiLow.value > prevRsiLow.value) return { status: 'BULLISH' };
+        }
+        if (priceHighs.length >= 2 && rsiHighs.length >= 2) {
+            const lastPriceHigh = priceHighs[priceHighs.length - 1], prevPriceHigh = priceHighs[priceHighs.length - 2];
+            const lastRsiHigh = rsiHighs.find(h => Math.abs(h.index - lastPriceHigh.index) < 3), prevRsiHigh = rsiHighs.find(h => Math.abs(h.index - prevPriceHigh.index) < 3);
+            if (lastPriceHigh && prevPriceHigh && lastRsiHigh && prevRsiHigh && lastPriceHigh.value > prevPriceHigh.value && lastRsiHigh.value < prevRsiHigh.value) return { status: 'BEARISH' };
+        }
+        return { status: 'NONE' };
+    };
+
+    const calculateOBV = (klines) => {
+        if (!klines || klines.length < 2) return [];
+        let obv = [0]; 
+        for (let i = 1; i < klines.length; i++) {
+            const close = parseFloat(klines[i][4]);
+            const prevClose = parseFloat(klines[i-1][4]);
+            const volume = parseFloat(klines[i][5]);
+            if (close > prevClose) obv.push(obv[i-1] + volume);
+            else if (close < prevClose) obv.push(obv[i-1] - volume);
+            else obv.push(obv[i-1]);
+        }
+        return obv;
+    };
+
+    const detectOBVDivergence = (closes, klines, lookback = 30) => {
+        if (!closes || closes.length < lookback || !klines || klines.length < lookback) return { status: 'NONE', class: 'text-gray-500' };
+
+        const obvValues = calculateOBV(klines);
+        const recentCloses = closes.slice(-lookback);
+        const recentOBV = obvValues.slice(-lookback);
+
+        const findPivots = (data, isHigh) => {
+            let pivots = [];
+            for (let i = 1; i < data.length - 1; i++) {
+                if ((isHigh && data[i] > data[i - 1] && data[i] > data[i + 1]) || (!isHigh && data[i] < data[i - 1] && data[i] < data[i + 1])) {
+                    pivots.push({ index: i, value: data[i] });
+                }
+            }
+            return pivots;
         };
 
-        const assetDailyKlines = getResult(2);
-        const btcDailyKlines = getResult(3);
-        if (binanceSymbol !== 'BTCUSDT' && assetDailyKlines && btcDailyKlines && assetDailyKlines.length === btcDailyKlines.length) {
-            finalPayload.correlationData = calculateCorrelation(assetDailyKlines.map(k => parseFloat(k[4])), btcDailyKlines.map(k => parseFloat(k[4])));
+        const priceLows = findPivots(recentCloses, false), priceHighs = findPivots(recentCloses, true);
+        const obvLows = findPivots(recentOBV, false), obvHighs = findPivots(recentOBV, true);
+
+        if (priceLows.length >= 2 && obvLows.length >= 2) {
+            const lastPriceLow = priceLows[priceLows.length - 1], prevPriceLow = priceLows[priceLows.length - 2];
+            const lastObvLow = obvLows.find(l => Math.abs(l.index - lastPriceLow.index) < 3), prevObvLow = obvLows.find(l => Math.abs(l.index - prevPriceLow.index) < 3);
+            if (lastPriceLow && prevPriceLow && lastObvLow && prevObvLow && lastPriceLow.value < prevPriceLow.value && lastObvLow.value > prevObvLow.value) return { status: 'BULLISH', class: 'positive blinking-text-animation' };
         }
-
-        finalPayload.calculatedData = recalculateAllIndicators(
-            finalPayload.klines, finalPayload.tickerData, assetDailyKlines ? assetDailyKlines[assetDailyKlines.length - 2] : null,
-            marketType, finalPayload.cvdData, finalPayload.orderBookData, finalPayload.fundingRateData,
-            finalPayload.lsRatioUmumData, finalPayload.openInterestData
-        );
-
-        postStatus('success', finalPayload);
-
-    } catch (error) {
-        postStatus('error', error.message);
-    }
-}
-
-
-/**
- * Mengambil data dari API Binance (Spot atau Futures).
- */
-async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'spot') {
-    const baseUrl = marketType === 'futures' ? 'https://fapi.binance.com/fapi/v1' : 'https://api.binance.com/api/v3';
-    const query = new URLSearchParams(params).toString();
-    const url = `${baseUrl}/${endpoint}?${query}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Binance API error: ${errorData.msg || response.statusText}`);
-    }
-    return response.json();
-}
-
-/**
- * Mengambil dan menyimpan cache info bursa.
- */
-async function initializeExchangeInfo(marketType) {
-    if (exchangeInfoCache[marketType]) return exchangeInfoCache[marketType];
-    const data = await fetchBinanceAPIData('exchangeInfo', {}, marketType);
-    exchangeInfoCache[marketType] = data.symbols;
-    return data.symbols;
-}
-
-/**
- * Memvalidasi apakah sebuah simbol trading valid.
- */
-async function validateBinanceSymbol(symbol, marketType) {
-    const symbols = await initializeExchangeInfo(marketType);
-    const symbolData = symbols.find(s => s.symbol === symbol);
-    if (!symbolData || symbolData.status !== 'TRADING') {
-        throw new Error(`Simbol "${symbol}" tidak valid di Binance ${marketType}.`);
-    }
-}
-
-/**
- * Mencari ID koin di CoinGecko berdasarkan simbolnya.
- */
-async function getCoinGeckoId(baseAssetSymbol) {
-    if (!coinListCache) {
-        const response = await fetch('https://api.coingecko.com/api/v3/coins/list');
-        coinListCache = await response.json();
-    }
-    const assetSymbolLower = baseAssetSymbol.toLowerCase();
-    const priorityMap = { 'btc': 'bitcoin', 'eth': 'ethereum', 'bnb': 'binancecoin', 'sol': 'solana' };
-    if (priorityMap[assetSymbolLower]) return priorityMap[assetSymbolLower];
-    const match = coinListCache.find(coin => coin.symbol === assetSymbolLower);
-    if (match) return match.id;
-    throw new Error(`Simbol "${baseAssetSymbol}" tidak ditemukan di CoinGecko.`);
-}
-
-/**
- * Mengambil data detail dari CoinGecko.
- */
-async function fetchCoinGeckoData(coinId) {
-    if (!coinId) return null;
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&market_data=true`;
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    return response.json();
-}
-
-/**
- * Menganalisis keselarasan tren di berbagai timeframe.
- */
-async function createTFAlignmentSummary(symbol, marketType) {
-    const timeframes = ['5m', '15m', '1h', '4h', '1d'];
-    const summary = {};
-    let score = 0;
-    const klinesPromises = timeframes.map(tf => fetchBinanceAPIData('klines', { symbol, interval: tf, limit: 51 }, marketType));
-    const klinesResults = await Promise.all(klinesPromises);
-    klinesResults.forEach((klines, index) => {
-        const tf = timeframes[index];
-        if (klines && klines.length >= 50) {
-            const closes = klines.map(k => parseFloat(k[4]));
-            const ema21 = calculateEMA(closes, 21).pop();
-            const ema50 = calculateEMA(closes, 50).pop();
-            summary[tf] = ema21 > ema50 ? 'UPTREND' : 'DOWNTREND';
-            if (summary[tf] === 'UPTREND') score++; else score--;
-        } else {
-            summary[tf] = 'N/A';
+        if (priceHighs.length >= 2 && obvHighs.length >= 2) {
+            const lastPriceHigh = priceHighs[priceHighs.length - 1], prevPriceHigh = priceHighs[priceHighs.length - 2];
+            const lastObvHigh = obvHighs.find(h => Math.abs(h.index - lastPriceHigh.index) < 3), prevObvHigh = obvHighs.find(h => Math.abs(h.index - prevPriceHigh.index) < 3);
+            if (lastPriceHigh && prevPriceHigh && lastObvHigh && prevObvHigh && lastPriceHigh.value > prevPriceHigh.value && lastObvHigh.value < prevObvHigh.value) return { status: 'BEARISH', class: 'negative blinking-text-animation' };
         }
-    });
-    return { summary, score };
-}
-// ===================================================================================
-// BAGIAN 3: FUNGSI KALKULASI INDIKATOR DASAR
-// ===================================================================================
-
-const calculateEMA = (data, period) => {
-    if (!data || data.length < period) return [];
-    const k = 2 / (period + 1);
-    let emaArray = [];
-    let sum = data.slice(0, period).reduce((a, b) => a + b, 0);
-    let currentEma = sum / period;
-    emaArray = Array(period - 1).fill(undefined);
-    emaArray.push(currentEma);
-    for (let i = period; i < data.length; i++) {
-        currentEma = (data[i] * k) + (currentEma * (1 - k));
-        emaArray.push(currentEma);
-    }
-    return emaArray;
-};
-
-const calculateSMA = (data, period) => {
-    if (!data || data.length < period) return [];
-    let sma = Array(period - 1).fill(undefined);
-    for (let i = period - 1; i < data.length; i++) {
-        sma.push(data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0) / period);
-    }
-    return sma;
-};
-
-const calculateRSI = (closes) => {
-    const period = userSettings.active.indicatorParams.rsi_period;
-    if (!closes || closes.length <= period) return Array(closes?.length || 0).fill(undefined);
-    let gains = [], losses = [];
-    for (let i = 1; i < closes.length; i++) {
-        const diff = closes[i] - closes[i - 1];
-        gains.push(diff > 0 ? diff : 0);
-        losses.push(diff < 0 ? -diff : 0);
-    }
-    let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
-    let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
-    let rsi = [100 - (100 / (1 + (avgGain / (avgLoss === 0 ? 1 : avgLoss))))];
-    for (let i = period; i < gains.length; i++) {
-        avgGain = (avgGain * (period - 1) + gains[i]) / period;
-        avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
-        rsi.push(100 - (100 / (1 + (avgGain / (avgLoss === 0 ? 1 : avgLoss)))));
-    }
-    return Array(period).fill(undefined).concat(rsi);
-};
-
-const calculateMACD = (closes) => {
-    const { macd_fast, macd_slow, macd_signal } = userSettings.active.indicatorParams;
-    if (closes.length < macd_slow + macd_signal) return { macdLine: [], signalLine: [], histogram: [] };
-    const emaFast = calculateEMA(closes, macd_fast);
-    const emaSlow = calculateEMA(closes, macd_slow);
-    const macdLine = emaSlow.map((slowVal, i) => (slowVal !== undefined && emaFast[i] !== undefined) ? emaFast[i] - slowVal : undefined);
-    const signalLine = calculateEMA(macdLine.filter(v => v !== undefined), macd_signal);
-    const histogram = macdLine.map((macdVal, i) => {
-        const signalIndex = i - (macd_slow - 1);
-        if (macdVal !== undefined && signalLine[signalIndex] !== undefined) {
-            const histValue = macdVal - signalLine[signalIndex];
-            const prevHistValue = (i > 0 && macdLine[i - 1] !== undefined && signalLine[signalIndex - 1] !== undefined) ? (macdLine[i - 1] - signalLine[signalIndex - 1]) : 0;
-            return { value: histValue, color: histValue >= 0 ? (histValue >= prevHistValue ? '#26a69a' : '#80cbc4') : (histValue < prevHistValue ? '#ef5350' : '#e57373') };
-        }
-        return undefined;
-    });
-    return { macdLine, signalLine, histogram };
-};
-
-const calculateStochasticRSI = (closes) => {
-    const { stoch_rsi_period, stoch_stoch_period, stoch_k_smooth, stoch_d_smooth } = userSettings.active.indicatorParams;
-    const rsiValues = calculateRSI(closes, stoch_rsi_period).filter(v => v !== undefined);
-    if (rsiValues.length < stoch_stoch_period) return { kLine: [], dLine: [], kOffset: 0, dOffset: 0 };
-    const stochArr = [];
-    for (let i = stoch_stoch_period - 1; i < rsiValues.length; i++) {
-        const window = rsiValues.slice(i - stoch_stoch_period + 1, i + 1);
-        const minR = Math.min(...window);
-        const maxR = Math.max(...window);
-        stochArr.push((maxR - minR) === 0 ? 0 : ((rsiValues[i] - minR) / (maxR - minR)) * 100);
-    }
-    const kLine = calculateSMA(stochArr, stoch_k_smooth);
-    const dLine = calculateSMA(kLine.filter(v => v !== undefined), stoch_d_smooth);
-    const kOffset = closes.length - kLine.length;
-    const dOffset = closes.length - dLine.length;
-    return { kLine, dLine, kOffset, dOffset };
-};
-// ===================================================================================
-// BAGIAN 4: FUNGSI KALKULASI INDIKATOR LANJUTAN
-// ===================================================================================
-
-const calculateBollingerBands = (closes, period = 20, stdDev = 2) => {
-    if (closes.length < period) return { upper: [], middle: [], lower: [], width: [] };
-    const middle = calculateSMA(closes, period);
-    let upper = [], lower = [], width = [];
-    for (let i = period - 1; i < closes.length; i++) {
-        if (middle[i] === undefined) { upper.push(undefined); lower.push(undefined); width.push(undefined); continue; }
-        const slice = closes.slice(i - period + 1, i + 1);
-        const stdev = Math.sqrt(slice.reduce((a, b) => a + Math.pow(b - middle[i], 2), 0) / period);
-        upper.push(middle[i] + (stdev * stdDev));
-        lower.push(middle[i] - (stdev * stdDev));
-        width.push((upper[i] - lower[i]));
-    }
-    return { upper, middle, lower, width };
-};
-
-const calculateVPVR = (klines, numRows = 70, valueAreaPercent = 0.70) => {
-    if (!klines || klines.length === 0) return { poc: 0, vah: 0, val: 0 };
-    const candles = klines.map(k => ({ high: parseFloat(k[2]), low: parseFloat(k[3]), volume: parseFloat(k[5]) }));
-    const overallHigh = Math.max(...candles.map(c => c.high));
-    const overallLow = Math.min(...candles.map(c => c.low));
-    const rowSize = (overallHigh - overallLow) / numRows;
-    let profile = Array.from({ length: numRows }, (_, i) => ({ price: overallLow + (i * rowSize), volume: 0 }));
-    let totalVolume = 0;
-    candles.forEach(c => {
-        totalVolume += c.volume;
-        const startIdx = Math.max(0, Math.floor((c.low - overallLow) / rowSize));
-        const endIdx = Math.min(numRows - 1, Math.floor((c.high - overallLow) / rowSize));
-        const volPerRow = c.volume / (endIdx - startIdx + 1);
-        for (let i = startIdx; i <= endIdx; i++) profile[i].volume += volPerRow;
-    });
-    if (totalVolume === 0) return { poc: 0, vah: 0, val: 0 };
-    let pocIndex = profile.reduce((maxIdx, row, idx, arr) => row.volume > arr[maxIdx].volume ? idx : maxIdx, 0);
-    const poc = profile[pocIndex].price + (rowSize / 2);
-    let vaVolume = profile[pocIndex].volume;
-    let upperIdx = pocIndex, lowerIdx = pocIndex;
-    while (vaVolume < totalVolume * valueAreaPercent && (upperIdx < numRows -1 || lowerIdx > 0)) {
-        const volAbove = (upperIdx + 1 < numRows) ? profile[upperIdx + 1].volume : -1;
-        const volBelow = (lowerIdx - 1 >= 0) ? profile[lowerIdx - 1].volume : -1;
-        if (volAbove === -1 && volBelow === -1) break;
-        if (volAbove > volBelow) { upperIdx++; vaVolume += profile[upperIdx].volume; }
-        else { lowerIdx--; vaVolume += profile[lowerIdx].volume; }
-    }
-    return { poc, vah: profile[upperIdx].price + rowSize, val: profile[lowerIdx].price };
-};
-
-const calculateADX = (klines, period = 14) => {
-    if (!klines || klines.length < period * 2) return { adx: 'N/A', plusDI: 'N/A', minusDI: 'N/A' };
-    let highs = klines.map(k => parseFloat(k[2])), lows = klines.map(k => parseFloat(k[3])), closes = klines.map(k => parseFloat(k[4]));
-    let trs = [], plusDMs = [], minusDMs = [];
-    for (let i = 1; i < highs.length; i++) {
-        trs.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i-1]), Math.abs(lows[i] - closes[i-1])));
-        let upMove = highs[i] - highs[i-1], downMove = lows[i-1] - lows[i];
-        plusDMs.push(upMove > downMove && upMove > 0 ? upMove : 0);
-        minusDMs.push(downMove > upMove && downMove > 0 ? downMove : 0);
-    }
-    const rma = (data, p) => {
-        let rmaArr = [], sum = 0;
-        for (let i = 0; i < data.length; i++) {
-            if (i < p) { sum += data[i]; rmaArr.push(i === p - 1 ? sum / p : undefined); }
-            else if(rmaArr[i-1] !== undefined) { rmaArr.push((rmaArr[i-1] * (p - 1) + data[i]) / p); }
-        } return rmaArr;
+        return { status: 'NONE', class: 'text-gray-500' };
     };
-    let smoothedTR = rma(trs, period), smoothedPlusDM = rma(plusDMs, period), smoothedMinusDM = rma(minusDMs, period);
-    let plusDIs = [], minusDIs = [], dxs = [];
-    for (let i = 0; i < smoothedTR.length; i++) {
-        if (smoothedTR[i] === undefined) continue;
-        let plusDI = smoothedTR[i] > 0 ? (smoothedPlusDM[i] / smoothedTR[i]) * 100 : 0;
-        let minusDI = smoothedTR[i] > 0 ? (smoothedMinusDM[i] / smoothedTR[i]) * 100 : 0;
-        plusDIs.push(plusDI); minusDIs.push(minusDI);
-        dxs.push((plusDI + minusDI) > 0 ? (Math.abs(plusDI - minusDI) / (plusDI + minusDI)) * 100 : 0);
-    }
-    let adxValues = rma(dxs, period);
-    return { adx: adxValues.pop()?.toFixed(2) || 'N/A', plusDI: plusDIs.pop()?.toFixed(2) || 'N/A', minusDI: minusDIs.pop()?.toFixed(2) || 'N/A' };
-};
 
-const calculatePivotPoints = (prevDayKline) => {
-    if (!prevDayKline || prevDayKline.length < 5) return null;
-    const high = parseFloat(prevDayKline[2]), low = parseFloat(prevDayKline[3]), close = parseFloat(prevDayKline[4]);
-    if (isNaN(high) || isNaN(low) || isNaN(close)) return null;
-    const P = (high + low + close) / 3;
-    const R1 = (2 * P) - low; const S1 = (2 * P) - high;
-    const R2 = P + (high - low); const S2 = P - (high - low);
-    const R3 = high + 2 * (P - low); const S3 = low - 2 * (high - P);
-    return { P, R1, S1, R2, S2, R3, S3 };
-};
+    const findCandlestickPatterns = (klines) => {
+        if (!klines || klines.length < 2) return { bias: 'NETRAL' };
+        const getCandle = (k) => {
+            const [o, h, l, c] = k.slice(1, 5).map(parseFloat);
+            return { open: o, close: c, isGreen: c > o, isRed: c < o };
+        };
+        const c1 = getCandle(klines[klines.length - 1]), c2 = getCandle(klines[klines.length - 2]);
+        if (c2.isRed && c1.isGreen && c1.close > c2.open) return { bias: 'BULLISH' };
+        if (c2.isGreen && c1.isRed && c1.close < c2.open) return { bias: 'BEARISH' };
+        return { bias: 'NETRAL' };
+    };
 
-const calculateVWAP = (klines, mode = 'rolling', period = 20) => {
-    if (!klines || klines.length === 0) return 0;
-    let sumPV = 0, sumV = 0;
-    const klinesToProcess = mode === 'rolling' ? klines.slice(-period) : klines;
-    klinesToProcess.forEach(k => {
-        const typicalPrice = (parseFloat(k[2]) + parseFloat(k[3]) + parseFloat(k[4])) / 3;
-        const volume = parseFloat(k[5]);
-        sumPV += typicalPrice * volume;
-        sumV += volume;
-    });
-    return sumV > 0 ? sumPV / sumV : 0;
-};
+    const calculateBollingerBands = (closes, period = 20, stdDev = 2) => {
+        if (closes.length < period) {
+            return { upper: [], middle: [], lower: [], squeezeStatus: 'N/A' };
+        }
 
-const calculateOBV = (klines) => {
-    if (!klines || klines.length < 2) return [];
-    let obv = [0];
-    for (let i = 1; i < klines.length; i++) {
-        const close = parseFloat(klines[i][4]), prevClose = parseFloat(klines[i - 1][4]), volume = parseFloat(klines[i][5]);
-        if (close > prevClose) obv.push(obv[i-1] + volume);
-        else if (close < prevClose) obv.push(obv[i-1] - volume);
-        else obv.push(obv[i-1]);
-    }
-    return obv;
-};
-// ===================================================================================
-// BAGIAN 5: PENGENALAN POLA & PENGGABUNG HASIL
-// ===================================================================================
+        // Dependensi: Memanggil fungsi calculateSMA yang sekarang sudah lebih cepat.
+        const middle = calculateSMA(closes, period);
+        const upper = [];
+        const lower = [];
+        const width = [];
 
-const findCandlestickPatterns = (klines) => {
-    if (!klines || klines.length < 3) return { pattern: 'NONE', bias: 'NETRAL' };
-    const getCandle = (k) => { const [o,h,l,c] = k.slice(1,5).map(parseFloat); return {o,h,l,c, body:Math.abs(c-o), isGreen:c>o, isRed:c<o}; };
-    const c1 = getCandle(klines[klines.length-1]), c2 = getCandle(klines[klines.length-2]), c3 = getCandle(klines[klines.length-3]);
-    if (c3.isGreen && c2.isGreen && c1.isGreen && c1.c>c2.c && c2.c>c3.c) return { pattern: 'THREE WHITE SOLDIERS', bias: 'BULLISH' };
-    if (c3.isRed && c2.isRed && c1.isRed && c1.c<c2.c && c2.c<c3.c) return { pattern: 'THREE BLACK CROWS', bias: 'BEARISH' };
-    if (c2.isRed && c1.isGreen && c1.c > c2.o && c1.o < c2.c) return { pattern: 'BULLISH ENGULFING', bias: 'BULLISH' };
-    if (c2.isGreen && c1.isRed && c1.c < c2.o && c1.o > c2.c) return { pattern: 'BEARISH ENGULFING', bias: 'BEARISH' };
-    const lowerWick = Math.min(c1.o, c1.c) - c1.l, upperWick = c1.h - Math.max(c1.o, c1.c);
-    if (lowerWick > c1.body * 2 && upperWick < c1.body * 0.5) return { pattern: 'HAMMER', bias: 'BULLISH' };
-    if (upperWick > c1.body * 2 && lowerWick < c1.body * 0.5) return { pattern: 'SHOOTING STAR', bias: 'BEARISH' };
-    return { pattern: 'NONE', bias: 'NETRAL' };
-};
+        // Optimasi kalkulasi deviasi standar dengan sliding window
+        let sum = 0;
+        let sumOfSquares = 0;
 
-const detectRSIDivergence = (closes, rsiValues, lookback = 30) => {
-    if (!closes || closes.length < lookback || !rsiValues || rsiValues.length < lookback) return { status: 'NONE' };
-    const recentCloses = closes.slice(-lookback), recentRSI = rsiValues.slice(-lookback);
-    const findPivots = (data, isHigh) => {
-        let pivots = [];
-        for (let i = 1; i < data.length - 1; i++) {
-            if ((isHigh && data[i] > data[i-1] && data[i] > data[i+1]) || (!isHigh && data[i] < data[i-1] && data[i] < data[i+1])) {
-                pivots.push({ index: i, value: data[i] });
+        // Inisialisasi untuk jendela pertama
+        const initialSlice = closes.slice(0, period);
+        for (const val of initialSlice) {
+            sum += val;
+            sumOfSquares += val * val;
+        }
+
+        // Fungsi untuk menghitung dan menambahkan band
+        const calculateAndPushBands = (currentSum, currentSumOfSquares) => {
+            const mean = currentSum / period;
+            const variance = (currentSumOfSquares / period) - (mean * mean);
+            const stdev = Math.sqrt(Math.max(0, variance)); // Hindari akar negatif karena presisi float
+
+            upper.push(mean + (stdev * stdDev));
+            lower.push(mean - (stdev * stdDev));
+            width.push((stdev * stdDev * 2));
+        };
+
+        // Hitung untuk jendela pertama
+        calculateAndPushBands(sum, sumOfSquares);
+
+        // Gunakan sliding window untuk sisa data
+        for (let i = period; i < closes.length; i++) {
+            const oldVal = closes[i - period];
+            const newVal = closes[i];
+
+            sum = sum - oldVal + newVal;
+            sumOfSquares = sumOfSquares - (oldVal * oldVal) + (newVal * newVal);
+            
+            calculateAndPushBands(sum, sumOfSquares);
+        }
+        
+        // Logika Squeeze (tidak berubah)
+        const lastWidth = width.filter(v => v !== undefined).pop();
+        let squeezeStatus = 'Normal';
+        if (width.length > 50) {
+            // ... logika squeeze tetap sama
+        }
+
+        // Menambahkan 'undefined' di awal untuk menjaga kompatibilitas
+        const align = (arr) => [...Array(period - 1).fill(undefined), ...arr];
+
+        return { 
+            upper: align(upper), 
+            middle: middle, // middle sudah memiliki 'undefined' dari calculateSMA
+            lower: align(lower), 
+            squeezeStatus 
+        };
+    };
+
+    const calculateADX = (klines, period = 14) => {
+        if (!klines || klines.length < period * 2) return { value: 0, plusDI: 0, minusDI: 0 };
+        let highs = klines.map(k => parseFloat(k[2])), lows = klines.map(k => parseFloat(k[3])), closes = klines.map(k => parseFloat(k[4]));
+        let trs = [], plusDMs = [], minusDMs = [];
+        for (let i = 1; i < highs.length; i++) {
+            trs.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1])));
+            let upMove = highs[i] - highs[i - 1], downMove = lows[i - 1] - lows[i];
+            plusDMs.push(upMove > downMove && upMove > 0 ? upMove : 0);
+            minusDMs.push(downMove > upMove && downMove > 0 ? downMove : 0);
+        }
+        const rma = (data, p) => {
+            let rma = [], sum = 0;
+            for (let i = 0; i < data.length; i++) {
+                if (i < p) {
+                    sum += data[i];
+                    rma.push(i === p - 1 ? sum / p : undefined);
+                } else if(rma[i-1] !== undefined) {
+                    rma.push((rma[i - 1] * (p - 1) + data[i]) / p);
+                }
             }
-        } return pivots;
+            return rma;
+        };
+        let smoothedTR = rma(trs, period), smoothedPlusDM = rma(plusDMs, period), smoothedMinusDM = rma(minusDMs, period);
+        let plusDIs = [], minusDIs = [], dxs = [];
+        for (let i = 0; i < smoothedTR.length; i++) {
+            if (smoothedTR[i] === undefined) continue;
+            let plusDI = smoothedTR[i] > 0 ? (smoothedPlusDM[i] / smoothedTR[i]) * 100 : 0;
+            let minusDI = smoothedTR[i] > 0 ? (smoothedMinusDM[i] / smoothedTR[i]) * 100 : 0;
+            plusDIs.push(plusDI);
+            minusDIs.push(minusDI);
+            let diSum = plusDI + minusDI;
+            dxs.push(diSum > 0 ? (Math.abs(plusDI - minusDI) / diSum) * 100 : 0);
+        }
+        let adxValues = rma(dxs, period);
+        return { value: adxValues.filter(v=>v!==undefined).pop() || 0, plusDI: plusDIs.pop() || 0, minusDI: minusDIs.pop() || 0 };
     };
-    const priceLows = findPivots(recentCloses, false), priceHighs = findPivots(recentCloses, true);
-    const rsiLows = findPivots(recentRSI, false), rsiHighs = findPivots(recentRSI, true);
-    if (priceLows.length >= 2 && rsiLows.length >= 2) {
-        const lastPriceLow = priceLows.pop(), prevPriceLow = priceLows.pop();
-        const lastRsiLow = rsiLows.find(l => Math.abs(l.index - lastPriceLow.index) < 3), prevRsiLow = rsiLows.find(l => Math.abs(l.index - prevPriceLow.index) < 3);
-        if (lastPriceLow && prevPriceLow && lastRsiLow && prevRsiLow && lastPriceLow.value < prevPriceLow.value && lastRsiLow.value > prevRsiLow.value) return { status: 'BULLISH' };
-    }
-    if (priceHighs.length >= 2 && rsiHighs.length >= 2) {
-        const lastPriceHigh = priceHighs.pop(), prevPriceHigh = priceHighs.pop();
-        const lastRsiHigh = rsiHighs.find(h => Math.abs(h.index - lastPriceHigh.index) < 3), prevRsiHigh = rsiHighs.find(h => Math.abs(h.index - prevPriceHigh.index) < 3);
-        if (lastPriceHigh && prevPriceHigh && lastRsiHigh && prevRsiHigh && lastPriceHigh.value > prevPriceHigh.value && lastRsiHigh.value < prevRsiHigh.value) return { status: 'BEARISH' };
-    }
-    return { status: 'NONE' };
-};
 
-const detectOBVDivergence = (closes, klines, lookback = 30) => {
-    const obvValues = calculateOBV(klines);
-    // Logika mirip dengan RSI Divergence, tetapi menggunakan obvValues
-    return { status: 'NONE' }; // Implementasi disederhanakan
-};
+    function calculatePivotPoints(prevDayKline) {
+        if (!prevDayKline || prevDayKline.length < 5) return null;
+        const high = parseFloat(prevDayKline[2]);
+        const low = parseFloat(prevDayKline[3]);
+        const close = parseFloat(prevDayKline[4]);
+        if (isNaN(high) || isNaN(low) || isNaN(close)) return null;
+        return { P: (high + low + close) / 3 };
+    }
 
-const calculateCVD = (trades) => {
-    if (!trades) return [];
-    let cumulativeDelta = 0;
-    return trades.map(t => {
-        const sign = t.m ? -1 : 1; // true if maker is seller (sell)
-        cumulativeDelta += parseFloat(t.q) * sign;
-        return { time: t.T / 1000, cvd: cumulativeDelta };
+    function calculateVWAP(klines, period = 20) {
+        if (!klines || klines.length < period) return 0;
+        let sumPV = 0, sumV = 0;
+        const dataSlice = klines.slice(-period);
+        dataSlice.forEach(k => {
+            const high = parseFloat(k[2]), low = parseFloat(k[3]), close = parseFloat(k[4]), vol = parseFloat(k[5]);
+            sumPV += ((high + low + close) / 3) * vol;
+            sumV += vol;
+        });
+        return sumV > 0 ? sumPV / sumV : 0;
+    }
+
+    function calculateIchimokuCloud(klines) {
+        if (klines.length < 52) return { status: 'Netral' };
+        const getHighLow = (slice) => ({ high: Math.max(...slice.map(k => parseFloat(k[2]))), low: Math.min(...slice.map(k => parseFloat(k[3]))) });
+        let tenkan = [], kijun = [];
+        for (let i = 0; i < klines.length; i++) {
+            const tenkanHighLow = i >= 8 ? getHighLow(klines.slice(i - 8, i + 1)) : {};
+            tenkan.push(tenkanHighLow.high ? (tenkanHighLow.high + tenkanHighLow.low) / 2 : undefined);
+            const kijunHighLow = i >= 25 ? getHighLow(klines.slice(i - 25, i + 1)) : {};
+            kijun.push(kijunHighLow.high ? (kijunHighLow.high + kijunHighLow.low) / 2 : undefined);
+        }
+        const lastPrice = parseFloat(klines[klines.length - 1][4]);
+        const lastTenkan = tenkan[tenkan.length - 1], lastKijun = kijun[kijun.length - 1];
+        if (lastTenkan > lastKijun && lastPrice > lastKijun) return { status: "BULLISH" };
+        if (lastTenkan < lastKijun && lastPrice < lastKijun) return { status: "BEARISH" };
+        return { status: 'Netral' };
+    }
+
+    function calculateParabolicSAR(klines, step = 0.02, max = 0.2) {
+        if (klines.length < 2) return { status: 'N/A' };
+        let sar = parseFloat(klines[0][3]); let ep = parseFloat(klines[0][2]); let af = step; let isUptrend = true;
+        for (let i = 1; i < klines.length; i++) {
+            const high = parseFloat(klines[i][2]); const low = parseFloat(klines[i][3]); const prevSar = sar;
+            if (isUptrend) { sar = prevSar + af * (ep - prevSar); if (low < sar) { isUptrend = false; sar = ep; ep = low; af = step; } else { if (high > ep) { ep = high; af = Math.min(max, af + step); } }
+            } else { sar = prevSar - af * (prevSar - ep); if (high > sar) { isUptrend = true; sar = ep; ep = high; af = step; } else { if (low < ep) { ep = low; af = Math.min(max, af + step); } } }
+        }
+        const lastClose = parseFloat(klines[klines.length - 1][4]);
+        return { status: lastClose > sar ? 'Bullish' : 'Bearish' };
+    }
+
+    function calculateROC(closes, period = 12) {
+        if (closes.length < period + 1) return { status: 'N/A' };
+        const currentClose = closes[closes.length - 1];
+        const pastClose = closes[closes.length - 1 - period];
+        if (pastClose === 0) return { status: 'N/A' };
+        const roc = ((currentClose - pastClose) / pastClose) * 100;
+        return { status: roc > 0 ? 'Positif' : 'Negatif' };
+    }
+
+    function calculateLinearRegressionChannel(closes, period = 14) {
+        if (closes.length < period) return { status: 'N/A' };
+        const y = closes.slice(-period); const n = period; const sumX = (n * (n - 1)) / 2; const sumY = y.reduce((a, b) => a + b, 0); const sumXY = y.reduce((acc, val, i) => acc + val * i, 0); const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
+        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        return { status: slope > 0 ? 'BULLISH' : 'BEARISH' };
+    }
+
+    function calculateATR(klines, period = 14) {
+        if (!klines || klines.length < period + 1) {
+            return { value: 0, status: 'N/A', atrPercent: 0 };
+        }
+        let trs = [];
+        for (let i = 1; i < klines.length; i++) {
+            const high = parseFloat(klines[i][2]);
+            const low = parseFloat(klines[i][3]);
+            const prevClose = parseFloat(klines[i - 1][4]);
+            trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
+        }
+        const rma = (data, p) => {
+            let smoothed = [];
+            let sum = 0;
+            for(let i=0; i<data.length; i++) {
+                if (i < p) {
+                    sum += data[i];
+                    if (i === p - 1) smoothed.push(sum/p);
+                    else smoothed.push(undefined);
+                } else if (smoothed[i-1] !== undefined) {
+                    smoothed.push((smoothed[i - 1] * (p - 1) + data[i]) / p);
+                }
+            }
+            return smoothed;
+        };
+        const atrValues = rma(trs, period);
+        const atr = atrValues.pop() || 0;
+        const lastClose = parseFloat(klines[klines.length - 1][4]);
+        const atrPercent = lastClose > 0 ? (atr / lastClose) * 100 : 0;
+        let status;
+        if (atrPercent > 5) status = 'Very High';
+        else if (atrPercent > 2.5) status = 'High';
+        else if (atrPercent < 1) status = 'Low';
+        else status = 'Normal';
+        return { value: atr, status: status, atrPercent: atrPercent }; 
+    }
+// ===================================================================
+    function detectMarketRegime_Unified(klinesSnapshot) {
+        // Butuh data yang cukup untuk kalkulasi EMA 200
+        if (!klinesSnapshot || klinesSnapshot.length < 200) {
+            return 'ranging'; // Default jika data tidak cukup
+        }
+
+        const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+        const lastPrice = closes[closes.length - 1];
+
+        // --- Prioritas 1: Deteksi Volatilitas Rendah (Squeeze) ---
+        // Kondisi ini paling unik dan harus dideteksi lebih dulu.
+        const bbData = calculateBollingerBands(closes); // Asumsi fungsi ini ada
+        if (bbData.squeezeStatus === 'Squeeze!') {
+            return 'lowVolatility';
+        }
+
+        // --- Prioritas 2: Deteksi Kekuatan Tren ---
+        // Jika tidak Squeeze, baru kita cek apakah ada tren yang kuat.
+        const adxData = calculateADX(klinesSnapshot, 14); // Asumsi fungsi ini ada
+        const adxValue = adxData.value;
+
+        if (adxValue > 25) { // Ambang batas umum untuk tren yang kuat
+            const ema50 = calculateEMA(closes, 50).pop();
+            const ema200 = calculateEMA(closes, 200).pop();
+
+            // Kondisi klasik untuk tren bullish yang sehat
+            if (lastPrice > ema50 && ema50 > ema200) {
+                return 'bullTrend';
+            }
+            // Kondisi klasik untuk tren bearish yang sehat
+            if (lastPrice < ema50 && ema50 < ema200) {
+                return 'bearTrend';
+            }
+        }
+
+        return 'ranging';
+    }
+
+    function getUltimateSignalScore(indicator, signalData) {
+        const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+        const mapRange = (x, inMin, inMax, outMin, outMax) => {
+            const t = (x - inMin) / (inMax - inMin);
+            return outMin + clamp(t, 0, 1) * (outMax - outMin);
+        };       
+        const confidence = (typeof signalData?.confidence === 'number')
+            ? clamp(signalData.confidence, 0, 1)
+            : 1;
+        const text = (signalData?.status || signalData?.bias || signalData?.signal || '').toString().toUpperCase();
+        const biasSigned = (typeof signalData?.biasSigned === 'number')
+            ? Math.sign(signalData.biasSigned)
+            : null;
+        if (['ma','macd','rsi','stoch','psar','linreg','roc','pivot','vwap','ichimoku','candlePattern','bollingerBands'].includes(indicator)) {
+            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+            if (text.includes('BULL')) return +1 * confidence;
+            if (text.includes('BEAR')) return -1 * confidence;
+            return 0;
+        }
+        if (indicator === 'rsiDivergence' || indicator === 'obvDivergence') {
+            if (text.includes('BULL')) return +1 * confidence;
+            if (text.includes('BEAR')) return -1 * confidence;
+            return 0;
+        }
+        if (indicator === 'openInterest') {
+            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+            if (text.includes('UP')) return +1 * confidence;
+            if (text.includes('DOWN')) return -1 * confidence;
+            return 0;
+        }
+        if (indicator === 'funding' || indicator === 'fundingRate') {
+            const v = typeof signalData?.value === 'number' ? signalData.value : 0;
+            const s = Math.max(-1, Math.min(1, v / 0.0025));
+            return s * confidence;
+            }
+        if (indicator === 'lsr' || indicator === 'lsRatio') {
+            const v = typeof signalData?.value === 'number' ? signalData.value : 1;
+            const s = Math.max(-1, Math.min(1, (v - 1) / 0.3));
+            return s * confidence;
+            }
+        if (indicator === 'orderBookBias') {
+            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+            if (text.includes('BID')) return +1 * confidence;
+            if (text.includes('ASK')) return -1 * confidence;
+            return 0;
+        }
+        if (indicator === 'bbSqueeze') {
+            const st = (signalData?.status || '').toString().toUpperCase();
+            if (st.includes('RELEASE')) return +1 * confidence;
+            if (st.includes('ON')) return 0;
+            if (st.includes('OFF')) return 0.3 * confidence;
+            return 0;
+        }
+        return 0;
+    }
+
+    function calculateConfluenceScoreForCandle(activeWeights, indicators) {
+            let totalBullScore = 0, totalBearScore = 0, maxPossibleScore = 0;
+
+            for (const indicator in activeWeights) {
+                if (indicators[indicator]) {
+                    const weight = activeWeights[indicator];
+                    // getUltimateSignalScore akan mengambil sinyal yang sudah matang
+                    const rawScore = getUltimateSignalScore(indicator, indicators[indicator]);
+                    const weightedScore = rawScore * weight;
+
+                    if (weightedScore > 0) totalBullScore += weightedScore;
+                    if (weightedScore < 0) totalBearScore += Math.abs(weightedScore);
+                    maxPossibleScore += Math.abs(weight);
+                }
+            }
+
+            const bullPercentage = maxPossibleScore > 0 ? (totalBullScore / maxPossibleScore) * 100 : 0;
+            const bearPercentage = maxPossibleScore > 0 ? (totalBearScore / maxPossibleScore) * 100 : 0;
+
+            return { bull: bullPercentage, bear: bearPercentage };
+        }
+    function calculateMetrics(trades, initialBalance) {
+    if (trades.length === 0) return { totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0, finalBalance: initialBalance, maxDrawdown: 0, expectancy: 0, maxLosingStreak: 0 };
+    let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0, equityCurve = [initialBalance], peakEquity = initialBalance, maxDrawdown = 0, losingStreak = 0, maxLosingStreak = 0;
+    trades.forEach(trade => {
+        totalPnl += trade.pnl;
+        const currentEquity = initialBalance + totalPnl;
+        equityCurve.push(currentEquity);
+        peakEquity = Math.max(peakEquity, currentEquity);
+        const drawdown = ((peakEquity - currentEquity) / peakEquity) * 100;
+        maxDrawdown = Math.max(maxDrawdown, drawdown);
+        if (trade.pnl > 0) { wins++; losingStreak = 0; grossProfit += trade.pnl; } 
+        else { losingStreak++; maxLosingStreak = Math.max(maxLosingStreak, losingStreak); grossLoss += Math.abs(trade.pnl); }
     });
-};
-
-const calculateCorrelation = (dataX, dataY) => {
-    if (dataX.length !== dataY.length || dataX.length === 0) return null;
-    const n = dataX.length;
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
-    for (let i = 0; i < n; i++) {
-        sumX += dataX[i]; sumY += dataY[i]; sumXY += dataX[i] * dataY[i];
-        sumX2 += dataX[i] * dataX[i]; sumY2 += dataY[i] * dataY[i];
-    }
-    const numerator = n * sumXY - sumX * sumY;
-    const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-    return denominator === 0 ? 0 : numerator / denominator;
-};
-
-
-/**
- * Fungsi Penggabung Akhir.
- * Menjalankan semua fungsi kalkulasi dan menyusun hasilnya dalam satu objek.
- */
-function recalculateAllIndicators(klines, tickerData, prevDayKline, marketType, cvdData, orderBookData, fundingRateData, lsRatioUmumData, openInterestData) {
-    if (!klines || klines.length < 50) return {};
-    const closes = klines.map(k => parseFloat(k[4]));
-    const lastPrice = closes[closes.length - 1];
-    const rsiValues = calculateRSI(closes);
-    const macdData = calculateMACD(closes);
-    const stochData = calculateStochasticRSI(closes);
-    const bbData = calculateBollingerBands(closes);
-    const pivotData = calculatePivotPoints(prevDayKline);
-    
-    // Status RSI
-    const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
-    const rsiStatus = lastRsi > 70 ? 'Overbought' : (lastRsi < 30 ? 'Oversold' : 'Netral');
-
-    // Status Stoch RSI
-    const lastK = stochData.kLine.filter(v=>v!==undefined).pop() || 50;
-    const stochStatus = lastK > 80 ? 'Overbought' : (lastK < 20 ? 'Oversold' : 'Netral');
-
-    // Status MACD
-    const lastMacd = macdData.macdLine.filter(v=>v!==undefined).pop() || 0;
-    const lastSig = macdData.signalLine.filter(v=>v!==undefined).pop() || 0;
-    const macdStatus = lastMacd > lastSig ? 'Bullish' : 'Bearish';
-
-    return {
-        adx: calculateADX(klines),
-        vpvr: calculateVPVR(klines),
-        ma: {
-             value21: calculateEMA(closes, 21).pop(),
-             value50: calculateEMA(closes, 50).pop(),
-        },
-        rsi: {
-            values: rsiValues,
-            last: lastRsi.toFixed(2),
-            status: rsiStatus,
-        },
-        rsiDivergence: detectRSIDivergence(closes, rsiValues),
-        obvDivergence: detectOBVDivergence(closes, klines),
-        stoch: {
-            k: lastK.toFixed(2),
-            d: stochData.dLine.filter(v=>v!==undefined).pop()?.toFixed(2) || 50,
-            status: stochStatus,
-        },
-        macd: {
-            status: macdStatus,
-            hist: macdData.histogram.filter(v=>v!==undefined).pop()?.value > 0 ? '(Naik)' : '(Turun)'
-        },
-        bollingerBands: {
-            status: lastPrice > bbData.upper.pop() ? 'Above' : (lastPrice < bbData.lower.pop() ? 'Below' : 'Inside'),
-        },
-        pivot: {
-            status: pivotData ? (lastPrice > pivotData.P ? 'Bullish' : 'Bearish') : 'N/A',
-            data: pivotData
-        },
-        candlePattern: findCandlestickPatterns(klines)
-    };
+    const winRate = (wins / trades.length) * 100;
+    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
+    const expectancy = totalPnl / trades.length;
+    return { totalPnl, winRate, profitFactor, totalTrades: trades.length, finalBalance: initialBalance + totalPnl, maxDrawdown, expectancy, maxLosingStreak };
 }
+
+
+// === BAGIAN 3: FUNGSI UTAMA PEKERJAAN (RUN BACKTEST) ===
+
+async function runBacktestWithGenome(genome, historicalData) {
+    const settings = {
+        initialBalance: 1000,
+        leverage: 10,
+        riskPerTrade: 0.01,
+        takerFee: 0.0004,
+        makerFee: 0.0002,
+        slippageModel: 'atrAdvanced',
+        atrSlippagePercent: 10,
+        randomSlippagePercent: 0.005,
+        marginMode: 'cross',
+        // Timpa pengaturan default dengan DNA dari genome
+        riskRewardRatio: genome.riskRewardRatio,
+        pullbackEmaPeriod: genome.pullbackEmaPeriod,
+        swingLookback: genome.swingLookback,
+        biasThreshold: genome.biasThreshold,
+        atrFilterThreshold: genome.atrFilterThreshold,
+        weights: genome.weights,
+    };
+
+    // --- STEP 1: PRE-CALCULATION (MEMBUAT CACHE) ---
+    const analysisCache = [];
+    const fullCloses = historicalData.map(k => parseFloat(k[4]));
+    const allEma21 = calculateEMA(fullCloses, 21);
+    const allEma50 = calculateEMA(fullCloses, 50);
+    const allRsiValues = calculateRSI(fullCloses);
+    for (let i = 0; i < historicalData.length; i++) {
+        if (i < 200) {
+            analysisCache.push(null);
+            continue;
+        }
+        // DI SINI kita menggunakan slice, karena ini dilakukan satu kali per candle saat membuat cache
+        const klinesSnapshot = historicalData.slice(0, i + 1);
+        const closesSnapshot = fullCloses.slice(0, i + 1);
+        const score = getConfluenceAnalysis(klinesSnapshot); // Menggunakan fungsi konfluensi sederhana
+        const atr = calculateATR(klinesSnapshot);
+        analysisCache.push({ bullScore: score.skorBullish, bearScore: score.skorBearish, atrValue: atr.value });
+    }
+
+// --- STEP 2: SIMULATION (MENGGUNAKAN CACHE) ---
+let balance = settings.initialBalance;
+let position = null;
+const trades = [];
+const MAINTENANCE_MARGIN_RATE = 0.005;
+
+// ▼▼▼ GANTI LOOP LAMA ANDA DENGAN YANG LENGKAP INI ▼▼▼
+for (let i = 200; i < historicalData.length; i++) {
+    const cacheEntry = analysisCache[i];
+    if (!cacheEntry) continue;
+
+    const currentCandle = historicalData[i];
+    const currentLow = parseFloat(currentCandle[3]);
+    const currentHigh = parseFloat(currentCandle[2]);
+
+    // === BAGIAN 1: LOGIKA EXIT (YANG SUDAH ANDA TEMUKAN) ===
+    if (position) {
+        let exitReason = null, exitPrice = 0;
+        if (position.type === 'LONG') {
+            if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+            else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+        } else { // SHORT
+            if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+            else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+        }
+        if(exitReason){
+            const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
+            const entryValue = position.entryPrice * position.size;
+            const exitValue = exitPrice * position.size;
+            const entryFee = entryValue * settings.takerFee;
+            const exitFee = exitValue * settings.makerFee;
+            const totalFee = entryFee + exitFee;
+            const netPnl = rawPnl - totalFee;
+            balance += netPnl;
+            trades.push({ ...position, exitPrice, pnl: netPnl, fee: totalFee, exitDate: new Date(currentCandle[0]), reason: exitReason });
+            position = null;
+            if (balance <= 0) { break; } // Hentikan jika modal habis
+        }
+    }
+
+    // === BAGIAN 2: LOGIKA ENTRY (YANG ANDA CARI) ===
+    if (!position && cacheEntry) {
+        const klinesSnapshot = historicalData.slice(0, i + 1);
+        const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
+        let entrySignal = false; 
+        let detectedBias = 'NETRAL'; 
+        let entryPrice = 0;
+        
+        const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+        const recentKlines = historicalData.slice(Math.max(0, i - settings.swingLookback), i);
+        const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+        const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+
+        if (currentRegime === 'bullTrend' || currentRegime === 'bearTrend') {
+            const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
+            const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
+            if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
+                entrySignal = true; 
+                detectedBias = bias; 
+                entryPrice = emaEntry;
+            }
+        } else if (currentRegime === 'ranging') {
+            const bollingerBands = calculateBollingerBands(closes); 
+            const lastUpperBand = bollingerBands.upper.pop(); 
+            const lastLowerBand = bollingerBands.lower.pop();
+            if (lastLowerBand > 0 && currentLow <= lastLowerBand) { 
+                entrySignal = true; 
+                detectedBias = 'LONG'; 
+                entryPrice = currentLow; 
+            } else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) { 
+                entrySignal = true; 
+                detectedBias = 'SHORT'; 
+                entryPrice = currentHigh; 
+            }
+        } else if (currentRegime === 'lowVolatility') {
+            if (currentHigh > recentSwingHigh) { 
+                entrySignal = true; 
+                detectedBias = 'LONG'; 
+                entryPrice = recentSwingHigh; 
+            } else if (currentLow < recentSwingLow) { 
+                entrySignal = true; 
+                detectedBias = 'SHORT'; 
+                entryPrice = recentSwingLow; 
+            }
+        }
+        
+        if (entrySignal && (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold))) {
+            let stopLoss, takeProfit;
+            if (detectedBias === 'LONG') {
+                stopLoss = recentSwingLow * 0.999;
+                takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
+            } else { // SHORT
+                stopLoss = recentSwingHigh * 1.001;
+                takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio);
+            }
+            const cost = balance * settings.riskPerTrade;
+            const sizeInAsset = (cost * settings.leverage) / entryPrice;
+            position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
+        }
+    }
+}
+// ▲▲▲ AKHIR DARI BLOK LOOP YANG LENGKAP ▲▲▲
+
+    // --- STEP 3: METRICS ---
+    const metrics = calculateMetrics(trades, settings.initialBalance);
+    return metrics;
+}
+
+
+// === BAGIAN 4: "TELINGA" KARYAWAN ===
+self.onmessage = async function(e) {
+    const { genome, historicalData, fitnessMetric } = e.data;
+    
+    const metrics = await runBacktestWithGenome(genome, historicalData);
+    
+    let fitnessScore = 0;
+    if (fitnessMetric === 'Win Rate') {
+        fitnessScore = metrics.winRate || 0;
+    } else { // Default ke Profit Factor
+        fitnessScore = metrics.profitFactor > 0 ? metrics.profitFactor : 0;
+    }
+
+    self.postMessage({ ...genome, fitness: fitnessScore, metrics: metrics });
+};
