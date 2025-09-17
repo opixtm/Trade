@@ -4,33 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BACKTESTING ENGINE - CHART REPLAY</title>
-    <script src="https://cdn.tailwindcss.com">
-// ===== PATCHED: Kirim timeframe ke worker =====
-function postBacktestMessage(action, extraData = {}) {
-    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
-    worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
-}
-// ===== END PATCH =====
-
-</script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js">
-// ===== PATCHED: Kirim timeframe ke worker =====
-function postBacktestMessage(action, extraData = {}) {
-    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
-    worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
-}
-// ===== END PATCH =====
-
-</script>
-    <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js">
-// ===== PATCHED: Kirim timeframe ke worker =====
-function postBacktestMessage(action, extraData = {}) {
-    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
-    worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
-}
-// ===== END PATCH =====
-
-</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #000000; color: #E0E0E0; }
         .card { background-color: #151414; border: 1px solid #333; border-radius: 0.75rem; }
@@ -3126,7 +3102,7 @@ function postBacktestMessage(action, extraData = {}) {
     // GANTI SELURUH FUNGSI evaluateFitness YANG LAMA DENGAN VERSI INI
 
 async function evaluateFitness(population, historicalData) {
-    const numWorkers = navigator.hardwareConcurrency ? Math.max(1, navigator.hardwareConcurrency - 1) : 5;
+    const numWorkers = navigator.hardwareConcurrency ? Math.max(1, navigator.hardwareConcurrency - 1) : 3;
     const workers = [];
     for (let i = 0; i < numWorkers; i++) {
         workers.push(new Worker('worker.js'));
@@ -3134,10 +3110,10 @@ async function evaluateFitness(population, historicalData) {
 
     const evaluatedPopulation = [];
     let populationIndex = 0;
-
-    // Ambil pengaturan dari UI sekali saja sebelum memulai
+    
     const timeframe = backtestTimeframeSelect.value;
-    const fitnessMetric = document.getElementById('optimization-metric-select').value;
+    const fitnessMetricSelect = document.getElementById('optimization-metric-select');
+    const fitnessMetric = fitnessMetricSelect ? fitnessMetricSelect.value : 'Profit Factor';
 
     const runWorker = (worker) => {
         return new Promise((resolve, reject) => {
@@ -3149,24 +3125,41 @@ async function evaluateFitness(population, historicalData) {
             const genomeToTest = population[populationIndex];
             populationIndex++;
             
-            // Kirim tugas LENGKAP ke worker, termasuk timeframe & metrik
             worker.postMessage({ 
                 genome: genomeToTest, 
                 historicalData: historicalData,
-                timeframe: timeframe, // <= INFORMASI BARU
-                fitnessMetric: fitnessMetric // <= INFORMASI BARU
+                timeframe: timeframe,
+                fitnessMetric: fitnessMetric
             });
 
             worker.onmessage = (e) => {
-                evaluatedPopulation.push(e.data);
+                if (e.data.error) {
+                    console.error("Worker melaporkan error:", e.data.error);
+                    // Tetap lanjutkan evolusi, anggap fitness 0
+                    evaluatedPopulation.push({ ...e.data.genome, fitness: 0, metrics: {} });
+                } else {
+                    evaluatedPopulation.push(e.data);
+                }
                 runWorker(worker).then(resolve).catch(reject);
             };
-            worker.onerror = (e) => reject(e.message);
+
+            worker.onerror = (e) => {
+                console.error(`Error kritis pada worker: ${e.message}`, e);
+                // Hentikan promise ini, tapi jangan hentikan yang lain
+                reject(`Worker failed: ${e.message}`); 
+            };
         });
     };
 
-    await Promise.all(workers.map(worker => runWorker(worker)));
-    workers.forEach(worker => worker.terminate());
+    try {
+        await Promise.all(workers.map(worker => runWorker(worker)));
+    } catch (error) {
+        console.error("Satu atau lebih worker gagal menyelesaikan tugas:", error);
+        // Bisa tambahkan logika untuk menghentikan seluruh evolusi jika satu worker gagal
+    } finally {
+        workers.forEach(worker => worker.terminate());
+    }
+
     return evaluatedPopulation;
 }
 
@@ -3377,27 +3370,6 @@ async function evaluateFitness(population, historicalData) {
             tradeSpeed.textContent = `${tradesPerSecond.toFixed(1)} Trade/detik`;
         }
     }
-// ===== PATCH V2: Always send timeframe to worker =====
-function postBacktestMessage(action, extraData = {}) {
-    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
-    if (typeof worker !== 'undefined') {
-        worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
-    } else {
-        console.error("Worker is not defined!");
-    }
-}
-
-// Hook start backtest button supaya selalu kirim timeframe
-const startBtn = document.getElementById('start-backtest-btn');
-if (startBtn) {
-    startBtn.addEventListener('click', () => {
-        postBacktestMessage("startBacktest", {
-            leverage: document.getElementById('backtest-leverage-input')?.value,
-            balance: document.getElementById('backtest-initial-balance')?.value
-        });
-    });
-}
-// ===== END PATCH V2 =====
 
 //======================================================================================================================================
     document.addEventListener('DOMContentLoaded', () => {
@@ -3545,14 +3517,6 @@ if (startBtn) {
     updateMarketSessions();
     setInterval(updateMarketSessions, 60000);
 });
-
-// ===== PATCHED: Kirim timeframe ke worker =====
-function postBacktestMessage(action, extraData = {}) {
-    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
-    worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
-}
-// ===== END PATCH =====
-
 </script>
 
 </body>
