@@ -1,13 +1,19 @@
 
-// ===== PATCHED: Safe timeframe handling =====
+// ===== PATCH V2: Safe timeframe handling =====
 self.currentTimeframe = "15m"; // default timeframe
+
+function safeGetTimeframe(tf) {
+    if (!tf) return "15m";
+    if (!timeframeParameterMap[tf]) return "15m";
+    return tf;
+}
 
 self.addEventListener("message", function(event) {
     if (event.data.timeframe) {
-        self.currentTimeframe = event.data.timeframe;
+        self.currentTimeframe = safeGetTimeframe(event.data.timeframe);
     }
 });
-// ===== END PATCH =====
+// ===== END PATCH V2 =====
 
     // ▼▼▼ TAMBAHKAN BLOK INI DI BARIS PALING ATAS worker.js ▼▼▼
 
@@ -75,8 +81,8 @@ const timeframeParameterMap = {
 
     const calculateRSI = (closes, period) => {
         if (period === undefined) {
-            const timeframe = self.currentTimeframe;
-            period = timeframeParameterMap[timeframe]?.rsi_period || 14;
+            const timeframe = backtestTimeframeSelect.value;
+            period = (timeframeParameterMap[timeframe] || timeframeParameterMap['15m']).rsi_period || 14;
         }
         
         if (!closes || closes.length <= period) {
@@ -104,7 +110,7 @@ const timeframeParameterMap = {
     
     const calculateMACD = (closes, fast, slow, signal) => {
         if (fast === undefined) {
-            const timeframe = self.currentTimeframe;
+            const timeframe = backtestTimeframeSelect.value;
             const params = timeframeParameterMap[timeframe] || timeframeParameterMap['15m'];
             fast = params.macd_fast;
             slow = params.macd_slow;
@@ -151,7 +157,7 @@ const timeframeParameterMap = {
 
     const calculateStochasticRSI = (closes, rsiPeriod, stochPeriod, kSmooth, dSmooth) => {
         if (rsiPeriod === undefined) {
-            const timeframe = self.currentTimeframe;
+            const timeframe = backtestTimeframeSelect.value;
             const params = timeframeParameterMap[timeframe] || timeframeParameterMap['15m'];
             rsiPeriod = params.stoch_rsi_period;
             stochPeriod = params.stoch_stoch_period;
