@@ -1,3 +1,17 @@
+    // ▼▼▼ TAMBAHKAN BLOK INI DI BARIS PALING ATAS worker.js ▼▼▼
+
+const timeframeParameterMap = {
+    '1m': { rsi_period: 7, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+    '3m': { rsi_period: 9, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+    '5m': { rsi_period: 9, macd_fast: 8, macd_slow: 21, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+    '15m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+    '1h': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+    '4h': { rsi_period: 21, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+    '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 }
+};
+
+// ▲▲▲ AKHIR DARI BLOK ▲▲▲
+    
     const calculateEMA = (data, period) => {
         if (!data || data.length < period) {
             return [];
