@@ -225,6 +225,7 @@ const chartsWrapper = document.getElementById('charts-wrapper');
         let liveWebSocket = null;
         let liveInterval = null;
         let currentChartTimeframe = '5m';
+        let htfTrend = 'NEUTRAL';
 
 // ===================================================================
 // ▼▼▼ TAMBAHKAN SELURUH BLOK "MESIN CHARTING" INI ▼▼▼
@@ -606,31 +607,27 @@ async function updateHtfCompass(timeframe) {
     resultEl.className = 'text-center mt-2 text-lg font-bold text-yellow-500';
 
     try {
-        // 1. Ambil 51 candle terakhir dari HTF yang dipilih
         const klines = await fetchBinanceAPIData('klines', { symbol, interval: timeframe, limit: 51 }, 'futures');
-        if (!klines || klines.length < 51) {
-            throw new Error("Data tidak cukup");
-        }
+        if (!klines || klines.length < 51) throw new Error("Data tidak cukup");
         
         const closes = klines.map(k => parseFloat(k[4]));
-        
-        // 2. Lakukan kalkulasi EMA sederhana
         const ema21 = calculateEMA(closes, 21).pop();
         const ema50 = calculateEMA(closes, 50).pop();
 
-        // 3. Tentukan tren dan perbarui UI
         if (ema21 > ema50) {
             resultEl.textContent = `▲ UPTREND (${timeframe})`;
             resultEl.className = 'text-center mt-2 text-lg font-bold positive';
+            htfTrend = 'UPTREND'; // <-- PERUBAHAN DI SINI
         } else {
             resultEl.textContent = `▼ DOWNTREND (${timeframe})`;
             resultEl.className = 'text-center mt-2 text-lg font-bold negative';
+            htfTrend = 'DOWNTREND'; // <-- PERUBAHAN DI SINI
         }
-
     } catch (error) {
         console.error(`Gagal update kompas HTF untuk ${timeframe}:`, error);
         resultEl.textContent = `Error (${timeframe})`;
         resultEl.className = 'text-center mt-2 text-lg font-bold negative';
+        htfTrend = 'NEUTRAL'; // <-- PERUBAHAN DI SINI
     }
 }
 
@@ -1375,35 +1372,46 @@ startLiveBtn.addEventListener('click', async () => {
         let entryPrice = null, stopLoss = null, tp1 = null, tp2 = null;
 
         if (confluenceScores.bull > confluenceScores.bear + activeStrategy.biasThreshold) {
-            // --- AWAL PERBAIKAN LOGIKA LONG ---
             const emaEntry = calculateEMA(closes, activeStrategy.pullbackEmaPeriod).pop();
             entryPrice = emaEntry;
-            biasStatus = (currentPrice > entryPrice) ? 'LONG - FOLLOW TREND' : 'LONG - COUNTER TREND';
-            biasDetail = `Bull (${confluenceScores.bull.toFixed(1)}) vs Bear (${confluenceScores.bear.toFixed(1)})`;
+            
+            // --- AWAL LOGIKA BARU UNTUK LONG ---
+            if (htfTrend === 'UPTREND') {
+                biasStatus = 'LONG - FOLLOW TREND';
+            } else if (htfTrend === 'DOWNTREND') {
+                biasStatus = 'LONG - COUNTER TREND';
+            } else {
+                biasStatus = 'LONG - RANGE TRADING';
+            }
+            // --- AKHIR LOGIKA BARU ---
 
+            biasDetail = `Bull (${confluenceScores.bull.toFixed(1)}) vs Bear (${confluenceScores.bear.toFixed(1)})`;
             const recentSwingLow = Math.min(...liveData.slice(-activeStrategy.swingLookback).map(k => parseFloat(k[3])));
             const recentSwingHigh = Math.max(...liveData.slice(-activeStrategy.swingLookback).map(k => parseFloat(k[2])));
-            
             stopLoss = recentSwingLow;
-            tp1 = recentSwingHigh; // TP1 sekarang Struktural
-            tp2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5); // TP2 sekarang R:R 1:1.5
-            // --- AKHIR PERBAIKAN LOGIKA LONG ---
+            tp1 = recentSwingHigh;
+            tp2 = entryPrice + (Math.abs(entryPrice - stopLoss) * 1.5);
 
         } else if (confluenceScores.bear > confluenceScores.bull + activeStrategy.biasThreshold) {
-            // --- AWAL PERBAIKAN LOGIKA SHORT ---
             const emaEntry = calculateEMA(closes, activeStrategy.pullbackEmaPeriod).pop();
             entryPrice = emaEntry;
-            biasStatus = (currentPrice < entryPrice) ? 'SHORT - FOLLOW TREND' : 'SHORT - COUNTER TREND';
-            biasDetail = `Bull (${confluenceScores.bull.toFixed(1)}) vs Bear (${confluenceScores.bear.toFixed(1)})`;
 
+            // --- AWAL LOGIKA BARU UNTUK SHORT ---
+            if (htfTrend === 'DOWNTREND') {
+                biasStatus = 'SHORT - FOLLOW TREND';
+            } else if (htfTrend === 'UPTREND') {
+                biasStatus = 'SHORT - COUNTER TREND';
+            } else {
+                biasStatus = 'SHORT - RANGE TRADING';
+            }
+            // --- AKHIR LOGIKA BARU ---
+
+            biasDetail = `Bull (${confluenceScores.bull.toFixed(1)}) vs Bear (${confluenceScores.bear.toFixed(1)})`;
             const recentSwingHigh = Math.max(...liveData.slice(-activeStrategy.swingLookback).map(k => parseFloat(k[2])));
             const recentSwingLow = Math.min(...liveData.slice(-activeStrategy.swingLookback).map(k => parseFloat(k[3])));
-
             stopLoss = recentSwingHigh;
-            tp1 = recentSwingLow; // TP1 sekarang Struktural
-            tp2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5); // TP2 sekarang R:R 1:1.5
-            // --- AKHIR PERBAIKAN LOGIKA SHORT ---
-
+            tp1 = recentSwingLow;
+            tp2 = entryPrice - (Math.abs(stopLoss - entryPrice) * 1.5);
         } else {
             biasStatus = 'NEUTRAL';
             biasDetail = `Bull (${confluenceScores.bull.toFixed(1)}) vs Bear (${confluenceScores.bear.toFixed(1)})`;
@@ -1422,6 +1430,7 @@ startLiveBtn.addEventListener('click', async () => {
         document.getElementById('live-price-display').textContent = formatPrice(currentPrice);
     }
 }, 5000);
+
 
 });
 
