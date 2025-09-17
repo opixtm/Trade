@@ -4,9 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BACKTESTING ENGINE - CHART REPLAY</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdn.tailwindcss.com">
+// ===== PATCHED: Kirim timeframe ke worker =====
+function postBacktestMessage(action, extraData = {}) {
+    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
+    worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
+}
+// ===== END PATCH =====
+
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+// ===== PATCHED: Kirim timeframe ke worker =====
+function postBacktestMessage(action, extraData = {}) {
+    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
+    worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
+}
+// ===== END PATCH =====
+
+</script>
+    <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js">
+// ===== PATCHED: Kirim timeframe ke worker =====
+function postBacktestMessage(action, extraData = {}) {
+    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
+    worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
+}
+// ===== END PATCH =====
+
+</script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #000000; color: #E0E0E0; }
         .card { background-color: #151414; border: 1px solid #333; border-radius: 0.75rem; }
@@ -3500,6 +3524,14 @@ async function evaluateFitness(population, historicalData) {
     updateMarketSessions();
     setInterval(updateMarketSessions, 60000);
 });
+
+// ===== PATCHED: Kirim timeframe ke worker =====
+function postBacktestMessage(action, extraData = {}) {
+    const timeframe = document.getElementById('backtest-timeframe-select')?.value || "15m";
+    worker.postMessage(Object.assign({ action: action, timeframe: timeframe }, extraData));
+}
+// ===== END PATCH =====
+
 </script>
 
 </body>
