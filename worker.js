@@ -1,8 +1,8 @@
 // ===================================================================
-// FILE: worker.js (VERSI FINAL - 100% LENGKAP DAN BENAR)
+// FILE: worker.js (VERSI FINAL V3 - STRUKTUR DIPERBAIKI)
 // ===================================================================
 
-// === BAGIAN 0: VARIABEL KONFIGURASI YANG DIBUTUHKAN ===
+// === BAGIAN 0: KONSTANTA GLOBAL ===
 const timeframeParameterMap = {
     '1m': { rsi_period: 7, macd_fast: 5, macd_slow: 13, macd_signal: 5 },
     '3m': { rsi_period: 9, macd_fast: 5, macd_slow: 13, macd_signal: 5 },
@@ -13,22 +13,263 @@ const timeframeParameterMap = {
     '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9 }
 };
 
-// === BAGIAN 1: SEMUA FUNGSI PEMBANTU KALKULASI (PERALATAN) ===
-const calculateEMA=(data,period)=>{if(!data||data.length<period)return[];const k=2/(period+1);let a=[];if(data.length>0){let e=0;for(let t=0;t<period;t++)e+=data[t]||0;a[period-1]=e/period;for(let t=period;t<data.length;t++)a[t]=data[t]*k+a[t-1]*(1-k)}return a};
-const calculateSMA=(data,period)=>{if(!data||data.length<period)return[];let a=[],e=0;for(let t=0;t<period;t++)e+=data[t];a.push(e/period);for(let t=period;t<data.length;t++)e=e-data[t-period]+data[t],a.push(e/period);return[...Array(period-1).fill(void 0),...a]};
-const calculateRSI=(closes,period)=>{if(!closes||closes.length<=period)return Array(closes.length).fill(void 0);let a=[],e=[];for(let t=1;t<closes.length;t++){const r=closes[t]-closes[t-1];a.push(r>0?r:0),e.push(r<0?-r:0)}let t=Array(period).fill(void 0),r=a.slice(0,period).reduce(((a,e)=>a+e),0)/period,l=e.slice(0,period).reduce(((a,e)=>a+e),0)/period;t[period-1]=0===l?100:100-100/(1+r/l);for(let o=period;o<a.length;o++)r=(r*(period-1)+a[o])/period,l=(l*(period-1)+e[o])/period,t.push(0===l?100:100-100/(1+r/l));return t};
-const calculateMACD=(closes,fast,slow,signal)=>{if(closes.length<slow)return{status:"Netral",macdLine:[],signalLine:[],histogram:[]};const a=calculateEMA(closes,fast),e=calculateEMA(closes,slow),t=e.map(((e,t)=>void 0!==e&&void 0!==a[t]?a[t]-e:void 0)).filter((a=>void 0!==a)),r=calculateEMA(t,signal);let l="Netral";const o=t.slice(-1)[0]||0,s=r.slice(-1)[0]||0,n=t.slice(-2,-1)[0]||0,i=r.slice(-2,-1)[0]||0;n<=i&&o>s?l="Bullish Cross":n>=i&&o<s&&(l="Bearish Cross");return{status:l}};
-const findCandlestickPatterns=a=>{if(!a||a.length<2)return{bias:"NETRAL"};const e=a=>{const[e,t,r,l]=a.slice(1,5).map(parseFloat);return{open:e,close:l,isGreen:l>e,isRed:l<e}},t=e(a[a.length-1]),r=e(a[a.length-2]);return r.isRed&&t.isGreen&&t.close>r.open?{bias:"BULLISH"}:r.isGreen&&t.isRed&&t.close<r.open?{bias:"BEARISH"}:{bias:"NETRAL"}};
-const detectRSIDivergence=(a,e,t=30)=>{if(!a||a.length<t||!e||e.length<t)return{status:"NONE"};const r=a.slice(-t),l=e.slice(-t),o=(a,e)=>{let t=[];for(let r=1;r<a.length-1;r++)(e&&a[r]>a[r-1]&&a[r]>a[r+1]||!e&&a[r]<a[r-1]&&a[r]<a[r+1])&&t.push({index:r,value:a[r]});return t},s=o(r,!1),n=o(r,!0),i=o(l,!1),c=o(l,!0);if(s.length>=2&&i.length>=2){const a=s[s.length-1],e=s[s.length-2],t=i.find((e=>Math.abs(e.index-a.index)<3)),r=i.find((a=>Math.abs(a.index-e.index)<3));if(a&&e&&t&&r&&a.value<e.value&&t.value>r.value)return{status:"BULLISH"}}if(n.length>=2&&c.length>=2){const a=n[n.length-1],e=n[n.length-2],t=c.find((e=>Math.abs(e.index-a.index)<3)),r=c.find((a=>Math.abs(a.index-e.index)<3));if(a&&e&&t&&r&&a.value>e.value&&t.value<r.value)return{status:"BEARISH"}}return{status:"NONE"}};
-const getConfluenceAnalysis=(klines,timeframe)=>{if(!klines||klines.length<50)return{skorBullish:0,skorBearish:0};let skorBullish=0,skorBearish=0;const closes=klines.map((k=>parseFloat(k[4])));const rsiPeriod=timeframeParameterMap[timeframe].rsi_period;const rsiValues=calculateRSI(closes,rsiPeriod);const lastRsi=rsiValues.filter((v=>void 0!==v)).pop()||50;const macdParams=timeframeParameterMap[timeframe];const macd=calculateMACD(closes,macdParams.macd_fast,macdParams.macd_slow,macdParams.macd_signal);const candlePattern=findCandlestickPatterns(klines);const rsiDivergence=detectRSIDivergence(closes,rsiValues);if("BEARISH"===candlePattern.bias)skorBearish+=2;"Bearish Cross"===macd.status&& (skorBearish+=2);lastRsi>70&&(skorBearish+=1.5);"BEARISH"===rsiDivergence.status&&(skorBearish+=2.5);if("BULLISH"===candlePattern.bias)skorBullish+=2;"Bullish Cross"===macd.status&&(skorBullish+=2);lastRsi<30&&(skorBullish+=1.5);"BULLISH"===rsiDivergence.status&&(skorBullish+=2.5);return{skorBullish:skorBullish/8*10,skorBearish:skorBearish/8*10}};
-const calculateATR=(a,e=14)=>{if(!a||a.length<e+1)return{value:0};let t=[];for(let r=1;r<a.length;r++){const l=parseFloat(a[r][2]),o=parseFloat(a[r][3]),s=parseFloat(a[r-1][4]);t.push(Math.max(l-o,Math.abs(l-s),Math.abs(o-s)))}const r=a=>{let t=[],r=0;for(let l=0;l<a.length;l++)l<e?(r+=a[l],l===e-1?t.push(r/e):t.push(void 0)):void 0!==t[l-1]&&t.push((t[l-1]*(e-1)+a[l])/e);return r};return{value:r(t).pop()||0}};
-const detectMarketRegime_Unified=a=>{if(!a||a.length<200)return"ranging";const e=a.map((a=>parseFloat(a[4])));return"ranging"}; // Simplified for worker speed
+// === BAGIAN 1: FUNGSI KALKULASI DASAR (DEPENDENSI TERENDAH) ===
+// Dideklarasikan sebagai 'function' agar di-hoist dan selalu tersedia.
 
-// === BAGIAN 2: LOGIKA INTI BACKTESTING ===
-function calculateMetrics(trades,initialBalance){if(trades.length===0)return{totalPnl:0,winRate:0,profitFactor:0,totalTrades:0};let totalPnl=0,grossProfit=0,grossLoss=0,wins=0;trades.forEach((trade)=>{totalPnl+=trade.pnl;if(trade.pnl>0){wins++;grossProfit+=trade.pnl}else{grossLoss+=Math.abs(trade.pnl)}});const winRate=trades.length>0?wins/trades.length*100:0;const profitFactor=grossLoss>0?grossProfit/grossLoss:Infinity;return{totalPnl,winRate,profitFactor,totalTrades:trades.length}};
+function calculateEMA(data, period) {
+    if (!data || data.length < period) return [];
+    const k = 2 / (period + 1);
+    let emaArray = [];
+    if (data.length > 0) {
+        let sum = 0;
+        for (let i = 0; i < period; i++) sum += data[i] || 0;
+        emaArray[period - 1] = sum / period;
+        for (let i = period; i < data.length; i++) {
+            emaArray[i] = (data[i] * k) + (emaArray[i - 1] * (1 - k));
+        }
+    }
+    return emaArray;
+}
 
-// === BAGIAN 3: FUNGSI UTAMA PEKERJAAN ===
-async function runBacktestWithGenome(genome,historicalData,timeframe){const settings={initialBalance:1e3,leverage:10,riskPerTrade:.01,takerFee:.0004,makerFee:.0002,...genome};const analysisCache=[];for(let i=0;i<historicalData.length;i++){if(i<200){analysisCache.push(null);continue}const klinesSnapshot=historicalData.slice(0,i+1);const score=getConfluenceAnalysis(klinesSnapshot,timeframe);const atr=calculateATR(klinesSnapshot);analysisCache.push({bullScore:score.skorBullish,bearScore:score.skorBearish,atrValue:atr.value})}let balance=settings.initialBalance,position=null;const trades=[];for(let i=200;i<historicalData.length;i++){const cacheEntry=analysisCache[i];if(!cacheEntry)continue;const currentCandle=historicalData[i],currentLow=parseFloat(currentCandle[3]),currentHigh=parseFloat(currentCandle[4]);if(position){let exitReason=null,exitPrice=0;if(position.type==="LONG"){if(currentLow<=position.sl)exitReason="Stop Loss",exitPrice=position.sl;else if(currentHigh>=position.tp)exitReason="Take Profit",exitPrice=position.tp}else if(currentHigh>=position.sl)exitReason="Stop Loss",exitPrice=position.sl;else if(currentLow<=position.tp)exitReason="Take Profit",exitPrice=position.tp;if(exitReason){const rawPnl=position.type==="LONG"?(exitPrice-position.entryPrice)*position.size:(position.entryPrice-exitPrice)*position.size,netPnl=rawPnl-position.entryPrice*position.size*settings.takerFee-exitPrice*position.size*settings.makerFee;balance+=netPnl;trades.push({...position,exitPrice,pnl:netPnl});position=null;if(balance<=0)break}}if(!position){const klinesSnapshot=historicalData.slice(0,i+1),currentRegime=detectMarketRegime_Unified(klinesSnapshot);let entrySignal=!1,detectedBias="NETRAL",entryPrice=0;if(currentRegime==="bullTrend"||currentRegime==="bearTrend"){const bias=cacheEntry.bullScore>cacheEntry.bearScore+settings.biasThreshold?"LONG":cacheEntry.bearScore>cacheEntry.bullScore+settings.biasThreshold?"SHORT":"NETRAL";if(bias!=="NETRAL"){const closes=klinesSnapshot.map((k=>parseFloat(k[4]))),emaEntry=calculateEMA(closes,settings.pullbackEmaPeriod).pop();if(emaEntry&&currentLow<=emaEntry&&currentHigh>=emaEntry)entrySignal=!0,detectedBias=bias,entryPrice=emaEntry}}if(entrySignal){const recentKlines=historicalData.slice(Math.max(0,i-settings.swingLookback),i);let stopLoss,takeProfit;if(detectedBias==="LONG"){stopLoss=Math.min(...recentKlines.map((k=>parseFloat(k[3]))));takeProfit=entryPrice+(Math.abs(entryPrice-stopLoss)*settings.riskRewardRatio)}else{stopLoss=Math.max(...recentKlines.map((k=>parseFloat(k[2]))));takeProfit=entryPrice-Math.abs(stopLoss-entryPrice)*settings.riskRewardRatio}const cost=balance*settings.riskPerTrade,sizeInAsset=cost*settings.leverage/entryPrice;position={type:detectedBias,entryPrice,cost,size:sizeInAsset,sl:stopLoss,tp:takeProfit}}}}return calculateMetrics(trades,settings.initialBalance)};
+function calculateSMA(data, period) {
+    if (!data || data.length < period) return [];
+    let sma = [], sum = 0;
+    for (let i = 0; i < period; i++) sum += data[i];
+    sma.push(sum / period);
+    for (let i = period; i < data.length; i++) {
+        sum = sum - data[i - period] + data[i];
+        sma.push(sum / period);
+    }
+    return [...Array(period - 1).fill(undefined), ...sma];
+}
+
+function calculateRSI(closes, period) {
+    if (!closes || closes.length <= period) return Array(closes.length).fill(undefined);
+    let gains = [], losses = [];
+    for (let i = 1; i < closes.length; i++) {
+        const diff = closes[i] - closes[i - 1];
+        gains.push(diff > 0 ? diff : 0);
+        losses.push(diff < 0 ? -diff : 0);
+    }
+    let rsi = Array(period).fill(undefined);
+    let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+    let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+    rsi[period - 1] = avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+    for (let i = period; i < gains.length; i++) {
+        avgGain = (avgGain * (period - 1) + gains[i]) / period;
+        avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+        rsi.push(avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss))));
+    }
+    return rsi;
+}
+
+function findCandlestickPatterns(klines) {
+    if (!klines || klines.length < 2) return { bias: 'NETRAL' };
+    const getCandle = (k) => {
+        const [o, h, l, c] = k.slice(1, 5).map(parseFloat);
+        return { open: o, close: c, isGreen: c > o, isRed: c < o };
+    };
+    const c1 = getCandle(klines[klines.length - 1]), c2 = getCandle(klines[klines.length - 2]);
+    if (c2.isRed && c1.isGreen && c1.close > c2.open) return { bias: 'BULLISH' };
+    if (c2.isGreen && c1.isRed && c1.close < c2.open) return { bias: 'BEARISH' };
+    return { bias: 'NETRAL' };
+}
+
+// === BAGIAN 2: FUNGSI KALKULASI LANJUTAN (TERGANTUNG PADA BAGIAN 1) ===
+
+function calculateMACD(closes, fast, slow, signal) {
+    if (closes.length < slow) return { status: "Netral", macdLine: [], signalLine: [], histogram: [] };
+    const emaFast = calculateEMA(closes, fast);
+    const emaSlow = calculateEMA(closes, slow);
+    const macdLine = emaSlow.map((slowVal, i) => (slowVal !== undefined && emaFast[i] !== undefined) ? emaFast[i] - slowVal : undefined).filter(v => v !== undefined);
+    const signalLine = calculateEMA(macdLine, signal);
+    let status = "Netral";
+    const lastMacd = macdLine.slice(-1)[0] || 0;
+    const lastSig = signalLine.slice(-1)[0] || 0;
+    const prevMacdLine = macdLine.slice(-2, -1)[0] || 0;
+    const prevSignalLine = signalLine.slice(-2, -1)[0] || 0;
+    if (prevMacdLine <= prevSignalLine && lastMacd > lastSig) status = "Bullish Cross";
+    else if (prevMacdLine >= prevSignalLine && lastMacd < lastSig) status = "Bearish Cross";
+    return { status };
+}
+
+function detectRSIDivergence(closes, rsiValues, lookback = 30) {
+    if (!closes || closes.length < lookback || !rsiValues || rsiValues.length < lookback) return { status: "NONE" };
+    const recentCloses = closes.slice(-lookback), recentRSI = rsiValues.slice(-lookback);
+    const findPivots = (data, isHigh) => {
+        let pivots = [];
+        for (let i = 1; i < data.length - 1; i++)
+            if ((isHigh && data[i] > data[i - 1] && data[i] > data[i + 1]) || (!isHigh && data[i] < data[i - 1] && data[i] < data[i + 1]))
+                pivots.push({ index: i, value: data[i] });
+        return pivots;
+    };
+    const priceLows = findPivots(recentCloses, false), priceHighs = findPivots(recentCloses, true);
+    const rsiLows = findPivots(recentRSI, false), rsiHighs = findPivots(recentRSI, true);
+    if (priceLows.length >= 2 && rsiLows.length >= 2) {
+        const lastPriceLow = priceLows[priceLows.length - 1], prevPriceLow = priceLows[priceLows.length - 2];
+        const lastRsiLow = rsiLows.find(l => Math.abs(l.index - lastPriceLow.index) < 3), prevRsiLow = rsiLows.find(l => Math.abs(l.index - prevPriceLow.index) < 3);
+        if (lastPriceLow && prevPriceLow && lastRsiLow && prevRsiLow && lastPriceLow.value < prevPriceLow.value && lastRsiLow.value > prevRsiLow.value) return { status: "BULLISH" };
+    }
+    if (priceHighs.length >= 2 && rsiHighs.length >= 2) {
+        const lastPriceHigh = priceHighs[priceHighs.length - 1], prevPriceHigh = priceHighs[priceHighs.length - 2];
+        const lastRsiHigh = rsiHighs.find(h => Math.abs(h.index - lastPriceHigh.index) < 3), prevRsiHigh = rsiHighs.find(h => Math.abs(h.index - prevPriceHigh.index) < 3);
+        if (lastPriceHigh && prevPriceHigh && lastRsiHigh && prevRsiHigh && lastPriceHigh.value > prevPriceHigh.value && lastRsiHigh.value < prevRsiHigh.value) return { status: "BEARISH" };
+    }
+    return { status: "NONE" };
+}
+
+function getConfluenceAnalysis(klines, timeframe) {
+    if (!klines || klines.length < 50) return { skorBullish: 0, skorBearish: 0 };
+    let skorBullish = 0, skorBearish = 0;
+    const closes = klines.map(k => parseFloat(k[4]));
+    const rsiPeriod = timeframeParameterMap[timeframe].rsi_period;
+    const rsiValues = calculateRSI(closes, rsiPeriod);
+    const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
+    const macdParams = timeframeParameterMap[timeframe];
+    const macd = calculateMACD(closes, macdParams.macd_fast, macdParams.macd_slow, macdParams.macd_signal);
+    const candlePattern = findCandlestickPatterns(klines);
+    const rsiDivergence = detectRSIDivergence(closes, rsiValues);
+    if (candlePattern.bias === 'BEARISH') skorBearish += 2.0;
+    if (macd.status === 'Bearish Cross') skorBearish += 2.0;
+    if (lastRsi > 70) skorBearish += 1.5;
+    if (rsiDivergence.status === 'BEARISH') skorBearish += 2.5;
+    if (candlePattern.bias === 'BULLISH') skorBullish += 2.0;
+    if (macd.status === 'Bullish Cross') skorBullish += 2.0;
+    if (lastRsi < 30) skorBullish += 1.5;
+    if (rsiDivergence.status === 'BULLISH') skorBullish += 2.5;
+    const totalPossibleScore = 8.0;
+    return { skorBullish: (skorBullish / totalPossibleScore) * 10, skorBearish: (skorBearish / totalPossibleScore) * 10 };
+}
+
+function calculateATR(klines, period = 14) {
+    if (!klines || klines.length < period + 1) return { value: 0 };
+    let trs = [];
+    for (let i = 1; i < klines.length; i++) {
+        const high = parseFloat(klines[i][2]), low = parseFloat(klines[i][3]), prevClose = parseFloat(klines[i - 1][4]);
+        trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
+    }
+    const rma = (data, p) => {
+        let smoothed = [], sum = 0;
+        for (let i = 0; i < data.length; i++) {
+            if (i < p) {
+                sum += data[i];
+                if (i === p - 1) smoothed.push(sum / p);
+                else smoothed.push(undefined);
+            } else if (smoothed[i - 1] !== undefined) {
+                smoothed.push((smoothed[i - 1] * (p - 1) + data[i]) / p);
+            }
+        }
+        return smoothed;
+    };
+    return { value: rma(trs, period).pop() || 0 };
+}
+
+// === BAGIAN 3: LOGIKA INTI BACKTESTING ===
+function calculateMetrics(trades, initialBalance) {
+    if (trades.length === 0) return { totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0 };
+    let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0;
+    trades.forEach(trade => {
+        totalPnl += trade.pnl;
+        if (trade.pnl > 0) { wins++; grossProfit += trade.pnl; } else { grossLoss += Math.abs(trade.pnl); }
+    });
+    const winRate = (trades.length > 0) ? (wins / trades.length) * 100 : 0;
+    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
+    return { totalPnl, winRate, profitFactor, totalTrades: trades.length };
+}
+
+async function runBacktestWithGenome(genome, historicalData, timeframe) {
+    const settings = {
+        initialBalance: 1000, leverage: 10, riskPerTrade: 0.01,
+        takerFee: 0.0004, makerFee: 0.0002,
+        ...genome
+    };
+    
+    const analysisCache = [];
+    for (let i = 0; i < historicalData.length; i++) {
+        if (i < 200) { analysisCache.push(null); continue; }
+        const klinesSnapshot = historicalData.slice(0, i + 1);
+        const score = getConfluenceAnalysis(klinesSnapshot, timeframe);
+        const atr = calculateATR(klinesSnapshot);
+        analysisCache.push({ bullScore: score.skorBullish, bearScore: score.skorBearish, atrValue: atr.value });
+    }
+
+    let balance = settings.initialBalance;
+    let position = null;
+    const trades = [];
+    
+    for (let i = 200; i < historicalData.length; i++) {
+        const cacheEntry = analysisCache[i];
+        if (!cacheEntry) continue;
+
+        const currentCandle = historicalData[i];
+        const currentLow = parseFloat(currentCandle[3]);
+        const currentHigh = parseFloat(currentCandle[4]);
+
+        if (position) {
+            let exitReason = null, exitPrice = 0;
+            if (position.type === 'LONG') {
+                if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+            } else {
+                if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+            }
+            if(exitReason){
+                const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
+                const netPnl = rawPnl - ((position.entryPrice * position.size * settings.takerFee) + (exitPrice * position.size * settings.makerFee));
+                balance += netPnl;
+                trades.push({ ...position, pnl: netPnl });
+                position = null;
+                if (balance <= 0) break;
+            }
+        }
+
+        if (!position) {
+            let entrySignal = false, detectedBias = 'NETRAL', entryPrice = 0;
+            const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
+            if (bias !== 'NETRAL') {
+                const closes = historicalData.slice(0, i + 1).map(k => parseFloat(k[4]));
+                const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
+                if (emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
+                    entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
+                }
+            }
+            if (entrySignal) {
+                const recentKlines = historicalData.slice(Math.max(0, i - settings.swingLookback), i);
+                let stopLoss, takeProfit;
+                if (detectedBias === 'LONG') {
+                    stopLoss = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+                    takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
+                } else {
+                    stopLoss = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+                    takeProfit = entryPrice - Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio;
+                }
+                const cost = balance * settings.riskPerTrade;
+                if (entryPrice > 0) {
+                    const sizeInAsset = (cost * settings.leverage) / entryPrice;
+                    position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit };
+                }
+            }
+        }
+    }
+    return calculateMetrics(trades, settings.initialBalance);
+}
 
 // === BAGIAN 4: "TELINGA" KARYAWAN ===
-self.onmessage=async function(e){const{genome,historicalData,timeframe,fitnessMetric}=e.data;try{const metrics=await runBacktestWithGenome(genome,historicalData,timeframe);let fitnessScore=0;if(fitnessMetric==="Win Rate")fitnessScore=metrics.winRate||0;else{fitnessScore=metrics.profitFactor>0?metrics.profitFactor:0;if(fitnessScore===Infinity)fitnessScore=100}self.postMessage({...genome,fitness:fitnessScore,metrics:metrics})}catch(error){console.error("Error inside worker:",error);self.postMessage({error:error.message,genome})}};
+self.onmessage = async function(e) {
+    const { genome, historicalData, timeframe, fitnessMetric } = e.data;
+    try {
+        const metrics = await runBacktestWithGenome(genome, historicalData, timeframe);
+        let fitnessScore = 0;
+        if (fitnessMetric === 'Win Rate') {
+            fitnessScore = metrics.winRate || 0;
+        } else {
+            fitnessScore = metrics.profitFactor > 0 ? metrics.profitFactor : 0;
+            if (fitnessScore === Infinity) fitnessScore = 100;
+        }
+        self.postMessage({ ...genome, fitness: fitnessScore, metrics: metrics });
+    } catch (error) {
+        console.error('Error inside worker:', error);
+        self.postMessage({ error: error.message, genome });
+    }
+};
