@@ -70,6 +70,25 @@
         }
 
         /* ▲▲▲ AKHIR DARI BLOK CSS ▲▲▲ */
+        .calc-binance-style .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+        .calc-binance-style .btn-group button { padding: 10px; border-radius: 6px; cursor: pointer; background-color: #2c2f36; border: 1px solid #3a3f4a; color: #e0e0e0; font-weight: 500; transition: background-color 0.2s; }
+        .calc-binance-style .btn-group button:hover { background-color: #3a3f4a; }
+        .calc-binance-style .btn-group button.active { background-color: #f0b90b; color: #14151a; border-color: #f0b90b; }
+        .calc-binance-style .input-group { position: relative; margin-bottom: 1rem; }
+        .calc-binance-style .input-field { width: 100%; padding: 12px; background-color: #2c2f36; border: 1px solid #3a3f4a; border-radius: 8px; color: #e0e0e0; font-size: 1.1em; }
+        .calc-binance-style .input-label-top { font-size: 0.8em; color: #848e9c; margin-bottom: 8px; }
+        .calc-binance-style .margin-slider { width: 100%; -webkit-appearance: none; appearance: none; height: 4px; background: #3a3f4a; outline: none; border-radius: 2px; margin: 1.5rem 0; }
+        .calc-binance-style .margin-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #f0b90b; cursor: pointer; border-radius: 50%; }
+        .calc-binance-style .slider-ticks { display: flex; justify-content: space-between; font-size: 0.75rem; color: #848e9c; }
+        .calc-binance-style .exec-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1.5rem; }
+        .calc-binance-style .exec-buttons button { padding: 14px; font-size: 1.1em; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; }
+        .calc-binance-style .btn-buy { background-color: #2ebd85; color: white; }
+        .calc-binance-style .btn-sell { background-color: #f6465d; color: white; }
+        .calc-binance-style .calc-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1rem; font-size: 0.85em; color: #848e9c; }
+        .calc-binance-style .calc-result-grid span:nth-child(even) { text-align: right; font-weight: 600; color: #e0e0e0; }
+        #ts-modal-content .input-field { background-color: #2c2f36; border: 1px solid #3a3f4a; }
+        #ts-modal-close-btn { font-size: 2rem; line-height: 1; }
+
     </style>
 </head>
 <body class="p-8">
@@ -183,6 +202,193 @@
                 </div>
             </div>
         </section>
+        <section id="trailing-stop-calc-section" class="card p-6">
+                            <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
+                                <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                            
+                            <div id="ts-calc-content-wrapper" class="collapsible-content">
+                                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
+                                    <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
+                                        ⚡️ Auto-fill dari Setup Scalping
+                                    </button>
+                                    <div class="btn-group">
+                                        <button id="ts-mode-cross" class="active">Cross</button>
+                                        <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
+                                        <button id="ts-mode-isolated" class="">Isolated</button>
+                                        <button id="ts-trailing-stop-options">⚙️ TS</button>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="input-group">
+                                            <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
+                                            <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
+                                            <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
+                                        <div class="slider-ticks">
+                                            <span>0%</span>
+                                            <span>25%</span>
+                                            <span>50%</span>
+                                            <span>75%</span>
+                                            <span>100%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-group mt-6">
+                                        <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
+                                        <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
+                                    </div>
+
+                                    <div class="tpsl-section">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
+                                            <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
+                                        </div>
+                                        <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
+                                            <div class="input-group">
+                                                <label for="ts-take-profit" class="input-label-top">Take Profit</label>
+                                                <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                                            </div>
+                                            <div class="input-group">
+                                                <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
+                                                <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="exec-buttons">
+                                        <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
+                                        <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
+                                    </div>
+
+                                    <div class="calc-result-grid">
+                                        <span>Cost</span>
+                                        <span id="ts-result-cost">--</span>
+                                        <span>Max</span>
+                                        <span id="ts-result-max">--</span>
+                                        <span>Position Size</span>
+                                        <span id="ts-result-position-size">--</span>
+                                        <span>Liq. Price</span>
+                                        <span id="ts-result-liq-price">--</span>
+                                        <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span>
+                                        <span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
+                                        <span>Harga Stop Loss TS</span>
+                                        <span id="ts-result-sl-price">--</span>
+                                        <span>Potensi ROE</span>
+                                        <span id="ts-result-roe">--</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+                                <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
+                                        <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="form-group">
+                                            <label for="ts-modal-callback-rate">Callback Rate (%)</label>
+                                            <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
+                                            <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
+                                        </div>
+                                    </div>
+                                    <div class="mt-6 text-right">
+                                        <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section id="paper-trading-section" class="card p-6">
+                            <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
+                                <h2 class="text-xl font-bold">Trading Simulation</h2>
+                                <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+
+                            <div id="paper-trading-content-wrapper" class="collapsible-content">
+                                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Equity</p>
+                                            <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Unrealized PNL</p>
+                                            <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Available Margin</p>
+                                            <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="sim-active-position-container" class="hidden">
+                                        <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
+                                        <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
+                                            <div class="flex justify-between items-center">
+                                                <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
+                                                <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
+                                            </div>
+                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                                <div>
+                                                    <span class="text-gray-400">Size:</span>
+                                                    <span id="sim-position-size" class="font-mono"></span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">Entry:</span>
+                                                    <span id="sim-position-entry" class="font-mono"></span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">Mark:</span>
+                                                    <span id="sim-position-mark" class="font-mono"></span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-gray-400">Liq:</span>
+                                                    <span id="sim-position-liq" class="font-mono"></span>
+                                                </div>
+                                            </div>
+                                            <div class="pt-2 border-t border-dashed border-gray-700">
+                                                <span class="text-gray-400">PNL (ROE %):</span>
+                                                <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <h3 class="font-semibold text-gray-400">Trade History</h3>
+                                            <div class="flex gap-2">
+                                                <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
+                                                <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
+                                                <input type="file" id="sim-import-input" class="hidden" accept=".csv">
+                                            </div>
+                                        </div>
+                                        <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
+                                            <p class="text-center text-gray-600">No trade history yet.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
     </main>
 
 
@@ -199,40 +405,101 @@ document.addEventListener('DOMContentLoaded', () => {
     const startLiveText = startLiveBtn.querySelector('span');
     const startLiveLoader = startLiveBtn.querySelector('.loader');
     const toggleChartsBtn = document.getElementById('toggle-charts-btn');
-const chartsWrapper = document.getElementById('charts-wrapper');
-        const TIMEFRAME_MAP_MS = {
-            '1m': 60000, '3m': 180000, '5m': 300000, '15m': 900000,
-            '1h': 3600000, '4h': 14400000, '1d': 86400000
-        };
+    const chartsWrapper = document.getElementById('charts-wrapper');
     
-        const timeframeParameterMap = {
-            '1m': { rsi_period: 7, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
-            '3m': { rsi_period: 9, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
-            '5m': { rsi_period: 9, macd_fast: 8, macd_slow: 21, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
-            '15m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
-            '1h': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
-            '4h': { rsi_period: 21, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
-            '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 }
-        };
-        const userSettings = {
+    const TIMEFRAME_MAP_MS = {
+        '1m': 60000, '3m': 180000, '5m': 300000, '15m': 900000,
+        '1h': 3600000, '4h': 14400000, '1d': 86400000
+     };
+    
+    const timeframeParameterMap = {
+        '1m': { rsi_period: 7, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '3m': { rsi_period: 9, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '5m': { rsi_period: 9, macd_fast: 8, macd_slow: 21, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '15m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '1h': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '4h': { rsi_period: 21, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
+        '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 }
+    };
+    
+    const userSettings = {
             presets: {
                 'default': { weights: { ma: 2, rsiDivergence: 2.5, macd: 2, pivot: 2, vwap: 2, ichimoku: 3, candlePattern: 1.5, obvDivergence: 3.0, bbSqueeze: 1.5, psar: 1, roc: 1, bollingerBands: 1, rsi: 1.5, stoch: 1, linreg: 1 } },
             }
-        };
-       
+    };
+    
+    const tsCalcElements = {
+        leverage: document.getElementById('ts-leverage'),
+        cost: document.getElementById('ts-cost'),
+        slider: document.getElementById('ts-margin-slider'),
+        walletBalance: document.getElementById('ts-wallet-balance'),
+        marketPrice: document.getElementById('ts-market-price'),
+        tpslToggle: document.getElementById('ts-tpsl-toggle'),
+        tpslInputs: document.getElementById('ts-tpsl-inputs'),
+        takeProfit: document.getElementById('ts-take-profit'),
+        stopLoss: document.getElementById('ts-stop-loss'),
+        resultCost: document.getElementById('ts-result-cost'),
+        resultMax: document.getElementById('ts-result-max'),
+        resultPosSize: document.getElementById('ts-result-position-size'),
+        resultLiqPrice: document.getElementById('ts-result-liq-price'),
+        resultStatus: document.getElementById('ts-result-status'),
+        resultSlPrice: document.getElementById('ts-result-sl-price'),
+        resultRoe: document.getElementById('ts-result-roe'),
+        crossBtn: document.getElementById('ts-mode-cross'),
+        isolatedBtn: document.getElementById('ts-mode-isolated'),
+        buyBtn: document.getElementById('ts-buy-long-btn'),
+        sellBtn: document.getElementById('ts-sell-short-btn'),
+        autofillBtn: document.getElementById('autofill-ts-btn'),
+        tsOptionsBtn: document.getElementById('ts-trailing-stop-options'),
+        modalContainer: document.getElementById('ts-modal-container'),
+        modalCallbackRate: document.getElementById('ts-modal-callback-rate'),
+        modalActivationPrice: document.getElementById('ts-modal-activation-price'),
+        modalSaveBtn: document.getElementById('ts-modal-save-btn'),
+        modalCloseBtn: document.getElementById('ts-modal-close-btn')
+    };
+
+    const paperTradeElements = {
+        equity: document.getElementById('sim-equity'),
+        unrealizedPnl: document.getElementById('sim-unrealized-pnl'),
+        availableMargin: document.getElementById('sim-available-margin'),
+        resetBtn: document.getElementById('sim-reset-account-btn'),
+        positionContainer: document.getElementById('sim-active-position-container'),
+        positionHeader: document.getElementById('sim-position-header'),
+        closePositionBtn: document.getElementById('sim-close-position-btn'),
+        positionSize: document.getElementById('sim-position-size'),
+        positionEntry: document.getElementById('sim-position-entry'),
+        positionMark: document.getElementById('sim-position-mark'),
+        positionLiq: document.getElementById('sim-position-liq'),
+        positionPnl: document.getElementById('sim-position-pnl'),
+        tradeHistoryList: document.getElementById('sim-trade-history-list'),
+        exportBtn: document.getElementById('sim-export-btn'),
+        importBtn: document.getElementById('sim-import-btn'),
+        importInput: document.getElementById('sim-import-input')
+    };
+
+    const realtimeCache = {
+        main: {
+            symbol: null,
+            tickerData: {},
+            latestScalpingSetup: null
+        }
+    };
+
         let activeStrategy = null;
         let liveData = null; 
         let liveWebSocket = null;
         let liveInterval = null;
         let currentChartTimeframe = '5m';
         let htfTrend = 'NEUTRAL';
+        let latestSignalSetup = null;
+        let currentMarketPrice = 0;
 
 // ===================================================================
 // ▼▼▼ TAMBAHKAN SELURUH BLOK "MESIN CHARTING" INI ▼▼▼
 
-let charts = [];
-let candlestickSeries = null;
-let isChartsVisible = false;
+        let charts = [];
+        let candlestickSeries = null;
+        let isChartsVisible = false;
 
 // ▼▼▼ TAMBAHKAN FUNGSI BARU INI DI PUSTAKA KALKULASI ▼▼▼
 
@@ -481,18 +748,45 @@ function toggleChartsVisibility() {
         };
     }
 
-    function updateLiveKlines(newKline) {
-        if (liveData.length > 0 && liveData[liveData.length - 1][0] === newKline.t) {
-            liveData[liveData.length - 1] = [newKline.t, newKline.o, newKline.h, newKline.l, newKline.c, newKline.v, newKline.T];
-        } else {
-            liveData.push([newKline.t, newKline.o, newKline.h, newKline.l, newKline.c, newKline.v, newKline.T]);
-            if (liveData.length > 500) {
-                liveData.shift();
-            }
-            if (isChartsVisible) renderAllCharts(); 
-        }
-        updateAllCharts(newKline); 
+// GANTI SELURUH FUNGSI updateLiveKlines YANG LAMA DENGAN VERSI INI:
+
+function updateLiveKlines(newKline) {
+    // 1. Update data array untuk chart (logika lama yang sudah benar)
+    if (liveData.length > 0 && liveData[liveData.length - 1][0] === newKline.t) {
+        liveData[liveData.length - 1] = [newKline.t, newKline.o, newKline.h, newKline.l, newKline.c, newKline.v, newKline.T];
+    } else {
+        liveData.push([newKline.t, newKline.o, newKline.h, newKline.l, newKline.c, newKline.v, newKline.T]);
+        if (liveData.length > 500) liveData.shift();
+        if (isChartsVisible) renderAllCharts(); 
     }
+    
+    // 2. Update chart dengan candle terbaru (logika lama yang sudah benar)
+    updateAllCharts(newKline); 
+
+    // === AWAL BLOK PERBAIKAN & PENAMBAHAN ===
+    
+    // 3. Ambil harga terbaru dan update variabel global
+    const currentPrice = parseFloat(newKline.c);
+    currentMarketPrice = currentPrice;
+
+    // 4. Update "gudang data" agar modul lain bisa mengakses harga terbaru
+    if(realtimeCache.main.tickerData) {
+        realtimeCache.main.tickerData.lastPrice = currentPrice.toString();
+    }
+
+    // 5. Update tampilan harga utama di panel sinyal
+    const livePriceDisplay = document.getElementById('live-price-display');
+    if (livePriceDisplay) {
+        livePriceDisplay.textContent = formatPrice(currentPrice);
+    }
+
+    // 6. Update input harga di kalkulator (hanya jika tidak sedang diketik oleh pengguna)
+    const marketPriceInput = tsCalcElements.marketPrice;
+    if (document.activeElement !== marketPriceInput) {
+        marketPriceInput.value = currentPrice.toFixed(getPrecisionForAsset(currentPrice));
+    }
+    // === AKHIR BLOK PERBAIKAN & PENAMBAHAN ===
+}
     
     async function fetchInitialData(symbol, interval) {
         const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${interval}&limit=500`;
@@ -501,6 +795,7 @@ function toggleChartsVisibility() {
     }
 
 function displayLiveSignal(signalData) {
+    realtimeCache.main.latestScalpingSetup = signalData;
     const entryPrice = signalData.entry.price !== null ? formatPrice(signalData.entry.price) : 'N/A';
     const entryPercentage = signalData.entry.percentage !== null ? `(${signalData.entry.percentage.toFixed(2)}%)` : '';
     const slPrice = signalData.sl.price !== null ? formatPrice(signalData.sl.price) : 'N/A';
@@ -1269,10 +1564,475 @@ async function fetchBinanceAPIData(endpoint, params = {}, marketType = 'futures'
         };
     }
     
+const tsCalc = {
+    elements: tsCalcElements, // Menggunakan elemen yang sudah dideklarasikan di atas
+    state: {
+        marginMode: 'cross', leverage: 20, cost: 0, entryPrice: 0,
+        walletBalance: 1000, tp: null, sl: null, callbackRate: null,
+        activationPrice: null, positionType: 'long'
+    },
+    
+    toggleModal: function(show) {
+        if (show) this.elements.modalContainer.classList.remove('hidden');
+        else this.elements.modalContainer.classList.add('hidden');
+    },
+
+    recalculate: function() {
+        this.state.walletBalance = parseFloat(this.elements.walletBalance.value) || 0;
+        this.state.leverage = parseFloat(this.elements.leverage.value) || 20;
+        this.state.cost = parseFloat(this.elements.cost.value) || 0;
+        const entry = parseFloat(this.elements.marketPrice.value) || currentMarketPrice || 0;
+        if (entry === 0) return;
+
+        const positionSize = this.state.cost * this.state.leverage;
+        this.elements.resultCost.textContent = `${this.state.cost.toFixed(2)} USDT`;
+        this.elements.resultPosSize.textContent = `${positionSize.toFixed(2)} USDT`;
+        
+        let liqPrice = 0;
+        if (positionSize > 0) {
+            if (this.state.marginMode === 'isolated') {
+                const priceChange = (this.state.cost / positionSize) * (1 - 0.005);
+                liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
+            } else {
+                const priceChange = (this.state.walletBalance / positionSize) * (1 - 0.005);
+                liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
+            }
+        }
+        this.elements.resultLiqPrice.textContent = liqPrice > 0 ? formatPrice(liqPrice) : 'N/A';
+    },
+
+    autofill: function() {
+        const setup = realtimeCache.main.latestScalpingSetup;
+        
+        if (!setup || typeof setup.entry.price !== 'number') {
+            alert("Setup sinyal belum siap atau pasar sedang sideways. Tidak bisa auto-fill.");
+            return;
+        }
+        
+        const isLong = setup.bias.status.includes('LONG');
+        this.state.positionType = isLong ? 'long' : 'short';
+        
+        if(isLong) {
+            this.elements.buyBtn.classList.remove('opacity-50');
+            this.elements.sellBtn.classList.add('opacity-50');
+        } else {
+            this.elements.sellBtn.classList.remove('opacity-50');
+            this.elements.buyBtn.classList.add('opacity-50');
+        }
+        
+        // --- PERBAIKAN UTAMA DI SINI ---
+        // Langsung menggunakan variabel global 'currentMarketPrice'
+        // Tidak ada lagi deklarasi 'const currentMarketPrice' yang salah.
+        const precision = getPrecisionForAsset(currentMarketPrice);
+
+        this.elements.marketPrice.value = currentMarketPrice.toFixed(precision);
+        if(typeof setup.tp1.price === 'number') this.elements.takeProfit.value = setup.tp1.price.toFixed(precision);
+        if(typeof setup.sl.price === 'number') this.elements.stopLoss.value = setup.sl.price.toFixed(precision);
+
+        this.elements.tpslToggle.checked = true;
+        this.elements.tpslInputs.classList.remove('hidden');
+        this.elements.cost.focus();
+        this.recalculate();
+        this.elements.leverage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+};
+// =====================================================================================================================================================================
+function initializeNewCalculator() {
+    const { elements, state } = tsCalc;
+    
+    elements.sellBtn.classList.add('opacity-50');
+    state.positionType = 'long';
+
+    elements.crossBtn.addEventListener('click', () => {
+        state.marginMode = 'cross';
+        elements.crossBtn.classList.add('active');
+        elements.isolatedBtn.classList.remove('active');
+        tsCalc.recalculate();
+    });
+    elements.isolatedBtn.addEventListener('click', () => {
+        state.marginMode = 'isolated';
+        elements.isolatedBtn.classList.add('active');
+        elements.crossBtn.classList.remove('active');
+        tsCalc.recalculate();
+    });
+    elements.buyBtn.addEventListener('click', () => {
+        state.positionType = 'long';
+        elements.buyBtn.classList.remove('opacity-50');
+        elements.sellBtn.classList.add('opacity-50');
+        
+        if (confirm(`Buka posisi LONG simulasi dengan modal ${tsCalc.state.cost.toFixed(2)} USDT?`)) {
+            paperTrade.openPosition('long', tsCalc.state.leverage, tsCalc.state.cost, parseFloat(elements.marketPrice.value));
+        }
+        
+        tsCalc.recalculate();
+    });
+    elements.sellBtn.addEventListener('click', () => {
+        state.positionType = 'short';
+        elements.sellBtn.classList.remove('opacity-50');
+        elements.buyBtn.classList.add('opacity-50');
+        
+        if (confirm(`Buka posisi SHORT simulasi dengan modal ${tsCalc.state.cost.toFixed(2)} USDT?`)) {
+            paperTrade.openPosition('short', tsCalc.state.leverage, tsCalc.state.cost, parseFloat(elements.marketPrice.value));
+        }
+              
+        tsCalc.recalculate();
+    });
+    elements.tpslToggle.addEventListener('change', () => {
+        elements.tpslInputs.classList.toggle('hidden', !elements.tpslToggle.checked);
+    });
+    elements.slider.addEventListener('input', () => {
+        const currentWalletBalance = parseFloat(elements.walletBalance.value) || 0;
+        const percentage = parseFloat(elements.slider.value);
+        const newCost = (currentWalletBalance * (percentage / 100));
+        elements.cost.value = newCost.toFixed(2);
+        tsCalc.recalculate();
+    });
+    ['cost', 'leverage', 'walletBalance', 'marketPrice'].forEach(id => {
+        elements[id].addEventListener('input', () => tsCalc.recalculate());
+    });
+    elements.cost.addEventListener('input', () => {
+        const currentWalletBalance = parseFloat(elements.walletBalance.value) || 0;
+        const costValue = parseFloat(elements.cost.value) || 0;
+        const percentage = currentWalletBalance > 0 ? (costValue / currentWalletBalance) * 100 : 0;
+        elements.slider.value = Math.min(100, percentage);
+    });
+    elements.autofillBtn.addEventListener('click', () => tsCalc.autofill());
+
+    // --- LOGIKA BARU UNTUK MODAL TS ---
+    elements.tsOptionsBtn.addEventListener('click', () => tsCalc.toggleModal(true));
+    elements.modalCloseBtn.addEventListener('click', () => tsCalc.toggleModal(false));
+    elements.modalContainer.addEventListener('click', (e) => {
+        if (e.target === elements.modalContainer) tsCalc.toggleModal(false);
+    });
+    elements.modalSaveBtn.addEventListener('click', () => {
+        state.callbackRate = parseFloat(elements.modalCallbackRate.value);
+        state.activationPrice = parseFloat(elements.modalActivationPrice.value);
+        tsCalc.toggleModal(false);
+        tsCalc.recalculate();
+    });
+
+    tsCalc.recalculate();
+}
+// === LOGIKA SIMULASI TRADING (MULAI) ===
+    const paperTrade = {
+        state: {
+            balance: 1000,
+            position: null, // { type: 'long'/'short', entryPrice: 65000, quantity: 0.1, leverage: 20, cost: 325 }
+            history: []
+        },
+        elements: {
+            equity: document.getElementById('sim-equity'),
+            unrealizedPnl: document.getElementById('sim-unrealized-pnl'),
+            availableMargin: document.getElementById('sim-available-margin'),
+            resetBtn: document.getElementById('sim-reset-account-btn'),
+            
+            positionContainer: document.getElementById('sim-active-position-container'),
+            positionHeader: document.getElementById('sim-position-header'),
+            closePositionBtn: document.getElementById('sim-close-position-btn'),
+            positionSize: document.getElementById('sim-position-size'),
+            positionEntry: document.getElementById('sim-position-entry'),
+            positionMark: document.getElementById('sim-position-mark'),
+            positionLiq: document.getElementById('sim-position-liq'),
+            positionPnl: document.getElementById('sim-position-pnl'),
+            
+            tradeHistoryList: document.getElementById('sim-trade-history-list'),
+        },
+
+            init: function() {
+                this.loadState();
+                this.elements.resetBtn.addEventListener('click', () => this.resetAccount());
+                this.elements.closePositionBtn.addEventListener('click', () => this.closePosition());
+                
+                const importBtn = document.getElementById('sim-import-btn');
+                const importInput = document.getElementById('sim-import-input');
+                document.getElementById('sim-export-btn').addEventListener('click', exportHistoryToCSV);
+                importBtn.addEventListener('click', () => importInput.click());
+                importInput.addEventListener('change', importHistoryFromCSV);
+                
+                setInterval(() => this.update(), 500);
+                this.render();
+            },
+
+            openPosition: function(type, leverage, cost, entryPrice) {
+                if (this.state.position) {
+                    alert("Hanya 1 posisi yang bisa dibuka dalam satu waktu.");
+                    return;
+                }
+                if (cost > this.state.balance) {
+                    alert("Modal tidak cukup untuk membuka posisi.");
+                    return;
+                }
+
+                const positionSize = cost * leverage;
+                const quantity = entryPrice > 0 ? positionSize / entryPrice : 0;
+                
+                // Asumsi margin terisolasi untuk perhitungan likuidasi sederhana
+                const maintenanceMarginRate = 0.005; 
+                const liqPriceChange = (cost / positionSize) * (1 - maintenanceMarginRate);
+                const liqPrice = type === 'long' 
+                    ? entryPrice * (1 - liqPriceChange) 
+                    : entryPrice * (1 + liqPriceChange);
+
+                this.state.balance -= cost;
+                this.state.position = {
+                    type: type,
+                    entryPrice: entryPrice,
+                    quantity: quantity,
+                    leverage: leverage,
+                    cost: cost,
+                    liqPrice: liqPrice
+                };
+                
+                this.saveState();
+                this.render();
+            },
+
+            closePosition: function() {
+                if (!this.state.position) return;
+                const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+                if (isNaN(markPrice)) {
+                    alert("Tidak bisa menutup posisi, harga pasar tidak tersedia.");
+                    return;
+                }
+                
+                const pos = this.state.position;
+                const pnl = (pos.type === 'long') 
+                    ? (markPrice - pos.entryPrice) * pos.quantity 
+                    : (pos.entryPrice - markPrice) * pos.quantity;
+
+                this.state.balance += (pos.cost + pnl);
+                
+                this.state.history.unshift({
+                    symbol: realtimeCache.main.symbol,
+                    type: pos.type,
+                    entryPrice: pos.entryPrice,
+                    closePrice: markPrice,
+                    pnl: pnl,
+                    roe: (pnl / pos.cost) * 100,
+                    closedAt: new Date(),
+                    liquidated: false
+                });
+                
+                if (this.state.history.length > 20) this.state.history.pop();
+
+                this.state.position = null;
+                this.saveState();
+                this.render();
+            },
+
+            update: function() {
+                if (!this.state.position) return;
+                
+                const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+                if (isNaN(markPrice)) return;
+                
+                const pos = this.state.position;
+                const pnl = (pos.type === 'long') 
+                    ? (markPrice - pos.entryPrice) * pos.quantity 
+                    : (pos.entryPrice - markPrice) * pos.quantity;
+                
+                const equity = this.state.balance + pos.cost + pnl;
+                
+                this.elements.equity.textContent = formatPrice(equity);
+                this.elements.unrealizedPnl.textContent = formatPrice(pnl);
+                this.elements.unrealizedPnl.className = `font-mono font-bold text-lg ${pnl >= 0 ? 'positive' : 'negative'}`;
+                this.elements.positionMark.textContent = formatPrice(markPrice);
+                
+                const roe = (pnl / pos.cost) * 100;
+                this.elements.positionPnl.textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
+                this.elements.positionPnl.className = `font-mono font-bold text-lg ml-2 ${pnl >= 0 ? 'positive' : 'negative'}`;
+
+                if ((pos.type === 'long' && markPrice <= pos.liqPrice) || (pos.type === 'short' && markPrice >= pos.liqPrice)) {
+                    alert(`Posisi ${pos.type.toUpperCase()} terlikuidasi!`);
+                    this.state.history.unshift({
+                        symbol: realtimeCache.main.symbol,
+                        type: pos.type,
+                        entryPrice: pos.entryPrice,
+                        closePrice: markPrice,
+                        pnl: -pos.cost,
+                        roe: -100,
+                        closedAt: new Date(),
+                        liquidated: true
+                    });
+                    this.state.position = null;
+                    this.saveState();
+                    this.render();
+                }
+            },
+
+            render: function() {
+                const pos = this.state.position;
+                
+                if (pos) {
+                    const equity = this.state.balance + pos.cost;
+                    this.elements.equity.textContent = formatPrice(equity);
+                    this.elements.availableMargin.textContent = formatPrice(this.state.balance);
+                    this.elements.positionContainer.classList.remove('hidden');
+                    this.elements.positionHeader.textContent = `${pos.type.toUpperCase()} / ${pos.leverage}x`;
+                    this.elements.positionHeader.className = `font-bold text-lg ${pos.type === 'long' ? 'positive' : 'negative'}`;
+                    this.elements.positionSize.textContent = formatPrice(pos.cost * pos.leverage);
+                    this.elements.positionEntry.textContent = formatPrice(pos.entryPrice);
+                    this.elements.positionLiq.textContent = formatPrice(pos.liqPrice);
+                    this.elements.unrealizedPnl.textContent = '$0.00';
+                    this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
+                } else {
+                    this.elements.equity.textContent = formatPrice(this.state.balance);
+                    this.elements.availableMargin.textContent = formatPrice(this.state.balance);
+                    this.elements.unrealizedPnl.textContent = '$0.00';
+                    this.elements.unrealizedPnl.className = 'font-mono font-bold text-lg text-gray-400';
+                    this.elements.positionContainer.classList.add('hidden');
+                }
+
+                if (this.state.history.length > 0) {
+                    this.elements.tradeHistoryList.innerHTML = this.state.history.map(trade => `
+                        <div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold ${trade.type === 'long' ? 'positive' : 'negative'}">${trade.symbol} ${trade.type.toUpperCase()}</span>
+                                    <span class="text-gray-400 text-[10px] ml-2">${trade.closedAt.toLocaleTimeString()}</span>
+                                </div>
+                                <div class="font-mono text-right ${trade.pnl >= 0 ? 'positive' : 'negative'}">
+                                    ${formatPrice(trade.pnl)} (${trade.roe.toFixed(2)}%) ${trade.liquidated ? '🔥' : ''}
+                                </div>
+                            </div>
+                            <div class="text-gray-400 text-[10px] font-mono flex justify-between mt-1 pt-1 border-t border-gray-700/50">
+                                <span>Entry: ${formatPrice(trade.entryPrice)}</span>
+                                <span>Close: ${formatPrice(trade.closePrice)}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    this.elements.tradeHistoryList.innerHTML = '<p class="text-center text-gray-600">No trade history yet.</p>';
+                }
+            },
+
+            resetAccount: function() {
+                if (confirm("Apakah Anda yakin ingin mereset akun simulasi? Semua riwayat akan hilang.")) {
+                    this.state.balance = 1000;
+                    this.state.position = null;
+                    this.state.history = [];
+                    this.saveState();
+                    this.render();
+                }
+            },
+
+            saveState: function() {
+                localStorage.setItem('paperTradeState', JSON.stringify(this.state));
+            },
+
+            loadState: function() {
+                const savedState = localStorage.getItem('paperTradeState');
+                if (savedState) {
+                    this.state = JSON.parse(savedState);
+                    if (this.state.history) {
+                        this.state.history.forEach(trade => trade.closedAt = new Date(trade.closedAt));
+                    }
+                }
+            }
+    };
+// =====================================================================================================================================================================
+    function exportHistoryToCSV() {
+        const history = paperTrade.state.history;
+        if (history.length === 0) {
+            alert("Tidak ada riwayat trading untuk diekspor.");
+            return;
+        }
+
+        // Header baru dengan EntryPrice dan ClosePrice
+        const headers = ["Symbol", "Type", "EntryPrice", "ClosePrice", "PNL", "ROE", "ClosedAt", "Liquidated"];
+        let csvContent = headers.join(",") + "\r\n";
+
+        // Tambahkan data baru ke setiap baris
+        history.forEach(trade => {
+            const row = [
+                trade.symbol,
+                trade.type,
+                trade.entryPrice || 'N/A', // Tambahkan fallback jika data lama tidak ada
+                trade.closePrice || 'N/A', // Tambahkan fallback
+                trade.pnl,
+                trade.roe,
+                trade.closedAt.toISOString(),
+                trade.liquidated ? 'TRUE' : 'FALSE'
+            ];
+            csvContent += row.join(",") + "\r\n";
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        const timestamp = new Date().toISOString().slice(0, 10);
+        link.setAttribute("download", `trade_history_${timestamp}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+// =====================================================================================================================================================================
+    function importHistoryFromCSV(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length <= 1) {
+                alert("File CSV kosong atau hanya berisi header.");
+                return;
+            }
+
+            const importedHistory = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length < 8) continue; // Sekarang harus ada 8 kolom
+
+                try {
+                    const trade = {
+                        symbol: values[0].trim(),
+                        type: values[1].trim(),
+                        entryPrice: parseFloat(values[2]),
+                        closePrice: parseFloat(values[3]),
+                        pnl: parseFloat(values[4]),
+                        roe: parseFloat(values[5]),
+                        closedAt: new Date(values[6].trim()),
+                        liquidated: values[7].trim().toUpperCase() === 'TRUE'
+                    };
+                    importedHistory.push(trade);
+                } catch (error) {
+                    alert(`Error saat memproses baris ke-${i+1}. Cek format file Anda.`);
+                    return;
+                }
+            }
+            
+            if (confirm(`Impor akan menimpa ${importedHistory.length} riwayat trading yang ada. Lanjutkan?`)) {
+                paperTrade.state.history = importedHistory.reverse();
+                paperTrade.saveState();
+                paperTrade.render();
+                alert("Impor riwayat trading berhasil!");
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+
+    // ▼▼▼ TAMBAHKAN FUNGSI INI KE PUSTAKA KALKULASI ▼▼▼
+
+function getPrecisionForAsset(price) {
+    if (price === 0) return 2;
+    if (price > 1000) return 2;
+    if (price > 1) return 4;
+    if (price > 0.001) return 7;
+    return 8;
+}
+
+
+// ▲▲▲ AKHIR DARI BLOK ▲▲▲
 // ===================================================================
 // Event listener untuk tombol import
 // ===================================================================       
-    setupToggle('toggle-import-btn', 'import-content-wrapper', 'toggle-import-icon', true);
+    
+    setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', false);
+    setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', false);setupToggle('toggle-import-btn', 'import-content-wrapper', 'toggle-import-icon', true);
     toggleChartsBtn.addEventListener('click', toggleChartsVisibility);
     importFile.addEventListener('change', (event) => {
     const file = event.target.files[0];
@@ -1445,7 +2205,11 @@ document.querySelectorAll('.chart-tf-btn').forEach(btn => {
         switchChartTimeframe(newTimeframe);
     });
 });
+
+    initializeNewCalculator();
+    paperTrade.init();
 });
+
 </script>
 
 </body>

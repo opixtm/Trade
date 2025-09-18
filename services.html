@@ -3101,63 +3101,37 @@
 // Fungsi untuk mengevaluasi setiap strategi dalam populasi
     // GANTI SELURUH FUNGSI evaluateFitness YANG LAMA DENGAN VERSI INI
 
-async function evaluateFitness(population, historicalData) {
-    const numWorkers = navigator.hardwareConcurrency ? Math.max(1, navigator.hardwareConcurrency - 1) : 3;
-    const workers = [];
-    for (let i = 0; i < numWorkers; i++) {
-        workers.push(new Worker('worker.js'));
-    }
+// GANTI FUNGSI evaluateFitness ANDA DENGAN VERSI ASLI DI BAWAH INI
 
-    const evaluatedPopulation = [];
-    let populationIndex = 0;
+async function evaluateFitness(population, historicalData) {
+    // Fungsi ini akan menjalankan backtest untuk setiap strategi dalam populasi
+    // secara berurutan di thread utama browser.
     
+    const evaluatedPopulation = [];
     const timeframe = backtestTimeframeSelect.value;
     const fitnessMetricSelect = document.getElementById('optimization-metric-select');
     const fitnessMetric = fitnessMetricSelect ? fitnessMetricSelect.value : 'Profit Factor';
 
-    const runWorker = (worker) => {
-        return new Promise((resolve, reject) => {
-            if (populationIndex >= population.length) {
-                resolve();
-                return;
-            }
+    // Kita menggunakan loop for...of agar setiap backtest (yang merupakan proses 'async')
+    // selesai terlebih dahulu sebelum melanjutkan ke yang berikutnya.
+    for (const genome of population) {
+        // Hentikan proses jika pengguna menekan tombol STOP
+        if (!evolutionState.isRunning) break;
 
-            const genomeToTest = population[populationIndex];
-            populationIndex++;
-            
-            worker.postMessage({ 
-                genome: genomeToTest, 
-                historicalData: historicalData,
-                timeframe: timeframe,
-                fitnessMetric: fitnessMetric
-            });
+        // Jalankan backtest untuk satu genome
+        const metrics = await runBacktestWithGenome(genome, historicalData, timeframe);
+        
+        // Tentukan skor fitness berdasarkan metrik yang dipilih di UI
+        let fitnessScore = 0;
+        if (fitnessMetric === 'Win Rate') {
+            fitnessScore = metrics.winRate || 0;
+        } else { // Default ke Profit Factor
+            fitnessScore = metrics.profitFactor > 0 ? metrics.profitFactor : 0;
+            if (fitnessScore === Infinity) fitnessScore = 100; // Beri skor tinggi untuk profit tak terhingga
+        }
 
-            worker.onmessage = (e) => {
-                if (e.data.error) {
-                    console.error("Worker melaporkan error:", e.data.error);
-                    // Tetap lanjutkan evolusi, anggap fitness 0
-                    evaluatedPopulation.push({ ...e.data.genome, fitness: 0, metrics: {} });
-                } else {
-                    evaluatedPopulation.push(e.data);
-                }
-                runWorker(worker).then(resolve).catch(reject);
-            };
-
-            worker.onerror = (e) => {
-                console.error(`Error kritis pada worker: ${e.message}`, e);
-                // Hentikan promise ini, tapi jangan hentikan yang lain
-                reject(`Worker failed: ${e.message}`); 
-            };
-        });
-    };
-
-    try {
-        await Promise.all(workers.map(worker => runWorker(worker)));
-    } catch (error) {
-        console.error("Satu atau lebih worker gagal menyelesaikan tugas:", error);
-        // Bisa tambahkan logika untuk menghentikan seluruh evolusi jika satu worker gagal
-    } finally {
-        workers.forEach(worker => worker.terminate());
+        // Simpan hasilnya
+        evaluatedPopulation.push({ ...genome, fitness: fitnessScore, metrics: metrics });
     }
 
     return evaluatedPopulation;
