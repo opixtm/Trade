@@ -1714,7 +1714,7 @@
                         endTime: historicalData[i][0] 
                     });
                 }
-                // Mulai segmen baru
+                
                 lastRegime = currentRegime;
                 segmentStartTime = historicalData[i][0];
             }
@@ -2130,7 +2130,6 @@
                     const profitFactorText = (entry.profitFactor === Infinity) ? '∞' : (typeof entry.profitFactor === 'number' ? entry.profitFactor.toFixed(2) : '0.00');
                     const periodText = formatPeriod(entry.startTimestamp, entry.endTimestamp);
 
-                    // Tombol Replay kondisional
                     const replayButtonHtml = entry.hasReplayData 
                         ? `<button onclick="replayLastEntry()" class="btn-primary !py-1 !px-3 !text-xs">Replay Hasil Ini</button>`
                         : `<button class="btn-secondary !py-1 !px-3 !text-xs" disabled>Replay (Kadaluarsa)</button>`;
@@ -2277,8 +2276,7 @@
 
             const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
             const stdDev = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length);
-            
-            // Asumsi per periode (misal per trade), anualisasi jika perlu
+  
             const dailyRiskFreeRate = Math.pow(1 + riskFreeRate, 1/252) - 1;
 
             if (stdDev === 0) return 0;
@@ -2363,7 +2361,6 @@
             if (whatIfResults && whatIfResults.bestParams && whatIfResults.bestParams.params) {
                 const best = whatIfResults.bestParams;
                 
-                // Membangun daftar parameter secara dinamis
                 let paramsHtml = '<ul class="space-y-1 text-sm">';
                 for (const key in best.params) {
                     const userValue = settings[key] || 'N/A';
@@ -2699,7 +2696,7 @@
                 let analysisCache = [];
                 let currentIndex = 0;
                 const totalCandles = filteredData.length;
-                const chunkSize = 200; // Proses 200 candle per chunk
+                const chunkSize = 200; 
 
                 const processChunk = () => {
                     if (this.state.isStopped) {
@@ -2758,7 +2755,7 @@
                     backtestStatusText.textContent = `Merakit Cache: ${progress.toFixed(1)}% | Candle: ${currentIndex.toLocaleString('id-ID')}/${totalCandles.toLocaleString('id-ID')}`;
 
                     if (currentIndex < totalCandles) {
-                        setTimeout(processChunk, 0); // Jeda untuk UI update
+                        setTimeout(processChunk, 0); 
                     } else {
                         try {
                             localStorage.setItem(cacheKey, JSON.stringify(analysisCache));
@@ -2769,7 +2766,7 @@
                     }
                 };
 
-                processChunk(); // Mulai proses chunk pertama
+                processChunk(); 
             });
         },
 
@@ -2827,7 +2824,6 @@
                 }
             }
             
-            // PERUBAHAN UTAMA: Memanggil fungsi baru yang bekerja secara asinkron
             const analysisCache = await this.processIndicatorCacheInChunks(filteredData);
             
             backtestStatusText.textContent = 'Menjalankan simulasi & eksekusi trade...';
@@ -3001,7 +2997,6 @@
         },
         
         displayResults(metrics, optimalParams, marketAnalysis, historicalData, trades) {
-            // Mengisi Dasbor Performa Kuantitatif
             document.getElementById('backtest-result-pnl').textContent = `${metrics.totalPnl.toFixed(2)} USD (${((metrics.totalPnl / this.state.settings.initialBalance) * 100).toFixed(2)}%)`;
             document.getElementById('backtest-result-pnl').className = `font-mono font-bold text-lg ${metrics.totalPnl >= 0 ? 'positive' : 'negative'}`;
             document.getElementById('backtest-result-winrate').textContent = `${metrics.winRate.toFixed(2)}%`;
@@ -3009,14 +3004,12 @@
             document.getElementById('backtest-result-total-trades').textContent = `${metrics.totalTrades} Trades`;
             const sharpeRatio = calculateSharpeRatio(metrics.equityCurve);
 
-            // Mengisi sisa metrik canggih dari objek 'metrics'
             document.getElementById('backtest-result-max-drawdown').textContent = `${metrics.maxDrawdown.toFixed(2)}%`;
             const expectancyEl = document.getElementById('backtest-result-expectancy');
             expectancyEl.textContent = `${metrics.expectancy.toFixed(2)} USD`;
             expectancyEl.className = `font-mono font-bold text-lg ${metrics.expectancy >= 0 ? 'positive' : 'negative'}`;
             document.getElementById('backtest-result-losing-streak').textContent = `${metrics.maxLosingStreak} Trades`;
 
-            // Menampilkan log trade
             backtestTradeLog.innerHTML = metrics.trades.map(trade => {
                 return `
                 <div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'}">
@@ -3040,165 +3033,153 @@
         },
     };
     
-    // Fungsi untuk membuat struktur Genom strategi
     function createStrategyGenome() {
-    return {
-        // Parameter Utama Strategi
-        riskRewardRatio: (Math.random() * (2.5 - 1.5) + 1.5), // R:R dari 1.5 hingga 2.5
-        pullbackEmaPeriod: [9, 13, 21][Math.floor(Math.random() * 3)], // Periode EMA 9, 13, atau 21
-        swingLookback: [10, 15, 25][Math.floor(Math.random() * 3)], // Lookback 10, 15, atau 25
-        biasThreshold: Math.floor(Math.random() * (25 - 5) + 5), // Threshold dari 5 hingga 25
-        atrFilterThreshold: (Math.random() * 0.0015).toFixed(5), // ATR Filter dari 0 hingga 0.0015
+        return {
+            // Parameter Utama Strategi
+            riskRewardRatio: (Math.random() * (2.5 - 1.5) + 1.5), // R:R dari 1.5 hingga 2.5
+            pullbackEmaPeriod: [9, 13, 21][Math.floor(Math.random() * 3)], // Periode EMA 9, 13, atau 21
+            swingLookback: [10, 15, 25][Math.floor(Math.random() * 3)], // Lookback 10, 15, atau 25
+            biasThreshold: Math.floor(Math.random() * (25 - 5) + 5), // Threshold dari 5 hingga 25
+            atrFilterThreshold: (Math.random() * 0.0015).toFixed(5), // ATR Filter dari 0 hingga 0.0015
+            
+            weights: {
+                ma: (Math.random() * 3) + 0.5,
+                rsiDivergence: (Math.random() * 3) + 0.5,
+                macd: (Math.random() * 3) + 0.5,
+                pivot: (Math.random() * 3) + 0.5,
+                vwap: (Math.random() * 3) + 0.5,
+                ichimoku: (Math.random() * 3) + 0.5,
+                candlePattern: (Math.random() * 3) + 0.5,
+                obvDivergence: (Math.random() * 3) + 0.5,
+                bbSqueeze: (Math.random() * 3) + 0.5,
+                psar: (Math.random() * 3) + 0.5,
+                roc: (Math.random() * 3) + 0.5,
+                bollingerBands: (Math.random() * 3) + 0.5,
+                rsi: (Math.random() * 3) + 0.5,
+                stoch: (Math.random() * 3) + 0.5,
+                linreg: (Math.random() * 3) + 0.5
+            },
         
-        // Bobot Indikator (Nilai antara 0.5 dan 3.5, dengan 0.5 step)
-        weights: {
-            ma: (Math.random() * 3) + 0.5,
-            rsiDivergence: (Math.random() * 3) + 0.5,
-            macd: (Math.random() * 3) + 0.5,
-            pivot: (Math.random() * 3) + 0.5,
-            vwap: (Math.random() * 3) + 0.5,
-            ichimoku: (Math.random() * 3) + 0.5,
-            candlePattern: (Math.random() * 3) + 0.5,
-            obvDivergence: (Math.random() * 3) + 0.5,
-            bbSqueeze: (Math.random() * 3) + 0.5,
-            psar: (Math.random() * 3) + 0.5,
-            roc: (Math.random() * 3) + 0.5,
-            bollingerBands: (Math.random() * 3) + 0.5,
-            rsi: (Math.random() * 3) + 0.5,
-            stoch: (Math.random() * 3) + 0.5,
-            linreg: (Math.random() * 3) + 0.5
-        },
-        // Metrik Kinerja (akan diisi setelah backtest)
-        fitness: 0,
-        metrics: {}
-    };
-}
+            fitness: 0,
+            metrics: {}
+        };
+    }
     
-function generateInitialPopulation(size) {
+    function generateInitialPopulation(size) {
         return Array.from({ length: size }, () => createStrategyGenome());
     }
 
-async function startEvolution() {
-    evolutionState.isRunning = true;
-    evolutionState.currentGeneration = 0;
-    evolutionState.population = generateInitialPopulation(evolutionState.populationSize);
-    
-    // Inisialisasi array untuk menyimpan Web Workers
-    const numWorkers = 3;
-    evolutionState.workers = [];
-    
-    // Perbaikan: Ambil semua pengaturan DULU sebelum membuat worker
-    const customSessionCheckbox = document.getElementById('filter-session-custom');
-    const customSessionEnabled = customSessionCheckbox.checked;
-    let customSessionData = null;
-    if (customSessionEnabled) {
-        customSessionData = {
-            start: document.getElementById('custom-session-start').value,
-            end: document.getElementById('custom-session-end').value
-        };
-    }
-    const activeSessionFilters = Array.from(document.querySelectorAll('input[id^="filter-session-"]:checked')).map(cb => cb.value);
-    const activeRegimeFilters = Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value);
-    const workerSettings = {
-        ...backtester.state.settings, // Pastikan ini sudah terisi dari backtest sebelumnya
-        sessionFilters: activeSessionFilters,
-        customSession: customSessionData,
-        regimeFilters: activeRegimeFilters,
-        fitnessMetric: document.getElementById('optimization-metric-select').value,
-        isRunning: true, // Set isRunning ke true saat memulai
-    };
+    async function startEvolution() {
+        evolutionState.isRunning = true;
+        evolutionState.currentGeneration = 0;
+        evolutionState.population = generateInitialPopulation(evolutionState.populationSize);
 
-    // Ini adalah array untuk mengumpulkan hasil dari semua worker
-    let evaluatedPopulations = [];
-    let workersCompleted = 0;
-
-    // Fungsi untuk memproses pesan dari setiap worker
-    const handleWorkerMessage = (event) => {
-        const { type, payload } = event.data;
-        if (type === 'EVALUATION_COMPLETE') {
-            evaluatedPopulations.push(...payload); // Gabungkan hasil dari worker ini
-            workersCompleted++;
-
-            // Jika SEMUA worker telah selesai, proses generasi berikutnya
-            if (workersCompleted === numWorkers) {
-                const evaluatedPopulation = evaluatedPopulations;
-                
-                const currentChampion = findChampion(evaluatedPopulation);
-                if (!evolutionState.champion || currentChampion.fitness > evolutionState.champion.fitness) {
-                    evolutionState.champion = currentChampion;
-                    updateChampionDNA(evolutionState.champion);
-                }
-
-                const avgFitness = evaluatedPopulation.reduce((sum, g) => sum + g.fitness, 0) / evaluatedPopulation.length;
-                const fitnessMetric = workerSettings.fitnessMetric;
-                const championFitness = currentChampion.fitness;
-                updateEvolutionProgress(championFitness, avgFitness, fitnessMetric);
-
-                evolutionState.population = createNextGeneration(evaluatedPopulation);
-                evolutionState.currentGeneration++;
-
-                // Reset variabel untuk generasi berikutnya
-                evaluatedPopulations = [];
-                workersCompleted = 0;
-                
-                // Lanjutkan siklus generasi jika belum mencapai batas maksimum dan masih berjalan
-                if (evolutionState.currentGeneration < evolutionState.maxGenerations && evolutionState.isRunning) {
-                    // Distribusikan populasi baru ke setiap worker
-                    const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
-                    evolutionState.workers.forEach((worker, index) => {
-                        const start = index * populationChunkSize;
-                        const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
-                        const chunk = evolutionState.population.slice(start, end);
-                        
-                        worker.postMessage({
-                            type: 'START_EVALUATION',
-                            payload: {
-                                population: chunk,
-                                historicalData: evolutionState.historicalData,
-                                settings: workerSettings,
-                                isRunning: evolutionState.isRunning,
-                                fitnessMetric: workerSettings.fitnessMetric,
-                            }
-                        });
-                    });
-                } else {
-                    alert("Proses evolusi selesai!");
-                    evolutionState.isRunning = false;
-                    evolutionState.workers.forEach(worker => worker.terminate());
-                    evolutionState.workers = [];
-                }
-            }
-        }
-    };
-
-    // Membuat dan menginisialisasi setiap worker
-    for (let i = 0; i < numWorkers; i++) {
-        const worker = new Worker('worker.js');
-        worker.onmessage = handleWorkerMessage;
-        evolutionState.workers.push(worker);
-    }
-    
-    // Distribusikan populasi awal ke setiap worker
-    const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
-    evolutionState.workers.forEach((worker, index) => {
-        const start = index * populationChunkSize;
-        const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
-        const chunk = evolutionState.population.slice(start, end);
+        const numWorkers = 3;
+        evolutionState.workers = [];
         
-        worker.postMessage({
-            type: 'START_EVALUATION',
-            payload: {
-                population: chunk,
-                historicalData: evolutionState.historicalData,
-                settings: workerSettings,
-                isRunning: evolutionState.isRunning,
-                fitnessMetric: workerSettings.fitnessMetric,
-            }
-        });
-    });
+        const customSessionCheckbox = document.getElementById('filter-session-custom');
+        const customSessionEnabled = customSessionCheckbox.checked;
+        let customSessionData = null;
+        if (customSessionEnabled) {
+            customSessionData = {
+                start: document.getElementById('custom-session-start').value,
+                end: document.getElementById('custom-session-end').value
+            };
+        }
+        const activeSessionFilters = Array.from(document.querySelectorAll('input[id^="filter-session-"]:checked')).map(cb => cb.value);
+        const activeRegimeFilters = Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value);
+        const workerSettings = {
+            ...backtester.state.settings, 
+            sessionFilters: activeSessionFilters,
+            customSession: customSessionData,
+            regimeFilters: activeRegimeFilters,
+            fitnessMetric: document.getElementById('optimization-metric-select').value,
+            isRunning: true, 
+        };
 
-    console.log(`Proses evolusi dimulai dengan ${numWorkers} worker.`);
-}
+        let evaluatedPopulations = [];
+        let workersCompleted = 0;
+
+        const handleWorkerMessage = (event) => {
+            const { type, payload } = event.data;
+            if (type === 'EVALUATION_COMPLETE') {
+                evaluatedPopulations.push(...payload); 
+                workersCompleted++;
+
+                if (workersCompleted === numWorkers) {
+                    const evaluatedPopulation = evaluatedPopulations;
+                    
+                    const currentChampion = findChampion(evaluatedPopulation);
+                    if (!evolutionState.champion || currentChampion.fitness > evolutionState.champion.fitness) {
+                        evolutionState.champion = currentChampion;
+                        updateChampionDNA(evolutionState.champion);
+                    }
+
+                    const avgFitness = evaluatedPopulation.reduce((sum, g) => sum + g.fitness, 0) / evaluatedPopulation.length;
+                    const fitnessMetric = workerSettings.fitnessMetric;
+                    const championFitness = currentChampion.fitness;
+                    updateEvolutionProgress(championFitness, avgFitness, fitnessMetric);
+
+                    evolutionState.population = createNextGeneration(evaluatedPopulation);
+                    evolutionState.currentGeneration++;
+
+                    evaluatedPopulations = [];
+                    workersCompleted = 0;
+
+                    if (evolutionState.currentGeneration < evolutionState.maxGenerations && evolutionState.isRunning) {
+                        const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
+                        evolutionState.workers.forEach((worker, index) => {
+                            const start = index * populationChunkSize;
+                            const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
+                            const chunk = evolutionState.population.slice(start, end);
+                            
+                            worker.postMessage({
+                                type: 'START_EVALUATION',
+                                payload: {
+                                    population: chunk,
+                                    historicalData: evolutionState.historicalData,
+                                    settings: workerSettings,
+                                    isRunning: evolutionState.isRunning,
+                                    fitnessMetric: workerSettings.fitnessMetric,
+                                }
+                            });
+                        });
+                    } else {
+                        alert("Proses evolusi selesai!");
+                        evolutionState.isRunning = false;
+                        evolutionState.workers.forEach(worker => worker.terminate());
+                        evolutionState.workers = [];
+                    }
+                }
+            }
+        };
+
+        for (let i = 0; i < numWorkers; i++) {
+            const worker = new Worker('worker.js');
+            worker.onmessage = handleWorkerMessage;
+            evolutionState.workers.push(worker);
+        }
+
+        const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
+        evolutionState.workers.forEach((worker, index) => {
+            const start = index * populationChunkSize;
+            const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
+            const chunk = evolutionState.population.slice(start, end);
+            
+            worker.postMessage({
+                type: 'START_EVALUATION',
+                payload: {
+                    population: chunk,
+                    historicalData: evolutionState.historicalData,
+                    settings: workerSettings,
+                    isRunning: evolutionState.isRunning,
+                    fitnessMetric: workerSettings.fitnessMetric,
+                }
+            });
+        });
+
+        console.log(`Proses evolusi dimulai dengan ${numWorkers} worker.`);
+    }
 
     function updateFitnessChart(generation, fitness) {
         if (!evolutionState.fitnessChart) {
@@ -3224,7 +3205,6 @@ async function startEvolution() {
     function createInitialPopulation(size) {
         return Array.from({ length: size }, () => createStrategyGenome());
     }
-
 
     function createNextGeneration(evaluatedPopulation) {
         const sortedPopulation = [...evaluatedPopulation].sort((a, b) => b.fitness - a.fitness);
@@ -3296,64 +3276,55 @@ async function startEvolution() {
             const atrMutation = (Math.random() * 0.0005 - 0.00025);
             genome.atrFilterThreshold = Math.max(0, parseFloat(genome.atrFilterThreshold) + atrMutation).toFixed(5);
         }
-        
         // Mutasi bobot indikator
         for(const key in genome.weights) {
             if (Math.random() < evolutionState.mutationRate) {
-                // Perbaikan: gunakan rentang mutasi yang lebih luas dan acak
-                const mutationAmount = (Math.random() * 2) - 1; // Mutasi antara -1 dan +1
+                const mutationAmount = (Math.random() * 2) - 1;
                 genome.weights[key] = Math.max(0.5, Math.min(3.5, parseFloat(genome.weights[key]) + mutationAmount));
             }
         }
     }
     
     function exportStrategyDNA() {
-    if (!evolutionState.champion) {
-        alert("Mohon jalankan evolusi terlebih dahulu untuk mendapatkan strategi juara.");
-        return;
+        if (!evolutionState.champion) {
+            alert("Mohon jalankan evolusi terlebih dahulu untuk mendapatkan strategi juara.");
+            return;
+        }
+
+        const parameters = {
+            riskRewardRatio: evolutionState.champion.riskRewardRatio,
+            pullbackEmaPeriod: evolutionState.champion.pullbackEmaPeriod,
+            swingLookback: evolutionState.champion.swingLookback,
+            biasThreshold: evolutionState.champion.biasThreshold,
+            atrFilterThreshold: evolutionState.champion.atrFilterThreshold
+        };
+
+        const weights = evolutionState.champion.weights;
+
+        const dnaObject = {
+            metadata: {
+                dnaType: "Specific",
+                sourceAsset: backtester.state.settings.symbol,
+                sourceTimeframe: backtester.state.settings.timeframe,
+                exportedAt: new Date().toISOString()
+            },
+            parameters: parameters,
+            weights: weights
+        };
+
+        const jsonString = JSON.stringify(dnaObject, null, 2);
+        const filename = `dna_specific_${backtester.state.settings.symbol}_${backtester.state.settings.timeframe}.json`;
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert(`File DNA '${filename}' telah berhasil diekspor!`);
     }
-
-    // Ambil parameter dan bobot dari champion DNA
-    const parameters = {
-        riskRewardRatio: evolutionState.champion.riskRewardRatio,
-        pullbackEmaPeriod: evolutionState.champion.pullbackEmaPeriod,
-        swingLookback: evolutionState.champion.swingLookback,
-        biasThreshold: evolutionState.champion.biasThreshold,
-        atrFilterThreshold: evolutionState.champion.atrFilterThreshold
-    };
-
-    const weights = evolutionState.champion.weights;
-
-    // Buat objek DNA yang bersih sesuai dengan blueprint
-    const dnaObject = {
-        metadata: {
-            dnaType: "Specific",
-            sourceAsset: backtester.state.settings.symbol,
-            sourceTimeframe: backtester.state.settings.timeframe,
-            exportedAt: new Date().toISOString()
-        },
-        parameters: parameters,
-        weights: weights
-    };
-
-    // Ubah objek menjadi string JSON yang diformat
-    const jsonString = JSON.stringify(dnaObject, null, 2);
-    
-    // Buat nama file yang lebih informatif
-    const filename = `dna_specific_${backtester.state.settings.symbol}_${backtester.state.settings.timeframe}.json`;
-
-    // Buat blob dan link untuk download
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    alert(`File DNA '${filename}' telah berhasil diekspor!`);
-}
 
     function updateChampionDNA(champion) {
         const dnaElement = document.getElementById('champion-dna');
@@ -3374,22 +3345,16 @@ async function startEvolution() {
         }
     }
 
-    // Fungsi untuk memperbarui progress bar, teks, dan chart evolusi
     function updateEvolutionProgress(championFitness, avgFitness, metric) {
         const progressBar = document.getElementById('progress-bar');
         const progressText = document.getElementById('progress-text');
 
-        // Hitung persentase progress
         const progress = (evolutionState.currentGeneration / evolutionState.maxGenerations) * 100;
         progressBar.style.width = `${progress}%`;
         progressText.textContent = `Generasi ${evolutionState.currentGeneration} dari ${evolutionState.maxGenerations}`;
 
-        // Tambahkan data ke chart
         if (evolutionState.fitnessChart) {
             evolutionState.fitnessChart.data.labels.push(evolutionState.currentGeneration);
-
-            // Perbaikan: Pastikan data yang dimasukkan ke chart adalah metrik yang benar
-            // Variabel sudah benar, tidak ada perubahan yang diperlukan di sini.
             evolutionState.fitnessChart.data.datasets[0].data.push(championFitness);
             evolutionState.fitnessChart.data.datasets[1].data.push(avgFitness);
 
@@ -3433,7 +3398,7 @@ async function startEvolution() {
 //======================================================================================================================================
     document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================
-    // BAGIAN 1: INISIALISASI TOGGLE DAN EVENT LISTENER UNTUK BACKTESTING
+    // BAGIAN A: INISIALISASI TOGGLE DAN EVENT LISTENER UNTUK BACKTESTING
     // ===================================================================
     setupToggle('toggle-backtesting-btn', 'backtesting-content-wrapper', 'toggle-backtesting-icon', true);
     setupToggle('toggle-lab-btn', 'lab-content-wrapper', 'toggle-lab-icon', false);
@@ -3444,9 +3409,7 @@ async function startEvolution() {
     
     // Menghubungkan tombol backtest manual ke logika backtester
     startBacktestBtn.addEventListener('click', async () => {
-        // Jalankan backtest. Data historis sekarang disimpan secara internal di backtester.state.
         await backtester.run();
-        // Setelah backtest manual selesai, simpan data historis ke state Genesis Engine
         evolutionState.historicalData = backtester.state.historicalData;
     });
 
@@ -3511,14 +3474,12 @@ async function startEvolution() {
         changeReplaySpeed(e.target.value);
     });
 
-    // Listener untuk update estimasi otomatis
     const filterCheckboxes = document.querySelectorAll('.session-filter-checkbox');
     backtestStartDate.addEventListener('change', calculateAndDisplayCandleCount);
     backtestEndDate.addEventListener('change', calculateAndDisplayCandleCount);
     backtestTimeframeSelect.addEventListener('change', calculateAndDisplayCandleCount);
     filterCheckboxes.forEach(cb => cb.addEventListener('change', calculateAndDisplayCandleCount));
 
-    // Logika untuk Asisten Durasi Cerdas
     document.getElementById('duration-btn-3d').addEventListener('click', () => applyDuration('days', 3));
     document.getElementById('duration-btn-1w').addEventListener('click', () => applyDuration('weeks', 1));
     document.getElementById('duration-btn-1m').addEventListener('click', () => applyDuration('months', 1));
@@ -3529,7 +3490,6 @@ async function startEvolution() {
         }
     });
 
-    // Set nilai default dan panggil fungsi awal
     backtestEndDate.value = formatDateTimeLocal(new Date());
     populateWeightsTuningPanel();
     calculateAndDisplayCandleCount();
@@ -3537,35 +3497,30 @@ async function startEvolution() {
     setupReplayEventListeners();
 
     // ===================================================================
-    // BAGIAN 2: INISIALISASI DAN EVENT LISTENERS UNTUK GENESIS ENGINE
+    // BAGIAN B: INISIALISASI DAN EVENT LISTENERS UNTUK GENESIS ENGINE
     // ===================================================================
-    // Menghubungkan tombol Genesis Engine ke logika evolusi
     startGenesisBtn.addEventListener('click', () => {
-    // === PERBAIKAN: Mengambil nilai dari input UI sebelum memulai ===
-    evolutionState.populationSize = parseInt(document.getElementById('population-size').value) || 50;
-    evolutionState.maxGenerations = parseInt(document.getElementById('generation-count').value) || 200;
-    evolutionState.mutationRate = parseFloat(document.getElementById('mutation-rate').value) / 100 || 0.05;
-    // ===============================================================
+        evolutionState.populationSize = parseInt(document.getElementById('population-size').value) || 50;
+        evolutionState.maxGenerations = parseInt(document.getElementById('generation-count').value) || 200;
+        evolutionState.mutationRate = parseFloat(document.getElementById('mutation-rate').value) / 100 || 0.05;
 
-    if (!evolutionState.historicalData || evolutionState.historicalData.length < 500) {
-        alert("Mohon lakukan backtest manual terlebih dahulu untuk mengambil data historis (min. 500 candle).");
-        return;
-    }
-    
-    // Memastikan chart direset sebelum memulai evolusi baru
-    if (evolutionState.fitnessChart) {
-        evolutionState.fitnessChart.data.labels = [];
-        evolutionState.fitnessChart.data.datasets[0].data = [];
-        evolutionState.fitnessChart.data.datasets[1].data = [];
-        evolutionState.fitnessChart.update();
-    }
-    
-    startEvolution();
-});
+        if (!evolutionState.historicalData || evolutionState.historicalData.length < 500) {
+            alert("Mohon lakukan backtest manual terlebih dahulu untuk mengambil data historis (min. 500 candle).");
+            return;
+        }
+
+        if (evolutionState.fitnessChart) {
+            evolutionState.fitnessChart.data.labels = [];
+            evolutionState.fitnessChart.data.datasets[0].data = [];
+            evolutionState.fitnessChart.data.datasets[1].data = [];
+            evolutionState.fitnessChart.update();
+        }
+        
+        startEvolution();
+    });
 
     stopGenesisBtn.addEventListener('click', () => {
         evolutionState.isRunning = false;
-        // PERBAIKAN: Loop melalui array workers dan terminate setiap worker
         if (evolutionState.workers && evolutionState.workers.length > 0) {
             evolutionState.workers.forEach(worker => worker.terminate());
             evolutionState.workers = [];
@@ -3576,12 +3531,11 @@ async function startEvolution() {
     exportDnaBtn.addEventListener('click', exportStrategyDNA);
     
     // ===================================================================
-    // BAGIAN 3: INISIALISASI UNTUK FITUR LAINNYA
+    // BAGIAN C: INISIALISASI UNTUK FITUR LAINNYA
     // ===================================================================
     updateMarketSessions();
     setInterval(updateMarketSessions, 60000);
 });
 </script>
-
 </body>
 </html>
