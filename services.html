@@ -3069,16 +3069,37 @@
         return Array.from({ length: size }, () => createStrategyGenome());
     }
 
-    async function startEvolution() {
+async function startEvolution() {
+    // Hancurkan chart lama jika ada sebelum memulai
+    if (evolutionState.fitnessChart) {
+        evolutionState.fitnessChart.destroy();
+        evolutionState.fitnessChart = null;
+    }
+    
+    // PERBAIKAN KRITIS: Inisialisasi chart di sini agar selalu ada saat proses dimulai
+    const ctx = document.getElementById('fitness-chart').getContext('2d');
+    evolutionState.fitnessChart = new Chart(ctx, {
+        type: 'line',
+        data: { 
+            labels: [], 
+            datasets: [
+                { label: 'Juara (Profit Factor)', data: [], borderColor: '#4ade80', fill: false },
+                { label: 'Rata-rata (Profit Factor)', data: [], borderColor: '#F59E0B', fill: false }
+            ] 
+        },
+        options: { scales: { y: { beginAtZero: false } } }
+    });
+
     evolutionState.isRunning = true;
     evolutionState.currentGeneration = 0;
     evolutionState.population = generateInitialPopulation(evolutionState.populationSize);
+    performanceMonitor.startTime = performance.now();
+    performanceMonitor.lastTime = performance.now();
+    performanceMonitor.lastGenerationCount = 0;
     
-    // Inisialisasi array untuk menyimpan Web Workers
-    const numWorkers = 1; // Menggunakan 4 worker yang optimal untuk 6-core CPU
+    const numWorkers = 1;
     evolutionState.workers = [];
     
-    // Ambil semua pengaturan DULU sebelum membuat worker
     const customSessionCheckbox = document.getElementById('filter-session-custom');
     const customSessionEnabled = customSessionCheckbox.checked;
     let customSessionData = null;
@@ -3181,6 +3202,25 @@
     });
 
     console.log(`Proses evolusi dimulai dengan ${numWorkers} worker.`);
+}
+
+function updateEvolutionProgress(championFitness, avgFitness, metric) {
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    // Perbaikan: Chart sudah dibuat di startEvolution, cukup tambahkan data
+    const progress = (evolutionState.currentGeneration / evolutionState.maxGenerations) * 100;
+    progressBar.style.width = `${progress}%`;
+    progressText.textContent = `Generasi ${evolutionState.currentGeneration} dari ${evolutionState.maxGenerations}`;
+
+    if (evolutionState.fitnessChart) {
+        evolutionState.fitnessChart.data.labels.push(evolutionState.currentGeneration);
+        evolutionState.fitnessChart.data.datasets[0].data.push(championFitness);
+        evolutionState.fitnessChart.data.datasets[1].data.push(avgFitness);
+        evolutionState.fitnessChart.data.datasets[0].label = `Juara (${metric})`;
+        evolutionState.fitnessChart.data.datasets[1].label = `Rata-rata (${metric})`;
+        evolutionState.fitnessChart.update();
+    }
 }
 
     function updateFitnessChart(generation, fitness) {
@@ -3347,55 +3387,38 @@
         }
     }
 
-    function updateEvolutionProgress(championFitness, avgFitness, metric) {
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
+function updatePerformanceMetrics() {
+    const performanceMetric = document.getElementById('performance-metric');
+    const tradeSpeed = document.getElementById('trade-speed');
 
-        const progress = (evolutionState.currentGeneration / evolutionState.maxGenerations) * 100;
-        progressBar.style.width = `${progress}%`;
-        progressText.textContent = `Generasi ${evolutionState.currentGeneration} dari ${evolutionState.maxGenerations}`;
-
-        if (evolutionState.fitnessChart) {
-            evolutionState.fitnessChart.data.labels.push(evolutionState.currentGeneration);
-            evolutionState.fitnessChart.data.datasets[0].data.push(championFitness);
-            evolutionState.fitnessChart.data.datasets[1].data.push(avgFitness);
-
-            evolutionState.fitnessChart.update();
-        }
+    if (!evolutionState.isRunning) {
+        performanceMetric.textContent = "0 Gen/detik";
+        tradeSpeed.textContent = "0 Trade/detik";
+        return;
     }
 
-    function updatePerformanceMetrics() {
-        const performanceMetric = document.getElementById('performance-metric');
-        const tradeSpeed = document.getElementById('trade-speed');
-
-        if (!evolutionState.isRunning) {
-            performanceMetric.textContent = "0 Gen/detik";
-            tradeSpeed.textContent = "0 Trade/detik";
-            return;
-        }
-
-        const currentTime = performance.now();
-        const generationsProcessed = evolutionState.currentGeneration - performanceMonitor.lastGenerationCount;
-        const elapsedTime = (currentTime - performanceMonitor.lastTime) / 1000;
-        
-        let genPerSecond = 0;
-        if (elapsedTime > 0) {
-            genPerSecond = generationsProcessed / elapsedTime;
-        }
-        
-        performanceMetric.textContent = `${genPerSecond.toFixed(1)} Gen/detik`;
-        
-        performanceMonitor.lastTime = currentTime;
-        performanceMonitor.lastGenerationCount = evolutionState.currentGeneration;
-        
-        const totalTrades = evolutionState.champion ? evolutionState.champion.metrics.totalTrades : 0;
-        const totalElapsedTime = (currentTime - performanceMonitor.startTime) / 1000;
-        let tradesPerSecond = 0;
-        if (totalElapsedTime > 0) {
-            tradesPerSecond = totalTrades / totalElapsedTime;
-        }
-        tradeSpeed.textContent = `${tradesPerSecond.toFixed(1)} Trade/detik`;
+    const currentTime = performance.now();
+    const generationsProcessed = evolutionState.currentGeneration - performanceMonitor.lastGenerationCount;
+    const elapsedTime = (currentTime - performanceMonitor.lastTime) / 1000;
+    
+    let genPerSecond = 0;
+    if (elapsedTime > 0) {
+        genPerSecond = generationsProcessed / elapsedTime;
     }
+    
+    performanceMetric.textContent = `${genPerSecond.toFixed(2)} Gen/detik`;
+    
+    performanceMonitor.lastTime = currentTime;
+    performanceMonitor.lastGenerationCount = evolutionState.currentGeneration;
+    
+    const totalTrades = evolutionState.champion ? evolutionState.champion.metrics.totalTrades : 0;
+    const totalElapsedTime = (currentTime - performanceMonitor.startTime) / 1000;
+    let tradesPerSecond = 0;
+    if (totalElapsedTime > 0) {
+        tradesPerSecond = totalTrades / totalElapsedTime;
+    }
+    tradeSpeed.textContent = `${tradesPerSecond.toFixed(2)} Trade/detik`;
+}
 
 //======================================================================================================================================
     document.addEventListener('DOMContentLoaded', () => {
@@ -3491,7 +3514,7 @@
             applyDuration('candles', candleValue);
         }
     });
-
+    setInterval(updatePerformanceMetrics, 1000);
     backtestEndDate.value = formatDateTimeLocal(new Date());
     populateWeightsTuningPanel();
     calculateAndDisplayCandleCount();
