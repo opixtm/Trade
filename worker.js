@@ -171,7 +171,6 @@
         return { status: 'NONE' };
     };
 
-
     const calculateOBV = (klines) => {
         if (!klines || klines.length < 2) return [];
         let obv = [0]; 
@@ -471,89 +470,68 @@
         return { value: atr, status: status, atrPercent: atrPercent }; 
     }
 
-    function detectMarketRegime_Unified(klinesSnapshot) {
-        if (!klinesSnapshot || klinesSnapshot.length < 200) {
-            return 'ranging';
-        }
-
-        const closes = klinesSnapshot.map(k => parseFloat(k[4]));
-
-        const bbData = calculateBollingerBands(closes); 
-        if (bbData.squeezeStatus === 'Squeeze!') {
-            return 'lowVolatility';
-        }
-
-        const adxData = calculateADX(klinesSnapshot, 14);
-        const adxValue = adxData.value;
-        
-        if (adxValue > 25) { 
-            if (adxData.plusDI > adxData.minusDI) {
-                return 'bullTrend';
-            }
-            if (adxData.minusDI > adxData.plusDI) {
-                return 'bearTrend';
-            }
-            return 'trending';
-        }
-        
-        return 'ranging';
+function detectMarketRegime_Unified(klinesSnapshot) {
+    if (!klinesSnapshot || klinesSnapshot.length < 200) { return 'ranging'; }
+    const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+    const bbData = calculateBollingerBands(closes); 
+    if (bbData.squeezeStatus === 'Squeeze!') { return 'lowVolatility'; }
+    const adxData = calculateADX(klinesSnapshot, 14);
+    const adxValue = adxData.value;
+    if (adxValue > 25) { 
+        if (adxData.plusDI > adxData.minusDI) { return 'bullTrend'; }
+        if (adxData.minusDI > adxData.plusDI) { return 'bearTrend'; }
+        return 'trending';
     }
+    return 'ranging';
+};
 
-    function getUltimateSignalScore(indicator, signalData) {
-        const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-        const mapRange = (x, inMin, inMax, outMin, outMax) => {
-            const t = (x - inMin) / (inMax - inMin);
-            return outMin + clamp(t, 0, 1) * (outMax - outMin);
-        };       
-        const confidence = (typeof signalData?.confidence === 'number')
-            ? clamp(signalData.confidence, 0, 1)
-            : 1;
-        const text = (signalData?.status || signalData?.bias || signalData?.signal || '').toString().toUpperCase();
-        const biasSigned = (typeof signalData?.biasSigned === 'number')
-            ? Math.sign(signalData.biasSigned)
-            : null;
-        if (['ma','macd','rsi','stoch','psar','linreg','roc','pivot','vwap','ichimoku','candlePattern','bollingerBands'].includes(indicator)) {
-            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
-            if (text.includes('BULL')) return +1 * confidence;
-            if (text.includes('BEAR')) return -1 * confidence;
-            return 0;
-        }
-        if (indicator === 'rsiDivergence' || indicator === 'obvDivergence') {
-            if (text.includes('BULL')) return +1 * confidence;
-            if (text.includes('BEAR')) return -1 * confidence;
-            return 0;
-        }
-        if (indicator === 'openInterest') {
-            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
-            if (text.includes('UP')) return +1 * confidence;
-            if (text.includes('DOWN')) return -1 * confidence;
-            return 0;
-        }
-        if (indicator === 'funding' || indicator === 'fundingRate') {
-            const v = typeof signalData?.value === 'number' ? signalData.value : 0;
-            const s = Math.max(-1, Math.min(1, v / 0.0025));
-            return s * confidence;
-            }
-        if (indicator === 'lsr' || indicator === 'lsRatio') {
-            const v = typeof signalData?.value === 'number' ? signalData.value : 1;
-            const s = Math.max(-1, Math.min(1, (v - 1) / 0.3));
-            return s * confidence;
-            }
-        if (indicator === 'orderBookBias') {
-            if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
-            if (text.includes('BID')) return +1 * confidence;
-            if (text.includes('ASK')) return -1 * confidence;
-            return 0;
-        }
-        if (indicator === 'bbSqueeze') {
-            const st = (signalData?.status || '').toString().toUpperCase();
-            if (st.includes('RELEASE')) return +1 * confidence;
-            if (st.includes('ON')) return 0;
-            if (st.includes('OFF')) return 0.3 * confidence;
-            return 0;
-        }
+function getUltimateSignalScore(indicator, signalData) {
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+    const confidence = (typeof signalData?.confidence === 'number') ? clamp(signalData.confidence, 0, 1) : 1;
+    const text = (signalData?.status || signalData?.bias || signalData?.signal || '').toString().toUpperCase();
+    const biasSigned = (typeof signalData?.biasSigned === 'number') ? Math.sign(signalData.biasSigned) : null;
+    if (['ma','macd','rsi','stoch','psar','linreg','roc','pivot','vwap','ichimoku','candlePattern','bollingerBands'].includes(indicator)) {
+        if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+        if (text.includes('BULL')) return +1 * confidence;
+        if (text.includes('BEAR')) return -1 * confidence;
         return 0;
     }
+    if (indicator === 'rsiDivergence' || indicator === 'obvDivergence') {
+        if (text.includes('BULL')) return +1 * confidence;
+        if (text.includes('BEAR')) return -1 * confidence;
+        return 0;
+    }
+    if (indicator === 'openInterest') {
+        if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+        if (text.includes('UP')) return +1 * confidence;
+        if (text.includes('DOWN')) return -1 * confidence;
+        return 0;
+    }
+    if (indicator === 'funding' || indicator === 'fundingRate') {
+        const v = typeof signalData?.value === 'number' ? signalData.value : 0;
+        const s = Math.max(-1, Math.min(1, v / 0.0025));
+        return s * confidence;
+        }
+    if (indicator === 'lsr' || indicator === 'lsRatio') {
+        const v = typeof signalData?.value === 'number' ? signalData.value : 1;
+        const s = Math.max(-1, Math.min(1, (v - 1) / 0.3));
+        return s * confidence;
+        }
+    if (indicator === 'orderBookBias') {
+        if (biasSigned !== null) return clamp(biasSigned, -1, 1) * confidence;
+        if (text.includes('BID')) return +1 * confidence;
+        if (text.includes('ASK')) return -1 * confidence;
+        return 0;
+    }
+    if (indicator === 'bbSqueeze') {
+        const st = (signalData?.status || '').toString().toUpperCase();
+        if (st.includes('RELEASE')) return +1 * confidence;
+        if (st.includes('ON')) return 0;
+        if (st.includes('OFF')) return 0.3 * confidence;
+        return 0;
+    }
+    return 0;
+}
 
     function createTFAlignmentSummary(klines, timeframes, marketType) {
         const summary = {};
@@ -576,27 +554,22 @@
         return { summary, score };
     }
 
-    function calculateConfluenceScoreForCandle(activeWeights, indicators) {
-            let totalBullScore = 0, totalBearScore = 0, maxPossibleScore = 0;
-
-            for (const indicator in activeWeights) {
-                if (indicators[indicator]) {
-                    const weight = activeWeights[indicator];
-                    // getUltimateSignalScore akan mengambil sinyal yang sudah matang
-                    const rawScore = getUltimateSignalScore(indicator, indicators[indicator]);
-                    const weightedScore = rawScore * weight;
-
-                    if (weightedScore > 0) totalBullScore += weightedScore;
-                    if (weightedScore < 0) totalBearScore += Math.abs(weightedScore);
-                    maxPossibleScore += Math.abs(weight);
-                }
-            }
-
-            const bullPercentage = maxPossibleScore > 0 ? (totalBullScore / maxPossibleScore) * 100 : 0;
-            const bearPercentage = maxPossibleScore > 0 ? (totalBearScore / maxPossibleScore) * 100 : 0;
-
-            return { bull: bullPercentage, bear: bearPercentage };
+function calculateConfluenceScoreForCandle(activeWeights, indicators) {
+    let totalBullScore = 0, totalBearScore = 0, maxPossibleScore = 0;
+    for (const indicator in activeWeights) {
+        if (indicators[indicator]) {
+            const weight = activeWeights[indicator];
+            const rawScore = getUltimateSignalScore(indicator, indicators[indicator]);
+            const weightedScore = rawScore * weight;
+            if (weightedScore > 0) totalBullScore += weightedScore;
+            if (weightedScore < 0) totalBearScore += Math.abs(weightedScore);
+            maxPossibleScore += Math.abs(weight);
         }
+    }
+    const bullPercentage = maxPossibleScore > 0 ? (totalBullScore / maxPossibleScore) * 100 : 0;
+    const bearPercentage = maxPossibleScore > 0 ? (totalBearScore / maxPossibleScore) * 100 : 0;
+    return { bull: bullPercentage, bear: bearPercentage };
+}
     
     function calculateShortConfluenceScore(klinesSnapshot) {
             if (!klinesSnapshot || klinesSnapshot.length < 50) return { score: 0, breakdown: {} };
@@ -680,19 +653,37 @@
         };
     }
 
-    async function runBacktestWithGenome(genome, historicalData, settings) {
-        const mergedSettings = { ...settings, ...genome };
-        const { trades } = await runSimulation_unifiedContextual(historicalData, mergedSettings);
-        const metrics = calculateMetrics(trades, mergedSettings.initialBalance);
-        const sharpeRatio = calculateSharpeRatio(metrics.equityCurve); 
-        return { ...metrics, sharpeRatio }; 
-    }
+async function runBacktestWithGenome(genome, historicalData, settings, analysisCache) {
+    const mergedSettings = { ...settings, ...genome };
+    const { trades } = await runSimulation_unifiedContextual(historicalData, mergedSettings, analysisCache, settings.isRunning);
+    if (!trades) return null;
+    const metrics = calculateMetrics(trades, mergedSettings.initialBalance);
+    const sharpeRatio = calculateSharpeRatio(metrics.equityCurve); 
+    return { ...metrics, sharpeRatio }; 
+}
 
-    async function evaluateFitness(population, historicalData, settings, fitnessMetric, isRunning) {
+async function evaluateFitness(population, historicalData, settings, fitnessMetric, isRunning) {
+    if (!isRunning) return [];
+
+    // === Pra-kalkulasi indikator dilakukan di sini, sekali per generasi ===
+    const fullCloses = historicalData.map(k => parseFloat(k[4]));
+    const analysisCache = {
+        allEma21: calculateEMA(fullCloses, 21),
+        allEma50: calculateEMA(fullCloses, 50),
+        allRsiValues: calculateRSI(fullCloses, settings),
+        allMacdData: calculateMACD(fullCloses, settings),
+        allStochRsiData: calculateStochasticRSI(fullCloses, settings),
+        allAtrValues: historicalData.map((k, i) => calculateATR(historicalData.slice(0, i + 1), settings).value)
+    };
+
     const evaluatedPopulation = [];
     for (const genome of population) {
         if (!isRunning) break; 
-        const metrics = await runBacktestWithGenome(genome, historicalData, settings); 
+        // === Meneruskan analysisCache ke fungsi backtest ===
+        const metrics = await runBacktestWithGenome(genome, historicalData, settings, analysisCache); 
+        if (!metrics) {
+            return evaluatedPopulation;
+        }
         let fitnessScore = 0;
         if (metrics.totalTrades === 0) {
             fitnessScore = 0;
@@ -710,406 +701,251 @@
 }
 
 function calculateSharpeRatio(equityCurve, riskFreeRate = 0.02) {
-            if (equityCurve.length < 2) return 0;
-            const returns = [];
-            for (let i = 1; i < equityCurve.length; i++) {
-                returns.push((equityCurve[i] / equityCurve[i - 1]) - 1);
-            }
-            if (returns.length === 0) return 0;
+    if (equityCurve.length < 2) return 0;
+    const returns = [];
+    for (let i = 1; i < equityCurve.length; i++) {
+        returns.push((equityCurve[i] / equityCurve[i - 1]) - 1);
+    }
+    if (returns.length === 0) return 0;
+    const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+    const stdDev = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length);
+    const dailyRiskFreeRate = Math.pow(1 + riskFreeRate, 1/252) - 1;
+    if (stdDev === 0) return 0;
+    return (avgReturn - dailyRiskFreeRate) / stdDev;
+}
 
-            const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-            const stdDev = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length);
-            
-            // Asumsi per periode (misal per trade), anualisasi jika perlu
-            const dailyRiskFreeRate = Math.pow(1 + riskFreeRate, 1/252) - 1;
-
-            if (stdDev === 0) return 0;
-            
-            return (avgReturn - dailyRiskFreeRate) / stdDev;
+async function runSimulation_unifiedContextual(historicalData, settings, analysisCache, isRunning) {
+    if (!isRunning) return { trades: [], error: 'Proses dihentikan' };
+    
+    const customSessionEnabled = settings.customSession !== null;
+    let customStartHourUTC = 0;
+    let customEndHourUTC = 0;
+    if (customSessionEnabled) {
+        const [startH, startM] = settings.customSession.start.split(':').map(Number);
+        const [endH, endM] = settings.customSession.end.split(':').map(Number);
+        customStartHourUTC = (startH - 7 + 24) % 24 + (startM / 60);
+        customEndHourUTC = (endH - 7 + 24) % 24 + (endM / 60);
+    }
+    const activeSessionFilters = settings.sessionFilters;
+    let filteredData = historicalData;
+    if (activeSessionFilters.length > 0) {
+        const sessionHours = {
+            tokyo: { start: 0, end: 8 }, london: { start: 7, end: 16 }, newyork: { start: 13, end: 22 }
+        };
+        if (customSessionEnabled && settings.customSession.start) {
+            sessionHours.custom = { start: customStartHourUTC, end: customEndHourUTC };
         }
-
-
-async function processIndicatorCacheInChunks(filteredData, settings) {
-            return new Promise((resolve, reject) => {
-                const cacheKey = generateIndicatorCacheKey(this.state.settings);
-                try {
-                    const cachedData = localStorage.getItem(cacheKey);
-                    if (cachedData) {
-                        console.log("CACHE HIT: Menggunakan data indikator dari cache.");
-                        backtestStatusText.textContent = `Memuat hasil kalkulasi dari cache...`;
-                        setTimeout(() => resolve(JSON.parse(cachedData)), 50);
-                        return;
-                    }
-                } catch (e) {
-                    console.error("Gagal membaca cache, akan melakukan kalkulasi ulang.", e);
-                    localStorage.removeItem(cacheKey);
-                }
-
-                console.log("CACHE MISS: Melakukan kalkulasi indikator penuh secara asinkron.");
-                
-                const fullCloses = filteredData.map(k => parseFloat(k[4]));
-                const allEma21 = calculateEMA(fullCloses, 21);
-                const allEma50 = calculateEMA(fullCloses, 50);
-                const allRsiValues = calculateRSI(fullCloses);
-                const allMacdData = calculateMACD(fullCloses);
-                const allStochRsiData = calculateStochasticRSI(fullCloses);
-                const allAtrValues = [];
-                for (let i = 0; i < filteredData.length; i++) {
-                    allAtrValues.push(calculateATR(filteredData.slice(0, i + 1)).value);
-                }
-                
-                let analysisCache = [];
-                let currentIndex = 0;
-                const totalCandles = filteredData.length;
-                const chunkSize = 200; // Proses 200 candle per chunk
-
-                const processChunk = () => {
-                    if (this.state.isStopped) {
-                        reject(new Error("Proses dihentikan oleh pengguna"));
-                        return;
-                    }
-
-                    const chunkEnd = Math.min(currentIndex + chunkSize, totalCandles);
-                    
-                    for (let i = currentIndex; i < chunkEnd; i++) {
-                        if (i < 200) {
-                            analysisCache.push(null);
-                            continue;
-                        }
-                        const klinesSnapshot = filteredData.slice(0, i + 1);
-                        const closesSnapshot = fullCloses.slice(0, i + 1);
-                        
-                        const lastMacd = allMacdData.macdLine[i];
-                        const lastSig = allMacdData.signalLine[i];
-                        const prevMacd = allMacdData.macdLine[i - 1];
-                        const prevSig = allMacdData.signalLine[i - 1];
-                        let macdStatus = 'Netral';
-                        if (prevMacd <= prevSig && lastMacd > lastSig) macdStatus = 'Bullish Cross';
-                        else if (prevMacd >= prevSig && lastMacd < lastSig) macdStatus = 'Bearish Cross';
-                        
-                        const lastK = allStochRsiData.kLine[i];
-                        const lastD = allStochRsiData.dLine[i];
-                        let stochStatus = 'Netral';
-                        if (lastK > 80 && lastD > 80) stochStatus = 'Overbought';
-                        else if (lastK < 20 && lastD < 20) stochStatus = 'Oversold';
-
-                        const indicators = {
-                            ma: { status: (allEma21[i] > allEma50[i]) ? 'BULLISH' : 'BEARISH' },
-                            rsi: { status: allRsiValues[i] > 70 ? 'Overbought' : (allRsiValues[i] < 30 ? 'Oversold' : 'Netral') },
-                            stoch: { status: stochStatus },
-                            macd: { status: macdStatus },
-                            rsiDivergence: detectRSIDivergence(closesSnapshot, allRsiValues.slice(0, i + 1)),
-                            obvDivergence: detectOBVDivergence(closesSnapshot, klinesSnapshot),
-                            pivot: { status: (fullCloses[i] > (calculatePivotPoints(filteredData[i - 1])?.P || fullCloses[i])) ? 'BULLISH' : 'BEARISH' },
-                            vwap: { status: (fullCloses[i] > calculateVWAP(klinesSnapshot)) ? 'BULLISH' : 'BEARISH' },
-                            ichimoku: calculateIchimokuCloud(klinesSnapshot) || { status: 'Netral' },
-                            candlePattern: findCandlestickPatterns(klinesSnapshot) || { bias: 'NETRAL' },
-                            bollingerBands: calculateBollingerBands(closesSnapshot),
-                            psar: calculateParabolicSAR(klinesSnapshot),
-                            roc: calculateROC(closesSnapshot),
-                            linreg: calculateLinearRegressionChannel(closesSnapshot)
-                        };
-                        
-                        const score = calculateConfluenceScoreForCandle(this.state.settings.weights, indicators);
-                        analysisCache.push({ bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] });
-                    }
-
-                    currentIndex = chunkEnd;
-                    const progress = (currentIndex / totalCandles) * 100;
-                    backtestProgressBar.style.width = `${progress}%`;
-                    backtestStatusText.textContent = `Merakit Cache: ${progress.toFixed(1)}% | Candle: ${currentIndex.toLocaleString('id-ID')}/${totalCandles.toLocaleString('id-ID')}`;
-
-                    if (currentIndex < totalCandles) {
-                        setTimeout(processChunk, 0); // Jeda untuk UI update
+        filteredData = historicalData.filter(candle => {
+            const candleDate = new Date(candle[0]);
+            const candleUTCHour = candleDate.getUTCHours() + (candleDate.getUTCMinutes() / 60);
+            for (const filter of activeSessionFilters) {
+                const session = sessionHours[filter];
+                if (session) {
+                    if (session.end < session.start) {
+                        if (candleUTCHour >= session.start || candleUTCHour < session.end) return true;
                     } else {
-                        try {
-                            localStorage.setItem(cacheKey, JSON.stringify(analysisCache));
-                        } catch (e) {
-                            console.error("Gagal menyimpan ke cache (localStorage penuh).", e);
-                        }
-                        resolve(analysisCache);
-                    }
-                };
-
-                processChunk(); 
-            });
-        }
-
-
-    async function runSimulation_unifiedContextual(historicalData, settings) {
-        const customSessionEnabled = settings.customSession !== null;
-        let customStartHourUTC = 0;
-        let customEndHourUTC = 0;
-
-        if (customSessionEnabled) {
-            const [startH, startM] = settings.customSession.start.split(':').map(Number);
-            const [endH, endM] = settings.customSession.end.split(':').map(Number);
-            customStartHourUTC = (startH - 7 + 24) % 24 + (startM / 60);
-            customEndHourUTC = (endH - 7 + 24) % 24 + (endM / 60);
-        }
-        
-        const activeSessionFilters = settings.sessionFilters;
-        let filteredData = historicalData;
-
-        if (activeSessionFilters.length > 0) {
-            const sessionHours = {
-                tokyo: { start: 0, end: 8 },
-                london: { start: 7, end: 16 },
-                newyork: { start: 13, end: 22 }
-            };
-
-            if (customSessionEnabled && settings.customSession.start) {
-                sessionHours.custom = { start: customStartHourUTC, end: customEndHourUTC };
-            }
-
-            filteredData = historicalData.filter(candle => {
-                const candleDate = new Date(candle[0]);
-                const candleUTCHour = candleDate.getUTCHours() + (candleDate.getUTCMinutes() / 60);
-
-                for (const filter of activeSessionFilters) {
-                    const session = sessionHours[filter];
-                    if (session) {
-                        if (session.end < session.start) {
-                            if (candleUTCHour >= session.start || candleUTCHour < session.end) return true;
-                        } else {
-                            if (candleUTCHour >= session.start && candleUTCHour < session.end) return true;
-                        }
+                        if (candleUTCHour >= session.start && candleUTCHour < session.end) return true;
                     }
                 }
-                return false;
-            });
+            }
+            return false;
+        });
+        if (filteredData.length < 200) {
+            return { trades: [], error: `Data setelah difilter tidak cukup (hanya ${filteredData.length} candle). Coba rentang waktu yang lebih panjang.` };
+        }
+    }
+    
+    let balance = settings.initialBalance;
+    let position = null;
+    const trades = [];
+    const MAINTENANCE_MARGIN_RATE = 0.005;
+    
+    const fullCloses = filteredData.map(k => parseFloat(k[4]));
 
-            if (filteredData.length < 200) {
-                // Worker tidak bisa memanggil alert, jadi kembalikan error
-                return { trades: [], error: `Data setelah difilter tidak cukup (hanya ${filteredData.length} candle). Coba rentang waktu yang lebih panjang.` };
+    for (let i = 200; i < filteredData.length; i++) {
+        if (!isRunning) break; 
+        const currentCandle = filteredData[i];
+        
+        // Menggunakan cache yang sudah ada
+        const allRsiValues = analysisCache.allRsiValues;
+        const allMacdData = analysisCache.allMacdData;
+        const allStochRsiData = analysisCache.allStochRsiData;
+        const allAtrValues = analysisCache.allAtrValues;
+        const allEma21 = analysisCache.allEma21;
+        const allEma50 = analysisCache.allEma50;
+        
+        const currentLow = parseFloat(currentCandle[3]);
+        const currentHigh = parseFloat(currentCandle[2]);
+        if (settings.filterRegime && settings.filterRegime.length > 0) {
+            const klinesSnapshot = filteredData.slice(0, i + 1);
+            const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
+            if (!settings.filterRegime.includes(currentRegime)) {
+                continue; 
             }
         }
-        
-        // PENTING: Worker tidak memiliki localStorage, jadi cache harus ditangani secara berbeda
-        // Untuk tujuan evolusi genetik, kita tidak perlu cache.
-        // Kode di bawah ini adalah versi sederhana tanpa cache.
-        const fullCloses = filteredData.map(k => parseFloat(k[4]));
-        const allEma21 = calculateEMA(fullCloses, 21);
-        const allEma50 = calculateEMA(fullCloses, 50);
-        const allRsiValues = calculateRSI(fullCloses, settings.timeframe); // Gunakan parameter `settings`
-        const allMacdData = calculateMACD(fullCloses, settings.timeframe); // Gunakan parameter `settings`
-        const allStochRsiData = calculateStochasticRSI(fullCloses, settings.timeframe); // Gunakan parameter `settings`
-        const allAtrValues = [];
-        for (let i = 0; i < filteredData.length; i++) {
-            allAtrValues.push(calculateATR(filteredData.slice(0, i + 1), settings.timeframe).value);
+        if (position) {
+            const markPrice = position.type === 'LONG' ? currentLow : currentHigh;
+            const unrealizedPnl = position.type === 'LONG' ? (markPrice - position.entryPrice) * position.size : (position.entryPrice - markPrice) * position.size;
+            const positionValue = position.entryPrice * position.size;
+            const maintenanceMargin = positionValue * MAINTENANCE_MARGIN_RATE;
+            let availableEquity;
+            if (settings.marginMode === 'isolated') {
+                availableEquity = position.cost + unrealizedPnl;
+            } else {
+                availableEquity = balance + unrealizedPnl;
+            }
+            if (availableEquity <= maintenanceMargin) {
+                const finalPnl = unrealizedPnl;
+                balance += finalPnl;
+                trades.push({ ...position, exitPrice: markPrice, pnl: finalPnl, fee: 0, exitDate: new Date(currentCandle[0]), reason: 'LIQUIDATION' });
+                position = null;
+                break;
+            }
+            let exitReason = null, exitPrice = 0;
+            if (position.type === 'LONG') {
+                if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+            } else {
+                if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+            }
+            if (exitReason) {
+                const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
+                const entryValue = position.entryPrice * position.size;
+                const exitValue = exitPrice * position.size;
+                const entryFee = entryValue * settings.takerFee;
+                const exitFee = exitValue * settings.makerFee;
+                const totalFee = entryFee + exitFee;
+                const netPnl = rawPnl - totalFee;
+                balance += netPnl;
+                trades.push({ ...position, exitPrice, pnl: netPnl, fee: totalFee, exitDate: new Date(currentCandle[0]), reason: exitReason });
+                position = null;
+                if (balance <= 0) { break; }
+            }
         }
-        
-        let analysisCache = [];
-        for (let i = 200; i < filteredData.length; i++) {
-            const closesSnapshot = fullCloses.slice(0, i + 1);
+        if (!position) {
             const klinesSnapshot = filteredData.slice(0, i + 1);
+            const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
+            let entrySignal = false; let detectedBias = 'NETRAL'; let entryPrice = 0;
+            const recentKlines = filteredData.slice(Math.max(0, i - settings.swingLookback), i);
+            const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+            const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+            const closes = klinesSnapshot.map(k => parseFloat(k[4]));
 
             const lastMacd = allMacdData.macdLine[i];
             const lastSig = allMacdData.signalLine[i];
-            const prevMacd = allMacdData.macdLine[i - 1];
-            const prevSig = allMacdData.signalLine[i - 1];
+            const prevMacd = allMacdData.macdLine[i-1];
+            const prevSig = allMacdData.signalLine[i-1];
             let macdStatus = 'Netral';
             if (prevMacd <= prevSig && lastMacd > lastSig) macdStatus = 'Bullish Cross';
             else if (prevMacd >= prevSig && lastMacd < lastSig) macdStatus = 'Bearish Cross';
-            
+
             const lastK = allStochRsiData.kLine[i];
             const lastD = allStochRsiData.dLine[i];
             let stochStatus = 'Netral';
             if (lastK > 80 && lastD > 80) stochStatus = 'Overbought';
             else if (lastK < 20 && lastD < 20) stochStatus = 'Oversold';
-
+            
             const indicators = {
                 ma: { status: (allEma21[i] > allEma50[i]) ? 'BULLISH' : 'BEARISH' },
                 rsi: { status: allRsiValues[i] > 70 ? 'Overbought' : (allRsiValues[i] < 30 ? 'Oversold' : 'Netral') },
                 stoch: { status: stochStatus },
                 macd: { status: macdStatus },
-                rsiDivergence: detectRSIDivergence(closesSnapshot, allRsiValues.slice(0, i + 1)),
-                obvDivergence: detectOBVDivergence(closesSnapshot, klinesSnapshot),
+                rsiDivergence: detectRSIDivergence(closes, allRsiValues),
+                obvDivergence: detectOBVDivergence(closes, klinesSnapshot),
                 pivot: { status: (fullCloses[i] > (calculatePivotPoints(filteredData[i - 1])?.P || fullCloses[i])) ? 'BULLISH' : 'BEARISH' },
                 vwap: { status: (fullCloses[i] > calculateVWAP(klinesSnapshot)) ? 'BULLISH' : 'BEARISH' },
                 ichimoku: calculateIchimokuCloud(klinesSnapshot) || { status: 'Netral' },
                 candlePattern: findCandlestickPatterns(klinesSnapshot) || { bias: 'NETRAL' },
-                bollingerBands: calculateBollingerBands(closesSnapshot),
+                bollingerBands: calculateBollingerBands(closes),
                 psar: calculateParabolicSAR(klinesSnapshot),
-                roc: calculateROC(closesSnapshot),
-                linreg: calculateLinearRegressionChannel(closesSnapshot)
+                roc: calculateROC(closes),
+                linreg: calculateLinearRegressionChannel(closes)
             };
-            const score = calculateConfluenceScoreForCandle(settings.weights, indicators);
-            analysisCache.push({ bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] });
-        }
-
-        let balance = settings.initialBalance;
-        let position = null;
-        const trades = [];
-        const MAINTENANCE_MARGIN_RATE = 0.005;
-
-        for (let i = 200; i < filteredData.length; i++) {
-            // Hapus: if (this.state.isStopped) break; -> Worker tidak memiliki state seperti itu
             
-            const currentCandle = filteredData[i];
-            const cacheEntry = analysisCache[i];
-            const currentLow = parseFloat(currentCandle[3]);
-            const currentHigh = parseFloat(currentCandle[2]);
+            const score = calculateConfluenceScoreForCandle(settings.weights, indicators);
+            const cacheEntry = { bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] };
 
-            if (settings.filterRegime && settings.filterRegime.length > 0) {
-                const klinesSnapshot = filteredData.slice(0, i + 1);
-                const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
-                if (!settings.filterRegime.includes(currentRegime)) {
-                    continue; 
+            if (currentRegime === 'bullTrend' || currentRegime === 'bearTrend') {
+                const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
+                const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
+                if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
+                    entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
                 }
+            } else if (currentRegime === 'ranging') {
+                const bollingerBands = calculateBollingerBands(closes); const lastUpperBand = bollingerBands.upper.pop(); const lastLowerBand = bollingerBands.lower.pop();
+                if (lastLowerBand > 0 && currentLow <= lastLowerBand) { entrySignal = true; detectedBias = 'LONG'; entryPrice = currentLow; } 
+                else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) { entrySignal = true; detectedBias = 'SHORT'; entryPrice = currentHigh; }
+            } else if (currentRegime === 'lowVolatility') {
+                if (currentHigh > recentSwingHigh) { entrySignal = true; detectedBias = 'LONG'; entryPrice = recentSwingHigh; } 
+                else if (currentLow < recentSwingLow) { entrySignal = true; detectedBias = 'SHORT'; entryPrice = recentSwingLow; }
             }
-
-            if (position) {
-                const markPrice = position.type === 'LONG' ? currentLow : currentHigh;
-                const unrealizedPnl = position.type === 'LONG' ? (markPrice - position.entryPrice) * position.size : (position.entryPrice - markPrice) * position.size;
-                const positionValue = position.entryPrice * position.size;
-                const maintenanceMargin = positionValue * MAINTENANCE_MARGIN_RATE;
-                let availableEquity;
-                if (settings.marginMode === 'isolated') {
-                    availableEquity = position.cost + unrealizedPnl;
-                } else {
-                    availableEquity = balance + unrealizedPnl;
-                }
-
-                if (availableEquity <= maintenanceMargin) {
-                    const finalPnl = unrealizedPnl;
-                    balance += finalPnl;
-                    trades.push({ ...position, exitPrice: markPrice, pnl: finalPnl, fee: 0, exitDate: new Date(currentCandle[0]), reason: 'LIQUIDATION' });
-                    position = null;
-                    // Hapus: console.error("EVENT LIKUIDASI TERSIMULASI!"); -> Worker tidak memiliki console
-                    break;
-                }
-
-                let exitReason = null, exitPrice = 0;
-                if (position.type === 'LONG') {
-                    if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
-                    else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
-                } else {
-                    if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
-                    else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
-                }
-
-                if (exitReason) {
-                    const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
-                    const entryValue = position.entryPrice * position.size;
-                    const exitValue = exitPrice * position.size;
-                    const entryFee = entryValue * settings.takerFee;
-                    const exitFee = exitValue * settings.makerFee;
-                    const totalFee = entryFee + exitFee;
-                    const netPnl = rawPnl - totalFee;
-                    balance += netPnl;
-                    trades.push({ ...position, exitPrice, pnl: netPnl, fee: totalFee, exitDate: new Date(currentCandle[0]), reason: exitReason });
-                    position = null;
-                    if (balance <= 0) { 
-                        // Hapus: console.error("MODAL HABIS!"); -> Worker tidak memiliki console
-                        break;
+            if (entrySignal) {
+                if (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold)) {
+                    if (settings.slippageModel === 'atrAdvanced') {
+                        const atrComponent = cacheEntry.atrValue * (settings.atrSlippagePercent / 100);
+                        const randomComponent = entryPrice * (settings.randomSlippagePercent / 100) * Math.random();
+                        const totalSlippage = atrComponent + randomComponent;
+                        if (detectedBias === 'LONG') entryPrice += totalSlippage; else entryPrice -= totalSlippage;
+                    } else if (settings.slippageModel === 'atrDynamic') {
+                        const slippageAmount = cacheEntry.atrValue * 0.5;
+                        if (detectedBias === 'LONG') entryPrice += slippageAmount; else entryPrice -= slippageAmount;
                     }
-                }
-            }
-
-            if (!position && cacheEntry) {
-                const klinesSnapshot = filteredData.slice(0, i + 1);
-                const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
-                let entrySignal = false; let detectedBias = 'NETRAL'; let entryPrice = 0;
-                const recentKlines = filteredData.slice(Math.max(0, i - settings.swingLookback), i);
-                const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
-                const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-                const closes = klinesSnapshot.map(k => parseFloat(k[4]));
-
-                if (currentRegime === 'bullTrend' || currentRegime === 'bearTrend') {
-                    const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
-                    const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
-                    if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
-                        entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
+                    let stopLoss, takeProfit;
+                    if (detectedBias === 'LONG') {
+                        stopLoss = recentSwingLow * 0.999;
+                        takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
+                    } else {
+                        stopLoss = recentSwingHigh * 1.001;
+                        takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio);
                     }
-                } else if (currentRegime === 'ranging') {
-                    const bollingerBands = calculateBollingerBands(closes); const lastUpperBand = bollingerBands.upper.pop(); const lastLowerBand = bollingerBands.lower.pop();
-                    if (lastLowerBand > 0 && currentLow <= lastLowerBand) { entrySignal = true; detectedBias = 'LONG'; entryPrice = currentLow; } 
-                    else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) { entrySignal = true; detectedBias = 'SHORT'; entryPrice = currentHigh; }
-                } else if (currentRegime === 'lowVolatility') {
-                    if (currentHigh > recentSwingHigh) { entrySignal = true; detectedBias = 'LONG'; entryPrice = recentSwingHigh; } 
-                    else if (currentLow < recentSwingLow) { entrySignal = true; detectedBias = 'SHORT'; entryPrice = recentSwingLow; }
-                }
-                if (entrySignal) {
-                    if (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold)) {
-                        if (settings.slippageModel === 'atrAdvanced') {
-                            const atrComponent = cacheEntry.atrValue * (settings.atrSlippagePercent / 100);
-                            const randomComponent = entryPrice * (settings.randomSlippagePercent / 100) * Math.random();
-                            const totalSlippage = atrComponent + randomComponent;
-                            if (detectedBias === 'LONG') entryPrice += totalSlippage; else entryPrice -= totalSlippage;
-                        } else if (settings.slippageModel === 'atrDynamic') {
-                            const slippageAmount = cacheEntry.atrValue * 0.5;
-                            if (detectedBias === 'LONG') entryPrice += slippageAmount; else entryPrice -= slippageAmount;
-                        }
-                        let stopLoss, takeProfit;
-                        if (detectedBias === 'LONG') {
-                            stopLoss = recentSwingLow * 0.999;
-                            takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
-                        } else {
-                            stopLoss = recentSwingHigh * 1.001;
-                            takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio);
-                        }
-                        const cost = balance * settings.riskPerTrade;
-                        const sizeInAsset = (cost * settings.leverage) / entryPrice;
-                        position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
-                    }
+                    const cost = balance * settings.riskPerTrade;
+                    const sizeInAsset = (cost * settings.leverage) / entryPrice;
+                    position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
                 }
             }
         }
-        
-        // Hapus logika progress bar dan status text dari sini
-        return { trades, analysisCache };
     }
+    return { trades, analysisCache: null }; 
+}
 
-        function calculateMetrics(trades, initialBalance) {
-            if (trades.length === 0) {
-                return {
-                    totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0,
-                    finalBalance: initialBalance, trades: [], maxDrawdown: 0,
-                    expectancy: 0, maxLosingStreak: 0,
-                    equityCurve: [initialBalance] 
-                };
-            }
-
-            let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0;
-            let equityCurve = [initialBalance];
-            let peakEquity = initialBalance;
-            let maxDrawdown = 0;
-            let losingStreak = 0, maxLosingStreak = 0;
-
-            trades.forEach(trade => {
-                totalPnl += trade.pnl;
-                equityCurve.push(initialBalance + totalPnl);
-                peakEquity = Math.max(peakEquity, equityCurve[equityCurve.length - 1]);
-                const drawdown = ((peakEquity - equityCurve[equityCurve.length - 1]) / peakEquity) * 100;
-                maxDrawdown = Math.max(maxDrawdown, drawdown);
-
-                if (trade.pnl > 0) {
-                    grossProfit += trade.pnl;
-                    wins++;
-                    losingStreak = 0; 
-                } else {
-                    grossLoss += Math.abs(trade.pnl);
-                    losingStreak++;
-                    maxLosingStreak = Math.max(maxLosingStreak, losingStreak);
-                }
-            });
-
-            const winRate = (wins / trades.length) * 100;
-            const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
-            const expectancy = totalPnl / trades.length;
-
+function calculateMetrics(trades, initialBalance) {
+    if (trades.length === 0) {
             return {
-                totalPnl, winRate, profitFactor, totalTrades: trades.length,
-                finalBalance: initialBalance + totalPnl, trades, maxDrawdown,
-                expectancy, maxLosingStreak, equityCurve
+                totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0,
+                finalBalance: initialBalance, trades: [], maxDrawdown: 0,
+                expectancy: 0, maxLosingStreak: 0,
+                equityCurve: [initialBalance] 
             };
         }
-
-
-
-
-
-    
-    
+        let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0;
+        let equityCurve = [initialBalance];
+        let peakEquity = initialBalance;
+        let maxDrawdown = 0;
+        let losingStreak = 0, maxLosingStreak = 0;
+        trades.forEach(trade => {
+            totalPnl += trade.pnl;
+            equityCurve.push(initialBalance + totalPnl);
+            peakEquity = Math.max(peakEquity, equityCurve[equityCurve.length - 1]);
+            const drawdown = ((peakEquity - equityCurve[equityCurve.length - 1]) / peakEquity) * 100;
+            maxDrawdown = Math.max(maxDrawdown, drawdown);
+            if (trade.pnl > 0) {
+                grossProfit += trade.pnl;
+                wins++;
+                losingStreak = 0; 
+            } else {
+                grossLoss += Math.abs(trade.pnl);
+                losingStreak++;
+                maxLosingStreak = Math.max(maxLosingStreak, losingStreak);
+            }
+        });
+        const winRate = (wins / trades.length) * 100;
+        const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
+        const expectancy = totalPnl / trades.length;
+        return {
+            totalPnl, winRate, profitFactor, totalTrades: trades.length,
+            finalBalance: initialBalance + totalPnl, trades, maxDrawdown,
+            expectancy, maxLosingStreak, equityCurve
+        };
+}
 //======================================================================================================================================
