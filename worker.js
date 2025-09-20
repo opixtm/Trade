@@ -4,8 +4,11 @@
         const { type, payload } = event.data;
 
         if (type === 'START_EVALUATION') {
-            const { population, historicalData, settings, fitnessMetric } = payload;
-            const evaluatedPopulation = await evaluateFitness(population, historicalData, settings, fitnessMetric);
+            // Ambil isRunning dan data lainnya dari payload
+            const { population, historicalData, settings, fitnessMetric, isRunning } = payload; 
+            
+            // Kirim isRunning ke evaluateFitness
+            const evaluatedPopulation = await evaluateFitness(population, historicalData, settings, fitnessMetric, isRunning);
 
             // Setelah evaluasi selesai, kirim kembali hasilnya ke thread utama
             self.postMessage({ type: 'EVALUATION_COMPLETE', payload: evaluatedPopulation });
@@ -715,10 +718,11 @@
         return { ...metrics, sharpeRatio }; 
     }
 
-    async function evaluateFitness(population, historicalData, fitnessMetric, timeframe) {
+    async function evaluateFitness(population, historicalData, settings, fitnessMetric, isRunning) {
         const evaluatedPopulation = [];
         for (const genome of population) {
-            if (!evolutionState.isRunning) break;
+            if (!isRunning) break; 
+
 
             const metrics = await runBacktestWithGenome(genome, historicalData); 
 
