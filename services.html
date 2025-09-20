@@ -1590,50 +1590,6 @@
         };
     }
 
-    async function runBacktestWithGenome(genome, historicalData, initialBalance = 1000) {
-        const settings = {
-            ...backtester.state.settings,
-            ...genome,
-            initialBalance: initialBalance,
-            riskPerTrade: 0.01 
-        };
-
-        const { trades } = await backtester.runSimulation_unifiedContextual(historicalData, settings);
-
-        const metrics = backtester.calculateMetrics(trades, initialBalance);
-        const sharpeRatio = calculateSharpeRatio(metrics.equityCurve); 
-        return { ...metrics, sharpeRatio }; 
-    }
-
-    async function evaluateFitness(population, historicalData) {
-        const evaluatedPopulation = [];
-        const timeframe = backtestTimeframeSelect.value;
-        const fitnessMetricSelect = document.getElementById('optimization-metric-select');
-        const fitnessMetric = fitnessMetricSelect ? fitnessMetricSelect.value : 'Profit Factor';
-
-        for (const genome of population) {
-            if (!evolutionState.isRunning) break;
-
-            const metrics = await runBacktestWithGenome(genome, historicalData); 
-
-            let fitnessScore = 0;
-            if (metrics.totalTrades === 0) {
-                fitnessScore = 0;
-            } else if (fitnessMetric === 'Win Rate') {
-                fitnessScore = metrics.winRate || 0;
-            } else if (fitnessMetric === 'Sharpe Ratio') { 
-                fitnessScore = metrics.sharpeRatio > -100 ? metrics.sharpeRatio : -100; 
-            } else { 
-                fitnessScore = metrics.profitFactor > 0 ? metrics.profitFactor : 0;
-                if (fitnessScore === Infinity) fitnessScore = 100;
-            }
-
-            evaluatedPopulation.push({ ...genome, fitness: fitnessScore, metrics: metrics });
-        }
-
-        return evaluatedPopulation;
-    }
-
     // ===================================================================
     // BAGIAN 3: FUNGSI-FUNGSI PEMBANTU (HELPERS)
     // ===================================================================
@@ -1717,10 +1673,10 @@
                 atr: atrData.value.toFixed(6),
                 status: atrData.status,
                 dailyRange,
-                atrPercent: atrData.atrPercent // Return the percentage
+                atrPercent: atrData.atrPercent 
             };
         }
-// Ganti seluruh fungsi analyzeMarketConditions dengan versi upgrade ini
+
     function analyzeMarketConditions(historicalData) {
         if (!historicalData || historicalData.length < 200) {
             return {
@@ -1728,7 +1684,7 @@
                 recommendations: [`⚠️ Data tidak cukup (${historicalData?.length || 0} candle). Minimal 200.`],
                 volatility: { atr: '0', status: 'N/A', dailyRange: '0%', atrPercent: 0 },
                 overallVolatility: { score: 0, status: 'N/A' },
-                segments: [] // Kembalikan array kosong jika data tidak cukup
+                segments: [] 
             };
         }
 
@@ -1737,10 +1693,9 @@
         const stepSize = 50;
         const lookbackPeriod = 200;
 
-        // --- BAGIAN BARU: Variabel untuk mencatat segmen ---
         const segments = [];
         let lastRegime = null;
-        let segmentStartTime = historicalData[lookbackPeriod][0]; // Waktu mulai segmen pertama
+        let segmentStartTime = historicalData[lookbackPeriod][0]; 
 
         for (let i = lookbackPeriod; i < historicalData.length; i += stepSize) {
             const snapshot = historicalData.slice(i - lookbackPeriod, i + 1);
@@ -1751,9 +1706,8 @@
             }
             segmentsAnalyzed++;
 
-            // --- BAGIAN BARU: Logika untuk mendeteksi perubahan fase/rezim ---
             if (lastRegime !== currentRegime) {
-                if (lastRegime) { // Simpan segmen sebelumnya jika ada
+                if (lastRegime) { 
                     segments.push({
                         regime: lastRegime,
                         startTime: segmentStartTime,
@@ -1765,8 +1719,7 @@
                 segmentStartTime = historicalData[i][0];
             }
         }
-        
-        // --- BAGIAN BARU: Simpan segmen terakhir setelah loop selesai ---
+
         if (lastRegime) {
             segments.push({
                 regime: lastRegime,
@@ -1775,7 +1728,6 @@
             });
         }
 
-        // --- KALKULASI DISTRIBUSI (Tidak Berubah Sama Sekali) ---
         const distribution = {};
         if (segmentsAnalyzed > 0) {
             for (const key in regimeCounts) {
@@ -1785,8 +1737,7 @@
             const finalRegime = detectMarketRegime_Unified(historicalData);
             distribution[finalRegime] = 100;
         }
-        
-        // --- Sisa fungsi (Tidak Berubah Sama Sekali) ---
+
         const volatilityInfo = calculateVolatilityInfo(historicalData);
         const overallVolatility = { score: volatilityInfo.atrPercent, status: volatilityInfo.status };
         const recommendations = [];
@@ -1823,7 +1774,6 @@
             lowVolatility: 'low-volatility', trending: 'uptrend'
         };
 
-        // --- Membuat HTML untuk Kolom Kiri (Distribusi & Segmentasi) ---
         let leftColumnHtml = `
             <div>
                 <h3 class="font-semibold mb-2">Distribusi Kondisi Pasar</h3>
@@ -1844,7 +1794,7 @@
                     </div>`;
             }
         }
-        leftColumnHtml += `</div></div>`; // Tutup market-condition-chart dan div pembungkusnya
+        leftColumnHtml += `</div></div>`; 
 
         leftColumnHtml += `<div class="mt-4">
             <h3 class="font-semibold mb-2">Segmentasi Waktu Berdasarkan Kondisi</h3>
@@ -1880,9 +1830,8 @@
                 leftColumnHtml += `</ul></details>`;
             }
         }
-        leftColumnHtml += `</div></div>`; // Tutup time-segmentation-chart dan div pembungkusnya
+        leftColumnHtml += `</div></div>`; 
 
-        // --- Membuat HTML untuk Kolom Kanan (Volatilitas & Rekomendasi) ---
         const overallVolatility = analysis.overallVolatility;
         const barWidth = Math.min(100, (overallVolatility.score / 10) * 100);
         let barColor = '#6B7280';
@@ -1926,7 +1875,6 @@
 
         rightColumnHtml += `</ul></div></div>`;
 
-        // --- Menggabungkan kedua kolom ke dalam grid ---
         contentWrapper.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                 ${leftColumnHtml}
@@ -2067,7 +2015,7 @@
                 activeFilters.forEach(filter => {
                     const session = sessionHours[filter];
                     if (session) {
-                        if (session.end < session.start) { // Handle overnight
+                        if (session.end < session.start) { 
                             for (let h = session.start; h < 24; h++) activeHours.add(Math.floor(h));
                             for (let h = 0; h < session.end; h++) activeHours.add(Math.floor(h));
                         } else {
@@ -2257,7 +2205,6 @@
                 backtestStartDate.value = formatDateTimeLocal(newStartDate);
             }
             
-            // Perbarui estimasi setelah tanggal diatur
             calculateAndDisplayCandleCount();
         }
 
@@ -2342,7 +2289,6 @@
         function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache) {
             if (trades.length < 5) return { bestParams: null, baseMetrics: {} }; 
 
-            // --- LANGKAH 1: DEFINISIKAN GRID PARAMETER UNTUK DIUJI ---
             const paramGrid = {
                 riskRewardRatio: [1.5, 2.0, 2.5],
                 biasThreshold: [10, 15, 20],
@@ -2366,11 +2312,9 @@
             
             const baseMetrics = backtester.calculateMetrics(trades, baseSettings.initialBalance);
 
-            // --- LANGKAH 2: ULANGI SETIAP KOMBINASI & HITUNG QUANT SCORE ---
             paramCombinations.forEach(params => {
                 const tempSettings = { ...baseSettings, ...params };
-                
-                // Jalankan simulasi mini untuk kombinasi ini
+ 
                 const hypotheticalTrades = [];
                 let tempBalance = tempSettings.initialBalance;
                 let tempPosition = null;
@@ -2380,21 +2324,19 @@
                     const cache = analysisCache[i];
                 }
                 
-                const hypotheticalMetrics = backtester.calculateMetrics(trades, tempSettings.initialBalance); // Placeholder
+                const hypotheticalMetrics = backtester.calculateMetrics(trades, tempSettings.initialBalance); 
                 
-                // --- LANGKAH 3: KALKULASI QUANT SCORE ---
+                
                 const normalize = (val, min, max) => (val - min) / (max - min) || 0;
                 
-                const pf = hypotheticalMetrics.profitFactor === Infinity ? 5 : hypotheticalMetrics.profitFactor; // Cap PF at 5 for stability
+                const pf = hypotheticalMetrics.profitFactor === Infinity ? 5 : hypotheticalMetrics.profitFactor;
                 const wr = hypotheticalMetrics.winRate;
-                const mdd = hypotheticalMetrics.maxDrawdown; // Asumsi mdd sudah dihitung di calculateMetrics
+                const mdd = hypotheticalMetrics.maxDrawdown;
                 
-                // Normalisasi (nilai min/max ini bisa disesuaikan)
                 const pfNorm = normalize(pf, 0.5, 3.0);
                 const wrNorm = normalize(wr, 30, 70);
                 const mddNorm = normalize(mdd, 5, 50);
 
-                // Bobot: PF 50%, Win Rate 30%, Drawdown 20%
                 const quantScore = (0.5 * pfNorm) + (0.3 * wrNorm) - (0.2 * mddNorm);
 
                 if (quantScore > bestResult.quantScore) {
@@ -2432,7 +2374,6 @@
                 }
                 paramsHtml += '</ul>';
 
-                // Menampilkan hasil ke UI
                 optimalContainer.innerHTML = `<div class="p-3 bg-gray-900/50 rounded-md">
                     <h4 class="font-semibold text-lg text-green-400 mb-2">🏆 Setelan Paling Optimal (Quant Score: ${best.quantScore.toFixed(3)})</h4>
                     ${paramsHtml}
@@ -2480,8 +2421,7 @@
                 stoch_k_smooth: timeframeParams.stoch_k_smooth,
                 stoch_d_smooth: timeframeParams.stoch_d_smooth
             };
-            
-            // Menggunakan JSON.stringify untuk membuat hash yang konsisten dari objek parameter
+
             return 'indicatorCache_' + JSON.stringify(relevantParams);
         }
 
@@ -2528,7 +2468,7 @@
             generalList.innerHTML = recommendations.generalSuggestions.map(item => `<li>${item}</li>`).join('');
             actionList.innerHTML = recommendations.actionPlan.map(item => `<li>${item}</li>`).join('');
             regimeSuggestion.innerHTML = recommendations.regimeSuggestion || '<p class="text-sm text-gray-500 italic">Analisis rezim belum memberikan saran spesifik.</p>';
-            // --- BAGIAN BARU UNTUK MENAMPILKAN SARAN HEURISTIK ---
+            
             if (recommendations.heuristicSuggestions && recommendations.heuristicSuggestions.length > 0) {
                 let heuristicHtml = `<div class="mt-4 pt-4 border-t border-gray-600">
                     <h4 class="font-semibold mb-2 text-blue-300">Saran Heuristik Tambahan</h4>
@@ -2542,7 +2482,6 @@
                 });
 
                 heuristicHtml += `</ul></div>`;
-                // Sisipkan HTML ini ke dalam panel Parameter Optimal
                 optimalContainer.innerHTML += heuristicHtml;
             }
         }
@@ -2593,65 +2532,63 @@
             },
 
         async run() {
-    if (this.state.isRunning) return;
-    this.state.isRunning = true;
-    this.state.isStopped = false;
-    setButtonState(startBacktestBtn, true, "Running...");
-    stopBacktestBtn.classList.remove('hidden');
-    this.resetUI();
-    
-    let historicalData = [];
-    let trades = [];
-    let marketAnalysis = null; 
+            if (this.state.isRunning) return;
+            this.state.isRunning = true;
+            this.state.isStopped = false;
+            setButtonState(startBacktestBtn, true, "Running...");
+            stopBacktestBtn.classList.remove('hidden');
+            this.resetUI();
+            
+            let historicalData = [];
+            let trades = [];
+            let marketAnalysis = null; 
 
-    try {
-        this.gatherSettings();
-        historicalData = await this.fetchHistoricalData();
-        // === PERBAIKAN: SIMPAN DATA LANGSUNG DI SINI ===
-        this.state.historicalData = historicalData;
-        // ===============================================
-
-        if (this.state.isStopped) {
-            backtestStatusText.textContent = "Pengambilan data dihentikan.";
-            return;
-        }
-        if (historicalData.length < 200) throw new Error("Data historis tidak cukup (min. 200 candle).");
-
-        const { trades: simTrades, analysisCache } = await this.runSimulation_unifiedContextual(historicalData);
-        trades = simTrades;
-
-        if (this.state.isStopped) {
-            backtestStatusText.textContent = "Simulasi dihentikan oleh pengguna.";
-            return;
-        }
-        
-        const metrics = this.calculateMetrics(trades, this.state.settings.initialBalance);
-        const optimalParams = runWhatIfSimulation(trades, historicalData, this.state.settings, analysisCache);
-        marketAnalysis = analyzeMarketConditions(historicalData);
-        this.displayResults(metrics, optimalParams, marketAnalysis, historicalData, trades);
-        
-    } catch (error) {
-        console.error("Backtest Gagal:", error);
-        backtestStatusText.textContent = `Error: ${error.message}`;
-        backtestProgressBar.style.backgroundColor = '#ef4444';
-    } finally {
-        this.state.isRunning = false;
-        setButtonState(startBacktestBtn, false, "▶️ BACKTEST");
-        stopBacktestBtn.classList.add('hidden');
-
-        if (marketAnalysis) {
-            displayMarketAnalysis(marketAnalysis);
-        }
-        if (historicalData && historicalData.length > 0) {
             try {
-                document.getElementById('backtest-chart-container-section').classList.remove('hidden');
-                renderReplayWithIndicators(historicalData, trades); 
-            } catch (chartError) {
-                console.error("Error saat merender chart replay:", chartError);
+                this.gatherSettings();
+                historicalData = await this.fetchHistoricalData();
+                this.state.historicalData = historicalData;
+
+                if (this.state.isStopped) {
+                    backtestStatusText.textContent = "Pengambilan data dihentikan.";
+                    return;
+                }
+                if (historicalData.length < 200) throw new Error("Data historis tidak cukup (min. 200 candle).");
+
+                const { trades: simTrades, analysisCache } = await this.runSimulation_unifiedContextual(historicalData);
+                trades = simTrades;
+
+                if (this.state.isStopped) {
+                    backtestStatusText.textContent = "Simulasi dihentikan oleh pengguna.";
+                    return;
+                }
+                
+                const metrics = this.calculateMetrics(trades, this.state.settings.initialBalance);
+                const optimalParams = runWhatIfSimulation(trades, historicalData, this.state.settings, analysisCache);
+                marketAnalysis = analyzeMarketConditions(historicalData);
+                this.displayResults(metrics, optimalParams, marketAnalysis, historicalData, trades);
+                
+            } catch (error) {
+                console.error("Backtest Gagal:", error);
+                backtestStatusText.textContent = `Error: ${error.message}`;
+                backtestProgressBar.style.backgroundColor = '#ef4444';
+            } finally {
+                this.state.isRunning = false;
+                setButtonState(startBacktestBtn, false, "▶️ BACKTEST");
+                stopBacktestBtn.classList.add('hidden');
+
+                if (marketAnalysis) {
+                    displayMarketAnalysis(marketAnalysis);
+                }
+                if (historicalData && historicalData.length > 0) {
+                    try {
+                        document.getElementById('backtest-chart-container-section').classList.remove('hidden');
+                        renderReplayWithIndicators(historicalData, trades); 
+                    } catch (chartError) {
+                        console.error("Error saat merender chart replay:", chartError);
+                    }
+                }
             }
-        }
-    }
-},
+        },
 
             resetUI() {
                 backtestResultsContainer.classList.add('hidden');
@@ -3147,50 +3084,89 @@ async function startEvolution() {
     evolutionState.population = generateInitialPopulation(evolutionState.populationSize);
     
     // Inisialisasi array untuk menyimpan Web Workers
-    const numWorkers = 3; // Atur jumlah worker yang Anda inginkan
+    const numWorkers = 3;
     evolutionState.workers = [];
+    
+    // Perbaikan: Ambil semua pengaturan DULU sebelum membuat worker
+    const customSessionCheckbox = document.getElementById('filter-session-custom');
+    const customSessionEnabled = customSessionCheckbox.checked;
+    let customSessionData = null;
+    if (customSessionEnabled) {
+        customSessionData = {
+            start: document.getElementById('custom-session-start').value,
+            end: document.getElementById('custom-session-end').value
+        };
+    }
+    const activeSessionFilters = Array.from(document.querySelectorAll('input[id^="filter-session-"]:checked')).map(cb => cb.value);
+    const activeRegimeFilters = Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value);
+    const workerSettings = {
+        ...backtester.state.settings, // Pastikan ini sudah terisi dari backtest sebelumnya
+        sessionFilters: activeSessionFilters,
+        customSession: customSessionData,
+        regimeFilters: activeRegimeFilters,
+        fitnessMetric: document.getElementById('optimization-metric-select').value,
+        isRunning: true, // Set isRunning ke true saat memulai
+    };
+
+    // Ini adalah array untuk mengumpulkan hasil dari semua worker
+    let evaluatedPopulations = [];
+    let workersCompleted = 0;
 
     // Fungsi untuk memproses pesan dari setiap worker
     const handleWorkerMessage = (event) => {
         const { type, payload } = event.data;
-
         if (type === 'EVALUATION_COMPLETE') {
-            const evaluatedPopulation = payload;
-            
-            const currentChampion = findChampion(evaluatedPopulation);
-            if (!evolutionState.champion || currentChampion.fitness > evolutionState.champion.fitness) {
-                evolutionState.champion = currentChampion;
-                updateChampionDNA(evolutionState.champion);
-            }
+            evaluatedPopulations.push(...payload); // Gabungkan hasil dari worker ini
+            workersCompleted++;
 
-            const avgFitness = evaluatedPopulation.reduce((sum, g) => sum + g.fitness, 0) / evaluatedPopulation.length;
-            const fitnessMetric = document.getElementById('optimization-metric-select').value;
-            const championFitness = currentChampion.fitness;
-            updateEvolutionProgress(championFitness, avgFitness, fitnessMetric);
+            // Jika SEMUA worker telah selesai, proses generasi berikutnya
+            if (workersCompleted === numWorkers) {
+                const evaluatedPopulation = evaluatedPopulations;
+                
+                const currentChampion = findChampion(evaluatedPopulation);
+                if (!evolutionState.champion || currentChampion.fitness > evolutionState.champion.fitness) {
+                    evolutionState.champion = currentChampion;
+                    updateChampionDNA(evolutionState.champion);
+                }
 
-            evolutionState.population = createNextGeneration(evaluatedPopulation);
-            evolutionState.currentGeneration++;
-            
-            // Lanjutkan siklus generasi jika belum mencapai batas maksimum
-            if (evolutionState.currentGeneration < evolutionState.maxGenerations && evolutionState.isRunning) {
-                evolutionState.workers.forEach(worker => {
-                    worker.postMessage({
-                        type: 'START_EVALUATION',
-                        payload: { 
-                            population: evolutionState.population, 
-                            historicalData: evolutionState.historicalData,
-                            fitnessMetric: document.getElementById('optimization-metric-select').value,
-                            timeframe: backtestTimeframeSelect.value,
-                            isRunning: evolutionState.isRunning, 
-                            settings: backtester.state.settings
-                        }
+                const avgFitness = evaluatedPopulation.reduce((sum, g) => sum + g.fitness, 0) / evaluatedPopulation.length;
+                const fitnessMetric = workerSettings.fitnessMetric;
+                const championFitness = currentChampion.fitness;
+                updateEvolutionProgress(championFitness, avgFitness, fitnessMetric);
+
+                evolutionState.population = createNextGeneration(evaluatedPopulation);
+                evolutionState.currentGeneration++;
+
+                // Reset variabel untuk generasi berikutnya
+                evaluatedPopulations = [];
+                workersCompleted = 0;
+                
+                // Lanjutkan siklus generasi jika belum mencapai batas maksimum dan masih berjalan
+                if (evolutionState.currentGeneration < evolutionState.maxGenerations && evolutionState.isRunning) {
+                    // Distribusikan populasi baru ke setiap worker
+                    const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
+                    evolutionState.workers.forEach((worker, index) => {
+                        const start = index * populationChunkSize;
+                        const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
+                        const chunk = evolutionState.population.slice(start, end);
+                        
+                        worker.postMessage({
+                            type: 'START_EVALUATION',
+                            payload: {
+                                population: chunk,
+                                historicalData: evolutionState.historicalData,
+                                settings: workerSettings,
+                                isRunning: evolutionState.isRunning,
+                                fitnessMetric: workerSettings.fitnessMetric,
+                            }
+                        });
                     });
-                });
-            } else {
-                alert("Proses evolusi selesai!");
-                evolutionState.isRunning = false;
-                evolutionState.workers.forEach(worker => worker.terminate());
-                evolutionState.workers = [];
+                } else {
+                    alert("Proses evolusi selesai!");
+                    evolutionState.isRunning = false;
+                    evolutionState.workers.forEach(worker => worker.terminate());
+                    evolutionState.workers = [];
+                }
             }
         }
     };
@@ -3202,15 +3178,21 @@ async function startEvolution() {
         evolutionState.workers.push(worker);
     }
     
-    // Kirim populasi awal dan data historis ke setiap worker untuk dievaluasi
-    evolutionState.workers.forEach(worker => {
+    // Distribusikan populasi awal ke setiap worker
+    const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
+    evolutionState.workers.forEach((worker, index) => {
+        const start = index * populationChunkSize;
+        const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
+        const chunk = evolutionState.population.slice(start, end);
+        
         worker.postMessage({
             type: 'START_EVALUATION',
             payload: {
-                population: evolutionState.population,
+                population: chunk,
                 historicalData: evolutionState.historicalData,
-                fitnessMetric: document.getElementById('optimization-metric-select').value,
-                timeframe: backtestTimeframeSelect.value
+                settings: workerSettings,
+                isRunning: evolutionState.isRunning,
+                fitnessMetric: workerSettings.fitnessMetric,
             }
         });
     });
@@ -3582,10 +3564,11 @@ async function startEvolution() {
 });
 
     stopGenesisBtn.addEventListener('click', () => {
-        evolutionState.isRunning = false; 
-        if (evolutionState.worker) {
-            evolutionState.worker.terminate();
-            evolutionState.worker = null;
+        evolutionState.isRunning = false;
+        // PERBAIKAN: Loop melalui array workers dan terminate setiap worker
+        if (evolutionState.workers && evolutionState.workers.length > 0) {
+            evolutionState.workers.forEach(worker => worker.terminate());
+            evolutionState.workers = [];
         }
         alert("Proses evolusi dihentikan.");
     });

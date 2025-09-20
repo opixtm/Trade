@@ -1,20 +1,20 @@
  // Listener untuk menerima pesan dari thread utama (genesis_engine.html)
     self.onmessage = async (event) => {
-        // Di sini kita akan menerima data dari thread utama
-        const { type, payload } = event.data;
+    const { type, payload } = event.data;
 
-        if (type === 'START_EVALUATION') {
-            // Ambil isRunning dan data lainnya dari payload
-            const { population, historicalData, settings, fitnessMetric, isRunning } = payload; 
-            
-            // Kirim isRunning ke evaluateFitness
-            const evaluatedPopulation = await evaluateFitness(population, historicalData, settings, fitnessMetric, isRunning);
+    if (type === 'START_EVALUATION') {
+        const { population, historicalData, settings, fitnessMetric, isRunning } = payload; 
+        
+        // Memanggil fungsi utama yang kini ada di dalam worker.js
+        const evaluatedPopulation = await evaluateFitness(population, historicalData, settings, fitnessMetric, isRunning);
 
-            // Setelah evaluasi selesai, kirim kembali hasilnya ke thread utama
-            self.postMessage({ type: 'EVALUATION_COMPLETE', payload: evaluatedPopulation });
-        }
-    };
+        self.postMessage({ type: 'EVALUATION_COMPLETE', payload: evaluatedPopulation });
+    }
+};
 
+// ===================================================================
+// BAGIAN 1: PUSTAKA FUNGSI KALKULASI & LOGIKA BACKTEST
+// ===================================================================
     const TIMEFRAME_MAP_MS = {
         '1m': 60000, '3m': 180000, '5m': 300000, '15m': 900000,
         '1h': 3600000, '4h': 14400000, '1d': 86400000
@@ -23,7 +23,8 @@
         '1m': { rsi_period: 7, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
         '3m': { rsi_period: 9, macd_fast: 5, macd_slow: 13, macd_signal: 5, stoch_rsi_period: 9, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
         '5m': { rsi_period: 9, macd_fast: 8, macd_slow: 21, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
-        '15m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_spliter_d_smooth: 3 },
+        // PERBAIKAN: Ganti 'stoch_d_spliter_d_smooth' menjadi 'stoch_d_smooth'
+        '15m': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
         '1h': { rsi_period: 14, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 14, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
         '4h': { rsi_period: 21, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
         '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 }
@@ -34,55 +35,33 @@
 // BAGIAN 2: PUSTAKA FUNGSI KALKULASI MURNI (VERSI LENGKAP & SINKRON)
 // ===================================================================    
     const calculateEMA = (data, period) => {
-        if (!data || data.length < period) {
-            return [];
-        }
-
+        if (!data || data.length < period) { return []; }
         const k = 2 / (period + 1);
         let emaArray = [];
-
         if (data.length > 0) {
             let sum = 0;
-            for (let i = 0; i < period; i++) {
-            sum += data[i] || 0;
-            }
+            for (let i = 0; i < period; i++) { sum += data[i] || 0; }
             emaArray[period - 1] = sum / period;
-            for (let i = period; i < data.length; i++) {
-            emaArray[i] = (data[i] * k) + (emaArray[i - 1] * (1 - k));
-            }
+            for (let i = period; i < data.length; i++) { emaArray[i] = (data[i] * k) + (emaArray[i - 1] * (1 - k)); }
         }
-
         return emaArray;
     };
-    
+
     const calculateSMA = (data, period) => {
-        if (!data || data.length < period) {
-            return [];
-        }
-        
+        if (!data || data.length < period) { return []; }
         let sma = [];
         let sum = 0;
-
-        for (let i = 0; i < period; i++) {
-            sum += data[i];
-        }
+        for (let i = 0; i < period; i++) { sum += data[i]; }
         sma.push(sum / period);
-
-        for (let i = period; i < data.length; i++) {
-            sum = sum - data[i - period] + data[i];
-            sma.push(sum / period);
-        }
-
+        for (let i = period; i < data.length; i++) { sum = sum - data[i - period] + data[i]; sma.push(sum / period); }
         const alignedSma = [...Array(period - 1).fill(undefined), ...sma];
-        
         return alignedSma;
     };
 
-    const calculateRSI = (closes, timeframe) => {
-        if (!closes || closes.length <= period) {
-            return Array(closes.length).fill(undefined);
-        }
-        
+    const calculateRSI = (closes, settings) => {
+        const params = timeframeParameterMap[settings.timeframe] || timeframeParameterMap['15m'];
+        const period = params.rsi_period;
+        if (!closes || closes.length <= period) { return Array(closes.length).fill(undefined); }
         let gains = [];
         let losses = [];
         for (let i = 1; i < closes.length; i++) {
@@ -101,18 +80,17 @@
         }
         return rsi;
     };
-    
-    const calculateMACD = (closes, timeframe) => {
-        if (closes.length < slow) {
-            return { status: 'Netral', macdLine: [], signalLine: [], histogram: [] };
-        }
-        
+
+    const calculateMACD = (closes, settings) => {
+        const params = timeframeParameterMap[settings.timeframe] || timeframeParameterMap['15m'];
+        const fast = params.macd_fast;
+        const slow = params.macd_slow;
+        const signal = params.macd_signal;
+        if (closes.length < slow) { return { status: 'Netral', macdLine: [], signalLine: [], histogram: [] }; }
         const emaFast = calculateEMA(closes, fast);
         const emaSlow = calculateEMA(closes, slow);
         const macdLine = emaSlow.map((slowVal, i) => {
-            if (slowVal !== undefined && emaFast[i] !== undefined) {
-                return emaFast[i] - slowVal;
-            }
+            if (slowVal !== undefined && emaFast[i] !== undefined) { return emaFast[i] - slowVal; }
             return undefined;
         }).filter(v => v !== undefined);
         const signalLine = calculateEMA(macdLine, signal);
@@ -133,21 +111,20 @@
         const prevMacdLine = macdLine.pop() || 0;
         const prevSignalLine = signalLine.pop() || 0;
         let status = 'Netral';
-        if (prevMacdLine <= prevSignalLine && lastMacd > lastSig) {
-            status = 'Bullish Cross';
-        } else if (prevMacdLine >= prevSignalLine && lastMacd < lastSig) {
-            status = 'Bearish Cross';
-        }
+        if (prevMacdLine <= prevSignalLine && lastMacd > lastSig) { status = 'Bullish Cross'; }
+        else if (prevMacdLine >= prevSignalLine && lastMacd < lastSig) { status = 'Bearish Cross'; }
         return { status, macdLine, signalLine, histogram };
     };
 
-    const calculateStochasticRSI = (closes, timeframe) => {
-        const rsiValues = calculateRSI(closes, timeframe);
+    const calculateStochasticRSI = (closes, settings) => {
+        const params = timeframeParameterMap[settings.timeframe] || timeframeParameterMap['15m'];
+        const rsiPeriod = params.stoch_rsi_period;
+        const stochPeriod = params.stoch_stoch_period;
+        const kSmooth = params.stoch_k_smooth;
+        const dSmooth = params.stoch_d_smooth;
+        const rsiValues = calculateRSI(closes, settings);
         const validRsi = rsiValues.filter(v => v !== undefined);
-        if (validRsi.length < stochPeriod) {
-            return { kLine: [], dLine: [], status: 'Netral' };
-        }
-        
+        if (validRsi.length < stochPeriod) { return { kLine: [], dLine: [], status: 'Netral' }; }
         let stochArr = [];
         for (let i = stochPeriod - 1; i < validRsi.length; i++) {
             const window = validRsi.slice(i - stochPeriod + 1, i + 1);
@@ -194,6 +171,7 @@
         }
         return { status: 'NONE' };
     };
+
 
     const calculateOBV = (klines) => {
         if (!klines || klines.length < 2) return [];
@@ -703,45 +681,438 @@
         };
     }
 
-    async function runBacktestWithGenome(genome, historicalData, initialBalance = 1000) {
-        const settings = {
-            ...backtester.state.settings,
-            ...genome,
-            initialBalance: initialBalance,
-            riskPerTrade: 0.01 
-        };
-
-        const { trades } = await backtester.runSimulation_unifiedContextual(historicalData, settings);
-
-        const metrics = backtester.calculateMetrics(trades, initialBalance);
+    async function runBacktestWithGenome(genome, historicalData, settings) {
+        const mergedSettings = { ...settings, ...genome };
+        const { trades } = await runSimulation_unifiedContextual(historicalData, mergedSettings);
+        const metrics = calculateMetrics(trades, mergedSettings.initialBalance);
         const sharpeRatio = calculateSharpeRatio(metrics.equityCurve); 
         return { ...metrics, sharpeRatio }; 
     }
 
     async function evaluateFitness(population, historicalData, settings, fitnessMetric, isRunning) {
-        const evaluatedPopulation = [];
-        for (const genome of population) {
-            if (!isRunning) break; 
+    const evaluatedPopulation = [];
+    for (const genome of population) {
+        if (!isRunning) break; 
+        const metrics = await runBacktestWithGenome(genome, historicalData, settings); 
+        let fitnessScore = 0;
+        if (metrics.totalTrades === 0) {
+            fitnessScore = 0;
+        } else if (fitnessMetric === 'Win Rate') {
+            fitnessScore = metrics.winRate || 0;
+        } else if (fitnessMetric === 'Sharpe Ratio') { 
+            fitnessScore = metrics.sharpeRatio > -100 ? metrics.sharpeRatio : -100; 
+        } else { 
+            fitnessScore = metrics.profitFactor > 0 ? metrics.profitFactor : 0;
+            if (fitnessScore === Infinity) fitnessScore = 100;
+        }
+        evaluatedPopulation.push({ ...genome, fitness: fitnessScore, metrics: metrics });
+    }
+    return evaluatedPopulation;
+}
 
-
-            const metrics = await runBacktestWithGenome(genome, historicalData); 
-
-            let fitnessScore = 0;
-            if (metrics.totalTrades === 0) {
-                fitnessScore = 0;
-            } else if (fitnessMetric === 'Win Rate') {
-                fitnessScore = metrics.winRate || 0;
-            } else if (fitnessMetric === 'Sharpe Ratio') { 
-                fitnessScore = metrics.sharpeRatio > -100 ? metrics.sharpeRatio : -100; 
-            } else { 
-                fitnessScore = metrics.profitFactor > 0 ? metrics.profitFactor : 0;
-                if (fitnessScore === Infinity) fitnessScore = 100;
+function calculateSharpeRatio(equityCurve, riskFreeRate = 0.02) {
+            if (equityCurve.length < 2) return 0;
+            const returns = [];
+            for (let i = 1; i < equityCurve.length; i++) {
+                returns.push((equityCurve[i] / equityCurve[i - 1]) - 1);
             }
+            if (returns.length === 0) return 0;
 
-            evaluatedPopulation.push({ ...genome, fitness: fitnessScore, metrics: metrics });
+            const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+            const stdDev = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length);
+            
+            // Asumsi per periode (misal per trade), anualisasi jika perlu
+            const dailyRiskFreeRate = Math.pow(1 + riskFreeRate, 1/252) - 1;
+
+            if (stdDev === 0) return 0;
+            
+            return (avgReturn - dailyRiskFreeRate) / stdDev;
         }
 
-        return evaluatedPopulation;
+
+async function processIndicatorCacheInChunks(filteredData, settings) {
+            return new Promise((resolve, reject) => {
+                const cacheKey = generateIndicatorCacheKey(this.state.settings);
+                try {
+                    const cachedData = localStorage.getItem(cacheKey);
+                    if (cachedData) {
+                        console.log("CACHE HIT: Menggunakan data indikator dari cache.");
+                        backtestStatusText.textContent = `Memuat hasil kalkulasi dari cache...`;
+                        setTimeout(() => resolve(JSON.parse(cachedData)), 50);
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Gagal membaca cache, akan melakukan kalkulasi ulang.", e);
+                    localStorage.removeItem(cacheKey);
+                }
+
+                console.log("CACHE MISS: Melakukan kalkulasi indikator penuh secara asinkron.");
+                
+                const fullCloses = filteredData.map(k => parseFloat(k[4]));
+                const allEma21 = calculateEMA(fullCloses, 21);
+                const allEma50 = calculateEMA(fullCloses, 50);
+                const allRsiValues = calculateRSI(fullCloses);
+                const allMacdData = calculateMACD(fullCloses);
+                const allStochRsiData = calculateStochasticRSI(fullCloses);
+                const allAtrValues = [];
+                for (let i = 0; i < filteredData.length; i++) {
+                    allAtrValues.push(calculateATR(filteredData.slice(0, i + 1)).value);
+                }
+                
+                let analysisCache = [];
+                let currentIndex = 0;
+                const totalCandles = filteredData.length;
+                const chunkSize = 200; // Proses 200 candle per chunk
+
+                const processChunk = () => {
+                    if (this.state.isStopped) {
+                        reject(new Error("Proses dihentikan oleh pengguna"));
+                        return;
+                    }
+
+                    const chunkEnd = Math.min(currentIndex + chunkSize, totalCandles);
+                    
+                    for (let i = currentIndex; i < chunkEnd; i++) {
+                        if (i < 200) {
+                            analysisCache.push(null);
+                            continue;
+                        }
+                        const klinesSnapshot = filteredData.slice(0, i + 1);
+                        const closesSnapshot = fullCloses.slice(0, i + 1);
+                        
+                        const lastMacd = allMacdData.macdLine[i];
+                        const lastSig = allMacdData.signalLine[i];
+                        const prevMacd = allMacdData.macdLine[i - 1];
+                        const prevSig = allMacdData.signalLine[i - 1];
+                        let macdStatus = 'Netral';
+                        if (prevMacd <= prevSig && lastMacd > lastSig) macdStatus = 'Bullish Cross';
+                        else if (prevMacd >= prevSig && lastMacd < lastSig) macdStatus = 'Bearish Cross';
+                        
+                        const lastK = allStochRsiData.kLine[i];
+                        const lastD = allStochRsiData.dLine[i];
+                        let stochStatus = 'Netral';
+                        if (lastK > 80 && lastD > 80) stochStatus = 'Overbought';
+                        else if (lastK < 20 && lastD < 20) stochStatus = 'Oversold';
+
+                        const indicators = {
+                            ma: { status: (allEma21[i] > allEma50[i]) ? 'BULLISH' : 'BEARISH' },
+                            rsi: { status: allRsiValues[i] > 70 ? 'Overbought' : (allRsiValues[i] < 30 ? 'Oversold' : 'Netral') },
+                            stoch: { status: stochStatus },
+                            macd: { status: macdStatus },
+                            rsiDivergence: detectRSIDivergence(closesSnapshot, allRsiValues.slice(0, i + 1)),
+                            obvDivergence: detectOBVDivergence(closesSnapshot, klinesSnapshot),
+                            pivot: { status: (fullCloses[i] > (calculatePivotPoints(filteredData[i - 1])?.P || fullCloses[i])) ? 'BULLISH' : 'BEARISH' },
+                            vwap: { status: (fullCloses[i] > calculateVWAP(klinesSnapshot)) ? 'BULLISH' : 'BEARISH' },
+                            ichimoku: calculateIchimokuCloud(klinesSnapshot) || { status: 'Netral' },
+                            candlePattern: findCandlestickPatterns(klinesSnapshot) || { bias: 'NETRAL' },
+                            bollingerBands: calculateBollingerBands(closesSnapshot),
+                            psar: calculateParabolicSAR(klinesSnapshot),
+                            roc: calculateROC(closesSnapshot),
+                            linreg: calculateLinearRegressionChannel(closesSnapshot)
+                        };
+                        
+                        const score = calculateConfluenceScoreForCandle(this.state.settings.weights, indicators);
+                        analysisCache.push({ bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] });
+                    }
+
+                    currentIndex = chunkEnd;
+                    const progress = (currentIndex / totalCandles) * 100;
+                    backtestProgressBar.style.width = `${progress}%`;
+                    backtestStatusText.textContent = `Merakit Cache: ${progress.toFixed(1)}% | Candle: ${currentIndex.toLocaleString('id-ID')}/${totalCandles.toLocaleString('id-ID')}`;
+
+                    if (currentIndex < totalCandles) {
+                        setTimeout(processChunk, 0); // Jeda untuk UI update
+                    } else {
+                        try {
+                            localStorage.setItem(cacheKey, JSON.stringify(analysisCache));
+                        } catch (e) {
+                            console.error("Gagal menyimpan ke cache (localStorage penuh).", e);
+                        }
+                        resolve(analysisCache);
+                    }
+                };
+
+                processChunk(); // Mulai proses chunk pertama
+            });
+        },
+
+
+    async function runSimulation_unifiedContextual(historicalData, settings) {
+    // Web Worker tidak memiliki akses ke DOM, jadi ambil data filter dari objek settings yang dikirim dari thread utama
+    const customSessionEnabled = settings.customSession !== null;
+    let customStartHourUTC = 0;
+    let customEndHourUTC = 0;
+
+    if (customSessionEnabled) {
+        // Ambil data dari objek settings yang dikirim
+        const [startH, startM] = settings.customSession.start.split(':').map(Number);
+        const [endH, endM] = settings.customSession.end.split(':').map(Number);
+        customStartHourUTC = (startH - 7 + 24) % 24 + (startM / 60);
+        customEndHourUTC = (endH - 7 + 24) % 24 + (endM / 60);
+    }
+    
+    const activeSessionFilters = settings.sessionFilters;
+    let filteredData = historicalData;
+
+    if (activeSessionFilters.length > 0) {
+        const sessionHours = {
+            tokyo: { start: 0, end: 8 },
+            london: { start: 7, end: 16 },
+            newyork: { start: 13, end: 22 }
+        };
+
+        if (customSessionEnabled && settings.customSession.start) {
+            sessionHours.custom = { start: customStartHourUTC, end: customEndHourUTC };
+        }
+
+        filteredData = historicalData.filter(candle => {
+            const candleDate = new Date(candle[0]);
+            const candleUTCHour = candleDate.getUTCHours() + (candleDate.getUTCMinutes() / 60);
+
+            for (const filter of activeSessionFilters) {
+                const session = sessionHours[filter];
+                if (session) {
+                    if (session.end < session.start) {
+                        if (candleUTCHour >= session.start || candleUTCHour < session.end) return true;
+                    } else {
+                        if (candleUTCHour >= session.start && candleUTCHour < session.end) return true;
+                    }
+                }
+            }
+            return false;
+        });
+
+        if (filteredData.length < 200) {
+            // Worker tidak bisa memanggil alert, jadi kembalikan error
+            return { trades: [], error: `Data setelah difilter tidak cukup (hanya ${filteredData.length} candle). Coba rentang waktu yang lebih panjang.` };
+        }
+    }
+    
+    // PENTING: Worker tidak memiliki localStorage, jadi cache harus ditangani secara berbeda
+    // Untuk tujuan evolusi genetik, kita tidak perlu cache.
+    // Kode di bawah ini adalah versi sederhana tanpa cache.
+    const fullCloses = filteredData.map(k => parseFloat(k[4]));
+    const allEma21 = calculateEMA(fullCloses, 21);
+    const allEma50 = calculateEMA(fullCloses, 50);
+    const allRsiValues = calculateRSI(fullCloses, settings.timeframe); // Gunakan parameter `settings`
+    const allMacdData = calculateMACD(fullCloses, settings.timeframe); // Gunakan parameter `settings`
+    const allStochRsiData = calculateStochasticRSI(fullCloses, settings.timeframe); // Gunakan parameter `settings`
+    const allAtrValues = [];
+    for (let i = 0; i < filteredData.length; i++) {
+        allAtrValues.push(calculateATR(filteredData.slice(0, i + 1), settings.timeframe).value);
+    }
+    
+    let analysisCache = [];
+    for (let i = 200; i < filteredData.length; i++) {
+        const closesSnapshot = fullCloses.slice(0, i + 1);
+        const klinesSnapshot = filteredData.slice(0, i + 1);
+
+        const lastMacd = allMacdData.macdLine[i];
+        const lastSig = allMacdData.signalLine[i];
+        const prevMacd = allMacdData.macdLine[i - 1];
+        const prevSig = allMacdData.signalLine[i - 1];
+        let macdStatus = 'Netral';
+        if (prevMacd <= prevSig && lastMacd > lastSig) macdStatus = 'Bullish Cross';
+        else if (prevMacd >= prevSig && lastMacd < lastSig) macdStatus = 'Bearish Cross';
+        
+        const lastK = allStochRsiData.kLine[i];
+        const lastD = allStochRsiData.dLine[i];
+        let stochStatus = 'Netral';
+        if (lastK > 80 && lastD > 80) stochStatus = 'Overbought';
+        else if (lastK < 20 && lastD < 20) stochStatus = 'Oversold';
+
+        const indicators = {
+            ma: { status: (allEma21[i] > allEma50[i]) ? 'BULLISH' : 'BEARISH' },
+            rsi: { status: allRsiValues[i] > 70 ? 'Overbought' : (allRsiValues[i] < 30 ? 'Oversold' : 'Netral') },
+            stoch: { status: stochStatus },
+            macd: { status: macdStatus },
+            rsiDivergence: detectRSIDivergence(closesSnapshot, allRsiValues.slice(0, i + 1)),
+            obvDivergence: detectOBVDivergence(closesSnapshot, klinesSnapshot),
+            pivot: { status: (fullCloses[i] > (calculatePivotPoints(filteredData[i - 1])?.P || fullCloses[i])) ? 'BULLISH' : 'BEARISH' },
+            vwap: { status: (fullCloses[i] > calculateVWAP(klinesSnapshot)) ? 'BULLISH' : 'BEARISH' },
+            ichimoku: calculateIchimokuCloud(klinesSnapshot) || { status: 'Netral' },
+            candlePattern: findCandlestickPatterns(klinesSnapshot) || { bias: 'NETRAL' },
+            bollingerBands: calculateBollingerBands(closesSnapshot),
+            psar: calculateParabolicSAR(klinesSnapshot),
+            roc: calculateROC(closesSnapshot),
+            linreg: calculateLinearRegressionChannel(closesSnapshot)
+        };
+        const score = calculateConfluenceScoreForCandle(settings.weights, indicators);
+        analysisCache.push({ bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] });
     }
 
+    let balance = settings.initialBalance;
+    let position = null;
+    const trades = [];
+    const MAINTENANCE_MARGIN_RATE = 0.005;
+
+    for (let i = 200; i < filteredData.length; i++) {
+        // Hapus: if (this.state.isStopped) break; -> Worker tidak memiliki state seperti itu
+        
+        const currentCandle = filteredData[i];
+        const cacheEntry = analysisCache[i];
+        const currentLow = parseFloat(currentCandle[3]);
+        const currentHigh = parseFloat(currentCandle[2]);
+
+        if (settings.filterRegime && settings.filterRegime.length > 0) {
+            const klinesSnapshot = filteredData.slice(0, i + 1);
+            const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
+            if (!settings.filterRegime.includes(currentRegime)) {
+                continue; 
+            }
+        }
+
+        if (position) {
+            const markPrice = position.type === 'LONG' ? currentLow : currentHigh;
+            const unrealizedPnl = position.type === 'LONG' ? (markPrice - position.entryPrice) * position.size : (position.entryPrice - markPrice) * position.size;
+            const positionValue = position.entryPrice * position.size;
+            const maintenanceMargin = positionValue * MAINTENANCE_MARGIN_RATE;
+            let availableEquity;
+            if (settings.marginMode === 'isolated') {
+                availableEquity = position.cost + unrealizedPnl;
+            } else {
+                availableEquity = balance + unrealizedPnl;
+            }
+
+            if (availableEquity <= maintenanceMargin) {
+                const finalPnl = unrealizedPnl;
+                balance += finalPnl;
+                trades.push({ ...position, exitPrice: markPrice, pnl: finalPnl, fee: 0, exitDate: new Date(currentCandle[0]), reason: 'LIQUIDATION' });
+                position = null;
+                // Hapus: console.error("EVENT LIKUIDASI TERSIMULASI!"); -> Worker tidak memiliki console
+                break;
+            }
+
+            let exitReason = null, exitPrice = 0;
+            if (position.type === 'LONG') {
+                if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+            } else {
+                if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+            }
+
+            if (exitReason) {
+                const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
+                const entryValue = position.entryPrice * position.size;
+                const exitValue = exitPrice * position.size;
+                const entryFee = entryValue * settings.takerFee;
+                const exitFee = exitValue * settings.makerFee;
+                const totalFee = entryFee + exitFee;
+                const netPnl = rawPnl - totalFee;
+                balance += netPnl;
+                trades.push({ ...position, exitPrice, pnl: netPnl, fee: totalFee, exitDate: new Date(currentCandle[0]), reason: exitReason });
+                position = null;
+                if (balance <= 0) { 
+                    // Hapus: console.error("MODAL HABIS!"); -> Worker tidak memiliki console
+                    break;
+                }
+            }
+        }
+
+        if (!position && cacheEntry) {
+            const klinesSnapshot = filteredData.slice(0, i + 1);
+            const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
+            let entrySignal = false; let detectedBias = 'NETRAL'; let entryPrice = 0;
+            const recentKlines = filteredData.slice(Math.max(0, i - settings.swingLookback), i);
+            const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+            const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+            const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+
+            if (currentRegime === 'bullTrend' || currentRegime === 'bearTrend') {
+                const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
+                const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
+                if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
+                    entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
+                }
+            } else if (currentRegime === 'ranging') {
+                const bollingerBands = calculateBollingerBands(closes); const lastUpperBand = bollingerBands.upper.pop(); const lastLowerBand = bollingerBands.lower.pop();
+                if (lastLowerBand > 0 && currentLow <= lastLowerBand) { entrySignal = true; detectedBias = 'LONG'; entryPrice = currentLow; } 
+                else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) { entrySignal = true; detectedBias = 'SHORT'; entryPrice = currentHigh; }
+            } else if (currentRegime === 'lowVolatility') {
+                if (currentHigh > recentSwingHigh) { entrySignal = true; detectedBias = 'LONG'; entryPrice = recentSwingHigh; } 
+                else if (currentLow < recentSwingLow) { entrySignal = true; detectedBias = 'SHORT'; entryPrice = recentSwingLow; }
+            }
+            if (entrySignal) {
+                if (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold)) {
+                    if (settings.slippageModel === 'atrAdvanced') {
+                        const atrComponent = cacheEntry.atrValue * (settings.atrSlippagePercent / 100);
+                        const randomComponent = entryPrice * (settings.randomSlippagePercent / 100) * Math.random();
+                        const totalSlippage = atrComponent + randomComponent;
+                        if (detectedBias === 'LONG') entryPrice += totalSlippage; else entryPrice -= totalSlippage;
+                    } else if (settings.slippageModel === 'atrDynamic') {
+                        const slippageAmount = cacheEntry.atrValue * 0.5;
+                        if (detectedBias === 'LONG') entryPrice += slippageAmount; else entryPrice -= slippageAmount;
+                    }
+                    let stopLoss, takeProfit;
+                    if (detectedBias === 'LONG') {
+                        stopLoss = recentSwingLow * 0.999;
+                        takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
+                    } else {
+                        stopLoss = recentSwingHigh * 1.001;
+                        takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio);
+                    }
+                    const cost = balance * settings.riskPerTrade;
+                    const sizeInAsset = (cost * settings.leverage) / entryPrice;
+                    position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
+                }
+            }
+        }
+    }
+    
+    // Hapus logika progress bar dan status text dari sini
+    return { trades, analysisCache };
+}
+
+        function calculateMetrics(trades, initialBalance) {
+            if (trades.length === 0) {
+                return {
+                    totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0,
+                    finalBalance: initialBalance, trades: [], maxDrawdown: 0,
+                    expectancy: 0, maxLosingStreak: 0,
+                    equityCurve: [initialBalance] 
+                };
+            }
+
+            let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0;
+            let equityCurve = [initialBalance];
+            let peakEquity = initialBalance;
+            let maxDrawdown = 0;
+            let losingStreak = 0, maxLosingStreak = 0;
+
+            trades.forEach(trade => {
+                totalPnl += trade.pnl;
+                equityCurve.push(initialBalance + totalPnl);
+                peakEquity = Math.max(peakEquity, equityCurve[equityCurve.length - 1]);
+                const drawdown = ((peakEquity - equityCurve[equityCurve.length - 1]) / peakEquity) * 100;
+                maxDrawdown = Math.max(maxDrawdown, drawdown);
+
+                if (trade.pnl > 0) {
+                    grossProfit += trade.pnl;
+                    wins++;
+                    losingStreak = 0; 
+                } else {
+                    grossLoss += Math.abs(trade.pnl);
+                    losingStreak++;
+                    maxLosingStreak = Math.max(maxLosingStreak, losingStreak);
+                }
+            });
+
+            const winRate = (wins / trades.length) * 100;
+            const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
+            const expectancy = totalPnl / trades.length;
+
+            return {
+                totalPnl, winRate, profitFactor, totalTrades: trades.length,
+                finalBalance: initialBalance + totalPnl, trades, maxDrawdown,
+                expectancy, maxLosingStreak, equityCurve
+            };
+        }
+
+
+
+
+
+    
+    
 //======================================================================================================================================
