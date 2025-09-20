@@ -4,8 +4,8 @@
         const { type, payload } = event.data;
 
         if (type === 'START_EVALUATION') {
-            const { population, historicalData } = payload;
-            const evaluatedPopulation = await evaluateFitness(population, historicalData);
+            const { population, historicalData, settings, fitnessMetric } = payload;
+            const evaluatedPopulation = await evaluateFitness(population, historicalData, settings, fitnessMetric);
 
             // Setelah evaluasi selesai, kirim kembali hasilnya ke thread utama
             self.postMessage({ type: 'EVALUATION_COMPLETE', payload: evaluatedPopulation });
