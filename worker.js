@@ -1,16 +1,35 @@
  // Listener untuk menerima pesan dari thread utama (genesis_engine.html)
-    self.onmessage = async (event) => {
+let workerState = {
+    historicalData: null,
+    settings: null
+};
+
+self.onmessage = async (event) => {
     const { type, payload } = event.data;
 
     if (type === 'START_EVALUATION') {
-        const { population, historicalData, settings, fitnessMetric, isRunning } = payload; 
+        const { population, historicalData, settings, fitnessMetric, isRunning } = payload;
         
-        // Memanggil fungsi utama yang kini ada di dalam worker.js
-        const evaluatedPopulation = await evaluateFitness(population, historicalData, settings, fitnessMetric, isRunning);
+        // Perbaikan: Simpan data historis dan settings jika ini pertama kali diterima
+        if (historicalData) {
+            workerState.historicalData = historicalData;
+        }
+        if (settings) {
+            workerState.settings = settings;
+        }
+
+        // Pastikan kita memiliki data yang dibutuhkan
+        if (!workerState.historicalData || !workerState.settings) {
+            self.postMessage({ type: 'ERROR', payload: 'Historical data or settings not available.' });
+            return;
+        }
+
+        const evaluatedPopulation = await evaluateFitness(population, workerState.historicalData, workerState.settings, fitnessMetric, isRunning);
 
         self.postMessage({ type: 'EVALUATION_COMPLETE', payload: evaluatedPopulation });
     }
 };
+
 
 // ===================================================================
 // BAGIAN 1: PUSTAKA FUNGSI KALKULASI & LOGIKA BACKTEST

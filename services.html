@@ -3069,159 +3069,159 @@
         return Array.from({ length: size }, () => createStrategyGenome());
     }
 
-async function startEvolution() {
-    // Hancurkan chart lama jika ada sebelum memulai
-    if (evolutionState.fitnessChart) {
-        evolutionState.fitnessChart.destroy();
-        evolutionState.fitnessChart = null;
-    }
-    
-    // PERBAIKAN KRITIS: Inisialisasi chart di sini agar selalu ada saat proses dimulai
-    const ctx = document.getElementById('fitness-chart').getContext('2d');
-    evolutionState.fitnessChart = new Chart(ctx, {
-        type: 'line',
-        data: { 
-            labels: [], 
-            datasets: [
-                { label: 'Juara (Profit Factor)', data: [], borderColor: '#4ade80', fill: false },
-                { label: 'Rata-rata (Profit Factor)', data: [], borderColor: '#F59E0B', fill: false }
-            ] 
-        },
-        options: { scales: { y: { beginAtZero: false } } }
-    });
-
-    evolutionState.isRunning = true;
-    evolutionState.currentGeneration = 0;
-    evolutionState.population = generateInitialPopulation(evolutionState.populationSize);
-    performanceMonitor.startTime = performance.now();
-    performanceMonitor.lastTime = performance.now();
-    performanceMonitor.lastGenerationCount = 0;
-    
-    const numWorkers = 1;
-    evolutionState.workers = [];
-    
-    const customSessionCheckbox = document.getElementById('filter-session-custom');
-    const customSessionEnabled = customSessionCheckbox.checked;
-    let customSessionData = null;
-    if (customSessionEnabled) {
-        customSessionData = {
-            start: document.getElementById('custom-session-start').value,
-            end: document.getElementById('custom-session-end').value
-        };
-    }
-    const activeSessionFilters = Array.from(document.querySelectorAll('input[id^="filter-session-"]:checked')).map(cb => cb.value);
-    const activeRegimeFilters = Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value);
-    const workerSettings = {
-        ...backtester.state.settings,
-        sessionFilters: activeSessionFilters,
-        customSession: customSessionData,
-        regimeFilters: activeRegimeFilters,
-        fitnessMetric: document.getElementById('optimization-metric-select').value,
-        isRunning: true,
-    };
-
-    let evaluatedPopulations = [];
-    let workersCompleted = 0;
-
-    const handleWorkerMessage = (event) => {
-        const { type, payload } = event.data;
-        if (type === 'EVALUATION_COMPLETE') {
-            evaluatedPopulations.push(...payload);
-            workersCompleted++;
-
-            if (workersCompleted === numWorkers) {
-                const evaluatedPopulation = evaluatedPopulations;
-                
-                const currentChampion = findChampion(evaluatedPopulation);
-                if (!evolutionState.champion || currentChampion.fitness > evolutionState.champion.fitness) {
-                    evolutionState.champion = currentChampion;
-                    updateChampionDNA(evolutionState.champion);
-                }
-
-                const avgFitness = evaluatedPopulation.reduce((sum, g) => sum + g.fitness, 0) / evaluatedPopulation.length;
-                const fitnessMetric = workerSettings.fitnessMetric;
-                const championFitness = currentChampion.fitness;
-                updateEvolutionProgress(championFitness, avgFitness, fitnessMetric);
-
-                evolutionState.population = createNextGeneration(evaluatedPopulation);
-                evolutionState.currentGeneration++;
-
-                evaluatedPopulations = [];
-                workersCompleted = 0;
-                
-                if (evolutionState.currentGeneration < evolutionState.maxGenerations && evolutionState.isRunning) {
-                    const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
-                    evolutionState.workers.forEach((worker, index) => {
-                        const start = index * populationChunkSize;
-                        const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
-                        const chunk = evolutionState.population.slice(start, end);
-                        
-                        worker.postMessage({
-                            type: 'START_EVALUATION',
-                            payload: {
-                                population: chunk,
-                                historicalData: evolutionState.historicalData,
-                                settings: workerSettings,
-                                isRunning: evolutionState.isRunning,
-                                fitnessMetric: workerSettings.fitnessMetric,
-                            }
-                        });
-                    });
-                } else {
-                    alert("Proses evolusi selesai!");
-                    evolutionState.isRunning = false;
-                    evolutionState.workers.forEach(worker => worker.terminate());
-                    evolutionState.workers = [];
-                }
-            }
+    async function startEvolution() {
+        // Hancurkan chart lama jika ada sebelum memulai
+        if (evolutionState.fitnessChart) {
+            evolutionState.fitnessChart.destroy();
+            evolutionState.fitnessChart = null;
         }
-    };
-
-    for (let i = 0; i < numWorkers; i++) {
-        const worker = new Worker('worker.js');
-        worker.onmessage = handleWorkerMessage;
-        evolutionState.workers.push(worker);
-    }
-    
-    const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
-    evolutionState.workers.forEach((worker, index) => {
-        const start = index * populationChunkSize;
-        const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
-        const chunk = evolutionState.population.slice(start, end);
         
-        worker.postMessage({
-            type: 'START_EVALUATION',
-            payload: {
-                population: chunk,
-                historicalData: evolutionState.historicalData,
-                settings: workerSettings,
-                isRunning: evolutionState.isRunning,
-                fitnessMetric: workerSettings.fitnessMetric,
-            }
+        // PERBAIKAN KRITIS: Inisialisasi chart di sini agar selalu ada saat proses dimulai
+        const ctx = document.getElementById('fitness-chart').getContext('2d');
+        evolutionState.fitnessChart = new Chart(ctx, {
+            type: 'line',
+            data: { 
+                labels: [], 
+                datasets: [
+                    { label: 'Juara (Profit Factor)', data: [], borderColor: '#4ade80', fill: false },
+                    { label: 'Rata-rata (Profit Factor)', data: [], borderColor: '#F59E0B', fill: false }
+                ] 
+            },
+            options: { scales: { y: { beginAtZero: false } } }
         });
-    });
 
-    console.log(`Proses evolusi dimulai dengan ${numWorkers} worker.`);
-}
+        evolutionState.isRunning = true;
+        evolutionState.currentGeneration = 0;
+        evolutionState.population = generateInitialPopulation(evolutionState.populationSize);
+        performanceMonitor.startTime = performance.now();
+        performanceMonitor.lastTime = performance.now();
+        performanceMonitor.lastGenerationCount = 0;
+        
+        const numWorkers = 1;
+        evolutionState.workers = [];
+        
+        const customSessionCheckbox = document.getElementById('filter-session-custom');
+        const customSessionEnabled = customSessionCheckbox.checked;
+        let customSessionData = null;
+        if (customSessionEnabled) {
+            customSessionData = {
+                start: document.getElementById('custom-session-start').value,
+                end: document.getElementById('custom-session-end').value
+            };
+        }
+        const activeSessionFilters = Array.from(document.querySelectorAll('input[id^="filter-session-"]:checked')).map(cb => cb.value);
+        const activeRegimeFilters = Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value);
+        const workerSettings = {
+            ...backtester.state.settings,
+            sessionFilters: activeSessionFilters,
+            customSession: customSessionData,
+            regimeFilters: activeRegimeFilters,
+            fitnessMetric: document.getElementById('optimization-metric-select').value,
+            isRunning: true,
+        };
 
-function updateEvolutionProgress(championFitness, avgFitness, metric) {
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-    
-    // Perbaikan: Chart sudah dibuat di startEvolution, cukup tambahkan data
-    const progress = (evolutionState.currentGeneration / evolutionState.maxGenerations) * 100;
-    progressBar.style.width = `${progress}%`;
-    progressText.textContent = `Generasi ${evolutionState.currentGeneration} dari ${evolutionState.maxGenerations}`;
+        let evaluatedPopulations = [];
+        let workersCompleted = 0;
 
-    if (evolutionState.fitnessChart) {
-        evolutionState.fitnessChart.data.labels.push(evolutionState.currentGeneration);
-        evolutionState.fitnessChart.data.datasets[0].data.push(championFitness);
-        evolutionState.fitnessChart.data.datasets[1].data.push(avgFitness);
-        evolutionState.fitnessChart.data.datasets[0].label = `Juara (${metric})`;
-        evolutionState.fitnessChart.data.datasets[1].label = `Rata-rata (${metric})`;
-        evolutionState.fitnessChart.update();
+        const handleWorkerMessage = (event) => {
+            const { type, payload } = event.data;
+            if (type === 'EVALUATION_COMPLETE') {
+                evaluatedPopulations.push(...payload);
+                workersCompleted++;
+
+                if (workersCompleted === numWorkers) {
+                    const evaluatedPopulation = evaluatedPopulations;
+                    
+                    const currentChampion = findChampion(evaluatedPopulation);
+                    if (!evolutionState.champion || currentChampion.fitness > evolutionState.champion.fitness) {
+                        evolutionState.champion = currentChampion;
+                        updateChampionDNA(evolutionState.champion);
+                    }
+
+                    const avgFitness = evaluatedPopulation.reduce((sum, g) => sum + g.fitness, 0) / evaluatedPopulation.length;
+                    const fitnessMetric = workerSettings.fitnessMetric;
+                    const championFitness = currentChampion.fitness;
+                    updateEvolutionProgress(championFitness, avgFitness, fitnessMetric);
+
+                    evolutionState.population = createNextGeneration(evaluatedPopulation);
+                    evolutionState.currentGeneration++;
+
+                    evaluatedPopulations = [];
+                    workersCompleted = 0;
+                    
+                    if (evolutionState.currentGeneration < evolutionState.maxGenerations && evolutionState.isRunning) {
+                        const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
+                        evolutionState.workers.forEach((worker, index) => {
+                            const start = index * populationChunkSize;
+                            const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
+                            const chunk = evolutionState.population.slice(start, end);
+                            
+                            worker.postMessage({
+                                type: 'START_EVALUATION',
+                                payload: {
+                                    population: chunk,
+                                    historicalData: null,
+                                    settings: null,
+                                    isRunning: evolutionState.isRunning,
+                                    fitnessMetric: workerSettings.fitnessMetric,
+                                }
+                            });
+                        });
+                    } else {
+                        alert("Proses evolusi selesai!");
+                        evolutionState.isRunning = false;
+                        evolutionState.workers.forEach(worker => worker.terminate());
+                        evolutionState.workers = [];
+                    }
+                }
+            }
+        };
+
+        for (let i = 0; i < numWorkers; i++) {
+            const worker = new Worker('worker.js');
+            worker.onmessage = handleWorkerMessage;
+            evolutionState.workers.push(worker);
+        }
+        
+        const populationChunkSize = Math.floor(evolutionState.population.length / numWorkers);
+        evolutionState.workers.forEach((worker, index) => {
+            const start = index * populationChunkSize;
+            const end = (index === numWorkers - 1) ? evolutionState.population.length : start + populationChunkSize;
+            const chunk = evolutionState.population.slice(start, end);
+            
+            worker.postMessage({
+                type: 'START_EVALUATION',
+                payload: {
+                    population: chunk,
+                    historicalData: evolutionState.historicalData,
+                    settings: workerSettings,
+                    isRunning: evolutionState.isRunning,
+                    fitnessMetric: workerSettings.fitnessMetric,
+                }
+            });
+        });
+
+        console.log(`Proses evolusi dimulai dengan ${numWorkers} worker.`);
     }
-}
+
+    function updateEvolutionProgress(championFitness, avgFitness, metric) {
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        
+        // Perbaikan: Chart sudah dibuat di startEvolution, cukup tambahkan data
+        const progress = (evolutionState.currentGeneration / evolutionState.maxGenerations) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressText.textContent = `Generasi ${evolutionState.currentGeneration} dari ${evolutionState.maxGenerations}`;
+
+        if (evolutionState.fitnessChart) {
+            evolutionState.fitnessChart.data.labels.push(evolutionState.currentGeneration);
+            evolutionState.fitnessChart.data.datasets[0].data.push(championFitness);
+            evolutionState.fitnessChart.data.datasets[1].data.push(avgFitness);
+            evolutionState.fitnessChart.data.datasets[0].label = `Juara (${metric})`;
+            evolutionState.fitnessChart.data.datasets[1].label = `Rata-rata (${metric})`;
+            evolutionState.fitnessChart.update();
+        }
+    }
 
     function updateFitnessChart(generation, fitness) {
         if (!evolutionState.fitnessChart) {
