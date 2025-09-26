@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.2.0/dist/tf.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #000000; color: #E0E0E0; }
         .card { background-color: #151414; border: 1px solid #333; border-radius: 0.75rem; }
@@ -44,7 +45,7 @@
             background-color: #151414;
             border-radius: 0.5rem;
         }
-        /* Style untuk tombol toggle section */
+        
         .section-toggle-btn {
             width: 100%;
             display: flex;
@@ -573,13 +574,8 @@
                     </div>
                     </div>
             </div>
-
-            <div id="backtest-progress-container" class="hidden my-4">
-                <p id="backtest-status-text" class="text-center text-sm text-yellow-400 mb-2">Mengambil data...</p>
-                <div class="w-full bg-gray-700 rounded-full h-2.5"><div id="backtest-progress-bar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div></div>
+            <div id="genesis-results-container" class="hidden card p-6">
             </div>
-            <div id="backtest-results-container" class="hidden card p-6">
-                </div>
         </main>
     </div>
 
@@ -646,13 +642,13 @@
         mutationRate: 0.05, population: [], champion: null, fitnessChart: null,
         logbook: [], historicalData: []
     };
+    let lastMonteCarloResult = null;
     let performanceMonitor = {
         startTime: null,
         lastGenerationCount: 0,
         lastTime: null
     };
     
-
     const TIMEFRAME_MAP_MS = {
         '1m': 60000, '3m': 180000, '5m': 300000, '15m': 900000,
         '1h': 3600000, '4h': 14400000, '1d': 86400000
@@ -667,47 +663,62 @@
         '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 }
     };
     const MAINTENANCE_MARGIN_RATE = 0.005;
-
-
 // ===================================================================    
 // FUNGSI HELPERS UMUM
 // ===================================================================
-    function calculateSharpeRatio(equityCurve, riskFreeRate = 0.02) {
-            if (equityCurve.length < 2) return 0;
-            const returns = [];
-            for (let i = 1; i < equityCurve.length; i++) {
-                returns.push((equityCurve[i] / equityCurve[i - 1]) - 1);
-            }
-            if (returns.length === 0) return 0;
+    function normalize(value, min, max) {
+        // Menerjemahkan sebuah nilai ke dalam skala 0 hingga 1
+        if (max === min) return 1; // Menghindari pembagian dengan nol
+        const normalized = (value - min) / (max - min);
+        return Math.max(0, Math.min(1, normalized)); // Memastikan hasilnya selalu antara 0 dan 1
+    }
 
-            const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-            const stdDev = Math.sqrt(returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length);
-            
-            // Asumsi per periode (misal per trade), anualisasi jika perlu
-            const dailyRiskFreeRate = Math.pow(1 + riskFreeRate, 1/252) - 1;
-
-            if (stdDev === 0) return 0;
-            
-            return (avgReturn - dailyRiskFreeRate) / stdDev;
+function calculateSharpeRatio(equityCurve, riskFreeRate = 0.02) {
+        if (!equityCurve || equityCurve.length < 10) {
+            return 0;
         }
+
+        const returns = [];
+        for (let i = 1; i < equityCurve.length; i++) {
+            const prevEquity = equityCurve[i - 1];
+            const currentEquity = equityCurve[i];
+            if (isFinite(prevEquity) && prevEquity > 0 && isFinite(currentEquity) && currentEquity > 0) {
+                returns.push(Math.log(currentEquity / prevEquity));
+            }
+        }
+        
+        if (returns.length < 2) {
+            return 0;
+        }
+        
+        const sumReturns = returns.reduce((sum, r) => sum + r, 0);
+        const avgReturnPerTrade = parseFloat(sumReturns.toFixed(15)) / returns.length; 
+        
+        const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturnPerTrade, 2), 0) / (returns.length - 1);
+        const stdDev = Math.sqrt(Math.max(0, variance));
+        
+        const MIN_STD_DEV = 1e-9; 
+        const finalStdDev = Math.max(MIN_STD_DEV, stdDev); 
+        
+        const finalSharpe = (avgReturnPerTrade - 0) / finalStdDev;
+        
+        return isFinite(finalSharpe) ? finalSharpe : 0;
+    }
 
     async function fetchBinanceFuturesSymbols() {
         if (binanceFuturesSymbolsCache) {
-            return; // Jika sudah ada di cache, tidak perlu unduh lagi
+            return; 
         }
-        console.log("Mengunduh daftar simbol resmi dari Binance Futures...");
         try {
             const response = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
             const data = await response.json();
-            // Kita saring hanya untuk kontrak perpetual USDT yang aktif diperdagangkan
             binanceFuturesSymbolsCache = data.symbols
                 .filter(s => s.contractType === 'PERPETUAL' && s.status === 'TRADING' && s.quoteAsset === 'USDT')
                 .map(s => s.symbol);
-            console.log(`Berhasil memuat ${binanceFuturesSymbolsCache.length} simbol valid.`);
         } catch (error) {
             console.error("Gagal mengambil daftar simbol Binance Futures:", error);
             alert("Tidak dapat memuat daftar aset dari Binance. Periksa koneksi internet Anda.");
-            binanceFuturesSymbolsCache = []; // Set ke array kosong jika gagal
+            binanceFuturesSymbolsCache = []; 
         }
     }
 
@@ -730,8 +741,6 @@
         const utcHours = now.getUTCHours();
         const utcMinutes = now.getUTCMinutes();
         const utcTime = utcHours + utcMinutes / 60;
-            
-            // Market session hours in UTC
         const sessions = {
             tokyo: { open: 0, close: 8 },      // 00:00 - 08:00 UTC
             london: { open: 7, close: 16 },    // 07:00 - 16:00 UTC
@@ -769,32 +778,52 @@
 // ===================================================================    
 // OBJEK UTAMA MESIN EVOLUSI GENOME
 // ===================================================================
+    // Helper function untuk distribusi normal (Gaussian)
+    function gaussianRandom(mean = 0, stdev = 1) {
+        const u = 1 - Math.random(); 
+        const v = Math.random();
+        const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        return z * stdev + mean;
+    }
+
     function createStrategyGenome() {
+        // ## Level 2: Logika Terhubung ##
+        const emaPeriods = [9, 13, 21];
+        const lookbacks = [10, 15, 25];
+        const emaChoice = emaPeriods[Math.floor(Math.random() * emaPeriods.length)];
+        // EMA cepat cenderung menggunakan lookback cepat, EMA lambat sebaliknya.
+        const lookbackChoice = (emaChoice === 9) ? lookbacks[Math.floor(Math.random()*2)] : lookbacks[1 + Math.floor(Math.random()*2)];
+
+        // ## Level 1: Distribusi Cerdas ##
+        const riskRewardRatio = Math.max(1.2, Math.min(3.0, gaussianRandom(1.8, 0.3))); // Rata-rata 1.8
+
+        // ## Level 3: Arketipe Bobot Tematik ##
+        const archetypes = ['trend', 'reversal', 'breakout'];
+        const chosenArchetype = archetypes[Math.floor(Math.random() * archetypes.length)];
+        let weights = {};
+        const allIndicators = ['ma', 'rsiDivergence', 'macd', 'pivot', 'vwap', 'ichimoku', 'candlePattern', 'obvDivergence', 'bbSqueeze', 'psar', 'roc', 'bollingerBands', 'rsi', 'stoch', 'linreg'];
+
+        allIndicators.forEach(indicator => {
+            // Beri bobot dasar yang rendah
+            weights[indicator] = (Math.random() * 1.0) + 0.5; 
+        });
+
+        // Tingkatkan bobot berdasarkan arketipe yang dipilih
+        if (chosenArchetype === 'trend') {
+            ['ma', 'psar', 'ichimoku', 'macd'].forEach(k => weights[k] = (Math.random() * 1.5) + 2.0);
+        } else if (chosenArchetype === 'reversal') {
+            ['rsiDivergence', 'bollingerBands', 'stoch'].forEach(k => weights[k] = (Math.random() * 1.5) + 2.0);
+        } else if (chosenArchetype === 'breakout') {
+            ['bbSqueeze', 'roc', 'obvDivergence'].forEach(k => { if(weights[k]) weights[k] = (Math.random() * 1.5) + 2.0; });
+        }
+
         return {
-            riskRewardRatio: (Math.random() * (2.5 - 1.5) + 1.5), // R:R dari 1.5 hingga 2.5
-            pullbackEmaPeriod: [9, 13, 21][Math.floor(Math.random() * 3)], // Periode EMA 9, 13, atau 21
-            swingLookback: [10, 15, 25][Math.floor(Math.random() * 3)], // Lookback 10, 15, atau 25
-            biasThreshold: Math.floor(Math.random() * (25 - 5) + 5), // Threshold dari 5 hingga 25
-            atrFilterThreshold: (Math.random() * 0.0015).toFixed(5), // ATR Filter dari 0 hingga 0.0015
-            
-            weights: {
-                ma: (Math.random() * 3) + 0.5,
-                rsiDivergence: (Math.random() * 3) + 0.5,
-                macd: (Math.random() * 3) + 0.5,
-                pivot: (Math.random() * 3) + 0.5,
-                vwap: (Math.random() * 3) + 0.5,
-                ichimoku: (Math.random() * 3) + 0.5,
-                candlePattern: (Math.random() * 3) + 0.5,
-                obvDivergence: (Math.random() * 3) + 0.5,
-                bbSqueeze: (Math.random() * 3) + 0.5,
-                psar: (Math.random() * 3) + 0.5,
-                roc: (Math.random() * 3) + 0.5,
-                bollingerBands: (Math.random() * 3) + 0.5,
-                rsi: (Math.random() * 3) + 0.5,
-                stoch: (Math.random() * 3) + 0.5,
-                linreg: (Math.random() * 3) + 0.5
-            },
-            
+            riskRewardRatio: riskRewardRatio,
+            pullbackEmaPeriod: emaChoice,
+            swingLookback: lookbackChoice,
+            biasThreshold: Math.floor(Math.max(5, Math.min(25, gaussianRandom(15, 4)))), // Rata-rata 15
+            atrFilterThreshold: (Math.random() * 0.0015).toFixed(5),
+            weights: weights,
             fitness: 0,
             metrics: {}
         };
@@ -837,54 +866,78 @@
     }
 
     function crossover(parent1, parent2) {
-        const child = {};
-        for (const key in parent1) {
-            if (Math.random() > 0.5) {
-                child[key] = parent1[key];
-            } else {
-                child[key] = parent2[key];
-            }
+        const child = {
+            weights: {} // Inisialisasi objek weights
+        };
+
+        // Crossover untuk parameter utama
+        const params = ['riskRewardRatio', 'pullbackEmaPeriod', 'swingLookback', 'biasThreshold', 'atrFilterThreshold'];
+        params.forEach(key => {
+            child[key] = Math.random() > 0.5 ? parent1[key] : parent2[key];
+        });
+
+        // Crossover untuk setiap bobot di dalam weights
+        for (const key in parent1.weights) {
+            child.weights[key] = Math.random() > 0.5 ? parent1.weights[key] : parent2.weights[key];
         }
+        
+        // --- PERBAIKAN PENTING ---
+        // Anak terlahir tanpa fitness dan metrics dari orang tuanya.
+        child.fitness = 0;
+        child.metrics = {};
+
         return child;
     }
 
     function mutate(genome) {
-        // Mutasi R:R Ratio
-        if (Math.random() < evolutionState.mutationRate) {
-            // Mutasi lebih acak dalam rentang 1.5 - 2.5
-            genome.riskRewardRatio = (Math.random() * (2.5 - 1.5) + 1.5);
+        const mutationRate = evolutionState.mutationRate; // Ambil nilai rate untuk kemudahan
+
+        // Mutasi R:R Ratio dengan guncangan kecil
+        if (Math.random() < mutationRate) {
+            genome.riskRewardRatio += gaussianRandom(0, 0.1); // Guncangan rata-rata 0, std dev 0.1
+            genome.riskRewardRatio = Math.max(1.2, Math.min(3.0, genome.riskRewardRatio)); // Jaga dalam rentang
         }
-        // Mutasi Swing Lookback
-        if (Math.random() < evolutionState.mutationRate) {
-            // Pilih dari opsi yang berbeda
+        
+        // Mutasi Swing Lookback dengan memilih tetangga terdekat
+        if (Math.random() < mutationRate) {
             const options = [10, 15, 25];
-            genome.swingLookback = options[Math.floor(Math.random() * options.length)];
+            const currentIndex = options.indexOf(genome.swingLookback);
+            const move = Math.random() < 0.5 ? -1 : 1;
+            const newIndex = (currentIndex + move + options.length) % options.length;
+            genome.swingLookback = options[newIndex];
         }
-        // Mutasi Bias Threshold
-        if (Math.random() < evolutionState.mutationState) {
-            // Mutasi lebih acak dalam rentang 5 - 25
-            genome.biasThreshold = Math.floor(Math.random() * (25 - 5) + 5);
+
+        // Mutasi Bias Threshold dengan guncangan kecil
+        if (Math.random() < mutationRate) { // <-- BUG diperbaiki di sini
+            genome.biasThreshold += gaussianRandom(0, 1); // Guncangan rata-rata 0, std dev 1
+            genome.biasThreshold = Math.round(Math.max(5, Math.min(25, genome.biasThreshold)));
         }
-        if (Math.random() < evolutionState.mutationRate) {
-            // Mutasi EMA Period
+
+        // Mutasi EMA Period (sama seperti Swing Lookback)
+        if (Math.random() < mutationRate) {
             const options = [9, 13, 21];
-            genome.pullbackEmaPeriod = options[Math.floor(Math.random() * options.length)];
+            const currentIndex = options.indexOf(genome.pullbackEmaPeriod);
+            const move = Math.random() < 0.5 ? -1 : 1;
+            const newIndex = (currentIndex + move + options.length) % options.length;
+            genome.pullbackEmaPeriod = options[newIndex];
         }
-        if (Math.random() < evolutionState.mutationRate) {
-            // Mutasi ATR Filter
-            const atrMutation = (Math.random() * 0.0005 - 0.00025);
+
+        // Mutasi ATR Filter
+        if (Math.random() < mutationRate) {
+            const atrMutation = gaussianRandom(0, 0.0001);
             genome.atrFilterThreshold = Math.max(0, parseFloat(genome.atrFilterThreshold) + atrMutation).toFixed(5);
         }
         
         // Mutasi bobot indikator
         for(const key in genome.weights) {
-            if (Math.random() < evolutionState.mutationRate) {
-                // Perbaikan: gunakan rentang mutasi yang lebih luas dan acak
-                const mutationAmount = (Math.random() * 2) - 1; // Mutasi antara -1 dan +1
-                genome.weights[key] = Math.max(0.5, Math.min(3.5, parseFloat(genome.weights[key]) + mutationAmount));
+            if (Math.random() < mutationRate) {
+                const mutationAmount = gaussianRandom(0, 0.2); // Guncangan kecil yang lebih terkontrol
+                genome.weights[key] = Math.max(0.5, Math.min(3.5, genome.weights[key] + mutationAmount));
             }
         }
     }
+
+
 // ==========================================================
 // FUNGSI UTAMA (MAIN)
 // ========================================================== 
@@ -1235,6 +1288,51 @@
             };
         };
 
+function calculatePredictionInput(klinesSnapshot) {
+            if (klinesSnapshot.length < 50) return null;
+            const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+            const rsiValues = calculateRSI(closes, 14);
+            const stochRsiData = calculateStochasticRSI(closes);
+            const macdData = calculateMACD(closes);
+            const bbData = calculateBollingerBands(closes);
+            const vwap = calculateVWAP(klinesSnapshot, 20);
+            const atrData = calculateATR(klinesSnapshot);
+            const currentClose = closes[closes.length - 1];
+            const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
+            const lastK = stochRsiData.kLine.filter(v => v !== undefined).pop() || 50;
+            const lastD = stochRsiData.dLine.filter(v => v !== undefined).pop() || 50;
+            const prevK = stochRsiData.kLine.filter(v => v !== undefined).slice(-2, -1)[0] || 50;
+            const prevD = stochRsiData.dLine.filter(v => v !== undefined).slice(-2, -1)[0] || 50;
+            const macdLine = macdData.macdLine.filter(v => v !== undefined).pop() || 0;
+            const signalLine = macdData.signalLine.filter(v => v !== undefined).pop() || 0;
+            const macdHist = macdData.histogram.filter(v => v !== undefined).pop()?.value || 0;
+            const ema50 = calculateEMA(closes, 50).pop() || currentClose;
+            const bbUpper = bbData.upper.filter(v => v !== undefined).pop() || currentClose;
+            const bbMiddle = bbData.middle.filter(v => v !== undefined).pop() || currentClose;
+            const bbLower = bbData.lower.filter(v => v !== undefined).pop() || currentClose;
+            const features = {
+                rsi: lastRsi,
+                macd_cross: macdLine > signalLine ? 1 : -1,
+                macd_hist: macdHist,
+                ema_dist: (currentClose - ema50) / ema50,
+                bb_width: (bbUpper - bbLower) / bbMiddle,
+                bb_pos: (currentClose - bbLower) / (bbUpper - bbLower),
+                vwap_dist: (currentClose - vwap) / vwap,
+                atr_percent: atrData.atrPercent,
+                stoch_rsi_k: lastK,
+                stoch_rsi_d: lastD,
+                stoch_rsi_cross: (prevK <= prevD && lastK > lastD) ? 1 : ((prevK >= prevD && lastK < lastD) ? -1 : 0),
+                stoch_rsi_state: (lastK > 80 && lastD > 80) ? 1 : ((lastK < 20 && lastD < 20) ? -1 : 0)
+            };
+            const featureOrder = ['rsi','macd_cross','macd_hist','ema_dist','bb_width','bb_pos','vwap_dist','atr_percent','stoch_rsi_k','stoch_rsi_d','stoch_rsi_cross','stoch_rsi_state'];
+            const inputArray = featureOrder.map(key => features[key] || 0);
+            if (inputArray.some(val => !isFinite(val))) {
+                console.warn("Input tidak valid terdeteksi, dilewati.", inputArray);
+                return null;
+            }
+            return inputArray;
+        }
+
         const calculateADX = (klines, period = 14) => {
             if (!klines || klines.length < period * 2) {
                 return { value: 0, plusDI: 0, minusDI: 0 };
@@ -1422,33 +1520,7 @@
             return { value: atr, status: status, atrPercent: atrPercent }; 
         }
 
-        function detectMarketRegime_Unified(klinesSnapshot) {
-            if (!klinesSnapshot || klinesSnapshot.length < 200) {
-                return 'ranging';
-            }
-
-            const closes = klinesSnapshot.map(k => parseFloat(k[4]));
-
-            const bbData = calculateBollingerBands(closes); 
-            if (bbData.squeezeStatus === 'Squeeze!') {
-                return 'lowVolatility';
-            }
-
-            const adxData = calculateADX(klinesSnapshot, 14);
-            const adxValue = adxData.value;
-            
-            if (adxValue > 25) { 
-                if (adxData.plusDI > adxData.minusDI) {
-                    return 'bullTrend';
-                }
-                if (adxData.minusDI > adxData.plusDI) {
-                    return 'bearTrend';
-                }
-                return 'trending';
-            }
-            
-            return 'ranging';
-        }
+//function detectMarketRegime_Unified(klinesSnapshot) {
 
         function getUltimateSignalScore(indicator, signalData) {
             const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
@@ -1548,87 +1620,9 @@
                 return { bull: bullPercentage, bear: bearPercentage };
             }
         
-        function calculateShortConfluenceScore(klinesSnapshot) {
-                if (!klinesSnapshot || klinesSnapshot.length < 50) return { score: 0, breakdown: {} };
+//function calculateShortConfluenceScore(klinesSnapshot) {
+//function getConfluenceAnalysis(klines) {
 
-                const closes = klinesSnapshot.map(k => parseFloat(k[4]));
-                let score = 0;
-                let triggers = [];
-                const rsiValues = calculateRSI(closes, 14);
-                const lastRsi = rsiValues[rsiValues.length - 1];
-                if (lastRsi > 72) {
-                    score += 3.5;
-                    triggers.push('RSI Overbought');
-                }
-                const macd = calculateMACD(closes);
-                if (macd.status === 'Bearish Cross') {
-                    score += 2.5;
-                    triggers.push('MACD Cross');
-                }
-                const candlePattern = findCandlestickPatterns(klinesSnapshot);
-                if (candlePattern.bias === 'BEARISH') {
-                    score += 2.0;
-                    triggers.push('Candle Pattern');
-                }
-                const lookbackPeriod = 15;
-                const recentKlines = klinesSnapshot.slice(-lookbackPeriod);
-                if (recentKlines.length >= 3) {
-                    let peakIndex = 0;
-                    for (let i = 1; i < recentKlines.length; i++) {
-                        if (parseFloat(recentKlines[i][2]) > parseFloat(recentKlines[peakIndex][2])) peakIndex = i;
-                    }
-                    if (peakIndex > 0 && peakIndex < lookbackPeriod - 2) {
-                        const triggerCandleArr = recentKlines[peakIndex + 1];
-                        if (triggerCandleArr) {
-                            const triggerCandle = { Open: parseFloat(triggerCandleArr[1]), Close: parseFloat(triggerCandleArr[4]) };
-                            if (triggerCandle.Close < triggerCandle.Open) {
-                                score += 3.5;
-                                triggers.push('Red Candle After High');
-                            }
-                        }
-                    }
-                }
-                const rsiDivergence = detectRSIDivergence(closes, rsiValues);
-                if (rsiDivergence.status === 'BEARISH') {
-                    score += 4.0;
-                    triggers.push('RSI Divergence');
-                }
-                return { score: Math.min(score, 10), triggers: triggers };
-            }
-
-        function getConfluenceAnalysis(klines) {
-            if (!klines || klines.length < 50) {
-                return { skorBullish: 0, skorBearish: 0, detail: 'Not Enough Data' };
-            }
-
-            let skorBullish = 0;
-            let skorBearish = 0;
-            const closes = klines.map(k => parseFloat(k[4]));
-
-            const rsiValues = calculateRSI(closes);
-            const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
-            const macd = calculateMACD(closes);
-            const candlePattern = findCandlestickPatterns(klines);
-            const rsiDivergence = detectRSIDivergence(closes, rsiValues);
-
-            if (candlePattern.bias === 'BEARISH') skorBearish += 2.0;
-            if (macd.status === 'Bearish Cross') skorBearish += 2.0;
-            if (lastRsi > 70) skorBearish += 1.5;
-            if (rsiDivergence.status === 'BEARISH') skorBearish += 2.5;
-
-            if (candlePattern.bias === 'BULLISH') skorBullish += 2.0;
-            if (macd.status === 'Bullish Cross') skorBullish += 2.0;
-            if (lastRsi < 30) skorBullish += 1.5;
-            if (rsiDivergence.status === 'BULLISH') skorBullish += 2.5;
-            
-            const totalPossibleScore = 8.0;
-
-            return { 
-                skorBullish: (skorBullish / totalPossibleScore) * 10,
-                skorBearish: (skorBearish / totalPossibleScore) * 10,
-                detail: `Bull (${skorBullish.toFixed(1)}) vs Bear (${skorBearish.toFixed(1)})`
-            };
-        }
 
         function calculateVolatilityInfo(klines) {
             if (!klines || klines.length < 20) {
@@ -1989,7 +1983,7 @@
             }
         }
             
-        function analyzeMarketConditions(historicalData) {
+        async function analyzeMarketConditions(historicalData) {
             if (!historicalData || historicalData.length < 200) {
                 return {
                     distribution: { ranging: 100 },
@@ -2010,7 +2004,8 @@
 
             for (let i = lookbackPeriod; i < historicalData.length; i += stepSize) {
                 const snapshot = historicalData.slice(i - lookbackPeriod, i + 1);
-                const currentRegime = detectMarketRegime_Unified(snapshot);
+                const inputValues = calculatePredictionInput(snapshot);
+                const currentRegime = await predictMarketRegime(inputValues); 
 
                 if (regimeCounts[currentRegime] !== undefined) {
                     regimeCounts[currentRegime]++;
@@ -2738,6 +2733,8 @@
             },
 
             async run() {
+                lastMonteCarloResult = null;
+                //console.log("Memori hasil Monte Carlo telah direset.");
                 if (this.state.isRunning) return;
                 this.state.isRunning = true;
                 this.state.isStopped = false;
@@ -2787,7 +2784,7 @@
                     
                     const metrics = this.calculateMetrics(trades, this.state.settings.initialBalance);
                     const optimalParams = runWhatIfSimulation(trades, historicalData, this.state.settings, analysisCache);
-                    marketAnalysis = analyzeMarketConditions(historicalData);
+                    marketAnalysis = await analyzeMarketConditions(historicalData);
                     this.displayResults(metrics, optimalParams, marketAnalysis, historicalData, trades);
                     
                 } catch (error) {
@@ -2894,7 +2891,7 @@
                     try {
                         const cachedData = localStorage.getItem(cacheKey);
                         if (cachedData) {
-                            console.log("CACHE HIT: Menggunakan data indikator dari cache.");
+                            //console.log("CACHE HIT: Menggunakan data indikator dari cache.");
                             setTimeout(() => resolve(JSON.parse(cachedData)), 50);
                             return;
                         }
@@ -2903,7 +2900,7 @@
                         localStorage.removeItem(cacheKey);
                     }
 
-                    console.log("CACHE MISS: Melakukan kalkulasi indikator penuh secara asinkron.");
+                    //console.log("CACHE MISS: Melakukan kalkulasi indikator penuh secara asinkron.");
                     
                     const fullCloses = filteredData.map(k => parseFloat(k[4]));
                     const allEma21 = calculateEMA(fullCloses, 21);
@@ -2938,9 +2935,9 @@
                             const closesSnapshot = fullCloses.slice(0, i + 1);
                             
                             const lastMacd = allMacdData.macdLine[i];
-                            const lastSig = allMacdData.macdLine[i];
+                            const lastSig = allMacdData.signalLine[i];
                             const prevMacd = allMacdData.macdLine[i - 1];
-                            const prevSig = allMacdData.macdLine[i - 1];
+                            const prevSig = allMacdData.signalLine[i - 1];
                             let macdStatus = 'Netral';
                             if (prevMacd <= prevSig && lastMacd > lastSig) macdStatus = 'Bullish Cross';
                             else if (prevMacd >= prevSig && lastMacd < lastSig) macdStatus = 'Bearish Cross';
@@ -3061,12 +3058,19 @@
                     const cacheEntry = analysisCache[i];
                     const currentLow = parseFloat(currentCandle[3]);
                     const currentHigh = parseFloat(currentCandle[2]);
+                    
+                    const klinesSnapshot = filteredData.slice(0, i + 1);
+                    const inputValues = calculatePredictionInput(klinesSnapshot);
+                    
+                    if (!inputValues) {
+                        continue; 
+                    }
+
+                    const currentRegime = await predictMarketRegime(inputValues); 
 
                     if (settings.filterRegime && settings.filterRegime.length > 0) {
-                        const klinesSnapshot = filteredData.slice(0, i + 1);
-                        const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
                         if (!settings.filterRegime.includes(currentRegime)) {
-                            continue; 
+                            continue;
                         }
                     }
 
@@ -3110,29 +3114,36 @@
                     }
 
                     if (!position && cacheEntry) {
-                        const klinesSnapshot = filteredData.slice(0, i + 1);
-                        const currentRegime = detectMarketRegime_Unified(klinesSnapshot);
-                        let entrySignal = false; let detectedBias = 'NETRAL'; let entryPrice = 0;
+                        let entrySignal = false, detectedBias = 'NETRAL', entryPrice = 0;
                         const recentKlines = filteredData.slice(Math.max(0, i - settings.swingLookback), i);
                         const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
                         const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
                         const closes = klinesSnapshot.map(k => parseFloat(k[4]));
 
-                        if (currentRegime === 'bullTrend' || currentRegime === 'bearTrend') {
+                        if (currentRegime === 'bullTrend' || currentRegime === 'bearTrend' || currentRegime === 'trending') {
                             const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
                             const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
                             if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
                                 entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
                             }
                         } else if (currentRegime === 'ranging') {
-                            const bollingerBands = calculateBollingerBands(closes); const lastUpperBand = bollingerBands.upper.pop(); const lastLowerBand = bollingerBands.lower.pop();
-                            if (lastLowerBand > 0 && currentLow <= lastLowerBand) { entrySignal = true; detectedBias = 'LONG'; entryPrice = currentLow; } 
-                            else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) { entrySignal = true; detectedBias = 'SHORT'; entryPrice = currentHigh; }
+                            const bollingerBands = calculateBollingerBands(closes);
+                            const lastUpperBand = bollingerBands.upper.pop();
+                            const lastLowerBand = bollingerBands.lower.pop();
+                            if (lastLowerBand > 0 && currentLow <= lastLowerBand) {
+                                entrySignal = true; detectedBias = 'LONG'; entryPrice = currentLow;
+                            } else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) {
+                                entrySignal = true; detectedBias = 'SHORT'; entryPrice = currentHigh;
+                            }
                         } else if (currentRegime === 'lowVolatility') {
-                            if (currentHigh > recentSwingHigh) { entrySignal = true; detectedBias = 'LONG'; entryPrice = recentSwingHigh; } 
-                            else if (currentLow < recentSwingLow) { entrySignal = true; detectedBias = 'SHORT'; entryPrice = recentSwingLow; }
+                            if (currentHigh > recentSwingHigh) {
+                                entrySignal = true; detectedBias = 'LONG'; entryPrice = recentSwingHigh;
+                            } else if (currentLow < recentSwingLow) {
+                                entrySignal = true; detectedBias = 'SHORT'; entryPrice = recentSwingLow;
+                            }
                         }
-                        if (entrySignal) {
+                        
+                        if (entrySignal && isFinite(entryPrice) && entryPrice > 0) {
                             if (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold)) {
                                 if (settings.slippageModel === 'atrAdvanced') {
                                     const atrComponent = cacheEntry.atrValue * (settings.atrSlippagePercent / 100);
@@ -3153,7 +3164,9 @@
                                 }
                                 const cost = balance * settings.riskPerTrade;
                                 const sizeInAsset = (cost * settings.leverage) / entryPrice;
-                                position = { type: detectedBias, entryPrice, cost: cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
+                                if (isFinite(sizeInAsset) && sizeInAsset > 0) {
+                                    position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
+                                }
                             }
                         }
                     }
@@ -3163,7 +3176,7 @@
             },
 
             calculateMetrics(trades, initialBalance) {
-                console.log('DATA MENTAH TRADES YANG DITERIMA:', JSON.stringify(trades.slice(0, 5), null, 2)); // Hanya 5 trade pertama agar tidak terlalu panjang
+                //console.log('DATA MENTAH TRADES YANG DITERIMA:', JSON.stringify(trades.slice(0, 5), null, 2)); // Hanya 5 trade pertama agar tidak terlalu panjang
                 if (trades.length === 0) {
                     return {
                         totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0,
@@ -3284,7 +3297,7 @@
                         throw new Error(`Data tidak cukup (hanya ${klineData.length} candle)`);
                     }
                     evolutionState.historicalData[symbol] = klineData;
-                    console.log(`Data untuk ${symbol} (${klineData.length} candle) berhasil dimuat.`);
+                    //console.log(`Data untuk ${symbol} (${klineData.length} candle) berhasil dimuat.`);
                 } catch (error) {
                     statusText.textContent = `Error saat mengambil data ${symbol}: ${error.message}`;
                     statusBar.style.backgroundColor = '#ef4444'; // Merah jika error
@@ -3306,6 +3319,7 @@
 
             // Daftar mentah dari "buku telepon" kita
             const assetCategories = {
+                'BTC': ['BTC'],
                 'Major Coins': ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'AVAX', 'DOGE'],
                 'DeFi Tokens': ['UNI', 'LINK', 'AAVE', 'MKR', 'SNX', 'COMP'],
                 'Meme Coins': ['DOGE', 'SHIB', 'PEPE', 'FLOKI', 'MEME', 'WIF'],
@@ -3351,17 +3365,19 @@
         }
 
         async function startEvolution() {
+            // --- TAHAP 1: PERSIAPAN & RESET STATE ---
             evolutionState.isRunning = true;
             evolutionState.currentGeneration = 0;
             evolutionState.population = createInitialPopulation(evolutionState.populationSize);
-
             const symbols = Object.keys(evolutionState.historicalData);
+
             if (symbols.length === 0) {
-                alert("Data historis tidak ditemukan di Data Lake. Mohon jalankan 'Sinkronkan Data & Mulai Evolusi' terlebih dahulu.");
+                alert("Data historis tidak ditemukan. Mohon jalankan sinkronisasi terlebih dahulu.");
                 evolutionState.isRunning = false;
                 return;
             }
 
+            // --- TAHAP 2: INISIALISASI CHART (DENGAN LABEL DINAMIS YANG BENAR) ---
             const optimizationMetric = document.getElementById('optimization-metric-select').value;
             const ctx = document.getElementById('fitness-chart').getContext('2d');
             
@@ -3374,25 +3390,51 @@
                 data: {
                     labels: [],
                     datasets: [
-                        { label: `Tertinggi (${optimizationMetric})`, data: [], borderColor: '#4ade80', fill: false },
-                        { label: `Rata-rata (${optimizationMetric})`, data: [], borderColor: '#F59E0B', fill: false }
+                        {
+                            label: `Skor Kualitas Tertinggi`,
+                            data: [],
+                            borderColor: '#4ade80',
+                            yAxisID: 'y',
+                            fill: false
+                        },
+                        {
+                            label: `Juara (${optimizationMetric})`,
+                            data: [],
+                            borderColor: '#3b82f6',
+                            yAxisID: 'y1',
+                            fill: false,
+                            borderDash: [5, 5]
+                        }
                     ]
                 },
                 options: {
                     scales: {
                         y: {
-                            beginAtZero: false,
-                            title: { display: true, text: optimizationMetric }
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            title: { display: true, text: 'Skor Kualitas Genom (0-1)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            title: { display: true, text: `Metrik Pilihan (${optimizationMetric})` },
+                            grid: { drawOnChartArea: false }
                         }
                     }
                 }
             });
 
+            // --- TAHAP 3: PERSIAPAN MONITOR KINERJA ---
             performanceMonitor.startTime = performance.now();
             performanceMonitor.lastTime = performance.now();
             performanceMonitor.lastGenerationCount = 0;
             const monitorInterval = setInterval(updatePerformanceMetrics, 1000);
 
+            // --- TAHAP 4: LOOP UTAMA EVOLUSI ---
             while (evolutionState.currentGeneration < evolutionState.maxGenerations && evolutionState.isRunning) {
                 const evaluatedPopulation = await evaluateFitness(evolutionState.population, evolutionState.historicalData);
 
@@ -3402,120 +3444,115 @@
                     updateChampionDNA(evolutionState.champion);
                 }
 
-                const avgFitness = evaluatedPopulation.reduce((sum, g) => sum + g.fitness, 0) / evaluatedPopulation.length;
-                const fitnessMetric = document.getElementById('optimization-metric-select').value;
-
-                const championFitness = currentChampion.fitness;
-                updateEvolutionProgress(championFitness, avgFitness, fitnessMetric);
+                // Memanggil fungsi update progress yang sudah diperbarui
+                updateEvolutionProgress(currentChampion);
 
                 evolutionState.population = createNextGeneration(evaluatedPopulation);
                 evolutionState.currentGeneration++;
 
                 if (!evolutionState.isRunning) break;
-
                 await new Promise(resolve => setTimeout(resolve, 50));
             }
 
-
+            // --- TAHAP 5: SELESAI & PEMBERSIHAN ---
             evolutionState.isRunning = false;
-            alert("Proses evolusi selesai! Strategi terbaik telah ditemukan.");
             clearInterval(monitorInterval);
             updatePerformanceMetrics(); 
+            alert("Proses evolusi selesai! Strategi terbaik telah ditemukan.");
         }
 
-        async function evaluateFitness(population, multiAssetHistoricalData) {
-            const evaluatedPopulation = [];
-            const symbols = Object.keys(multiAssetHistoricalData);
-            const fitnessMetric = document.getElementById('optimization-metric-select').value;
-            const genomeEvalText = document.getElementById('genome-eval-text');
-            const genomeProgressBar = document.getElementById('genome-progress-bar');
+    async function evaluateFitness(population, multiAssetHistoricalData) {
+        const evaluatedPopulation = [];
+        const symbols = Object.keys(multiAssetHistoricalData);
+        const genomeEvalText = document.getElementById('genome-eval-text');
+        const genomeProgressBar = document.getElementById('genome-progress-bar');
+        document.getElementById('genesis-progress-container').classList.remove('hidden');
 
-            document.getElementById('genesis-progress-container').classList.remove('hidden');
-            
-            for (let i = 0; i < population.length; i++) {
-                if (!evolutionState.isRunning) break;
+        for (let i = 0; i < population.length; i++) {
+            if (!evolutionState.isRunning) break;
+            const genome = population[i];
+            let allTradesForGenome = [];
 
-                const genome = population[i];
-                let totalFitnessScore = 0;
-                let successfulBacktests = 0;
-                
-                // --- KODE BARU: Siapkan wadah untuk menyimpan metrik terbaik dari genom ini ---
-                let bestMetricsForGenome = { profitFactor: -1, winRate: 0, sharpeRatio: -999, totalTrades: 0 };
+            genomeEvalText.textContent = `Mengevaluasi Genom #${i + 1} dari ${population.length}...`;
+            genomeProgressBar.style.width = `${((i + 1) / population.length) * 100}%`;
 
-                genomeEvalText.textContent = `Mengevaluasi Genom #${i + 1} dari ${population.length}...`;
-                const progressPercentage = ((i + 1) / population.length) * 100;
-                genomeProgressBar.style.width = `${progressPercentage}%`;
-
-                for (const symbol of symbols) {
-                    const singleAssetData = multiAssetHistoricalData[symbol];
-                    const metrics = await runBacktestWithGenome(genome, singleAssetData, symbol); 
-                    
-                    if (metrics.totalTrades > 0) {
-                        let fitnessValue = 0;
-                        if (fitnessMetric === 'Win Rate') {
-                            fitnessValue = metrics.winRate;
-                        } else if (fitnessMetric === 'Sharpe Ratio') {
-                            fitnessValue = metrics.sharpeRatio > -100 ? metrics.sharpeRatio : -100;
-                        } else {
-                            fitnessValue = metrics.profitFactor > 0 ? metrics.profitFactor : 0;
-                            if (fitnessValue === Infinity) fitnessValue = 100;
-                        }
-                        totalFitnessScore += fitnessValue;
-                        successfulBacktests++;
-                     
-                        if (metrics.profitFactor > bestMetricsForGenome.profitFactor) {
-                            bestMetricsForGenome = metrics;
-                        }
-                    }
-                }
-
-                const averageFitness = successfulBacktests > 0 ? totalFitnessScore / successfulBacktests : 0;
-                
-                evaluatedPopulation.push({ 
-                    ...genome, 
-                    fitness: averageFitness, 
-                    metrics: bestMetricsForGenome 
-                });
-                
-                await new Promise(resolve => setTimeout(resolve, 0));
+            for (const symbol of symbols) {
+                const singleAssetData = multiAssetHistoricalData[symbol];
+                const { trades } = await runBacktestWithGenome(genome, singleAssetData, symbol);
+                allTradesForGenome = allTradesForGenome.concat(trades);
             }
-
-            document.getElementById('genesis-progress-container').classList.add('hidden');
-            return evaluatedPopulation;
-        }
-
-    async function runBacktestWithGenome(genome, historicalData, symbol) {
-        const settings = {
-            timeframe: document.getElementById('backtest-timeframe-select').value,
-            startDate: new Date(document.getElementById('backtest-start-date').value).getTime(),
-            endDate: new Date(document.getElementById('backtest-end-date').value).getTime(),
-            initialBalance: 1000, // Standarkan modal untuk perbandingan yang adil
-            leverage: parseInt(document.getElementById('backtest-leverage-input').value) || 10,
-            riskPerTrade: 0.01, // Standarkan risiko untuk perbandingan yang adil
-            marginMode: document.getElementById('lab-margin-mode').value,
-            takerFee: (parseFloat(document.getElementById('lab-taker-fee').value) / 100) || 0,
-            makerFee: (parseFloat(document.getElementById('lab-maker-fee').value) / 100) || 0,
-            slippageModel: document.getElementById('lab-slippage-model').value,
-            atrSlippagePercent: parseFloat(document.getElementById('lab-atr-slippage-percent').value) || 0,
-            randomSlippagePercent: parseFloat(document.getElementById('lab-random-slippage-percent').value) || 0,
-            filterRegime: Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value),
             
-            riskRewardRatio: genome.riskRewardRatio,
-            pullbackEmaPeriod: genome.pullbackEmaPeriod,
-            swingLookback: genome.swingLookback,
-            biasThreshold: genome.biasThreshold,
-            atrFilterThreshold: genome.atrFilterThreshold,
-            weights: genome.weights,
-        
-            symbol: symbol
-        };
+            // PERBAIKAN: Gunakan initial balance yang konsisten (1000)
+            const multiAssetMetrics = backtester.calculateMetrics(allTradesForGenome, 1000); 
+            
+            let finalFitnessScore = 0;
+            const MINIMUM_TRADES = 10;
+            
+            // PERBAIKAN: Hitung Sharpe Ratio sekali saja
+            const sharpe = calculateSharpeRatio(multiAssetMetrics.equityCurve);
 
-    const { trades } = await backtester.runSimulation_unifiedContextual(historicalData, settings);
+            if (multiAssetMetrics.totalTrades >= MINIMUM_TRADES) {
+                const pf = (multiAssetMetrics.profitFactor === Infinity) ? 20 : (multiAssetMetrics.profitFactor || 0);
+                const mdd = multiAssetMetrics.maxDrawdown || 100;
 
-    const metrics = backtester.calculateMetrics(trades, settings.initialBalance);
-    const sharpeRatio = calculateSharpeRatio(metrics.equityCurve);
-    return { ...metrics, sharpeRatio };
-}
+                const pfNorm = normalize(pf, 1.2, 5);
+                const sharpeNorm = normalize(sharpe, 0.5, 3);
+                const mddNorm = 1 - normalize(mdd, 5, 40);
+
+                const qualityScore = (pfNorm * 0.5) + (sharpeNorm * 0.3) + (mddNorm * 0.2);
+                finalFitnessScore = qualityScore;
+            }
+            
+            evaluatedPopulation.push({
+                ...genome,
+                fitness: finalFitnessScore,
+                metrics: { 
+                    ...multiAssetMetrics, 
+                    "SharpeIndex": sharpe.toFixed(4), // Gunakan kembali nilai sharpe yang sudah dihitung
+                    allMultiAssetTrades: allTradesForGenome, 
+                    allMultiAssetEquity: multiAssetMetrics.equityCurve,
+                    initialBalance: 1000, // PERBAIKAN: Gunakan nilai yang konsisten
+                }
+            });
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+        document.getElementById('genesis-progress-container').classList.add('hidden');
+        return evaluatedPopulation;
+    }
+
+async function runBacktestWithGenome(genome, historicalData, symbol) {
+            const settings = {
+                timeframe: document.getElementById('backtest-timeframe-select').value,
+                startDate: new Date(document.getElementById('backtest-start-date').value).getTime(),
+                endDate: new Date(document.getElementById('backtest-end-date').value).getTime(),
+                initialBalance: 1000, // Standarkan modal untuk perbandingan yang adil
+                leverage: parseInt(document.getElementById('backtest-leverage-input').value) || 10,
+                riskPerTrade: 0.01, // Standarkan risiko untuk perbandingan yang adil
+                marginMode: document.getElementById('lab-margin-mode').value,
+                takerFee: (parseFloat(document.getElementById('lab-taker-fee').value) / 100) || 0,
+                makerFee: (parseFloat(document.getElementById('lab-maker-fee').value) / 100) || 0,
+                slippageModel: document.getElementById('lab-slippage-model').value,
+                atrSlippagePercent: parseFloat(document.getElementById('lab-atr-slippage-percent').value) || 0,
+                randomSlippagePercent: parseFloat(document.getElementById('lab-random-slippage-percent').value) || 0,
+                filterRegime: Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value),
+                
+                riskRewardRatio: genome.riskRewardRatio,
+                pullbackEmaPeriod: genome.pullbackEmaPeriod,
+                swingLookback: genome.swingLookback,
+                biasThreshold: genome.biasThreshold,
+                atrFilterThreshold: genome.atrFilterThreshold,
+                weights: genome.weights,
+            
+                symbol: symbol
+            };
+
+            const { trades } = await backtester.runSimulation_unifiedContextual(historicalData, settings);
+
+            const metrics = backtester.calculateMetrics(trades, settings.initialBalance);
+            const sharpeRatio = calculateSharpeRatio(metrics.equityCurve);
+
+            return { metrics: { ...metrics, sharpeRatio }, trades: trades };
+        }
 
         function updateFitnessChart(generation, fitness) {
             if (!evolutionState.fitnessChart) {
@@ -3538,73 +3575,120 @@
             evolutionState.fitnessChart.update();
         }
 
-    function exportStrategyDNA() {
-        if (!evolutionState.champion) {
-            alert("Mohon jalankan evolusi terlebih dahulu untuk mendapatkan strategi juara.");
-            return;
-        }
-
-        const parameters = {
-            riskRewardRatio: evolutionState.champion.riskRewardRatio,
-            pullbackEmaPeriod: evolutionState.champion.pullbackEmaPeriod,
-            swingLookback: evolutionState.champion.swingLookback,
-            biasThreshold: evolutionState.champion.biasThreshold,
-            atrFilterThreshold: parseFloat(evolutionState.champion.atrFilterThreshold)
-        };
-        const weights = evolutionState.champion.weights;
-
-        const symbolInputValue = document.getElementById('backtest-symbol-input').value.toUpperCase().trim();
-        const timeframeValue = document.getElementById('backtest-timeframe-select').value;
-
-        const dnaObject = {
-            metadata: {
-                dnaType: symbolInputValue.split(',').length > 1 ? "Generic" : "Specific",
-                sourceAsset: symbolInputValue, // <-- FIX: Menggunakan nilai dari input UI
-                sourceTimeframe: timeframeValue, // <-- FIX: Menggunakan nilai dari input UI
-                exportedAt: new Date().toISOString()
+function exportStrategyDNA() {
+    let strategyData, dnaType, sourceAsset = document.getElementById('backtest-symbol-input').value.toUpperCase().trim(), sourceTimeframe = document.getElementById('backtest-timeframe-select').value;
+    
+    // Prioritas 1: DNA Juara dari Evolusi
+    if (evolutionState.champion && evolutionState.champion.metrics.totalTrades > 0) {
+        //console.log("Mengekspor DNA Juara dari Genesis Engine...");
+        strategyData = {
+            parameters: { 
+                riskRewardRatio: evolutionState.champion.riskRewardRatio, 
+                pullbackEmaPeriod: evolutionState.champion.pullbackEmaPeriod, 
+                swingLookback: evolutionState.champion.swingLookback, 
+                biasThreshold: evolutionState.champion.biasThreshold, 
+                atrFilterThreshold: parseFloat(evolutionState.champion.atrFilterThreshold) 
             },
-            parameters: parameters,
-            weights: weights
+            weights: evolutionState.champion.weights
         };
-        // --- AKHIR DARI BAGIAN PERBAIKAN ---
-
-        const jsonString = JSON.stringify(dnaObject, null, 2);
-        
-        // Nama file sekarang akan selalu benar
-        const filename = `dna_${dnaObject.metadata.dnaType.toLowerCase()}_${dnaObject.metadata.sourceAsset.replace(/,/g, '-')}_${dnaObject.metadata.sourceTimeframe}.json`;
-
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        alert(`File DNA '${filename}' telah berhasil diekspor!`);
+        dnaType = sourceAsset.includes(',') ? "Generic" : "Specific";
+    } 
+    // Prioritas 2: Hasil Backtest Manual terakhir
+    else if (backtester.state.lastRunMetrics && backtester.state.lastRunMetrics.totalTrades > 0) {
+        //console.log("Mengekspor DNA dari hasil Backtest Manual terakhir...");
+        const settings = backtester.state.settings;
+        strategyData = {
+            parameters: { 
+                riskRewardRatio: settings.riskRewardRatio, 
+                pullbackEmaPeriod: settings.pullbackEmaPeriod, 
+                swingLookback: settings.swingLookback, 
+                biasThreshold: settings.biasThreshold, 
+                atrFilterThreshold: settings.atrFilterThreshold 
+            },
+            weights: settings.weights
+        };
+        dnaType = settings.symbol.includes(',') ? "Generic" : "Specific";
+        sourceAsset = settings.symbol;
+    } 
+    // Gagal
+    else { 
+        alert("Tidak ada hasil backtest yang valid untuk diekspor."); 
+        return; 
     }
+    
+    const dnaObject = { 
+        metadata: { dnaType, sourceAsset, sourceTimeframe, exportedAt: new Date().toISOString() }, 
+        parameters: strategyData.parameters, 
+        weights: strategyData.weights 
+    };
 
-        function updateChampionDNA(champion) {
-            const dnaElement = document.getElementById('champion-dna');
-            if (dnaElement) {
-                const params = {
-                    "R:R Ratio": champion.riskRewardRatio.toFixed(2),
-                    "EMA Period": champion.pullbackEmaPeriod,
-                    "Swing Lookback": champion.swingLookback,
-                    "Bias Threshold": champion.biasThreshold,
-                    "ATR Filter": champion.atrFilterThreshold,
-                    "Profit Factor": champion.metrics.profitFactor.toFixed(2), 
-                    "Win Rate": champion.metrics.winRate.toFixed(2) + '%',      
-                    "Sharpe Ratio": champion.metrics.sharpeRatio.toFixed(3),   
-                    "Total Trades": champion.metrics.totalTrades,
-                    "Weights": champion.weights
-                };
-                dnaElement.textContent = JSON.stringify(params, null, 2);
-            }
-        }
+    // PERBAIKAN KRITIS #3: Hanya menambahkan validasi Monte Carlo jika hasilnya adalah angka (bukan NaN)
+    if (lastMonteCarloResult && isFinite(lastMonteCarloResult.avg_final_pnl_usd)) { 
+        //console.log("Menambahkan validasi Monte Carlo yang Valid ke dalam DNA.");
+        dnaObject.metadata.qc_validation = lastMonteCarloResult; 
+    } else {
+        ////console.log("Hasil Monte Carlo tidak valid (NaN) atau tidak dijalankan, dilewati dari ekspor.");
+    }
+    
+    const jsonString = JSON.stringify(dnaObject, null, 2);
+    const filename = `dna_${dnaObject.metadata.dnaType.toLowerCase()}_${dnaObject.metadata.sourceAsset.replace(/,/g, '-')}_${dnaObject.metadata.sourceTimeframe}.json`;
+    
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; 
+    a.download = filename;
+    document.body.appendChild(a); 
+    a.click(); 
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    alert(`File DNA '${filename}' telah berhasil diekspor!`);
+}
+// Lokasi: function updateChampionDNA(champion) { ... }
 
-        function updateEvolutionProgress(championFitness, avgFitness, metric) {
+// Lokasi: function updateChampionDNA(champion) { ... }
+
+// Lokasi: function updateChampionDNA(champion) { ... }
+
+// Lokasi: function updateChampionDNA(champion) { ... }
+
+// Lokasi: function updateChampionDNA(champion) { ... }
+
+// Lokasi: function updateChampionDNA(champion) { ... }
+
+// Lokasi: function updateChampionDNA(champion) { ... }
+
+function updateChampionDNA(champion) {
+    const dnaElement = document.getElementById('champion-dna');
+    if (dnaElement && champion && champion.metrics) {
+        const metrics = champion.metrics;
+
+        // MENGAMBIL STRING YANG SUDAH DIFORMAT (dari penyimpanan yang di-debug)
+        const rawSharpe = (metrics.SharpeIndex || metrics.sharpeRatio || "0.0000"); // Menggunakan SharpeIndex sebagai prioritas
+
+        const params = {
+            "R:R Ratio": (champion.riskRewardRatio || 0).toFixed(2),
+            "EMA Period": champion.pullbackEmaPeriod, // KEMBALIKAN BARIS INI (Jika Anda ingin nilainya ditampilkan)
+            "Swing Lookback": champion.swingLookback,
+            "Bias Threshold": champion.biasThreshold,
+            "ATR Filter": (champion.atrFilterThreshold || 0).toString(),
+            "Profit Factor": (metrics.profitFactor === Infinity ? "Infinity" : (metrics.profitFactor || 0).toFixed(2)),
+            "Win Rate": (metrics.winRate || 0).toFixed(2) + '%',
+            
+            // PERBAIKAN: Memasukkan string yang diformat dari kunci yang benar
+            "Sharpe Ratio": rawSharpe.toString(), 
+            
+            "Total Trades": metrics.totalTrades || 0,
+            "Weights": champion.weights
+        };
+        dnaElement.textContent = JSON.stringify(params, null, 2);
+    } else {
+        dnaElement.textContent = "Menunggu generasi pertama selesai...";
+    }
+}
+
+function updateEvolutionProgress(champion) {
             const progressBar = document.getElementById('progress-bar');
             const progressText = document.getElementById('progress-text');
 
@@ -3612,14 +3696,29 @@
             progressBar.style.width = `${progress}%`;
             progressText.textContent = `Generasi ${evolutionState.currentGeneration} dari ${evolutionState.maxGenerations}`;
 
-            if (evolutionState.fitnessChart) {
-                evolutionState.fitnessChart.data.labels.push(evolutionState.currentGeneration);
-                evolutionState.fitnessChart.data.datasets[0].data.push(championFitness);
-                evolutionState.fitnessChart.data.datasets[1].data.push(avgFitness);
-                evolutionState.fitnessChart.data.datasets[0].label = `Tertinggi (${metric})`;
-                evolutionState.fitnessChart.data.datasets[1].label = `Rata-rata (${metric})`;
+            if (evolutionState.fitnessChart && champion) {
+                const optimizationMetric = document.getElementById('optimization-metric-select').value;
                 
-                evolutionState.fitnessChart.options.scales.y.title.text = metric;
+                let secondaryMetricValue = 0;
+                switch (optimizationMetric) {
+                    case 'Win Rate':
+                        // --- PERBAIKAN: Ubah string "63.16%" menjadi angka 63.16 ---
+                        secondaryMetricValue = parseFloat(champion.metrics.winRate) || 0;
+                        break;
+                    case 'Sharpe Ratio':
+                        secondaryMetricValue = parseFloat(champion.metrics.SharpeIndex) || 0;
+                        break;
+                    default: // Profit Factor
+                        secondaryMetricValue = (champion.metrics.profitFactor === Infinity) ? 20 : (champion.metrics.profitFactor || 0);
+                        break;
+                }
+                
+                evolutionState.fitnessChart.data.labels.push(evolutionState.currentGeneration);
+                evolutionState.fitnessChart.data.datasets[0].data.push(champion.fitness);
+                evolutionState.fitnessChart.data.datasets[1].data.push(secondaryMetricValue);
+                
+                evolutionState.fitnessChart.data.datasets[1].label = `Juara (${optimizationMetric})`;
+                evolutionState.fitnessChart.options.scales.y1.title.text = `Metrik Pilihan (${optimizationMetric})`;
 
                 evolutionState.fitnessChart.update();
             }
@@ -3661,6 +3760,22 @@
 // ===================================================================           
 // BAGIAN A: INISIALISASI TOGGLE DAN EVENT LISTENER UNTUK BACKTESTING
 // ===================================================================
+        try {
+            console.log("🧠 Mencoba memuat model AI dari database IndexedDB...");
+            predictionModel = await tf.loadLayersModel('indexeddb://genesis-ai-model-v5-9');
+            console.log('✅ Otak AI V5.9 berhasil dimuat dari database.');
+            isTfModelReady = true;
+        } catch (error) {
+            console.warn("Model tidak ditemukan di database. Memulai proses training awal (first-time setup)...");
+            alert("Model AI tidak ditemukan (kemungkinan cache dibersihkan).\n\nProses training awal akan dimulai. Ini akan memakan waktu beberapa saat dan hanya terjadi satu kali ini saja.");
+            
+            // Fallback: Latih dan simpan model baru jika tidak ada
+            predictionModel = createPredictionModel();
+            await trainModelOnSmartData(predictionModel); // Proses lambat
+            await predictionModel.save('indexeddb://genesis-ai-model-v5-9'); // Simpan untuk masa depan
+            
+            console.log("✅ Model baru berhasil dilatih dan disimpan ke database.");
+        }
         await initializeAssetCategorization();
 
         setupToggle('toggle-backtesting-btn', 'backtesting-content-wrapper', 'toggle-backtesting-icon', true);
@@ -3790,33 +3905,44 @@
             alert("Proses evolusi dihentikan.");
         });
 
-        runMonteCarloBtn.addEventListener('click', () => {
-            const lastRunTrades = backtester.state.lastRunMetrics?.trades;
+runMonteCarloBtn.addEventListener('click', () => {
+            let tradesForSim = null;
+            let equityCurveForSim = null;
+            let initialBalanceForSim = 1000; // Default
 
-            if (!lastRunTrades || lastRunTrades.length < 10) {
-                alert("Tidak ada data backtest yang cukup untuk simulasi. Jalankan backtest manual terlebih dahulu dengan minimal 10 trade.");
+            // Prioritas 1: Cek "lemari piala" (DNA Juara dari Evolusi)
+            if (evolutionState.champion && evolutionState.champion.metrics.allMultiAssetTrades && evolutionState.champion.metrics.allMultiAssetTrades.length >= 2) {
+                ////console.log("Menggunakan data dari DNA Juara Multi-Aset...");
+                tradesForSim = evolutionState.champion.metrics.allMultiAssetTrades;
+                equityCurveForSim = evolutionState.champion.metrics.allMultiAssetEquity;
+                initialBalanceForSim = evolutionState.champion.metrics.initialBalance;
+            } 
+            // Prioritas 2: Jika tidak ada, baru cek "laporan sementara" (Backtest Manual)
+            else if (backtester.state.lastRunMetrics?.trades && backtester.state.lastRunMetrics.trades.length >= 2) {
+                ////console.log("Menggunakan data dari Backtest Manual terakhir...");
+                tradesForSim = backtester.state.lastRunMetrics.trades;
+                equityCurveForSim = backtester.state.lastRunMetrics.equityCurve;
+                initialBalanceForSim = backtester.state.settings.initialBalance;
+            }
+
+            if (!tradesForSim) {
+                alert("Tidak ada data backtest yang cukup (minimal 2 trade) dari Evolusi atau Backtest Manual untuk simulasi.");
                 return;
             }
 
-            // Tampilkan modal dan jalankan simulasi
             toggleMonteCarloModal(true);
-            runMonteCarloSimulation(backtester, lastRunTrades, backtester.state.lastRunMetrics.equityCurve);
+            const simBacktester = { state: { settings: { initialBalance: initialBalanceForSim } } };
+            runMonteCarloSimulation(simBacktester, tradesForSim, equityCurveForSim);
         });
 
-    monteCarloCloseBtn.addEventListener('click', () => toggleMonteCarloModal(false));
-    monteCarloModal.addEventListener('click', (e) => {
-        if (e.target === monteCarloModal) {
-            toggleMonteCarloModal(false);
-        }
-    });
-        
-        exportDnaBtn.addEventListener('click', exportStrategyDNA);
-        
-        window.addEventListener('resize', () => {
-            if (evolutionState.fitnessChart) {
-                evolutionState.fitnessChart.resize();
+        monteCarloCloseBtn.addEventListener('click', () => toggleMonteCarloModal(false));
+        monteCarloModal.addEventListener('click', (e) => {
+            if (e.target === monteCarloModal) {
+                toggleMonteCarloModal(false);
             }
         });
+        
+        exportDnaBtn.addEventListener('click', exportStrategyDNA);
         // ===================================================================
         // BAGIAN C: INISIALISASI UNTUK FITUR LAINNYA
         // ===================================================================
@@ -3854,12 +3980,13 @@
         return z0 * stdDev + mean;
     }
 
-    function runMonteCarloSimulation(backtesterInstance, historicalTrades, historicalEquityCurve) {
+function runMonteCarloSimulation(backtesterInstance, historicalTrades, historicalEquityCurve) {
         const tradeStats = calculateTradeStats(historicalTrades);
-        const initialBalance = backtesterInstance.state.settings.initialBalance;
-        
-        const NUM_SIMULATIONS = 1000; // Jumlah simulasi yang akan dijalankan
-        const NUM_TRADES_PER_SIM = historicalTrades.length; // Proyeksikan untuk jumlah trade yang sama
+        // Pastikan initialBalance adalah angka yang valid, default ke 1000 jika tidak valid
+        const initialBalance = parseFloat(backtesterInstance.state.settings.initialBalance) || 1000; 
+
+        const NUM_SIMULATIONS = 1000;
+        const NUM_TRADES_PER_SIM = historicalTrades.length;
 
         let allSimulatedCurves = [];
         let finalPnlValues = [];
@@ -3867,31 +3994,61 @@
         for (let i = 0; i < NUM_SIMULATIONS; i++) {
             let currentEquity = initialBalance;
             let equityCurve = [initialBalance];
-            
+
             for (let j = 0; j < NUM_TRADES_PER_SIM; j++) {
                 const randomPnl = generateRandomNormal(tradeStats.mean, tradeStats.stdDev);
-                currentEquity += randomPnl;
+                if (isFinite(randomPnl)) {
+                    currentEquity += randomPnl;
+                }
                 equityCurve.push(currentEquity);
             }
-            allSimulatedCurves.push(equityCurve);
-            finalPnlValues.push(currentEquity - initialBalance);
+            const finalPnl = currentEquity - initialBalance;
+            if (isFinite(finalPnl)) {
+                finalPnlValues.push(finalPnl);
+            }
+            // === BARIS PENTING DITAMBAHKAN ===
+            allSimulatedCurves.push(equityCurve); 
+            // =================================
         }
 
-        // Update ringkasan statistik
-        const averageFinalPnl = finalPnlValues.reduce((sum, pnl) => sum + pnl, 0) / NUM_SIMULATIONS;
+        // PERBAIKAN KRITIS: Hitung rata-rata hanya dari PNL yang valid
+        const validFinalPnls = finalPnlValues.filter(pnl => isFinite(pnl));
+        const averageFinalPnl = validFinalPnls.length > 0 
+            ? validFinalPnls.reduce((sum, pnl) => sum + pnl, 0) / validFinalPnls.length 
+            : 0; // Set ke 0 jika tidak ada hasil valid (mencegah NaN)
+
         const lossCount = finalPnlValues.filter(pnl => pnl < 0).length;
-        const lossProbability = (lossCount / NUM_SIMULATIONS) * 100;
+        const lossProbability = (finalPnlValues.length > 0) ? (lossCount / finalPnlValues.length) * 100 : 0;
 
         document.getElementById('mc-summary-sims').textContent = NUM_SIMULATIONS.toLocaleString('id-ID');
         document.getElementById('mc-summary-trades').textContent = NUM_TRADES_PER_SIM;
         document.getElementById('mc-summary-avg-pnl').textContent = `${averageFinalPnl.toFixed(2)} USD`;
         document.getElementById('mc-summary-loss-prob').textContent = `${lossProbability.toFixed(1)}%`;
 
-        // Render hasilnya ke chart
+        // Memperbarui variabel global dengan nilai yang telah dihitung
+        lastMonteCarloResult = {
+            status: "Validated",
+            simulations_run: NUM_SIMULATIONS,
+            avg_final_pnl_usd: averageFinalPnl,
+            loss_probability_percent: lossProbability,
+            avgPnl_per_trade: tradeStats.mean,
+            stdDevPnl_per_trade: tradeStats.stdDev
+        };
+        ////console.log("Hasil Monte Carlo berhasil disimpan ke memori:", lastMonteCarloResult);
         renderMonteCarloChart(allSimulatedCurves, historicalEquityCurve);
     }
 
     function renderMonteCarloChart(simulatedCurves, historicalEquityCurve) {
+        if (!simulatedCurves || simulatedCurves.length === 0 || !historicalEquityCurve || historicalEquityCurve.length === 0) {
+            console.error("Gagal merender Monte Carlo: Tidak ada kurva simulasi atau data historis yang valid.");
+            return;
+        }
+
+        if (simulatedCurves[0].length === 0) {
+            console.error("Gagal merender Monte Carlo: Kurva simulasi memiliki panjang nol.");
+            return;
+        }
+
         const ctx = document.getElementById('monte-carlo-chart').getContext('2d');
 
         if (monteCarloChartInstance) {
@@ -3906,8 +4063,14 @@
         
         for (let i = 0; i < numTrades; i++) {
             let valuesAtStep = simulatedCurves.map(curve => curve[i]).sort((a, b) => a - b);
-            percentile25.push(valuesAtStep[Math.floor(0.25 * valuesAtStep.length)]);
-            percentile75.push(valuesAtStep[Math.floor(0.75 * valuesAtStep.length)]);
+
+            if (valuesAtStep.length > 0) {
+                percentile25.push(valuesAtStep[Math.floor(0.25 * valuesAtStep.length)]);
+                percentile75.push(valuesAtStep[Math.floor(0.75 * valuesAtStep.length)]);
+            } else {
+                percentile25.push(NaN);
+                percentile75.push(NaN);
+            }
         }
 
         const sampleCurves = [];
@@ -3921,7 +4084,7 @@
             {
                 label: 'Rentang Probabilitas 25%-75%',
                 data: percentile75,
-                fill: '+1', // Mengisi area ke dataset berikutnya (percentile25)
+                fill: '+1', 
                 backgroundColor: 'rgba(100, 100, 100, 0.2)',
                 borderColor: 'transparent',
                 pointRadius: 0,
@@ -3936,14 +4099,14 @@
             {
                 label: 'Kinerja Historis',
                 data: historicalEquityCurve,
-                borderColor: '#3b82f6', // Biru
+                borderColor: '#3b82f6', 
                 borderWidth: 3,
                 tension: 0.1,
                 pointRadius: 0,
             }
         ];
 
-        // Tambahkan sampel kurva simulasi dengan transparansi tinggi
+        // Tambahkan sampel kurva simulasi
         sampleCurves.forEach((curve, index) => {
             datasets.push({
                 label: `Simulasi #${index + 1}`,
@@ -3967,7 +4130,7 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false // Sembunyikan legenda agar tidak terlalu ramai
+                        display: false 
                     },
                     tooltip: {
                         mode: 'index',
@@ -3996,11 +4159,106 @@
                 }
             }
         });
-    }    
+    }
 // ===================================================================
 // EVENT LISTENER UNTUK MEMULAI SEMUANYA
 // ===================================================================
     document.addEventListener('DOMContentLoaded', main);
+
+    let predictionModel;
+    let isTfModelReady = false;
+// ===============================================================
+        // LOGIKA MESIN PREDIKSI TENSORFLOW.JS (NATIVE)
+// ===============================================================
+        function createPredictionModel() {
+            ////console.log("🧠 Membangun arsitektur model TF.js native...");
+            const model = tf.sequential();
+            const featureCount = 12;
+            model.add(tf.layers.dense({ units: 128, activation: 'relu', inputShape: [featureCount] }));
+            model.add(tf.layers.dropout({ rate: 0.3 }));
+            model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
+            model.add(tf.layers.dropout({ rate: 0.3 }));
+            model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+            model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+            model.compile({ optimizer: tf.train.adam(0.0001), loss: 'binaryCrossentropy', metrics: ['accuracy'] });
+            ////console.log("✅ Arsitektur model berhasil dibuat.");
+            return model;
+        }
+
+        async function trainModelOnSmartData(model) {
+            console.log("📚 Melatih model dengan 'Buku Pelajaran V5.9' yang diperluas (500 Epochs)...");
+            
+            // Feature order: ['rsi','macd_cross','macd_hist','ema_dist','bb_width','bb_pos','vwap_dist','atr_percent','stoch_rsi_k','stoch_rsi_d','stoch_rsi_cross','stoch_rsi_state']
+            const smartInputs = [
+                // DATA ASLI (9 SAMPEL)
+                [75, 1, 0.2, 0.02, 0.05, 0.9, 0.03, 2.5, 85, 82, 1, 1],       // TRENDING (Sangat Bullish)
+                [30, -1, -0.3, -0.03, 0.06, 0.1, -0.04, 3, 15, 18, -1, -1],  // TRENDING (Sangat Bearish)
+                [50, 0, 0.0, 0.0005, 0.015, 0.6, 0, 0.05, 50, 50, 0, 0],     // RANGING (Murni Sideways)
+                [58, 0, 0.01, 0.001, 0.012, 0.55, 0.002, 0.08, 55, 54, 0, 0], // RANGING (Sedikit Noise)
+                [68, 1, 0.15, 0.015, 0.04, 0.8, 0.02, 2.2, 70, 68, 0, 0],    // TRENDING (Menengah Bullish)
+                [40, 0, -0.005, -0.0001, 0.008, 0.45, -0.0005, 0.03, 40, 42, 0, 0], // RANGING (Low Vol)
+                [60, 0, 0.005, 0.0001, 0.009, 0.65, 0.0005, 0.03, 60, 58, 0, 0],    // RANGING (Low Vol)
+                [80, 1, 0.25, 0.03, 0.07, 0.95, 0.04, 3.5, 95, 90, 1, 1],    // TRENDING (Ekstrem Bullish)
+                [20, -1, -0.25, -0.03, 0.07, 0.05, -0.04, 3.5, 5, 10, -1, -1],      // TRENDING (Ekstrem Bearish)
+                
+                // --- DATA BARU V5.9 (15 SAMPEL TAMBAHAN) ---
+                [52, 0, 0.001, 0.0002, 0.007, 0.5, 0.0001, 0.02, 55, 53, 0, 0],  // RANGING (Squeeze) - Volatilitas sangat rendah, siap breakout.
+                [48, 0, -0.001, -0.0002, 0.006, 0.48, -0.0001, 0.025, 45, 47, 0, 0],// RANGING (Squeeze) - Versi lain dari Squeeze.
+                [65, 1, 0.05, 0.008, 0.03, 0.75, 0.01, 1.2, 60, 58, 0, 0],      // TRENDING (Lemah Bullish) - Tren naik perlahan.
+                [35, -1, -0.05, -0.008, 0.03, 0.25, -0.01, 1.3, 40, 42, 0, 0],    // TRENDING (Lemah Bearish) - Tren turun perlahan.
+                [55, 0, 0.02, 0, 0.08, 0.6, 0, 3.5, 60, 40, 1, 0],               // RANGING (Choppy Market) - Volatilitas tinggi tapi sideways.
+                [45, 0, -0.02, 0, 0.09, 0.4, 0, 3.8, 40, 60, -1, 0],             // RANGING (Choppy Market) - Versi lain dari Choppy.
+                [85, 1, 0.1, 0.025, 0.06, 0.98, 0.03, 2.8, 98, 95, 1, 1],      // TRENDING (Overbought) - Sangat bullish, mendekati puncak.
+                [15, -1, -0.1, -0.025, 0.06, 0.02, -0.03, 2.9, 2, 5, -1, -1],      // TRENDING (Oversold) - Sangat bearish, mendekati bottom.
+                [72, 1, 0.18, 0.015, 0.025, 0.85, 0.018, 1.5, 80, 78, 0, 1],    // TRENDING (Bullish Sehat) - Contoh ideal tren naik.
+                [28, -1, -0.18, -0.015, 0.025, 0.15, -0.018, 1.6, 20, 22, 0, -1],  // TRENDING (Bearish Sehat) - Contoh ideal tren turun.
+                [51, 0, 0.005, 0.0001, 0.01, 0.52, 0.0003, 0.04, 50, 50, 0, 0],   // RANGING (Sangat Datar) - Nyaris tidak ada pergerakan.
+                [62, 0, 0.0, 0.005, 0.02, 0.7, 0.006, 0.8, 65, 63, 0, 0],        // RANGING (Menuju Upper Band) - Sideways tapi cenderung ke atas.
+                [38, 0, 0.0, -0.005, 0.02, 0.3, -0.006, 0.7, 35, 37, 0, 0],      // RANGING (Menuju Lower Band) - Sideways tapi cenderung ke bawah.
+                [78, -1, -0.05, 0.01, 0.05, 0.9, 0.015, 2.0, 85, 88, -1, 1],    // TRENDING (Exhaustion) - RSI tinggi, tapi MACD cross bear (potensi pembalikan).
+                [22, 1, 0.05, -0.01, 0.05, 0.1, -0.015, 2.1, 15, 12, 1, -1]     // TRENDING (Exhaustion) - RSI rendah, tapi MACD cross bull (potensi pembalikan).
+            ];
+            
+            const smartOutputs = [
+                // DATA ASLI
+                1, 1, 0, 0, 1, 0, 0, 1, 1,
+                // DATA BARU V5.9
+                0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0
+            ];
+
+            const inputTensor = tf.tensor2d(smartInputs);
+            const outputTensor = tf.tensor2d(smartOutputs, [smartOutputs.length, 1]);
+
+            await model.fit(inputTensor, outputTensor, {
+                epochs: 500,
+                batchSize: smartOutputs.length,
+                callbacks: {
+                    onTrainEnd: () => {
+                        isTfModelReady = true;
+                        console.log('✅ Otak AI V5.9 berhasil dilatih dan siap bekerja!');
+                    }
+                }
+            });
+
+            inputTensor.dispose();
+            outputTensor.dispose();
+        }
+
+
+        async function predictMarketRegime(inputData) {
+            if (!isTfModelReady || !inputData) return 'ranging';
+            
+            return tf.tidy(() => {
+                const inputTensor = tf.tensor2d(inputData, [1, 12]); 
+                
+                const prediction = predictionModel.predict(inputTensor);
+                const result = prediction.dataSync()[0];
+                const predictedClass = result > 0.5 ? 'trending' : 'ranging';
+                
+                
+                return predictedClass;
+            });
+        }
 </script>
 </body>
 </html>
