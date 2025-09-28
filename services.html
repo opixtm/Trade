@@ -3140,7 +3140,8 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                                 linreg: calculateLinearRegressionChannel(closesSnapshot)
                             };
                             
-                            const score = calculateConfluenceScoreForCandle(this.state.settings.weights, indicators);
+                            // **INI ADALAH PERBAIKANNYA**
+                            const score = calculateConfluenceScoreForCandle(settings.weights, indicators);
                             analysisCache.push({ bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] });
                         }
 
@@ -3162,215 +3163,215 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 });
             },
 
-// ▼▼▼ SALIN DAN TEMPEL SELURUH FUNGSI BARU INI ▼▼▼
-async runSimulation_unifiedContextual(historicalData, settings, onProgress = () => {}) {
-    const customSessionCheckbox = document.getElementById('filter-session-custom');
-    const customSessionEnabled = customSessionCheckbox.checked;
-    let customStartHourUTC = 0;
-    let customEndHourUTC = 0;
 
-    if (customSessionEnabled) {
-        const startTimeWIB = document.getElementById('custom-session-start').value;
-        const endTimeWIB = document.getElementById('custom-session-end').value;
+            async runSimulation_unifiedContextual(historicalData, settings, onProgress = () => {}) {
+                const customSessionCheckbox = document.getElementById('filter-session-custom');
+                const customSessionEnabled = customSessionCheckbox.checked;
+                let customStartHourUTC = 0;
+                let customEndHourUTC = 0;
 
-        if (startTimeWIB && endTimeWIB) {
-            const [startH, startM] = startTimeWIB.split(':').map(Number);
-            const [endH, endM] = endTimeWIB.split(':').map(Number);
-            customStartHourUTC = (startH - 7 + 24) % 24 + (startM / 60);
-            customEndHourUTC = (endH - 7 + 24) % 24 + (endM / 60);
-        }
-    }
-    
-    const activeFilters = Array.from(document.querySelectorAll('input[id^="filter-session-"]:checked')).map(cb => cb.value);
-    let filteredData = historicalData;
+                if (customSessionEnabled) {
+                    const startTimeWIB = document.getElementById('custom-session-start').value;
+                    const endTimeWIB = document.getElementById('custom-session-end').value;
 
-    if (activeFilters.length > 0) {
-        const sessionHours = {
-            tokyo: { start: 0, end: 8 },
-            london: { start: 7, end: 16 },
-            newyork: { start: 13, end: 22 }
-        };
-
-        if (customSessionEnabled && document.getElementById('custom-session-start').value) {
-            sessionHours.custom = { start: customStartHourUTC, end: customEndHourUTC };
-        }
-
-        filteredData = historicalData.filter(candle => {
-            const candleDate = new Date(candle[0]);
-            const candleUTCHour = candleDate.getUTCHours() + (candleDate.getUTCMinutes() / 60);
-
-            for (const filter of activeFilters) {
-                const session = sessionHours[filter];
-                if (session) {
-                    if (session.end < session.start) { // Handle overnight sessions
-                        if (candleUTCHour >= session.start || candleUTCHour < session.end) return true;
-                    } else {
-                        if (candleUTCHour >= session.start && candleUTCHour < session.end) return true;
+                    if (startTimeWIB && endTimeWIB) {
+                        const [startH, startM] = startTimeWIB.split(':').map(Number);
+                        const [endH, endM] = endTimeWIB.split(':').map(Number);
+                        customStartHourUTC = (startH - 7 + 24) % 24 + (startM / 60);
+                        customEndHourUTC = (endH - 7 + 24) % 24 + (endM / 60);
                     }
                 }
-            }
-            return false;
-        });
+                
+                const activeFilters = Array.from(document.querySelectorAll('input[id^="filter-session-"]:checked')).map(cb => cb.value);
+                let filteredData = historicalData;
 
-        if (filteredData.length < 200) {
-            throw new Error(`Data setelah difilter tidak cukup (hanya ${filteredData.length} candle). Coba rentang waktu yang lebih panjang.`);
-        }
-    }
-    
-    const analysisCache = await this.processIndicatorCacheInChunks(filteredData, settings);
-    
-    // --- OPTIMASI #2: Kalkulasi `closes` dilakukan satu kali di sini ---
-    const fullCloses = filteredData.map(k => parseFloat(k[4]));
-    
-    await new Promise(resolve => setTimeout(resolve, 0));
+                if (activeFilters.length > 0) {
+                    const sessionHours = {
+                        tokyo: { start: 0, end: 8 },
+                        london: { start: 7, end: 16 },
+                        newyork: { start: 13, end: 22 }
+                    };
 
-    let balance = settings.initialBalance;
-    let position = null;
-    const trades = [];
-    
-    const totalCandles = filteredData.length;
-    let candlesProcessedInChunk = 0;
-    const CHUNK_SIZE = 1000;
-
-    for (let i = 200; i < totalCandles; i++) {
-        if (this.state.isStopped) break;
-
-        const currentCandle = filteredData[i];
-        const cacheEntry = analysisCache[i];
-        const currentLow = parseFloat(currentCandle[3]);
-        const currentHigh = parseFloat(currentCandle[2]);
-        
-        const klinesSnapshot = filteredData.slice(0, i + 1);
-        const featureInputs = calculatePredictionInput(klinesSnapshot);
-
-        if (!featureInputs) {
-            continue; 
-        }
-
-        const currentRegime = await predictMarketRegime(featureInputs); 
-
-        if (settings.filterRegime && settings.filterRegime.length > 0) {
-            const checkboxFormatRegime = currentRegime.charAt(0).toLowerCase() + currentRegime.slice(1).replace(/_([a-z])/g, g => g[1].toUpperCase());
-
-            if (!settings.filterRegime.includes(checkboxFormatRegime)) {
-                continue;
-            }
-        }
-
-        if (position) {
-            const markPrice = position.type === 'LONG' ? currentLow : currentHigh;
-            const unrealizedPnl = position.type === 'LONG' ? (markPrice - position.entryPrice) * position.size : (position.entryPrice - markPrice) * position.size;
-            const positionValue = position.entryPrice * position.size;
-            const maintenanceMargin = positionValue * MAINTENANCE_MARGIN_RATE;
-            let availableEquity = (settings.marginMode === 'isolated') ? position.cost + unrealizedPnl : balance + unrealizedPnl;
-
-            if (availableEquity <= maintenanceMargin) {
-                balance += unrealizedPnl;
-                trades.push({ ...position, exitPrice: markPrice, pnl: unrealizedPnl, fee: 0, exitDate: new Date(currentCandle[0]), reason: 'LIQUIDATION' });
-                position = null;
-                break;
-            }
-
-            let exitReason = null, exitPrice = 0;
-            if (position.type === 'LONG') {
-                if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
-                else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
-            } else {
-                if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
-                else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
-            }
-
-            if (exitReason) {
-                const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
-                const entryValue = position.entryPrice * position.size;
-                const exitValue = exitPrice * position.size;
-                const entryFee = entryValue * settings.takerFee;
-                const exitFee = exitValue * settings.makerFee;
-                const totalFee = entryFee + exitFee;
-                const netPnl = rawPnl - totalFee;
-                balance += netPnl;
-                trades.push({ ...position, exitPrice, pnl: netPnl, fee: totalFee, exitDate: new Date(currentCandle[0]), reason: exitReason });
-                position = null;
-                if (balance <= 0) { break; }
-            }
-        }
-
-        if (!position && cacheEntry) {
-            let entrySignal = false, detectedBias = 'NETRAL', entryPrice = 0;
-            const recentKlines = filteredData.slice(Math.max(0, i - settings.swingLookback), i);
-            const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
-            const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-            
-            // --- OPTIMASI #2: Menggunakan .slice() yang jauh lebih cepat ---
-            const closes = fullCloses.slice(0, i + 1);
-
-            // --- BUG FIX: Menggunakan format 'BULL_TREND' yang benar, bukan 'bullTrend' ---
-            if (currentRegime === 'BULL_TREND' || currentRegime === 'BEAR_TREND') {
-                const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
-                const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
-                if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
-                    entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
-                }
-            } else if (currentRegime === 'RANGING') {
-                const bollingerBands = calculateBollingerBands(closes); // Sekarang gunakan variabel 'closes' yang baru
-                const lastUpperBand = bollingerBands.upper.pop();
-                const lastLowerBand = bollingerBands.lower.pop();
-                if (lastLowerBand > 0 && currentLow <= lastLowerBand) {
-                    entrySignal = true; detectedBias = 'LONG'; entryPrice = currentLow;
-                } else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) {
-                    entrySignal = true; detectedBias = 'SHORT'; entryPrice = currentHigh;
-                }
-            } else if (currentRegime === 'LOW_VOLATILITY') {
-                if (currentHigh > recentSwingHigh) {
-                    entrySignal = true; detectedBias = 'LONG'; entryPrice = recentSwingHigh;
-                } else if (currentLow < recentSwingLow) {
-                    entrySignal = true; detectedBias = 'SHORT'; entryPrice = recentSwingLow;
-                }
-            }
-            
-            if (entrySignal && isFinite(entryPrice) && entryPrice > 0) {
-                if (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold)) {
-                    if (settings.slippageModel === 'atrAdvanced') {
-                        const atrComponent = cacheEntry.atrValue * (settings.atrSlippagePercent / 100);
-                        const randomComponent = entryPrice * (settings.randomSlippagePercent / 100) * Math.random();
-                        const totalSlippage = atrComponent + randomComponent;
-                        if (detectedBias === 'LONG') entryPrice += totalSlippage; else entryPrice -= totalSlippage;
-                    } else if (settings.slippageModel === 'atrDynamic') {
-                        const slippageAmount = cacheEntry.atrValue * 0.5;
-                        if (detectedBias === 'LONG') entryPrice += slippageAmount; else entryPrice -= slippageAmount;
+                    if (customSessionEnabled && document.getElementById('custom-session-start').value) {
+                        sessionHours.custom = { start: customStartHourUTC, end: customEndHourUTC };
                     }
-                    let stopLoss, takeProfit;
-                    if (detectedBias === 'LONG') {
-                        stopLoss = recentSwingLow * 0.999;
-                        takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
-                    } else {
-                        stopLoss = recentSwingHigh * 1.001;
-                        takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio);
-                    }
-                    const cost = balance * settings.riskPerTrade;
-                    const sizeInAsset = (cost * settings.leverage) / entryPrice;
-                    if (isFinite(sizeInAsset) && sizeInAsset > 0) {
-                        position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
+
+                    filteredData = historicalData.filter(candle => {
+                        const candleDate = new Date(candle[0]);
+                        const candleUTCHour = candleDate.getUTCHours() + (candleDate.getUTCMinutes() / 60);
+
+                        for (const filter of activeFilters) {
+                            const session = sessionHours[filter];
+                            if (session) {
+                                if (session.end < session.start) { // Handle overnight sessions
+                                    if (candleUTCHour >= session.start || candleUTCHour < session.end) return true;
+                                } else {
+                                    if (candleUTCHour >= session.start && candleUTCHour < session.end) return true;
+                                }
+                            }
+                        }
+                        return false;
+                    });
+
+                    if (filteredData.length < 200) {
+                        throw new Error(`Data setelah difilter tidak cukup (hanya ${filteredData.length} candle). Coba rentang waktu yang lebih panjang.`);
                     }
                 }
-            }
-        }
-        
-        candlesProcessedInChunk++;
-        if (candlesProcessedInChunk >= CHUNK_SIZE) {
-            await new Promise(resolve => setTimeout(resolve, 0));
-            candlesProcessedInChunk = 0;
-            
-            const percentage = ((i + 1) / totalCandles) * 100;
-            if (onProgress) onProgress(percentage);
-        }
-    }
-    
-    const finalPercentage = 100;
-    if (onProgress) onProgress(finalPercentage); 
+                
+                const analysisCache = await this.processIndicatorCacheInChunks(filteredData, settings);
+                
+                // --- OPTIMASI #2: Kalkulasi `closes` dilakukan satu kali di sini ---
+                const fullCloses = filteredData.map(k => parseFloat(k[4]));
+                
+                await new Promise(resolve => setTimeout(resolve, 0));
 
-    return { trades, analysisCache };
-},
+                let balance = settings.initialBalance;
+                let position = null;
+                const trades = [];
+                
+                const totalCandles = filteredData.length;
+                let candlesProcessedInChunk = 0;
+                const CHUNK_SIZE = 1000;
+
+                for (let i = 200; i < totalCandles; i++) {
+                    if (this.state.isStopped) break;
+
+                    const currentCandle = filteredData[i];
+                    const cacheEntry = analysisCache[i];
+                    const currentLow = parseFloat(currentCandle[3]);
+                    const currentHigh = parseFloat(currentCandle[2]);
+                    
+                    const klinesSnapshot = filteredData.slice(0, i + 1);
+                    const featureInputs = calculatePredictionInput(klinesSnapshot);
+
+                    if (!featureInputs) {
+                        continue; 
+                    }
+
+                    const currentRegime = await predictMarketRegime(featureInputs); 
+
+                    if (settings.filterRegime && settings.filterRegime.length > 0) {
+                        const checkboxFormatRegime = currentRegime.charAt(0).toLowerCase() + currentRegime.slice(1).replace(/_([a-z])/g, g => g[1].toUpperCase());
+
+                        if (!settings.filterRegime.includes(checkboxFormatRegime)) {
+                            continue;
+                        }
+                    }
+
+                    if (position) {
+                        const markPrice = position.type === 'LONG' ? currentLow : currentHigh;
+                        const unrealizedPnl = position.type === 'LONG' ? (markPrice - position.entryPrice) * position.size : (position.entryPrice - markPrice) * position.size;
+                        const positionValue = position.entryPrice * position.size;
+                        const maintenanceMargin = positionValue * MAINTENANCE_MARGIN_RATE;
+                        let availableEquity = (settings.marginMode === 'isolated') ? position.cost + unrealizedPnl : balance + unrealizedPnl;
+
+                        if (availableEquity <= maintenanceMargin) {
+                            balance += unrealizedPnl;
+                            trades.push({ ...position, exitPrice: markPrice, pnl: unrealizedPnl, fee: 0, exitDate: new Date(currentCandle[0]), reason: 'LIQUIDATION' });
+                            position = null;
+                            break;
+                        }
+
+                        let exitReason = null, exitPrice = 0;
+                        if (position.type === 'LONG') {
+                            if (currentLow <= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                            else if (currentHigh >= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+                        } else {
+                            if (currentHigh >= position.sl) { exitReason = 'Stop Loss'; exitPrice = position.sl; }
+                            else if (currentLow <= position.tp) { exitReason = 'Take Profit'; exitPrice = position.tp; }
+                        }
+
+                        if (exitReason) {
+                            const rawPnl = position.type === 'LONG' ? (exitPrice - position.entryPrice) * position.size : (position.entryPrice - exitPrice) * position.size;
+                            const entryValue = position.entryPrice * position.size;
+                            const exitValue = exitPrice * position.size;
+                            const entryFee = entryValue * settings.takerFee;
+                            const exitFee = exitValue * settings.makerFee;
+                            const totalFee = entryFee + exitFee;
+                            const netPnl = rawPnl - totalFee;
+                            balance += netPnl;
+                            trades.push({ ...position, exitPrice, pnl: netPnl, fee: totalFee, exitDate: new Date(currentCandle[0]), reason: exitReason });
+                            position = null;
+                            if (balance <= 0) { break; }
+                        }
+                    }
+
+                    if (!position && cacheEntry) {
+                        let entrySignal = false, detectedBias = 'NETRAL', entryPrice = 0;
+                        const recentKlines = filteredData.slice(Math.max(0, i - settings.swingLookback), i);
+                        const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+                        const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+                        
+                        // --- OPTIMASI #2: Menggunakan .slice() yang jauh lebih cepat ---
+                        const closes = fullCloses.slice(0, i + 1);
+
+                        // --- BUG FIX: Menggunakan format 'BULL_TREND' yang benar, bukan 'bullTrend' ---
+                        if (currentRegime === 'BULL_TREND' || currentRegime === 'BEAR_TREND') {
+                            const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
+                            const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
+                            if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
+                                entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
+                            }
+                        } else if (currentRegime === 'RANGING') {
+                            const bollingerBands = calculateBollingerBands(closes); // Sekarang gunakan variabel 'closes' yang baru
+                            const lastUpperBand = bollingerBands.upper.pop();
+                            const lastLowerBand = bollingerBands.lower.pop();
+                            if (lastLowerBand > 0 && currentLow <= lastLowerBand) {
+                                entrySignal = true; detectedBias = 'LONG'; entryPrice = currentLow;
+                            } else if (lastUpperBand > 0 && currentHigh >= lastUpperBand) {
+                                entrySignal = true; detectedBias = 'SHORT'; entryPrice = currentHigh;
+                            }
+                        } else if (currentRegime === 'LOW_VOLATILITY') {
+                            if (currentHigh > recentSwingHigh) {
+                                entrySignal = true; detectedBias = 'LONG'; entryPrice = recentSwingHigh;
+                            } else if (currentLow < recentSwingLow) {
+                                entrySignal = true; detectedBias = 'SHORT'; entryPrice = recentSwingLow;
+                            }
+                        }
+                        
+                        if (entrySignal && isFinite(entryPrice) && entryPrice > 0) {
+                            if (settings.atrFilterThreshold <= 0 || (cacheEntry.atrValue > settings.atrFilterThreshold)) {
+                                if (settings.slippageModel === 'atrAdvanced') {
+                                    const atrComponent = cacheEntry.atrValue * (settings.atrSlippagePercent / 100);
+                                    const randomComponent = entryPrice * (settings.randomSlippagePercent / 100) * Math.random();
+                                    const totalSlippage = atrComponent + randomComponent;
+                                    if (detectedBias === 'LONG') entryPrice += totalSlippage; else entryPrice -= totalSlippage;
+                                } else if (settings.slippageModel === 'atrDynamic') {
+                                    const slippageAmount = cacheEntry.atrValue * 0.5;
+                                    if (detectedBias === 'LONG') entryPrice += slippageAmount; else entryPrice -= slippageAmount;
+                                }
+                                let stopLoss, takeProfit;
+                                if (detectedBias === 'LONG') {
+                                    stopLoss = recentSwingLow * 0.999;
+                                    takeProfit = entryPrice + (Math.abs(entryPrice - stopLoss) * settings.riskRewardRatio);
+                                } else {
+                                    stopLoss = recentSwingHigh * 1.001;
+                                    takeProfit = entryPrice - (Math.abs(stopLoss - entryPrice) * settings.riskRewardRatio);
+                                }
+                                const cost = balance * settings.riskPerTrade;
+                                const sizeInAsset = (cost * settings.leverage) / entryPrice;
+                                if (isFinite(sizeInAsset) && sizeInAsset > 0) {
+                                    position = { type: detectedBias, entryPrice, cost, size: sizeInAsset, sl: stopLoss, tp: takeProfit, leverage: settings.leverage, entryDate: new Date(currentCandle[0]) };
+                                }
+                            }
+                        }
+                    }
+                    
+                    candlesProcessedInChunk++;
+                    if (candlesProcessedInChunk >= CHUNK_SIZE) {
+                        await new Promise(resolve => setTimeout(resolve, 0));
+                        candlesProcessedInChunk = 0;
+                        
+                        const percentage = ((i + 1) / totalCandles) * 100;
+                        if (onProgress) onProgress(percentage);
+                    }
+                }
+                
+                const finalPercentage = 100;
+                if (onProgress) onProgress(finalPercentage); 
+
+                return { trades, analysisCache };
+            },
 
             calculateMetrics(trades, initialBalance) {
                 //console.log('DATA MENTAH TRADES YANG DITERIMA:', JSON.stringify(trades.slice(0, 5), null, 2)); // Hanya 5 trade pertama agar tidak terlalu panjang
