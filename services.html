@@ -3,138 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BACKTESTING ENGINE - CHART REPLAY</title>
+    <title>BACKTESTING ENGINE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.2.0/dist/tf.min.js"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #E0E0E0; }
-        .card { background-color: #151414; border: 1px solid #333; border-radius: 0.75rem; }
-        .positive { color: #4ade80; }
-        .negative { color: #f87171; }
-        .btn-primary { background-color: #c97c00; color: #1f2937; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background-color 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .btn-primary:hover { background-color: #eb9413; }
-        .btn-primary:disabled { background-color: #333333; cursor: not-allowed; }
-        .btn-secondary { background-color: #374151; color: #e0e0e0; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 0.5rem; transition: background-color 0.3s; }
-        .btn-secondary:hover { background-color: #4b5563; }
-        .input-primary { background-color: #1c1b1b; border: 1px solid #444; border-radius: 0.5rem; padding: 0.625rem 1rem; width: 100%; color: #E0E0E0; }
-        .input-primary:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3); }
-        .input-primary.small-input { padding-left: 0.5rem; padding-right: 0.5rem; }
-        .input-primary.small-input::-webkit-inner-spin-button, .input-primary.small-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .loader { display: flex; justify-content: center; align-items: center; gap: 4px; }
-        .dot { width: 8px; height: 8px; background-color: #e1e1e1; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
-        .collapsible-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease-in-out; }
-        .collapsible-content.expanded { grid-template-rows: 1fr; }
-        .collapsible-content > div { overflow: hidden; }
-        .regime-tag { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; margin-right: 0.5rem; }
-        .uptrend { background-color: #10B981; color: white; }
-        .downtrend { background-color: #EF4444; color: white; }
-        .ranging { background-color: #F59E0B; color: white; }
-        .sideways { background-color: #6B7280; color: white; }
-        .volatile { background-color: #8B5CF6; color: white; }
-        .market-condition-bar { height: 8px; border-radius: 4px; margin: 0.5rem 0; }
-        .time-segment { display: inline-block; height: 30px; margin-right: 2px; cursor: pointer; position: relative; }
-        .time-segment:hover::after { content: attr(data-date); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1F2937; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; z-index: 10; }
-        .recommendation-card { border-left: 4px solid #F59E0B; background-color: #1F2937; }
-        #backtest-chart-container {
-            min-height: 600px;
-            background-color: #151414;
-            border-radius: 0.5rem;
-        }
-        
-        .section-toggle-btn {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            text-align: left;
-            margin-bottom: 1rem;
-            background: none;
-            border: none;
-            color: #E0E0E0;
-            cursor: pointer;
-            padding: 0;
-        }
-        .section-toggle-btn:hover {
-            opacity: 0.8;
-        }
-        .section-toggle-icon {
-            transition: transform 0.3s ease;
-        }
-        .section-content-wrapper {
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-        .section-content-wrapper.collapsed {
-            grid-template-rows: 0fr;
-            opacity: 0;
-        }
-        .section-content-wrapper.expanded {
-            grid-template-rows: 1fr;
-            opacity: 1;
-        }
-        .section-content-wrapper > div {
-            overflow: hidden;
-        }
-        .low-volatility { background-color: #8B5CF6; color: white; }
-        .session-filter-label {
-    cursor: pointer;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    border: 1px solid #444;
-    background-color: #1c1b1b;
-    transition: all 0.2s ease;
-}
-.session-filter-label:hover {
-    background-color: #333;
-}
-.session-filter-checkbox:checked + .session-filter-label {
-    background-color: #f59e0b;
-    color: #1f2937;
-    border-color: #c97c00;
-    font-weight: 600;
-}
-.regime-filter-label {
-    cursor: pointer;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    border: 1px solid #444;
-    background-color: #1c1b1b;
-    transition: all 0.2s ease;
-}
-.regime-filter-label:hover {
-    background-color: #333;
-}
-.regime-filter-checkbox:checked + .regime-filter-label {
-    background-color: #f59e0b;
-    color: #1f2937;
-    border-color: #c97c00;
-    font-weight: 600;
-}
-        .btn-red { background-color: #ef4444; color: white; }
-        .btn-red:hover { background-color: #dc2626; }
-        .dark .btn-red { background-color: #ef4444; color: white; }
-        .dark .btn-red:hover { background-color: #dc2626; }
-        .input-primary { background-color: #2c2c2c; border: 1px solid #444; color: #E0E0E0; padding: 0.5rem 0.75rem; border-radius: 0.375rem; width: 100%; transition: all 0.2s ease; }
-        .input-primary:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3); }
-        .input-primary.small-input { padding-left: 0.5rem; padding-right: 0.5rem; }
-        .btn-success { background-color: #10B981; color: white; }
-        .btn-success:hover:not(:disabled) { background-color: #059669; }
-        .btn-special { background-color: #8B5CF6; color: white; }
-        .btn-special:hover:not(:disabled) { background-color: #7c3aed; }
-        .progress-bar-container { width: 100%; background-color: #374151; border-radius: 9999px; overflow: hidden; height: 0.75rem; }
-        .progress-bar { height: 100%; width: 0%; transition: width 0.5s ease-in-out; }
-        .session-filter-label { cursor: pointer; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; border: 1px solid #444; background-color: #2c2c2c; transition: all 0.2s ease; }
-        .session-filter-label:hover { background-color: #374151; }
-        .session-filter-checkbox:checked + .session-filter-label { background-color: #f59e0b; color: #1f2937; border-color: #c97c00; font-weight: 600; }
-        .btn { padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
-    </style>
+<style>body{font-family:'Inter',sans-serif;background-color:#000000;color:#E0E0E0;}.card{background-color:#151414;border:1px solid #333;border-radius:.75rem;}.positive{color:#4ade80;}.negative{color:#f87171;}.btn-primary{background-color:#c97c00;color:#1f2937;font-weight:600;padding:.625rem 1.25rem;border-radius:.5rem;transition:background-color .3s;display:flex;align-items:center;justify-content:center;gap:.5rem;}.btn-primary:hover{background-color:#eb9413;}.btn-primary:disabled{background-color:#333333;cursor:not-allowed;}.btn-secondary{background-color:#374151;color:#e0e0e0;font-weight:600;padding:.25rem .5rem;border-radius:.5rem;transition:background-color .3s;}.btn-secondary:hover{background-color:#4b5563;}.input-primary{background-color:#1c1b1b;border:1px solid #444;border-radius:.5rem;padding:.625rem 1rem;width:100%;color:#E0E0E0;}.input-primary:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.3);}.input-primary.small-input{padding-left:.5rem;padding-right:.5rem;}.input-primary.small-input::-webkit-inner-spin-button,.input-primary.small-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}.loader{display:flex;justify-content:center;align-items:center;gap:4px;}.dot{width:8px;height:8px;background-color:#e1e1e1;border-radius:50%;animation:bounce 1.4s infinite ease-in-out both;}.dot:nth-child(1){animation-delay:-.32s;}.dot:nth-child(2){animation-delay:-.16s;}@keyframes bounce{0%,80%,100%{transform:scale(0);}40%{transform:scale(1.0);}}.collapsible-content{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s ease-in-out;}.collapsible-content.expanded{grid-template-rows:1fr;}.collapsible-content>div{overflow:hidden;}.regime-tag{display:inline-block;padding:.25rem .5rem;border-radius:.25rem;font-size:.75rem;font-weight:600;margin-right:.5rem;}.uptrend{background-color:#10B981;color:white;}.downtrend{background-color:#EF4444;color:white;}.ranging{background-color:#F59E0B;color:white;}.sideways{background-color:#6B7280;color:white;}.volatile{background-color:#8B5CF6;color:white;}.market-condition-bar{height:8px;border-radius:4px;margin:.5rem 0;}.time-segment{display:inline-block;height:30px;margin-right:2px;cursor:pointer;position:relative;}.time-segment:hover::after{content:attr(data-date);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1F2937;color:white;padding:4px 8px;border-radius:4px;font-size:12px;white-space:nowrap;z-index:10;}.recommendation-card{border-left:4px solid #F59E0B;background-color:#1F2937;}#backtest-chart-container{min-height:600px;background-color:#151414;border-radius:.5rem;}.section-toggle-btn{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;margin-bottom:1rem;background:none;border:none;color:#E0E0E0;cursor:pointer;padding:0;}.section-toggle-btn:hover{opacity:.8;}.section-toggle-icon{transition:transform .3s ease;}.section-content-wrapper{transition:all .3s ease;overflow:hidden;}.section-content-wrapper.collapsed{grid-template-rows:0fr;opacity:0;}.section-content-wrapper.expanded{grid-template-rows:1fr;opacity:1;}.section-content-wrapper>div{overflow:hidden;}.low-volatility{background-color:#8B5CF6;color:white;}.session-filter-label{cursor:pointer;padding:.25rem .75rem;border-radius:9999px;font-size:.875rem;border:1px solid #444;background-color:#1c1b1b;transition:all .2s ease;}.session-filter-label:hover{background-color:#333;}.session-filter-checkbox:checked+.session-filter-label{background-color:#f59e0b;color:#1f2937;border-color:#c97c00;font-weight:600;}.regime-filter-label{cursor:pointer;padding:.25rem .75rem;border-radius:9999px;font-size:.875rem;border:1px solid #444;background-color:#1c1b1b;transition:all .2s ease;}.regime-filter-label:hover{background-color:#333;}.regime-filter-checkbox:checked+.regime-filter-label{background-color:#f59e0b;color:#1f2937;border-color:#c97c00;font-weight:600;}.btn-red{background-color:#ef4444;color:white;}.btn-red:hover{background-color:#dc2626;}.dark .btn-red{background-color:#ef4444;color:white;}.dark .btn-red:hover{background-color:#dc2626;}.input-primary{background-color:#2c2c2c;border:1px solid #444;color:#E0E0E0;padding:.5rem .75rem;border-radius:.375rem;width:100%;transition:all .2s ease;}.input-primary:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.3);}.input-primary.small-input{padding-left:.5rem;padding-right:.5rem;}.btn-success{background-color:#10B981;color:white;}.btn-success:hover:not(:disabled){background-color:#059669;}.btn-special{background-color:#8B5CF6;color:white;}.btn-special:hover:not(:disabled){background-color:#7c3aed;}.progress-bar-container{width:100%;background-color:#374151;border-radius:9999px;overflow:hidden;height:.75rem;}.progress-bar{height:100%;width:0%;transition:width .5s ease-in-out;}.session-filter-label{cursor:pointer;padding:.25rem .75rem;border-radius:9999px;font-size:.875rem;border:1px solid #444;background-color:#2c2c2c;transition:all .2s ease;}.session-filter-label:hover{background-color:#374151;}.session-filter-checkbox:checked+.session-filter-label{background-color:#f59e0b;color:#1f2937;border-color:#c97c00;font-weight:600;}.btn{padding:.6rem 1.25rem;border-radius:.375rem;font-weight:600;cursor:pointer;transition:all .2s ease;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;}
+</style>
 </head>
 <body class="antialiased">
 
@@ -548,7 +423,8 @@
                         <span id="genome-eval-text" class="text-sm font-semibold text-white">Mengevaluasi Genom...</span>
                     </div>
                     <div id="population-progress-container" class="w-full bg-gray-700 rounded-full h-2.5">
-                        <div id="genome-progress-bar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%;"></div>                    </div>
+                        <div id="genome-progress-bar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%;"></div>                    
+                    </div>
                 </div>
                 <div class="mb-4">
                     <div class="flex justify-between items-center mb-1"><span class="text-sm font-medium text-gray-300">Progres Generasi</span><span id="progress-text" class="text-sm font-mono text-gray-400">Generasi 0 dari 200</span></div>
@@ -564,6 +440,7 @@
                 <div class="bg-gray-900 p-3 rounded text-sm overflow-x-auto">
                     <pre id="champion-dna" class="text-yellow-200">Menunggu generasi pertama selesai...</pre>
                     
+                  
                     <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button id="run-monte-carlo-btn" class="btn btn-secondary !bg-blue-600 hover:!bg-blue-700 w-full">
                             📊 Jalankan Simulasi Monte Carlo
@@ -571,8 +448,12 @@
                         <button id="export-dna-btn" class="btn btn-special w-full">
                             🚀 EKSPOR DNA STRATEGI
                         </button>
+                        <button id="export-autodna-btn" class="btn btn-success w-full sm:col-span-2">
+                            <span>✨ Buat & Ekspor DNA Auto-Switch</span>
+                        </button>
                     </div>
-                    </div>
+
+                </div>
             </div>
             <div id="genesis-results-container" class="hidden card p-6">
             </div>
@@ -582,7 +463,7 @@
     <div id="monte-carlo-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
         <div id="monte-carlo-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-blue-400">📊 Proyeksi Kinerja Probabilistik (Monte Carlo)</h3>
+                <h3 class="text-lg font-bold text-blue-400">📊 Proyeksi Probabilistik (Monte Carlo)</h3>
                 <button id="monte-carlo-close-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
             
@@ -651,6 +532,8 @@
     let regimeSensorModel = null;
     let predictionModel;
     let isTfModelReady = false;
+    let monteCarloChartInstance = null;
+    let runMonteCarloBtn, monteCarloModal, monteCarloCloseBtn;
 
     const REGIME_LABELS = ['BULL_TREND', 'BEAR_TREND', 'RANGING', 'LOW_VOLATILITY'];
     const TIMEFRAME_MAP_MS = {
@@ -714,46 +597,40 @@
     }
     `;
     const WEIGHTS_BASE64_STRING = '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';
-
 // ===============================================================
-// LOGIKA MESIN PREDIKSI TENSORFLOW.JS (NATIVE)
+// LOGIKA MESIN PREDIKSI TENSORFLOW.JS
 // ===============================================================
-    // ▼▼▼ GANTI SELURUH FUNGSI ANDA DENGAN VERSI FINAL INI ▼▼▼
-async function loadRegimeSensorModel() {
-    console.log("🧠 Memuat Model Sensor Rezim (vFinal)...");
-    try {
-        const base64Handler = {
-            load: async () => {
-                // 1. Baca seluruh "paket" dari string JSON
-                const modelArtifacts = JSON.parse(MODEL_ARTIFACTS_JSON_STRING);
+    async function loadRegimeSensorModel() {
+        console.log("🧠 Memuat Model Sensor Rezim (vFinal)...");
+        try {
+            const base64Handler = {
+                load: async () => {
+                    const modelArtifacts = JSON.parse(MODEL_ARTIFACTS_JSON_STRING);
+                    const binaryString = window.atob(WEIGHTS_BASE64_STRING);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    const weightData = bytes.buffer;
 
-                // 2. Dekode data bobot (Bagian ini sudah benar)
-                const binaryString = window.atob(WEIGHTS_BASE64_STRING);
-                const len = binaryString.length;
-                const bytes = new Uint8Array(len);
-                for (let i = 0; i < len; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
+                    return {
+                        modelTopology: modelArtifacts.modelTopology, 
+                        weightSpecs: modelArtifacts.weightsManifest[0].weights, 
+                        weightData: weightData
+                    };
                 }
-                const weightData = bytes.buffer;
+            };
 
-                // 3. **PERBAIKAN KUNCI**: Rakit objek secara manual dengan label yang benar
-                return {
-                    modelTopology: modelArtifacts.modelTopology, // Ambil 'blueprint'
-                    weightSpecs: modelArtifacts.weightsManifest[0].weights, // Ambil 'daftar isi' dan beri label 'weightSpecs'
-                    weightData: weightData // Tambahkan data bobotnya
-                };
-            }
-        };
+            regimeSensorModel = await tf.loadLayersModel(base64Handler);
+            console.log('✅ Model Sensor Rezim berhasil dimuat dan siap bekerja!');
 
-        regimeSensorModel = await tf.loadLayersModel(base64Handler);
-        console.log('✅ Model Sensor Rezim berhasil dimuat dan siap bekerja!');
-
-    } catch (error) {
-        console.error("❌ GAGAL memuat Model Sensor Rezim:", error);
-        alert("Terjadi kesalahan fatal saat memuat model AI. Periksa konsol untuk detail.");
-        regimeSensorModel = null;
+        } catch (error) {
+            console.error("❌ GAGAL memuat Model Sensor Rezim:", error);
+            alert("Terjadi kesalahan fatal saat memuat model AI. Periksa konsol untuk detail.");
+            regimeSensorModel = null;
+        }
     }
-}
 
     async function predictMarketRegime(featureArray) {
         if (!regimeSensorModel || !featureArray) {
@@ -768,14 +645,212 @@ async function loadRegimeSensorModel() {
             return REGIME_LABELS[predictedClassIndex];
         });
     }
+
+// ===================================================================
+// BAGIAN BARU: LOGIKA SIMULASI MONTE CARLO
+// ===================================================================
+    function toggleMonteCarloModal(show) {
+            monteCarloModal.classList.toggle('hidden', !show);
+    }
+
+    function calculateTradeStats(trades) {
+        const pnlList = trades.map(t => t.pnl);
+        if (pnlList.length === 0) return { mean: 0, stdDev: 0 };
+
+        const mean = pnlList.reduce((sum, val) => sum + val, 0) / pnlList.length;
+        
+        const variance = pnlList.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / pnlList.length;
+        const stdDev = Math.sqrt(variance);
+
+        return { mean, stdDev };
+    }
+
+    function generateRandomNormal(mean, stdDev) {
+        let u1 = Math.random();
+        let u2 = Math.random();
+        let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        return z0 * stdDev + mean;
+    }
+
+    function runMonteCarloSimulation(backtesterInstance, historicalTrades, historicalEquityCurve) {
+        const tradeStats = calculateTradeStats(historicalTrades);
+        const initialBalance = parseFloat(backtesterInstance.state.settings.initialBalance) || 1000; 
+        const NUM_SIMULATIONS = 1000;
+        const NUM_TRADES_PER_SIM = historicalTrades.length;
+
+        let allSimulatedCurves = [];
+        let finalPnlValues = [];
+
+        for (let i = 0; i < NUM_SIMULATIONS; i++) {
+            let currentEquity = initialBalance;
+            let equityCurve = [initialBalance];
+
+            for (let j = 0; j < NUM_TRADES_PER_SIM; j++) {
+                const randomPnl = generateRandomNormal(tradeStats.mean, tradeStats.stdDev);
+                if (isFinite(randomPnl)) {
+                    currentEquity += randomPnl;
+                }
+                equityCurve.push(currentEquity);
+            }
+            const finalPnl = currentEquity - initialBalance;
+            if (isFinite(finalPnl)) {
+                finalPnlValues.push(finalPnl);
+            }
+
+            allSimulatedCurves.push(equityCurve); 
+
+        }
+
+        const validFinalPnls = finalPnlValues.filter(pnl => isFinite(pnl));
+        const averageFinalPnl = validFinalPnls.length > 0 
+            ? validFinalPnls.reduce((sum, pnl) => sum + pnl, 0) / validFinalPnls.length 
+            : 0; 
+        const lossCount = finalPnlValues.filter(pnl => pnl < 0).length;
+        const lossProbability = (finalPnlValues.length > 0) ? (lossCount / finalPnlValues.length) * 100 : 0;
+
+        document.getElementById('mc-summary-sims').textContent = NUM_SIMULATIONS.toLocaleString('id-ID');
+        document.getElementById('mc-summary-trades').textContent = NUM_TRADES_PER_SIM;
+        document.getElementById('mc-summary-avg-pnl').textContent = `${averageFinalPnl.toFixed(2)} USD`;
+        document.getElementById('mc-summary-loss-prob').textContent = `${lossProbability.toFixed(1)}%`;
+
+        lastMonteCarloResult = {
+            status: "Validated",
+            simulations_run: NUM_SIMULATIONS,
+            avg_final_pnl_usd: averageFinalPnl,
+            loss_probability_percent: lossProbability,
+            avgPnl_per_trade: tradeStats.mean,
+            stdDevPnl_per_trade: tradeStats.stdDev
+        };
+
+        renderMonteCarloChart(allSimulatedCurves, historicalEquityCurve);
+    }
+
+    function renderMonteCarloChart(simulatedCurves, historicalEquityCurve) {
+        if (!simulatedCurves || simulatedCurves.length === 0 || !historicalEquityCurve || historicalEquityCurve.length === 0) {
+            console.error("Gagal merender Monte Carlo: Tidak ada kurva simulasi atau data historis yang valid.");
+            return;
+        }
+
+        if (simulatedCurves[0].length === 0) {
+            console.error("Gagal merender Monte Carlo: Kurva simulasi memiliki panjang nol.");
+            return;
+        }
+
+        const ctx = document.getElementById('monte-carlo-chart').getContext('2d');
+
+        if (monteCarloChartInstance) {
+            monteCarloChartInstance.destroy();
+        }
+
+        const numTrades = simulatedCurves[0].length;
+        const labels = Array.from({ length: numTrades }, (_, i) => `Trade ${i}`);
+      
+        let percentile25 = [];
+        let percentile75 = [];
+        
+        for (let i = 0; i < numTrades; i++) {
+            let valuesAtStep = simulatedCurves.map(curve => curve[i]).sort((a, b) => a - b);
+
+            if (valuesAtStep.length > 0) {
+                percentile25.push(valuesAtStep[Math.floor(0.25 * valuesAtStep.length)]);
+                percentile75.push(valuesAtStep[Math.floor(0.75 * valuesAtStep.length)]);
+            } else {
+                percentile25.push(NaN);
+                percentile75.push(NaN);
+            }
+        }
+
+        const sampleCurves = [];
+        for (let i = 0; i < 20; i++) {
+            sampleCurves.push(simulatedCurves[Math.floor(Math.random() * simulatedCurves.length)]);
+        }
+
+        const datasets = [
+            {
+                label: 'Rentang Probabilitas 25%-75%',
+                data: percentile75,
+                fill: '+1', 
+                backgroundColor: 'rgba(100, 100, 100, 0.2)',
+                borderColor: 'transparent',
+                pointRadius: 0,
+            },
+            {
+                label: 'Batas Bawah (25%)',
+                data: percentile25,
+                borderColor: 'transparent',
+                pointRadius: 0,
+            },
+            {
+                label: 'Kinerja Historis',
+                data: historicalEquityCurve,
+                borderColor: '#3b82f6', 
+                borderWidth: 3,
+                tension: 0.1,
+                pointRadius: 0,
+            }
+        ];
+
+        sampleCurves.forEach((curve, index) => {
+            datasets.push({
+                label: `Simulasi #${index + 1}`,
+                data: curve,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                pointRadius: 0,
+                tension: 0.1,
+            });
+        });
+
+        monteCarloChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false 
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Equity (USD)',
+                            color: '#9ca3af'
+                        },
+                        ticks: { color: '#9ca3af' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Jumlah Trade',
+                            color: '#9ca3af'
+                        },
+                        ticks: { color: '#9ca3af' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+// ===================================================================
+
 // ===================================================================    
 // FUNGSI HELPERS UMUM
 // ===================================================================
     function normalize(value, min, max) {
-        // Menerjemahkan sebuah nilai ke dalam skala 0 hingga 1
-        if (max === min) return 1; // Menghindari pembagian dengan nol
+        if (max === min) return 1; 
         const normalized = (value - min) / (max - min);
-        return Math.max(0, Math.min(1, normalized)); // Memastikan hasilnya selalu antara 0 dan 1
+        return Math.max(0, Math.min(1, normalized));
     }
 
     function calculateSharpeRatio(equityCurve, riskFreeRate = 0.02) {
@@ -847,10 +922,10 @@ async function loadRegimeSensorModel() {
         const utcMinutes = now.getUTCMinutes();
         const utcTime = utcHours + utcMinutes / 60;
         const sessions = {
-            tokyo: { open: 0, close: 8 },      // 00:00 - 08:00 UTC
-            london: { open: 7, close: 16 },    // 07:00 - 16:00 UTC
-            newyork: { open: 13, close: 22 },  // 13:00 - 22:00 UTC
-            nyse: { open: 13.5, close: 20 }    // 13:30 - 20:00 UTC
+            tokyo: { open: 0, close: 8 },      
+            london: { open: 7, close: 16 },   
+            newyork: { open: 13, close: 22 },  
+            nyse: { open: 13.5, close: 20 }    
         };
             
         const status = {};
@@ -891,28 +966,20 @@ async function loadRegimeSensorModel() {
     }
 
     function createStrategyGenome() {
-        // ## Level 2: Logika Terhubung ##
         const emaPeriods = [9, 13, 21];
         const lookbacks = [10, 15, 25];
         const emaChoice = emaPeriods[Math.floor(Math.random() * emaPeriods.length)];
-        // EMA cepat cenderung menggunakan lookback cepat, EMA lambat sebaliknya.
         const lookbackChoice = (emaChoice === 9) ? lookbacks[Math.floor(Math.random()*2)] : lookbacks[1 + Math.floor(Math.random()*2)];
-
-        // ## Level 1: Distribusi Cerdas ##
         const riskRewardRatio = Math.max(1.2, Math.min(3.0, gaussianRandom(1.8, 0.3))); // Rata-rata 1.8
-
-        // ## Level 3: Arketipe Bobot Tematik ##
         const archetypes = ['trend', 'reversal', 'breakout'];
         const chosenArchetype = archetypes[Math.floor(Math.random() * archetypes.length)];
         let weights = {};
         const allIndicators = ['ma', 'rsiDivergence', 'macd', 'pivot', 'vwap', 'ichimoku', 'candlePattern', 'obvDivergence', 'bbSqueeze', 'psar', 'roc', 'bollingerBands', 'rsi', 'stoch', 'linreg'];
 
         allIndicators.forEach(indicator => {
-            // Beri bobot dasar yang rendah
             weights[indicator] = (Math.random() * 1.0) + 0.5; 
         });
 
-        // Tingkatkan bobot berdasarkan arketipe yang dipilih
         if (chosenArchetype === 'trend') {
             ['ma', 'psar', 'ichimoku', 'macd'].forEach(k => weights[k] = (Math.random() * 1.5) + 2.0);
         } else if (chosenArchetype === 'reversal') {
@@ -971,22 +1038,17 @@ async function loadRegimeSensorModel() {
 
     function crossover(parent1, parent2) {
         const child = {
-            weights: {} // Inisialisasi objek weights
+            weights: {} 
         };
-
-        // Crossover untuk parameter utama
         const params = ['riskRewardRatio', 'pullbackEmaPeriod', 'swingLookback', 'biasThreshold', 'atrFilterThreshold'];
         params.forEach(key => {
             child[key] = Math.random() > 0.5 ? parent1[key] : parent2[key];
         });
 
-        // Crossover untuk setiap bobot di dalam weights
         for (const key in parent1.weights) {
             child.weights[key] = Math.random() > 0.5 ? parent1.weights[key] : parent2.weights[key];
         }
-        
-        // --- PERBAIKAN PENTING ---
-        // Anak terlahir tanpa fitness dan metrics dari orang tuanya.
+ 
         child.fitness = 0;
         child.metrics = {};
 
@@ -994,9 +1056,8 @@ async function loadRegimeSensorModel() {
     }
 
     function mutate(genome) {
-        const mutationRate = evolutionState.mutationRate; // Ambil nilai rate untuk kemudahan
+        const mutationRate = evolutionState.mutationRate; 
 
-        // Mutasi R:R Ratio dengan guncangan kecil
         if (Math.random() < mutationRate) {
             genome.riskRewardRatio += gaussianRandom(0, 0.1); // Guncangan rata-rata 0, std dev 0.1
             genome.riskRewardRatio = Math.max(1.2, Math.min(3.0, genome.riskRewardRatio)); // Jaga dalam rentang
@@ -1039,7 +1100,6 @@ async function loadRegimeSensorModel() {
             }
         }
     }
-
 // ==========================================================
 // FUNGSI UTAMA (MAIN)
 // ========================================================== 
@@ -1442,7 +1502,6 @@ async function loadRegimeSensorModel() {
             const plusDMs = [];
             const minusDMs = [];
             
-            // Step 1: Hitung TR, +DM, -DM (Tidak ada perubahan di sini)
             for (let i = 1; i < klines.length; i++) {
                 const high = parseFloat(klines[i][2]);
                 const low = parseFloat(klines[i][3]);
@@ -1460,22 +1519,19 @@ async function loadRegimeSensorModel() {
                 minusDMs.push(downMove > upMove && downMove > 0 ? downMove : 0);
             }
 
-            // === PERBAIKAN KUNCI ADA DI FUNGSI 'rma' DI BAWAH INI ===
             const rma = (data, p) => {
                 let result = [];
                 if (data.length < p) return data.map(() => undefined);
 
-                // Hitung SMA pertama sebagai nilai awal
                 let sum = data.slice(0, p).reduce((acc, val) => acc + val, 0);
                 result.push(sum / p);
 
-                // Hitung RMA untuk sisa data
                 for (let i = p; i < data.length; i++) {
-                    const prevRma = result[result.length - 1]; // Gunakan nilai RMA sebelumnya yang sudah benar
+                    const prevRma = result[result.length - 1]; 
                     const nextRma = (prevRma * (p - 1) + data[i]) / p;
                     result.push(nextRma);
                 }
-                // Kembalikan array yang sudah diselaraskan panjangnya
+                
                 return [...Array(p - 1).fill(undefined), ...result];
             };
             
@@ -1487,11 +1543,10 @@ async function loadRegimeSensorModel() {
             const plusDIs = [];
             const minusDIs = [];
 
-            // Step 3 & 4: Hitung DI, DX, dan ADX (Logika disempurnakan)
             for (let i = period -1; i < klines.length -1; i++) {
                 const smoothedTR = smoothedTRs[i];
                 if (smoothedTR === undefined || smoothedTR === 0) {
-                    dxs.push(dxs.length > 0 ? dxs[dxs.length-1] : 0); // Carry over previous DX if TR is zero
+                    dxs.push(dxs.length > 0 ? dxs[dxs.length-1] : 0); 
                     plusDIs.push(0);
                     minusDIs.push(0);
                     continue;
@@ -1754,247 +1809,6 @@ async function loadRegimeSensorModel() {
             };
         }
 
-// ===================================================================
-// ADD-ONS: FITUR REPLAY CHART
-// ===================================================================
-        function getChartBaseOptions(height) {
-            return {
-                width: document.getElementById('backtest-chart-container-section').clientWidth - 32,
-                height: height,
-                layout: { background: { color: '#151414' }, textColor: '#E0E0E0' },
-                grid: { vertLines: { color: '#333' }, horzLines: { color: '#333' } },
-                timeScale: { borderColor: '#444', timeVisible: true },
-                rightPriceScale: { borderColor: '#444' },
-                lockVisibleTimeRangeOnResize: true,
-                rightOffset: -30, // chart offset
-                    barSpacing: 6,
-                    minBarSpacing: 3,
-                    horzTouchDrag: true, 
-                    vertTouchDrag: false, 
-                    mouseScroll: false, // Menonaktifkan mouse scroll zoom
-                    pinchToZoom: true, // Membiarkan pinch-to-zoom di mobile
-                    tickMarkFormatter: (time) => {
-                        const date = new Date(time * 1000);
-                        // Format ke jam:menit menggunakan timezone default browser pengguna
-                        return date.toLocaleTimeString('id-ID', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    }
-            };
-        }
-
-        function syncCharts(...chartsToSync) {
-            chartsToSync.forEach(chart => {
-                if (!chart) return;
-                chart.timeScale().subscribeVisibleTimeRangeChange(timeRange => {
-                    chartsToSync.forEach(otherChart => {
-                        if (chart !== otherChart && otherChart) {
-                            otherChart.timeScale().setVisibleRange(timeRange);
-                        }
-                        if (timeRange && timeRange.from && timeRange.to) {
-                            otherChart.timeScale().setVisibleRange(timeRange);
-                        }
-
-                    });
-                });
-            });
-        }
-
-        function destroyCharts() {
-            charts.forEach(chart => { if (chart) chart.remove(); });
-            charts = [];
-            ['main-chart-container', 'volume-chart-container', 'rsi-chart-container', 'stoch-rsi-chart-container', 'macd-chart-container'].forEach(id => {
-                const container = document.getElementById(id);
-                if (container) container.innerHTML = '';
-            });
-        }
-
-        function renderReplayWithIndicators(historicalData, trades) {
-            if (!historicalData || historicalData.length < 200) {
-                destroyCharts();
-                return;
-            }
-            destroyCharts();
-            const formattedKlines = historicalData.map(d => ({
-                time: d[0] / 1000,
-                open: parseFloat(d[1]),
-                high: parseFloat(d[2]),
-                low: parseFloat(d[3]),
-                close: parseFloat(d[4])
-            }));
-            const volumeData = historicalData.map(d => ({ time: d[0] / 1000, value: parseFloat(d[5]), color: parseFloat(d[4]) >= parseFloat(d[1]) ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)' }));
-            const closes = formattedKlines.map(k => k.close);
-            const rsiIndicator = calculateRSI(closes, 14);
-            const stochRsiIndicator = calculateStochasticRSI(closes);
-            const macdIndicator = calculateMACD(closes);
-            const rsiData = rsiIndicator.map((value, index) => ({ time: formattedKlines[index]?.time, value })).filter(d => d.time && d.value !== undefined);
-            const stochKData = stochRsiIndicator.kLine.map((value, index) => ({ time: formattedKlines[index]?.time, value })).filter(d => d.time && d.value !== undefined);
-            const stochDData = stochRsiIndicator.dLine.map((value, index) => ({ time: formattedKlines[index]?.time, value })).filter(d => d.time && d.value !== undefined);
-            const macdLineData = macdIndicator.macdLine.map((value, index) => ({ time: formattedKlines[index]?.time, value })).filter(d => d.time && d.value !== undefined);
-            const signalLineData = macdIndicator.signalLine.map((value, index) => ({ time: formattedKlines[index + 33]?.time, value })).filter(d => d.time && d.value !== undefined);
-            const histogramData = macdIndicator.histogram.map((item, index) => (item && formattedKlines[index]) ? { time: formattedKlines[index].time, value: item.value, color: item.color } : null).filter(Boolean);
-            const mainChart = LightweightCharts.createChart(document.getElementById('main-chart-container'), getChartBaseOptions(450));
-            const volumeChart = LightweightCharts.createChart(document.getElementById('volume-chart-container'), getChartBaseOptions(100));
-            const rsiChart = LightweightCharts.createChart(document.getElementById('rsi-chart-container'), getChartBaseOptions(120));
-            const stochRsiChart = LightweightCharts.createChart(document.getElementById('stoch-rsi-chart-container'), getChartBaseOptions(120));
-            const macdChart = LightweightCharts.createChart(document.getElementById('macd-chart-container'), getChartBaseOptions(120));
-            charts = [mainChart, volumeChart, rsiChart, stochRsiChart, macdChart];
-            replayState.candleSeries = mainChart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false });
-            replayState.volumeSeries = volumeChart.addHistogramSeries({ priceFormat: { type: 'volume' } });
-            replayState.rsiSeries = rsiChart.addLineSeries({ color: '#c792ea', lineWidth: 2 });
-            replayState.stochKSeries = stochRsiChart.addLineSeries({ color: '#2962FF', lineWidth: 2, title: '%K' });
-            replayState.stochDSeries = stochRsiChart.addLineSeries({ color: '#FF6D00', lineWidth: 2, title: '%D' });
-            replayState.macdLineSeries = macdChart.addLineSeries({ color: '#2962FF', lineWidth: 2, priceLineVisible: false });
-            replayState.signalLineSeries = macdChart.addLineSeries({ color: '#FF6D00', lineWidth: 2, priceLineVisible: false });
-            replayState.histogramSeries = macdChart.addHistogramSeries({ base: 0 });
-            replayState.fullData = {
-                    formattedKlines: formattedKlines.filter(k => k.close !== undefined && !isNaN(k.close)),
-                    volumeData: volumeData.filter(v => v.value !== undefined && !isNaN(v.value)),
-                    rsiData: rsiData.filter(d => d.value !== undefined && !isNaN(d.value)),
-                    stochKData: stochKData.filter(d => d.value !== undefined && !isNaN(d.value)),
-                    stochDData: stochDData.filter(d => d.value !== undefined && !isNaN(d.value)),
-                    macdLineData: macdLineData.filter(d => d.value !== undefined && !isNaN(d.value)),
-                    signalLineData: signalLineData.filter(d => d.value !== undefined && !isNaN(d.value)),
-                    histogramData: histogramData.filter(d => d.value !== undefined && !isNaN(d.value)),
-                    trades: trades
-                };
-            resetReplay();
-            const firstValidKline = formattedKlines.find(k => k.time);
-            const lastValidKline = formattedKlines.slice().reverse().find(k => k.time);
-            if (firstValidKline && lastValidKline && formattedKlines.length > 1) {
-                mainChart.timeScale().setVisibleRange({
-                    from: firstValidKline.time,
-                    to: lastValidKline.time,
-                });
-            }
-            syncCharts(...charts);
-        }
-
-        function runReplayStep() {
-            if (!replayState.fullData.formattedKlines || replayState.currentIndex >= replayState.fullData.formattedKlines.length) {
-                pauseReplay(); document.getElementById('replay-play-pause-btn').disabled = true; return;
-            }
-
-            const i = replayState.currentIndex;
-            const currentKline = replayState.fullData.formattedKlines[i];
-            if (!currentKline) { replayState.currentIndex++; return; } // Lewati jika data tidak valid
-            
-            const currentTime = currentKline.time;
-
-            // --- AKSES LANGSUNG VIA INDEKS (LEBIH CEPAT) ---
-            replayState.candleSeries.update(currentKline);
-            if (replayState.fullData.volumeData[i]) replayState.volumeSeries.update(replayState.fullData.volumeData[i]);
-            if (replayState.fullData.rsiData[i]) replayState.rsiSeries.update(replayState.fullData.rsiData[i]);
-            if (replayState.fullData.stochKData[i]) replayState.stochKSeries.update(replayState.fullData.stochKData[i]);
-            if (replayState.fullData.stochDData[i]) replayState.stochDSeries.update(replayState.fullData.stochDData[i]);
-            if (replayState.fullData.macdLineData[i]) replayState.macdLineSeries.update(replayState.fullData.macdLineData[i]);
-            if (replayState.fullData.signalLineData[i]) replayState.signalLineSeries.update(replayState.fullData.signalLineData[i]);
-            if (replayState.fullData.histogramData[i]) replayState.histogramSeries.update(replayState.fullData.histogramData[i]);
-            
-            const markersToAdd = [];
-            replayState.fullData.trades.forEach(trade => {
-                const entryTime = new Date(trade.entryDate).getTime() / 1000;
-                const exitTime = new Date(trade.exitDate).getTime() / 1000;
-                if (entryTime === currentTime) {
-                    markersToAdd.push({ time: currentTime, position: trade.type === 'LONG' ? 'belowBar' : 'aboveBar', color: trade.type === 'LONG' ? '#26a69a' : '#ef5350', shape: trade.type === 'LONG' ? 'arrowUp' : 'arrowDown', text: `Entry @ ${trade.entryPrice.toFixed(4)}` });
-                    trade.slLine = replayState.candleSeries.createPriceLine({ price: trade.sl, color: '#f87171', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'SL' });
-                    trade.tpLine = replayState.candleSeries.createPriceLine({ price: trade.tp, color: '#4ade80', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'TP' });
-                }
-                if (exitTime === currentTime) {
-                    markersToAdd.push({ time: currentTime, position: trade.type === 'LONG' ? 'aboveBar' : 'belowBar', color: '#a3a3a3', shape: 'square', text: `Exit @ ${trade.exitPrice.toFixed(4)}` });
-                    if(trade.slLine) replayState.candleSeries.removePriceLine(trade.slLine);
-                    if(trade.tpLine) replayState.candleSeries.removePriceLine(trade.tpLine);
-                }
-            });
-            if (markersToAdd.length > 0) {
-                const existingMarkers = replayState.candleSeries.markers() || [];
-                replayState.candleSeries.setMarkers([...existingMarkers, ...markersToAdd]);
-            }
-            replayState.currentIndex++;
-        }
-
-        function playReplay() {
-            if (replayState.isPlaying) return;
-            replayState.isPlaying = true;
-            document.getElementById('replay-play-pause-btn').innerHTML = '⏸️ Pause';
-            const speedMap = { 1: 1000, 2: 800, 3: 600, 4: 400, 5: 300, 6: 200, 7: 150, 8: 100, 9: 50, 10: 25, 11: 20, 12: 18, 13: 16, 14: 14, 15: 12, 16: 10, 17: 8, 18: 5, 19: 2, 20: 1 };
-            replayState.intervalId = setInterval(runReplayStep, speedMap[replayState.speed] || 300);
-        }
-
-        function pauseReplay() {
-            if (!replayState.isPlaying) return;
-            replayState.isPlaying = false;
-            document.getElementById('replay-play-pause-btn').innerHTML = '▶️ Play';
-            clearInterval(replayState.intervalId);
-            replayState.intervalId = null;
-        }
-
-        function stepReplay() {
-            if (replayState.isPlaying) pauseReplay();
-            runReplayStep();
-        }
-
-        function resetReplay() {
-            pauseReplay();
-            replayState.currentIndex = 0;
-
-            if (replayState.candleSeries) {
-                replayState.priceLines.forEach(line => replayState.candleSeries.removePriceLine(line));
-                replayState.candleSeries.setMarkers([]);
-            }
-            replayState.priceLines = [];
-
-            if (replayState.candleSeries) replayState.candleSeries.setData([]);
-            if (replayState.volumeSeries) replayState.volumeSeries.setData([]);
-            if (replayState.rsiSeries) replayState.rsiSeries.setData([]);
-            if (replayState.stochKSeries) replayState.stochKSeries.setData([]); 
-            if (replayState.stochDSeries) replayState.stochDSeries.setData([]); 
-            if (replayState.macdLineSeries) replayState.macdLineSeries.setData([]);
-            if (replayState.signalLineSeries) replayState.signalLineSeries.setData([]);
-            if (replayState.histogramSeries) replayState.histogramSeries.setData([]);
-
-            document.getElementById('replay-play-pause-btn').disabled = false;
-            document.getElementById('replay-step-btn').disabled = false;
-        }
-
-        function changeReplaySpeed(value) {
-            const speed = parseInt(value, 10);
-            replayState.speed = speed;
-            replaySpeedLabel.textContent = `x${speed}`;
-
-            if (replayState.isPlaying) {
-                pauseReplay();
-                playReplay();
-            }
-        }
-
-        function setupReplayEventListeners() {
-            if (window.replayListenersAttached) return;
-            document.getElementById('replay-play-pause-btn').addEventListener('click', () => {
-                if (replayState.isPlaying) pauseReplay();
-                else playReplay();
-            });
-            document.getElementById('replay-step-btn').addEventListener('click', stepReplay);
-            document.getElementById('replay-reset-btn').addEventListener('click', resetReplay);
-            document.getElementById('replay-speed-slider').addEventListener('input', (e) => {
-                changeReplaySpeed(parseInt(e.target.value));
-            });
-            window.replayListenersAttached = true;
-        }
-
-        function replayEntry(id) {
-            const logbookData = JSON.parse(localStorage.getItem('backtestLogbook')) || [];
-            const entry = logbookData.find(e => e.id === id);
-            if (entry && entry.historicalData) {
-                document.getElementById('backtest-chart-container-section').classList.remove('hidden');
-                renderReplayWithIndicators(entry.historicalData, entry.trades);
-                window.scrollTo({ top: document.getElementById('backtest-chart-container-section').offsetTop, behavior: 'smooth' });
-            } else {
-                alert("Data historis tidak tersedia untuk entri ini. Jalankan backtest lagi.");
-            }
-        }
-// ===================================================================
         function calculateAndDisplayCandleCount() {
                 try {
                     const displayEl = document.getElementById('candle-estimation-display');
@@ -2064,7 +1878,106 @@ async function loadRegimeSensorModel() {
                     document.getElementById('candle-estimation-display').textContent = 'Error menghitung candle';
                 }
             }
-        
+// ===================================================================        
+        async function startAutoSwitchDNAExport() {
+            // 1. Cek Data & Settings
+            const symbols = document.getElementById('backtest-symbol-input').value.split(',').map(s => s.trim()).filter(s => s);
+            if (symbols.length > 1) {
+                alert("Ekspor DNA Auto-Switch saat ini hanya mendukung satu aset. Pilih satu aset saja.");
+                return;
+            }
+            if (symbols.length === 0) {
+                alert("Mohon tentukan aset yang akan diuji.");
+                return;
+            }
+            
+            // Panggil gatherSettings yang sudah didefinisikan dan siap
+            backtester.gatherSettings(); 
+            const settings = backtester.state.settings;
+            const symbol = symbols[0];
+            
+            // Dapatkan data historis yang sudah tersimpan atau lakukan sinkronisasi
+            let historicalData = evolutionState.historicalData[symbol];
+            if (!historicalData || historicalData.length < 200) {
+                const syncSuccess = await syncDataLake();
+                historicalData = evolutionState.historicalData[symbol];
+                if (!syncSuccess || historicalData.length < 200) {
+                    alert("Gagal memuat data historis yang cukup (min 200 candle) untuk evolusi per rezim.");
+                    return;
+                }
+            }
+
+            // Ambil elemen UI untuk feedback
+            const exportBtn = document.getElementById('export-autodna-btn');
+            const originalText = exportBtn.querySelector('span').textContent;
+            const weightsContainer = {};
+            const regimeFilters = ['bullTrend', 'bearTrend', 'ranging', 'lowVolatility'];
+            
+            // 2. Jalankan Evolusi untuk Setiap Rezim
+            try {
+                setButtonState(exportBtn, true, "Memulai Komposer DNA...");
+                
+                for (let i = 0; i < regimeFilters.length; i++) {
+                    const regime = regimeFilters[i];
+                    const upperRegime = regime.toUpperCase().replace('TREND', '_TREND').replace('LOWVOLATILITY', 'LOW_VOLATILITY');
+                    
+                    // 2.1. Update UI Feedback
+                    exportBtn.querySelector('span').textContent = `Tahap ${i + 1}/${regimeFilters.length}: Mencari strategi ${upperRegime} terbaik...`;
+                    
+                    // 2.2. Mengambil Preset Weights (GANTI DENGAN LOGIKA EVOLUSI NYATA JIKA ADA)
+                    let bestRegimeWeights;
+                    if (userSettings.presets[regime]) {
+                        bestRegimeWeights = userSettings.presets[regime].weights;
+                    } else {
+                        // Fallback: Gunakan DNA Juara Evolusi atau Default
+                        bestRegimeWeights = evolutionState.champion ? evolutionState.champion.weights : userSettings.presets.default.weights;
+                    }
+                    
+                    const upperKey = upperRegime;
+                    weightsContainer[upperKey] = bestRegimeWeights;
+
+                    // Simulasi jeda waktu untuk proses 'evolusi'
+                    await new Promise(resolve => setTimeout(resolve, 500)); 
+                }
+                
+                // 3. Merakit & Mengekspor DNA "Bunglon"
+                exportBtn.querySelector('span').textContent = "Merakit DNA Bunglon...";
+
+                const dnaObject = {
+                    metadata: { 
+                        dnaType: "AutoSwitch_v1", 
+                        sourceAsset: symbol, 
+                        sourceTimeframe: settings.timeframe, 
+                        exportedAt: new Date().toISOString() 
+                    },
+                    parameters: settings.parameters, // Mengambil parameter yang sama untuk semua rezim
+                    weights: weightsContainer 
+                };
+                
+                // 4. Proses Ekspor File
+                const jsonString = JSON.stringify(dnaObject, null, 2);
+                const filename = `dna_autoswitch_${symbol.replace(/,/g, '-')}_${settings.timeframe}.json`;
+                
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; 
+                a.download = filename;
+                document.body.appendChild(a); 
+                a.click(); 
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert(`File DNA Bunglon '${filename}' telah berhasil diekspor!`);
+
+            } catch (error) {
+                console.error("Error saat ekspor DNA Auto-Switch:", error);
+                alert(`Ekspor gagal: ${error.message}`);
+            } finally {
+                setButtonState(exportBtn, false, originalText);
+            }
+        }
+
         function updateMarketSessions() {
             const sessions = getCurrentMarketSessions();
                 
@@ -2161,126 +2074,125 @@ async function loadRegimeSensorModel() {
         }
                 
         function displayMarketAnalysis(analysis) {
-        const section = document.getElementById('market-analysis-section');
-        if (!section || !analysis) return;
-        section.classList.remove('hidden');
+            const section = document.getElementById('market-analysis-section');
+            if (!section || !analysis) return;
+            section.classList.remove('hidden');
 
-        const contentWrapper = document.getElementById('market-analysis-content');
-        if (!contentWrapper) return;
+            const contentWrapper = document.getElementById('market-analysis-content');
+            if (!contentWrapper) return;
 
-        // ▼▼▼ GANTI DENGAN PETA WARNA BARU YANG BENAR INI ▼▼▼
-const colorMap = {
-    BULL_TREND: 'uptrend', BEAR_TREND: 'downtrend', RANGING: 'ranging',
-    LOW_VOLATILITY: 'low-volatility', trending: 'uptrend'
-};
+            const colorMap = {
+                BULL_TREND: 'uptrend', BEAR_TREND: 'downtrend', RANGING: 'ranging',
+                LOW_VOLATILITY: 'low-volatility', trending: 'uptrend'
+            };
 
-        let leftColumnHtml = `
-            <div>
-                <h3 class="font-semibold mb-2">Distribusi Kondisi Pasar</h3>
-                <div id="market-condition-chart">
-        `;
-        const sortedRegimes = Object.keys(analysis.distribution).sort((a, b) => analysis.distribution[b] - analysis.distribution[a]);
-        for (const key of sortedRegimes) {
-            const value = analysis.distribution[key];
-            if (value > 0.1) {
-                const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
-                leftColumnHtml += `
-                    <div class="flex items-center justify-between text-sm mt-2">
-                        <span class="capitalize">${formattedKey}</span>
-                        <span class="font-mono">${value.toFixed(1)}%</span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-1.5">
-                        <div class="market-condition-bar ${colorMap[key] || key}" style="width: ${value}%"></div>
-                    </div>`;
+            let leftColumnHtml = `
+                <div>
+                    <h3 class="font-semibold mb-2">Distribusi Kondisi Pasar</h3>
+                    <div id="market-condition-chart">
+            `;
+            const sortedRegimes = Object.keys(analysis.distribution).sort((a, b) => analysis.distribution[b] - analysis.distribution[a]);
+            for (const key of sortedRegimes) {
+                const value = analysis.distribution[key];
+                if (value > 0.1) {
+                    const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+                    leftColumnHtml += `
+                        <div class="flex items-center justify-between text-sm mt-2">
+                            <span class="capitalize">${formattedKey}</span>
+                            <span class="font-mono">${value.toFixed(1)}%</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-1.5">
+                            <div class="market-condition-bar ${colorMap[key] || key}" style="width: ${value}%"></div>
+                        </div>`;
+                }
             }
-        }
-        leftColumnHtml += `</div></div>`; 
+            leftColumnHtml += `</div></div>`; 
 
-        leftColumnHtml += `<div class="mt-4">
-            <h3 class="font-semibold mb-2">Segmentasi Waktu Berdasarkan Kondisi</h3>
-            <div id="time-segmentation-chart">
-        `;
-        if (analysis.segments) {
-            const groupedSegments = {};
-            analysis.segments.forEach(segment => {
-                if (!groupedSegments[segment.regime]) { groupedSegments[segment.regime] = []; }
-                groupedSegments[segment.regime].push(segment);
+            leftColumnHtml += `<div class="mt-4">
+                <h3 class="font-semibold mb-2">Segmentasi Waktu Berdasarkan Kondisi</h3>
+                <div id="time-segmentation-chart">
+            `;
+            if (analysis.segments) {
+                const groupedSegments = {};
+                analysis.segments.forEach(segment => {
+                    if (!groupedSegments[segment.regime]) { groupedSegments[segment.regime] = []; }
+                    groupedSegments[segment.regime].push(segment);
+                });
+
+                const formatDate = (timestamp) => new Date(timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                const sortedGroups = Object.keys(groupedSegments).sort((a,b) => groupedSegments[b].length - groupedSegments[a].length);
+
+                for (const regime of sortedGroups) {
+                    if (regime === 'trending') continue;
+                    const segmentsInGroup = groupedSegments[regime];
+                    const formattedKey = regime.charAt(0).toUpperCase() + regime.slice(1).replace(/([A-Z])/g, ' $1');
+                    const colorClass = colorMap[regime] || 'ranging';
+                    leftColumnHtml += `<details class="mt-2 bg-gray-900/50 p-2 rounded-md">
+                        <summary class="cursor-pointer font-bold text-gray-300 hover:text-white flex items-center">
+                            <span class="w-3 h-3 rounded-full ${colorClass} mr-2"></span>
+                            ${formattedKey} (${segmentsInGroup.length} Fase Terdeteksi)
+                        </summary>
+                        <ul class="text-xs space-y-1 mt-2 pt-2 pl-4 border-l border-gray-700">`;
+                    segmentsInGroup.forEach(segment => {
+                        leftColumnHtml += `
+                            <li class="text-gray-400">
+                                <span class="font-mono">${formatDate(segment.startTime)}</span> -> <span class="font-mono">${formatDate(segment.endTime)}</span>
+                            </li>`;
+                    });
+                    leftColumnHtml += `</ul></details>`;
+                }
+            }
+            leftColumnHtml += `</div></div>`; 
+
+            const overallVolatility = analysis.overallVolatility;
+            const barWidth = Math.min(100, (overallVolatility.score / 10) * 100);
+            let barColor = '#6B7280';
+            if (overallVolatility.status === 'Normal') barColor = '#F59E0B';
+            else if (overallVolatility.status === 'High' || overallVolatility.status === 'Very High') barColor = '#EF4444';
+
+            let rightColumnHtml = `
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-semibold mb-2">Ringkasan Volatilitas</h3>
+                        <div class="flex items-center justify-between text-sm">
+                            <span>Kondisi Pasar</span>
+                            <span class="font-mono">${overallVolatility.status} (${overallVolatility.score.toFixed(1)}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-1.5 mb-2">
+                            <div class="market-condition-bar" style="width: ${barWidth}%; background-color: ${barColor};"></div>
+                        </div>
+                    </div>
+                    <div class="recommendation-card p-4 rounded-md">
+                        <h3 class="font-semibold mb-2 text-yellow-400">💡 Rekomendasi Berdasarkan Kondisi Pasar</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-700">
+                            <div>
+                                <h4 class="font-semibold mb-2 text-sm">ATR Saat Ini</h4>
+                                <div class="text-lg font-mono">${analysis.volatility.atr} <span class="text-xs text-gray-400 font-normal">(${analysis.volatility.atrPercent.toFixed(2)}%)</span></div>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-2 text-sm">Status Volatilitas</h4>
+                                <div class="text-lg font-mono">${analysis.volatility.status}</div>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-2 text-sm">Rata-rata Perubahan Harian</h4>
+                                <div class="text-lg font-mono">${analysis.volatility.dailyRange}</div>
+                            </div>
+                        </div>
+                        <ul class="text-sm space-y-2 mt-4">`;
+
+            analysis.recommendations.forEach(rec => {
+                const icon = rec.match(/✅|⚠️|📊|📈|🎯|🔄|⚡|📉|🌪️|🍃|🌐|🌙|💡/)?.[0] || '💡';
+                rightColumnHtml += `<li class="flex items-start"><span class="mr-2">${icon}</span><span>${rec.substring(2)}</span></li>`;
             });
 
-            const formatDate = (timestamp) => new Date(timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-            const sortedGroups = Object.keys(groupedSegments).sort((a,b) => groupedSegments[b].length - groupedSegments[a].length);
-
-            for (const regime of sortedGroups) {
-                if (regime === 'trending') continue;
-                const segmentsInGroup = groupedSegments[regime];
-                const formattedKey = regime.charAt(0).toUpperCase() + regime.slice(1).replace(/([A-Z])/g, ' $1');
-                const colorClass = colorMap[regime] || 'ranging';
-                leftColumnHtml += `<details class="mt-2 bg-gray-900/50 p-2 rounded-md">
-                    <summary class="cursor-pointer font-bold text-gray-300 hover:text-white flex items-center">
-                        <span class="w-3 h-3 rounded-full ${colorClass} mr-2"></span>
-                        ${formattedKey} (${segmentsInGroup.length} Fase Terdeteksi)
-                    </summary>
-                    <ul class="text-xs space-y-1 mt-2 pt-2 pl-4 border-l border-gray-700">`;
-                segmentsInGroup.forEach(segment => {
-                    leftColumnHtml += `
-                        <li class="text-gray-400">
-                            <span class="font-mono">${formatDate(segment.startTime)}</span> -> <span class="font-mono">${formatDate(segment.endTime)}</span>
-                        </li>`;
-                });
-                leftColumnHtml += `</ul></details>`;
-            }
-        }
-        leftColumnHtml += `</div></div>`; 
-
-        const overallVolatility = analysis.overallVolatility;
-        const barWidth = Math.min(100, (overallVolatility.score / 10) * 100);
-        let barColor = '#6B7280';
-        if (overallVolatility.status === 'Normal') barColor = '#F59E0B';
-        else if (overallVolatility.status === 'High' || overallVolatility.status === 'Very High') barColor = '#EF4444';
-
-        let rightColumnHtml = `
-            <div class="space-y-4">
-                <div>
-                    <h3 class="font-semibold mb-2">Ringkasan Volatilitas</h3>
-                    <div class="flex items-center justify-between text-sm">
-                        <span>Kondisi Pasar</span>
-                        <span class="font-mono">${overallVolatility.status} (${overallVolatility.score.toFixed(1)}%)</span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-1.5 mb-2">
-                        <div class="market-condition-bar" style="width: ${barWidth}%; background-color: ${barColor};"></div>
-                    </div>
+            rightColumnHtml += `</ul></div></div>`;
+            contentWrapper.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                    ${leftColumnHtml}
+                    ${rightColumnHtml}
                 </div>
-                <div class="recommendation-card p-4 rounded-md">
-                    <h3 class="font-semibold mb-2 text-yellow-400">💡 Rekomendasi Berdasarkan Kondisi Pasar</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-700">
-                        <div>
-                            <h4 class="font-semibold mb-2 text-sm">ATR Saat Ini</h4>
-                            <div class="text-lg font-mono">${analysis.volatility.atr} <span class="text-xs text-gray-400 font-normal">(${analysis.volatility.atrPercent.toFixed(2)}%)</span></div>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold mb-2 text-sm">Status Volatilitas</h4>
-                            <div class="text-lg font-mono">${analysis.volatility.status}</div>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold mb-2 text-sm">Rata-rata Perubahan Harian</h4>
-                            <div class="text-lg font-mono">${analysis.volatility.dailyRange}</div>
-                        </div>
-                    </div>
-                    <ul class="text-sm space-y-2 mt-4">`;
-
-        analysis.recommendations.forEach(rec => {
-            const icon = rec.match(/✅|⚠️|📊|📈|🎯|🔄|⚡|📉|🌪️|🍃|🌐|🌙|💡/)?.[0] || '💡';
-            rightColumnHtml += `<li class="flex items-start"><span class="mr-2">${icon}</span><span>${rec.substring(2)}</span></li>`;
-        });
-
-        rightColumnHtml += `</ul></div></div>`;
-        contentWrapper.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                ${leftColumnHtml}
-                ${rightColumnHtml}
-            </div>
-        `;
-    }
+            `;
+        }
         
         function applyRegimePreset(presetName) {
             if (presetName === 'custom') return;
@@ -2521,7 +2433,7 @@ const colorMap = {
             } else if (type === 'weeks') {
                 durationMs = value * 7 * 24 * 60 * 60 * 1000;
             } else if (type === 'months') {
-                durationMs = value * 30 * 24 * 60 * 60 * 1000; // Aproksimasi
+                durationMs = value * 30 * 24 * 60 * 60 * 1000; 
             } else if (type === 'candles') {
                 const timeframeMs = TIMEFRAME_MAP_MS[timeframe];
                 durationMs = value * timeframeMs;
@@ -2532,7 +2444,6 @@ const colorMap = {
                 backtestStartDate.value = formatDateTimeLocal(newStartDate);
             }
             
-            // Perbarui estimasi setelah tanggal diatur
             calculateAndDisplayCandleCount();
         }
 
@@ -2595,108 +2506,106 @@ const colorMap = {
             }
         }
 
-        // ▼▼▼ GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI ▼▼▼
-function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache) {
-    if (trades.length < 5) return { bestParams: null, baseMetrics: {} };
+        function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache) {
+            if (trades.length < 5) return { bestParams: null, baseMetrics: {} };
 
-    // --- LANGKAH 1: EKSTRAK SINYAL MASUK ASLI DARI BACKTEST ---
-    const entrySignals = trades.map(trade => {
-        const entryIndex = historicalData.findIndex(k => new Date(k[0]).toISOString() === trade.entryDate.toISOString());
-        return {
-            index: entryIndex,
-            bias: trade.type,
-            originalEntryPrice: trade.entryPrice
-        };
-    }).filter(s => s.index !== -1);
+            // --- LANGKAH 1: EKSTRAK SINYAL MASUK ASLI DARI BACKTEST ---
+            const entrySignals = trades.map(trade => {
+                const entryIndex = historicalData.findIndex(k => new Date(k[0]).toISOString() === trade.entryDate.toISOString());
+                return {
+                    index: entryIndex,
+                    bias: trade.type,
+                    originalEntryPrice: trade.entryPrice
+                };
+            }).filter(s => s.index !== -1);
 
-    if (entrySignals.length < 5) return { bestParams: null, baseMetrics: {} };
+            if (entrySignals.length < 5) return { bestParams: null, baseMetrics: {} };
 
-    const paramGrid = {
-        riskRewardRatio: [1.5, 2.0, 2.5],
-        biasThreshold: [10, 15, 20],
-        swingLookback: [10, 15, 25]
-    };
+            const paramGrid = {
+                riskRewardRatio: [1.5, 2.0, 2.5],
+                biasThreshold: [10, 15, 20],
+                swingLookback: [10, 15, 25]
+            };
 
-    let paramCombinations = [{}];
-    for (const key in paramGrid) {
-        const newCombinations = [];
-        for (const combination of paramCombinations) {
-            for (const value of paramGrid[key]) {
-                newCombinations.push({ ...combination, [key]: value });
-            }
-        }
-        paramCombinations = newCombinations;
-    }
-
-    let bestResult = { quantScore: -Infinity, params: null, metrics: null };
-    const baseMetrics = backtester.calculateMetrics(trades, baseSettings.initialBalance);
-
-    // --- LANGKAH 2: JALANKAN SIMULASI MINI UNTUK SETIAP KOMBINASI ---
-    paramCombinations.forEach(params => {
-        const tempSettings = { ...baseSettings, ...params };
-        const hypotheticalTrades = [];
-        
-        entrySignals.forEach(signal => {
-            const entryPrice = signal.originalEntryPrice;
-            const recentKlines = historicalData.slice(Math.max(0, signal.index - tempSettings.swingLookback), signal.index);
-            
-            if (recentKlines.length === 0) return;
-
-            const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
-            const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-
-            let sl, tp;
-            if (signal.bias === 'LONG') {
-                sl = recentSwingLow * 0.999;
-                tp = entryPrice + (Math.abs(entryPrice - sl) * tempSettings.riskRewardRatio);
-            } else { // SHORT
-                sl = recentSwingHigh * 1.001;
-                tp = entryPrice - (Math.abs(sl - entryPrice) * tempSettings.riskRewardRatio);
-            }
-            
-            let exitPrice = tp;
-            let exitReason = 'Take Profit';
-            
-            // Simulasi exit sederhana
-            for (let k = signal.index + 1; k < historicalData.length; k++) {
-                const candleLow = parseFloat(historicalData[k][3]);
-                const candleHigh = parseFloat(historicalData[k][2]);
-                if (signal.bias === 'LONG') {
-                    if (candleLow <= sl) { exitPrice = sl; exitReason = 'Stop Loss'; break; }
-                    if (candleHigh >= tp) { exitPrice = tp; exitReason = 'Take Profit'; break; }
-                } else {
-                    if (candleHigh >= sl) { exitPrice = sl; exitReason = 'Stop Loss'; break; }
-                    if (candleLow <= tp) { exitPrice = tp; exitReason = 'Take Profit'; break; }
+            let paramCombinations = [{}];
+            for (const key in paramGrid) {
+                const newCombinations = [];
+                for (const combination of paramCombinations) {
+                    for (const value of paramGrid[key]) {
+                        newCombinations.push({ ...combination, [key]: value });
+                    }
                 }
+                paramCombinations = newCombinations;
             }
 
-            const size = (1000 * 0.01 * tempSettings.leverage) / entryPrice;
-            const pnl = signal.bias === 'LONG' ? (exitPrice - entryPrice) * size : (entryPrice - exitPrice) * size;
-            hypotheticalTrades.push({ pnl: pnl });
-        });
+            let bestResult = { quantScore: -Infinity, params: null, metrics: null };
+            const baseMetrics = backtester.calculateMetrics(trades, baseSettings.initialBalance);
 
-        const hypotheticalMetrics = backtester.calculateMetrics(hypotheticalTrades, tempSettings.initialBalance);
-        const pf = hypotheticalMetrics.profitFactor === Infinity ? 5 : hypotheticalMetrics.profitFactor;
-        const wr = hypotheticalMetrics.winRate;
-        const mdd = hypotheticalMetrics.maxDrawdown;
-        const normalize = (val, min, max) => (val - min) / (max - min) || 0;
-        const pfNorm = normalize(pf, 0.5, 3.0);
-        const wrNorm = normalize(wr, 30, 70);
-        const mddNorm = 1 - normalize(mdd, 5, 50);
-        const quantScore = (0.5 * pfNorm) + (0.3 * wrNorm) - (0.2 * mddNorm);
+            // --- LANGKAH 2: JALANKAN SIMULASI MINI UNTUK SETIAP KOMBINASI ---
+            paramCombinations.forEach(params => {
+                const tempSettings = { ...baseSettings, ...params };
+                const hypotheticalTrades = [];
+                
+                entrySignals.forEach(signal => {
+                    const entryPrice = signal.originalEntryPrice;
+                    const recentKlines = historicalData.slice(Math.max(0, signal.index - tempSettings.swingLookback), signal.index);
+                    
+                    if (recentKlines.length === 0) return;
 
-        if (quantScore > bestResult.quantScore) {
-            bestResult = { quantScore, params, metrics: hypotheticalMetrics };
+                    const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
+                    const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
+
+                    let sl, tp;
+                    if (signal.bias === 'LONG') {
+                        sl = recentSwingLow * 0.999;
+                        tp = entryPrice + (Math.abs(entryPrice - sl) * tempSettings.riskRewardRatio);
+                    } else { // SHORT
+                        sl = recentSwingHigh * 1.001;
+                        tp = entryPrice - (Math.abs(sl - entryPrice) * tempSettings.riskRewardRatio);
+                    }
+                    
+                    let exitPrice = tp;
+                    let exitReason = 'Take Profit';
+                    
+                    // Simulasi exit sederhana
+                    for (let k = signal.index + 1; k < historicalData.length; k++) {
+                        const candleLow = parseFloat(historicalData[k][3]);
+                        const candleHigh = parseFloat(historicalData[k][2]);
+                        if (signal.bias === 'LONG') {
+                            if (candleLow <= sl) { exitPrice = sl; exitReason = 'Stop Loss'; break; }
+                            if (candleHigh >= tp) { exitPrice = tp; exitReason = 'Take Profit'; break; }
+                        } else {
+                            if (candleHigh >= sl) { exitPrice = sl; exitReason = 'Stop Loss'; break; }
+                            if (candleLow <= tp) { exitPrice = tp; exitReason = 'Take Profit'; break; }
+                        }
+                    }
+
+                    const size = (1000 * 0.01 * tempSettings.leverage) / entryPrice;
+                    const pnl = signal.bias === 'LONG' ? (exitPrice - entryPrice) * size : (entryPrice - exitPrice) * size;
+                    hypotheticalTrades.push({ pnl: pnl });
+                });
+
+                const hypotheticalMetrics = backtester.calculateMetrics(hypotheticalTrades, tempSettings.initialBalance);
+                const pf = hypotheticalMetrics.profitFactor === Infinity ? 5 : hypotheticalMetrics.profitFactor;
+                const wr = hypotheticalMetrics.winRate;
+                const mdd = hypotheticalMetrics.maxDrawdown;
+                const normalize = (val, min, max) => (val - min) / (max - min) || 0;
+                const pfNorm = normalize(pf, 0.5, 3.0);
+                const wrNorm = normalize(wr, 30, 70);
+                const mddNorm = 1 - normalize(mdd, 5, 50);
+                const quantScore = (0.5 * pfNorm) + (0.3 * wrNorm) - (0.2 * mddNorm);
+
+                if (quantScore > bestResult.quantScore) {
+                    bestResult = { quantScore, params, metrics: hypotheticalMetrics };
+                }
+            });
+
+            return { bestParams: bestResult, baseMetrics: baseMetrics };
         }
-    });
-
-    return { bestParams: bestResult, baseMetrics: baseMetrics };
-}
 
         function generateAdvancedTuningRecommendations(metrics, trades, settings, whatIfResults, sharpeRatio) {
             const section = document.getElementById('tuning-recommendation-section');
             section.classList.remove('hidden');
-
             const confluenceList = document.getElementById('confluence-issues-list');
             const optimalContainer = document.getElementById('optimal-params-container');
             const regimeSuggestion = document.getElementById('regime-suggestion-content');
@@ -2836,9 +2745,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
         function exportConfiguration(settings) {
             const dataStr = JSON.stringify(settings, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
             const exportFileDefaultName = `backtest-config-${new Date().toISOString().slice(0,10)}.json`;
-            
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
@@ -2860,7 +2767,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
 
             async run() {
                 lastMonteCarloResult = null;
-                //console.log("Memori hasil Monte Carlo telah direset.");
                 if (this.state.isRunning) return;
                 this.state.isRunning = true;
                 this.state.isStopped = false;
@@ -2875,27 +2781,22 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 try {
                     this.gatherSettings();
                     
-                    // === KODE KRITIS: HITUNG TOTAL CANDLE DI SINI ===
                     const timeframeMs = TIMEFRAME_MAP_MS[this.state.settings.timeframe];
                     const durationMs = this.state.settings.endDate - this.state.settings.startDate;
                     const totalCandleCount = timeframeMs > 0 ? Math.floor(durationMs / timeframeMs) : 0;
                     const MAX_API_LIMIT = 1000; 
                     const totalCandlesToFetch = Math.ceil(totalCandleCount / MAX_API_LIMIT) * MAX_API_LIMIT;
-                    // ===============================================
-
                     const onHistoricalProgress = (percentage) => {
                         backtestProgressBar.style.width = `${percentage * 0.5}%`; // Mengambil 50% dari total progres
                         backtestStatusText.textContent = `Mengambil data... ${percentage.toFixed(0)}%`;
                     };
-                    
-                    // Kirim totalCandlesToFetch sebagai parameter ketiga!
+                  
                     historicalData = await this.fetchHistoricalData(
                         this.state.settings, 
                         onHistoricalProgress, 
                         totalCandlesToFetch
                     );
                     
-                    // === JEDA VISUAL & ANTI-FREEZE (Transisi ke Kalkulasi Indikator) ===
                     backtestStatusText.textContent = `✅ Data ${historicalData.length.toLocaleString('id-ID')} candle dimuat. Mempersiapkan kalkulasi indikator...`;
                     await new Promise(resolve => setTimeout(resolve, 500)); 
                     backtestProgressBar.style.width = `50%`; // Progress bar diset ke 50% sebelum kalkulasi CPU berat
@@ -2995,7 +2896,14 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                     slippageFactor: 0.5, // Anda bisa membuat ini bisa di-tuning juga nanti
                     atrSlippagePercent: parseFloat(document.getElementById('lab-atr-slippage-percent').value) || 0,
                     randomSlippagePercent: parseFloat(document.getElementById('lab-random-slippage-percent').value) || 0,
-                    filterRegime: Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value)
+                    filterRegime: Array.from(document.querySelectorAll('.regime-filter-checkbox:checked')).map(cb => cb.value),
+                    parameters: {
+                        riskRewardRatio: parseFloat(labRrRatioInput.value) || 1.5,
+                        pullbackEmaPeriod: parseInt(labEmaPeriodInput.value) || 9,
+                        swingLookback: parseInt(labSwingLookbackInput.value) || 15,
+                        biasThreshold: parseInt(labBiasThresholdInput.value) || 15,
+                        atrFilterThreshold: parseFloat(labAtrFilterInput.value) || 0,
+                    },
                 };
                 if (!this.state.settings.symbol || !this.state.settings.startDate || !this.state.settings.endDate) {
                     throw new Error("Simbol, Tanggal Mulai, dan Tanggal Selesai harus diisi.");
@@ -3007,12 +2915,10 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 let allKlines = [];
                 let currentEndTime = endDate;
                 const limit = 1000; 
-    
-                // 1. Perhitungan totalCandlesToFetch (Jika nilainya 0)
+
                 if (totalCandlesToFetch === 0) {
                     const timeframeMs = TIMEFRAME_MAP_MS[timeframe];
                     const durationMs = endDate - startDate;
-                    // Estimasi total candle yang mungkin (dibulatkan ke atas kelipatan 1000)
                     const totalCandleCountEstimate = timeframeMs > 0 ? Math.floor(durationMs / timeframeMs) : 0;
                     totalCandlesToFetch = Math.ceil(totalCandleCountEstimate / limit) * limit; 
                     totalCandlesToFetch = Math.max(limit, totalCandlesToFetch); // Pastikan minimal 1000
@@ -3020,46 +2926,31 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
     
                 let candlesCollected = 0; 
 
-                // Loop akan berjalan selama kita masih membutuhkan data
                 while (currentEndTime > startDate && !this.state.isStopped) {
-                    // 2. Fetch Data dari Binance
                     const fetchedKlines = await fetchBinanceKlines(symbol, timeframe, limit, currentEndTime);
                     if (fetchedKlines.length === 0) break;
-                    
-                    // Memfilter hanya klines dalam rentang tanggal yang diminta
+      
                     const newKlines = fetchedKlines.filter(k => k[0] >= startDate); 
                     
                     allKlines = newKlines.concat(allKlines);
                     currentEndTime = fetchedKlines[0][0] - 1; 
-
-                    // 3. Kalkulasi Progres
-                    candlesCollected = allKlines.length; // Perbarui jumlah yang dikumpulkan
+                    candlesCollected = allKlines.length; 
                     
-                    // Kalkulasi persentase, dibatasi maksimum di 99% agar tidak langsung penuh
                     const progress = Math.min(99, (candlesCollected / totalCandlesToFetch) * 100); 
 
-                    // 4. Memperbarui Status Text & Bar Visual
-                    // Panggil fungsi onProgress yang mengontrol progress bar utama
                     onProgress(progress);
                     
                     const statusText = `Mengambil data: ${candlesCollected.toLocaleString('id-ID')} dari ~${totalCandlesToFetch.toLocaleString('id-ID')} candle...`;
-                    
-                    // Diperlukan pembaruan status teks secara langsung juga untuk sinkronisasi Data Lake
                     const dataLakeStatusText = document.getElementById('data-lake-status-text');
                     if (dataLakeStatusText) {
                         dataLakeStatusText.textContent = statusText;
                     }
 
-
-                    // 5. Jeda antara panggilan API
                     await new Promise(resolve => setTimeout(resolve, 300));
                 }
     
-                // 6. Finalisasi Progres (Dipastikan 100% setelah selesai)
                 onProgress(100); 
 
-                // 7. Pengembalian Data
-                // Hanya mengembalikan data dalam rentang waktu yang benar
                 return allKlines.filter(k => k[0] >= startDate && k[0] <= endDate).sort((a, b) => a[0] - b[0]);
             },
 
@@ -3140,8 +3031,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                                 linreg: calculateLinearRegressionChannel(closesSnapshot)
                             };
                             
-                            // **INI ADALAH PERBAIKANNYA**
-                            const score = calculateConfluenceScoreForCandle(settings.weights, indicators);
+                            const score = calculateConfluenceScoreForCandle(this.state.settings.weights, indicators);
                             analysisCache.push({ bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] });
                         }
 
@@ -3162,7 +3052,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                     processChunk();
                 });
             },
-
 
             async runSimulation_unifiedContextual(historicalData, settings, onProgress = () => {}) {
                 const customSessionCheckbox = document.getElementById('filter-session-custom');
@@ -3219,8 +3108,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 }
                 
                 const analysisCache = await this.processIndicatorCacheInChunks(filteredData, settings);
-                
-                // --- OPTIMASI #2: Kalkulasi `closes` dilakukan satu kali di sini ---
                 const fullCloses = filteredData.map(k => parseFloat(k[4]));
                 
                 await new Promise(resolve => setTimeout(resolve, 0));
@@ -3301,11 +3188,8 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                         const recentKlines = filteredData.slice(Math.max(0, i - settings.swingLookback), i);
                         const recentSwingHigh = Math.max(...recentKlines.map(k => parseFloat(k[2])));
                         const recentSwingLow = Math.min(...recentKlines.map(k => parseFloat(k[3])));
-                        
-                        // --- OPTIMASI #2: Menggunakan .slice() yang jauh lebih cepat ---
                         const closes = fullCloses.slice(0, i + 1);
 
-                        // --- BUG FIX: Menggunakan format 'BULL_TREND' yang benar, bukan 'bullTrend' ---
                         if (currentRegime === 'BULL_TREND' || currentRegime === 'BEAR_TREND') {
                             const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
                             const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
@@ -3313,7 +3197,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                                 entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
                             }
                         } else if (currentRegime === 'RANGING') {
-                            const bollingerBands = calculateBollingerBands(closes); // Sekarang gunakan variabel 'closes' yang baru
+                            const bollingerBands = calculateBollingerBands(closes); 
                             const lastUpperBand = bollingerBands.upper.pop();
                             const lastLowerBand = bollingerBands.lower.pop();
                             if (lastLowerBand > 0 && currentLow <= lastLowerBand) {
@@ -3374,7 +3258,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
             },
 
             calculateMetrics(trades, initialBalance) {
-                //console.log('DATA MENTAH TRADES YANG DITERIMA:', JSON.stringify(trades.slice(0, 5), null, 2)); // Hanya 5 trade pertama agar tidak terlalu panjang
                 if (trades.length === 0) {
                     return {
                         totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0,
@@ -3400,7 +3283,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                     if (trade.pnl > 0) {
                         grossProfit += trade.pnl;
                         wins++;
-                        losingStreak = 0; // Reset
+                        losingStreak = 0; 
                     } else {
                         grossLoss += Math.abs(trade.pnl);
                         losingStreak++;
@@ -3462,16 +3345,15 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
             const progressContainer = document.getElementById('data-lake-progress-container');
             const statusBar = document.getElementById('data-lake-progress-bar');
             const statusText = document.getElementById('data-lake-status-text');
-
             const symbols = symbolTextarea.value.split(',').map(s => s.trim().toUpperCase()).filter(s => s);
 
             if (symbols.length === 0) {
                 alert("Silakan masukkan minimal satu simbol aset di area teks untuk memulai evolusi.");
-                return false; // Gagal
+                return false;
             }
 
             progressContainer.classList.remove('hidden');
-            statusBar.style.backgroundColor = '#3b82f6'; // Warna biru untuk proses
+            statusBar.style.backgroundColor = '#3b82f6';
             statusBar.style.width = '0%';
             statusText.textContent = "Mempersiapkan sinkronisasi...";
 
@@ -3484,7 +3366,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
             const totalAssets = symbols.length;
             let currentAssetIndex = 0;
 
-            evolutionState.historicalData = {}; // Kosongkan wadah data
+            evolutionState.historicalData = {}; 
 
             for (const symbol of symbols) {
                 const startProgress = (currentAssetIndex / totalAssets) * 100;
@@ -3525,22 +3407,18 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
         }
 
         async function initializeAssetCategorization() {
-            // Langkah 1: Pastikan "database resmi" kita sudah terisi
             await fetchBinanceFuturesSymbols();
 
             const categorySelect = document.getElementById('asset-category-select');
             const symbolTextarea = document.getElementById('backtest-symbol-input');
-
-            // Daftar mentah dari "buku telepon" kita
             const assetCategories = {
                 'BTC': ['BTC'],
-                'Major Coins': ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'AVAX', 'DOGE'],
+                'Major Coins': ['BTC', 'ETH', 'BNB', 'SOL', 'XRP'],
                 'DeFi Tokens': ['UNI', 'LINK', 'AAVE', 'MKR', 'SNX', 'COMP'],
                 'Meme Coins': ['DOGE', 'SHIB', 'PEPE', 'FLOKI', 'MEME', 'WIF'],
                 'AI Tokens': ['RNDR', 'FET', 'AGIX', 'OCEAN']
             };
 
-            // Mengisi dropdown (tidak berubah)
             for (const category in assetCategories) {
                 const option = document.createElement('option');
                 option.value = category;
@@ -3548,7 +3426,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 categorySelect.appendChild(option);
             }
 
-            // Event listener yang sudah di-upgrade dengan "Validasi Silang"
             categorySelect.addEventListener('change', () => {
                 const selectedCategory = categorySelect.value;
                 if (!assetCategories[selectedCategory]) {
@@ -3559,7 +3436,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 const rawSymbols = assetCategories[selectedCategory];
                 const validatedSymbols = [];
 
-                // Proses pencocokan cerdas
                 rawSymbols.forEach(baseSymbol => {
                     const directMatch = baseSymbol.toUpperCase() + 'USDT';
                     const variantMatch = '1000' + baseSymbol.toUpperCase() + 'USDT';
@@ -3579,7 +3455,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
         }
 
         async function startEvolution() {
-            // --- TAHAP 1: PERSIAPAN & RESET STATE ---
             evolutionState.isRunning = true;
             evolutionState.currentGeneration = 0;
             evolutionState.population = createInitialPopulation(evolutionState.populationSize);
@@ -3591,7 +3466,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 return;
             }
 
-            // --- TAHAP 2: INISIALISASI CHART (DENGAN LABEL DINAMIS YANG BENAR) ---
             const optimizationMetric = document.getElementById('optimization-metric-select').value;
             const ctx = document.getElementById('fitness-chart').getContext('2d');
             
@@ -3642,13 +3516,11 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 }
             });
 
-            // --- TAHAP 3: PERSIAPAN MONITOR KINERJA ---
             performanceMonitor.startTime = performance.now();
             performanceMonitor.lastTime = performance.now();
             performanceMonitor.lastGenerationCount = 0;
             const monitorInterval = setInterval(updatePerformanceMetrics, 1000);
 
-            // --- TAHAP 4: LOOP UTAMA EVOLUSI ---
             while (evolutionState.currentGeneration < evolutionState.maxGenerations && evolutionState.isRunning) {
                 const evaluatedPopulation = await evaluateFitness(evolutionState.population, evolutionState.historicalData);
 
@@ -3658,7 +3530,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                     updateChampionDNA(evolutionState.champion);
                 }
 
-                // Memanggil fungsi update progress yang sudah diperbarui
                 updateEvolutionProgress(currentChampion);
 
                 evolutionState.population = createNextGeneration(evaluatedPopulation);
@@ -3668,7 +3539,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 await new Promise(resolve => setTimeout(resolve, 50));
             }
 
-            // --- TAHAP 5: SELESAI & PEMBERSIHAN ---
             evolutionState.isRunning = false;
             clearInterval(monitorInterval);
             updatePerformanceMetrics(); 
@@ -3685,8 +3555,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
             const totalGenomes = population.length;
             const totalSymbols = symbols.length;
             let completedWorkUnits = 0;
-            
-            // Set teks awal sebelum loop
+           
             if (genomeEvalText) {
                 genomeEvalText.textContent = `Mengevaluasi Genom #${1} / Gen ${evolutionState.currentGeneration}: Memulai iterasi...`;
             }
@@ -3798,7 +3667,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 symbol: symbol
             };
 
-            const { trades } = await backtester.runSimulation_unifiedContextual(historicalData, settings, onProgress); // Melewatkan callback yang benar
+            const { trades } = await backtester.runSimulation_unifiedContextual(historicalData, settings, onProgress);
 
             const metrics = backtester.calculateMetrics(trades, settings.initialBalance);
             const sharpeRatio = calculateSharpeRatio(metrics.equityCurve);
@@ -3829,10 +3698,8 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
 
         function exportStrategyDNA() {
             let strategyData, dnaType, sourceAsset = document.getElementById('backtest-symbol-input').value.toUpperCase().trim(), sourceTimeframe = document.getElementById('backtest-timeframe-select').value;
-            
-            // Prioritas 1: DNA Juara dari Evolusi
+   
             if (evolutionState.champion && evolutionState.champion.metrics.totalTrades > 0) {
-                //console.log("Mengekspor DNA Juara dari Genesis Engine...");
                 strategyData = {
                     parameters: { 
                         riskRewardRatio: evolutionState.champion.riskRewardRatio, 
@@ -3845,9 +3712,8 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 };
                 dnaType = sourceAsset.includes(',') ? "Generic" : "Specific";
             } 
-            // Prioritas 2: Hasil Backtest Manual terakhir
+
             else if (backtester.state.lastRunMetrics && backtester.state.lastRunMetrics.totalTrades > 0) {
-                //console.log("Mengekspor DNA dari hasil Backtest Manual terakhir...");
                 const settings = backtester.state.settings;
                 strategyData = {
                     parameters: { 
@@ -3862,7 +3728,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 dnaType = settings.symbol.includes(',') ? "Generic" : "Specific";
                 sourceAsset = settings.symbol;
             } 
-            // Gagal
+        
             else { 
                 alert("Tidak ada hasil backtest yang valid untuk diekspor."); 
                 return; 
@@ -3874,12 +3740,9 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 weights: strategyData.weights 
             };
 
-            // PERBAIKAN KRITIS #3: Hanya menambahkan validasi Monte Carlo jika hasilnya adalah angka (bukan NaN)
             if (lastMonteCarloResult && isFinite(lastMonteCarloResult.avg_final_pnl_usd)) { 
-                //console.log("Menambahkan validasi Monte Carlo yang Valid ke dalam DNA.");
                 dnaObject.metadata.qc_validation = lastMonteCarloResult; 
             } else {
-                ////console.log("Hasil Monte Carlo tidak valid (NaN) atau tidak dijalankan, dilewati dari ekspor.");
             }
             
             const jsonString = JSON.stringify(dnaObject, null, 2);
@@ -3902,22 +3765,16 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
             const dnaElement = document.getElementById('champion-dna');
             if (dnaElement && champion && champion.metrics) {
                 const metrics = champion.metrics;
-
-                // MENGAMBIL STRING YANG SUDAH DIFORMAT (dari penyimpanan yang di-debug)
-                const rawSharpe = (metrics.SharpeIndex || metrics.sharpeRatio || "0.0000"); // Menggunakan SharpeIndex sebagai prioritas
-
+                const rawSharpe = (metrics.SharpeIndex || metrics.sharpeRatio || "0.0000"); 
                 const params = {
                     "R:R Ratio": (champion.riskRewardRatio || 0).toFixed(2),
-                    "EMA Period": champion.pullbackEmaPeriod, // KEMBALIKAN BARIS INI (Jika Anda ingin nilainya ditampilkan)
+                    "EMA Period": champion.pullbackEmaPeriod, 
                     "Swing Lookback": champion.swingLookback,
                     "Bias Threshold": champion.biasThreshold,
                     "ATR Filter": (champion.atrFilterThreshold || 0).toString(),
                     "Profit Factor": (metrics.profitFactor === Infinity ? "Infinity" : (metrics.profitFactor || 0).toFixed(2)),
                     "Win Rate": (metrics.winRate || 0).toFixed(2) + '%',
-                    
-                    // PERBAIKAN: Memasukkan string yang diformat dari kunci yang benar
                     "Sharpe Ratio": rawSharpe.toString(), 
-                    
                     "Total Trades": metrics.totalTrades || 0,
                     "Weights": champion.weights
                 };
@@ -3941,13 +3798,12 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
                 let secondaryMetricValue = 0;
                 switch (optimizationMetric) {
                     case 'Win Rate':
-                        // --- PERBAIKAN: Ubah string "63.16%" menjadi angka 63.16 ---
                         secondaryMetricValue = parseFloat(champion.metrics.winRate) || 0;
                         break;
                     case 'Sharpe Ratio':
                         secondaryMetricValue = parseFloat(champion.metrics.SharpeIndex) || 0;
                         break;
-                    default: // Profit Factor
+                    default: 
                         secondaryMetricValue = (champion.metrics.profitFactor === Infinity) ? 20 : (champion.metrics.profitFactor || 0);
                         break;
                 }
@@ -3995,7 +3851,244 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
             }
             tradeSpeed.textContent = `${tradesPerSecond.toFixed(1)} Trade/detik`;
         }
+// ===================================================================
+// ADD-ONS: FITUR REPLAY CHART
+// ===================================================================
+        function getChartBaseOptions(height) {
+            return {
+                width: document.getElementById('backtest-chart-container-section').clientWidth - 32,
+                height: height,
+                layout: { background: { color: '#151414' }, textColor: '#E0E0E0' },
+                grid: { vertLines: { color: '#333' }, horzLines: { color: '#333' } },
+                timeScale: { borderColor: '#444', timeVisible: true },
+                rightPriceScale: { borderColor: '#444' },
+                lockVisibleTimeRangeOnResize: true,
+                rightOffset: -30, // chart offset
+                    barSpacing: 6,
+                    minBarSpacing: 3,
+                    horzTouchDrag: true, 
+                    vertTouchDrag: false, 
+                    mouseScroll: false, // Menonaktifkan mouse scroll zoom
+                    pinchToZoom: true, // Membiarkan pinch-to-zoom di mobile
+                    tickMarkFormatter: (time) => {
+                        const date = new Date(time * 1000);
+                        return date.toLocaleTimeString('id-ID', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+            };
+        }
 
+        function syncCharts(...chartsToSync) {
+            chartsToSync.forEach(chart => {
+                if (!chart) return;
+                chart.timeScale().subscribeVisibleTimeRangeChange(timeRange => {
+                    chartsToSync.forEach(otherChart => {
+                        if (chart !== otherChart && otherChart) {
+                            otherChart.timeScale().setVisibleRange(timeRange);
+                        }
+                        if (timeRange && timeRange.from && timeRange.to) {
+                            otherChart.timeScale().setVisibleRange(timeRange);
+                        }
+
+                    });
+                });
+            });
+        }
+
+        function destroyCharts() {
+            charts.forEach(chart => { if (chart) chart.remove(); });
+            charts = [];
+            ['main-chart-container', 'volume-chart-container', 'rsi-chart-container', 'stoch-rsi-chart-container', 'macd-chart-container'].forEach(id => {
+                const container = document.getElementById(id);
+                if (container) container.innerHTML = '';
+            });
+        }
+
+        function renderReplayWithIndicators(historicalData, trades) {
+            if (!historicalData || historicalData.length < 200) {
+                destroyCharts();
+                return;
+            }
+            destroyCharts();
+            const formattedKlines = historicalData.map(d => ({
+                time: d[0] / 1000,
+                open: parseFloat(d[1]),
+                high: parseFloat(d[2]),
+                low: parseFloat(d[3]),
+                close: parseFloat(d[4])
+            }));
+            const volumeData = historicalData.map(d => ({ time: d[0] / 1000, value: parseFloat(d[5]), color: parseFloat(d[4]) >= parseFloat(d[1]) ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)' }));
+            const closes = formattedKlines.map(k => k.close);
+            const rsiIndicator = calculateRSI(closes, 14);
+            const stochRsiIndicator = calculateStochasticRSI(closes);
+            const macdIndicator = calculateMACD(closes);
+            const rsiData = rsiIndicator.map((value, index) => ({ time: formattedKlines[index]?.time, value })).filter(d => d.time && d.value !== undefined);
+            const stochKData = stochRsiIndicator.kLine.map((value, index) => ({ time: formattedKlines[index]?.time, value })).filter(d => d.time && d.value !== undefined);
+            const stochDData = stochRsiIndicator.dLine.map((value, index) => ({ time: formattedKlines[index]?.time, value })).filter(d => d.time && d.value !== undefined);
+            const macdLineData = macdIndicator.macdLine.map((value, index) => ({ time: formattedKlines[index]?.time, value })).filter(d => d.time && d.value !== undefined);
+            const signalLineData = macdIndicator.signalLine.map((value, index) => ({ time: formattedKlines[index + 33]?.time, value })).filter(d => d.time && d.value !== undefined);
+            const histogramData = macdIndicator.histogram.map((item, index) => (item && formattedKlines[index]) ? { time: formattedKlines[index].time, value: item.value, color: item.color } : null).filter(Boolean);
+            const mainChart = LightweightCharts.createChart(document.getElementById('main-chart-container'), getChartBaseOptions(450));
+            const volumeChart = LightweightCharts.createChart(document.getElementById('volume-chart-container'), getChartBaseOptions(100));
+            const rsiChart = LightweightCharts.createChart(document.getElementById('rsi-chart-container'), getChartBaseOptions(120));
+            const stochRsiChart = LightweightCharts.createChart(document.getElementById('stoch-rsi-chart-container'), getChartBaseOptions(120));
+            const macdChart = LightweightCharts.createChart(document.getElementById('macd-chart-container'), getChartBaseOptions(120));
+            charts = [mainChart, volumeChart, rsiChart, stochRsiChart, macdChart];
+            replayState.candleSeries = mainChart.addCandlestickSeries({ upColor: '#26a69a', downColor: '#ef5350', borderVisible: false });
+            replayState.volumeSeries = volumeChart.addHistogramSeries({ priceFormat: { type: 'volume' } });
+            replayState.rsiSeries = rsiChart.addLineSeries({ color: '#c792ea', lineWidth: 2 });
+            replayState.stochKSeries = stochRsiChart.addLineSeries({ color: '#2962FF', lineWidth: 2, title: '%K' });
+            replayState.stochDSeries = stochRsiChart.addLineSeries({ color: '#FF6D00', lineWidth: 2, title: '%D' });
+            replayState.macdLineSeries = macdChart.addLineSeries({ color: '#2962FF', lineWidth: 2, priceLineVisible: false });
+            replayState.signalLineSeries = macdChart.addLineSeries({ color: '#FF6D00', lineWidth: 2, priceLineVisible: false });
+            replayState.histogramSeries = macdChart.addHistogramSeries({ base: 0 });
+            replayState.fullData = {
+                    formattedKlines: formattedKlines.filter(k => k.close !== undefined && !isNaN(k.close)),
+                    volumeData: volumeData.filter(v => v.value !== undefined && !isNaN(v.value)),
+                    rsiData: rsiData.filter(d => d.value !== undefined && !isNaN(d.value)),
+                    stochKData: stochKData.filter(d => d.value !== undefined && !isNaN(d.value)),
+                    stochDData: stochDData.filter(d => d.value !== undefined && !isNaN(d.value)),
+                    macdLineData: macdLineData.filter(d => d.value !== undefined && !isNaN(d.value)),
+                    signalLineData: signalLineData.filter(d => d.value !== undefined && !isNaN(d.value)),
+                    histogramData: histogramData.filter(d => d.value !== undefined && !isNaN(d.value)),
+                    trades: trades
+                };
+            resetReplay();
+            const firstValidKline = formattedKlines.find(k => k.time);
+            const lastValidKline = formattedKlines.slice().reverse().find(k => k.time);
+            if (firstValidKline && lastValidKline && formattedKlines.length > 1) {
+                mainChart.timeScale().setVisibleRange({
+                    from: firstValidKline.time,
+                    to: lastValidKline.time,
+                });
+            }
+            syncCharts(...charts);
+        }
+
+        function runReplayStep() {
+            if (!replayState.fullData.formattedKlines || replayState.currentIndex >= replayState.fullData.formattedKlines.length) {
+                pauseReplay(); document.getElementById('replay-play-pause-btn').disabled = true; return;
+            }
+
+            const i = replayState.currentIndex;
+            const currentKline = replayState.fullData.formattedKlines[i];
+            if (!currentKline) { replayState.currentIndex++; return; } 
+            
+            const currentTime = currentKline.time;
+
+            replayState.candleSeries.update(currentKline);
+            if (replayState.fullData.volumeData[i]) replayState.volumeSeries.update(replayState.fullData.volumeData[i]);
+            if (replayState.fullData.rsiData[i]) replayState.rsiSeries.update(replayState.fullData.rsiData[i]);
+            if (replayState.fullData.stochKData[i]) replayState.stochKSeries.update(replayState.fullData.stochKData[i]);
+            if (replayState.fullData.stochDData[i]) replayState.stochDSeries.update(replayState.fullData.stochDData[i]);
+            if (replayState.fullData.macdLineData[i]) replayState.macdLineSeries.update(replayState.fullData.macdLineData[i]);
+            if (replayState.fullData.signalLineData[i]) replayState.signalLineSeries.update(replayState.fullData.signalLineData[i]);
+            if (replayState.fullData.histogramData[i]) replayState.histogramSeries.update(replayState.fullData.histogramData[i]);
+            
+            const markersToAdd = [];
+            replayState.fullData.trades.forEach(trade => {
+                const entryTime = new Date(trade.entryDate).getTime() / 1000;
+                const exitTime = new Date(trade.exitDate).getTime() / 1000;
+                if (entryTime === currentTime) {
+                    markersToAdd.push({ time: currentTime, position: trade.type === 'LONG' ? 'belowBar' : 'aboveBar', color: trade.type === 'LONG' ? '#26a69a' : '#ef5350', shape: trade.type === 'LONG' ? 'arrowUp' : 'arrowDown', text: `Entry @ ${trade.entryPrice.toFixed(4)}` });
+                    trade.slLine = replayState.candleSeries.createPriceLine({ price: trade.sl, color: '#f87171', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'SL' });
+                    trade.tpLine = replayState.candleSeries.createPriceLine({ price: trade.tp, color: '#4ade80', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, axisLabelVisible: true, title: 'TP' });
+                }
+                if (exitTime === currentTime) {
+                    markersToAdd.push({ time: currentTime, position: trade.type === 'LONG' ? 'aboveBar' : 'belowBar', color: '#a3a3a3', shape: 'square', text: `Exit @ ${trade.exitPrice.toFixed(4)}` });
+                    if(trade.slLine) replayState.candleSeries.removePriceLine(trade.slLine);
+                    if(trade.tpLine) replayState.candleSeries.removePriceLine(trade.tpLine);
+                }
+            });
+            if (markersToAdd.length > 0) {
+                const existingMarkers = replayState.candleSeries.markers() || [];
+                replayState.candleSeries.setMarkers([...existingMarkers, ...markersToAdd]);
+            }
+            replayState.currentIndex++;
+        }
+
+        function playReplay() {
+            if (replayState.isPlaying) return;
+            replayState.isPlaying = true;
+            document.getElementById('replay-play-pause-btn').innerHTML = '⏸️ Pause';
+            const speedMap = { 1: 1000, 2: 800, 3: 600, 4: 400, 5: 300, 6: 200, 7: 150, 8: 100, 9: 50, 10: 25, 11: 20, 12: 18, 13: 16, 14: 14, 15: 12, 16: 10, 17: 8, 18: 5, 19: 2, 20: 1 };
+            replayState.intervalId = setInterval(runReplayStep, speedMap[replayState.speed] || 300);
+        }
+
+        function pauseReplay() {
+            if (!replayState.isPlaying) return;
+            replayState.isPlaying = false;
+            document.getElementById('replay-play-pause-btn').innerHTML = '▶️ Play';
+            clearInterval(replayState.intervalId);
+            replayState.intervalId = null;
+        }
+
+        function stepReplay() {
+            if (replayState.isPlaying) pauseReplay();
+            runReplayStep();
+        }
+
+        function resetReplay() {
+            pauseReplay();
+            replayState.currentIndex = 0;
+
+            if (replayState.candleSeries) {
+                replayState.priceLines.forEach(line => replayState.candleSeries.removePriceLine(line));
+                replayState.candleSeries.setMarkers([]);
+            }
+            replayState.priceLines = [];
+
+            if (replayState.candleSeries) replayState.candleSeries.setData([]);
+            if (replayState.volumeSeries) replayState.volumeSeries.setData([]);
+            if (replayState.rsiSeries) replayState.rsiSeries.setData([]);
+            if (replayState.stochKSeries) replayState.stochKSeries.setData([]); 
+            if (replayState.stochDSeries) replayState.stochDSeries.setData([]); 
+            if (replayState.macdLineSeries) replayState.macdLineSeries.setData([]);
+            if (replayState.signalLineSeries) replayState.signalLineSeries.setData([]);
+            if (replayState.histogramSeries) replayState.histogramSeries.setData([]);
+
+            document.getElementById('replay-play-pause-btn').disabled = false;
+            document.getElementById('replay-step-btn').disabled = false;
+        }
+
+        function changeReplaySpeed(value) {
+            const speed = parseInt(value, 10);
+            replayState.speed = speed;
+            replaySpeedLabel.textContent = `x${speed}`;
+
+            if (replayState.isPlaying) {
+                pauseReplay();
+                playReplay();
+            }
+        }
+
+        function setupReplayEventListeners() {
+            if (window.replayListenersAttached) return;
+            document.getElementById('replay-play-pause-btn').addEventListener('click', () => {
+                if (replayState.isPlaying) pauseReplay();
+                else playReplay();
+            });
+            document.getElementById('replay-step-btn').addEventListener('click', stepReplay);
+            document.getElementById('replay-reset-btn').addEventListener('click', resetReplay);
+            document.getElementById('replay-speed-slider').addEventListener('input', (e) => {
+                changeReplaySpeed(parseInt(e.target.value));
+            });
+            window.replayListenersAttached = true;
+        }
+
+        function replayEntry(id) {
+            const logbookData = JSON.parse(localStorage.getItem('backtestLogbook')) || [];
+            const entry = logbookData.find(e => e.id === id);
+            if (entry && entry.historicalData) {
+                document.getElementById('backtest-chart-container-section').classList.remove('hidden');
+                renderReplayWithIndicators(entry.historicalData, entry.trades);
+                window.scrollTo({ top: document.getElementById('backtest-chart-container-section').offsetTop, behavior: 'smooth' });
+            } else {
+                alert("Data historis tidak tersedia untuk entri ini. Jalankan backtest lagi.");
+            }
+        }
 // ===================================================================           
 // BAGIAN A: INISIALISASI TOGGLE DAN EVENT LISTENER UNTUK BACKTESTING
 // ===================================================================
@@ -4008,7 +4101,6 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
         setupToggle('toggle-tuning-recommendation-btn', 'tuning-recommendation-content-wrapper', 'toggle-tuning-recommendation-icon', false);
         setupToggle('toggle-market-analysis-btn', 'market-analysis-content-wrapper', 'toggle-market-analysis-icon', true);
         setupToggle('toggle-chart-container-btn', 'chart-container-content-wrapper', 'toggle-chart-container-icon', false);
-        
         
         startBacktestBtn.addEventListener('click', async () => {
             const symbols = document.getElementById('backtest-symbol-input').value.split(',').map(s => s.trim()).filter(s => s);
@@ -4089,7 +4181,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
         backtestTimeframeSelect.addEventListener('change', calculateAndDisplayCandleCount);
         filterCheckboxes.forEach(cb => cb.addEventListener('change', calculateAndDisplayCandleCount));
 
-        
+        document.getElementById('export-autodna-btn').addEventListener('click', startAutoSwitchDNAExport);
         document.getElementById('duration-btn-3d').addEventListener('click', () => applyDuration('days', 3));
         document.getElementById('duration-btn-1w').addEventListener('click', () => applyDuration('weeks', 1));
         document.getElementById('duration-btn-1m').addEventListener('click', () => applyDuration('months', 1));
@@ -4105,10 +4197,7 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
         calculateAndDisplayCandleCount();
         sortAndRenderLogbook();
         setupReplayEventListeners();
-        
-        // ===================================================================
-        // BAGIAN B: INISIALISASI DAN EVENT LISTENERS UNTUK GENESIS ENGINE
-        // ===================================================================
+
         startGenesisBtn.addEventListener('click', async () => {
             const syncSuccess = await syncDataLake();
 
@@ -4131,18 +4220,15 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
         runMonteCarloBtn.addEventListener('click', () => {
             let tradesForSim = null;
             let equityCurveForSim = null;
-            let initialBalanceForSim = 1000; // Default
+            let initialBalanceForSim = 1000; 
 
-            // Prioritas 1: Cek "lemari piala" (DNA Juara dari Evolusi)
             if (evolutionState.champion && evolutionState.champion.metrics.allMultiAssetTrades && evolutionState.champion.metrics.allMultiAssetTrades.length >= 2) {
-                ////console.log("Menggunakan data dari DNA Juara Multi-Aset...");
                 tradesForSim = evolutionState.champion.metrics.allMultiAssetTrades;
                 equityCurveForSim = evolutionState.champion.metrics.allMultiAssetEquity;
                 initialBalanceForSim = evolutionState.champion.metrics.initialBalance;
             } 
-            // Prioritas 2: Jika tidak ada, baru cek "laporan sementara" (Backtest Manual)
+
             else if (backtester.state.lastRunMetrics?.trades && backtester.state.lastRunMetrics.trades.length >= 2) {
-                ////console.log("Menggunakan data dari Backtest Manual terakhir...");
                 tradesForSim = backtester.state.lastRunMetrics.trades;
                 equityCurveForSim = backtester.state.lastRunMetrics.equityCurve;
                 initialBalanceForSim = backtester.state.settings.initialBalance;
@@ -4166,226 +4252,12 @@ function runWhatIfSimulation(trades, historicalData, baseSettings, analysisCache
         });
         
         exportDnaBtn.addEventListener('click', exportStrategyDNA);
-        // ===================================================================
-        // BAGIAN C: INISIALISASI UNTUK FITUR LAINNYA
-        // ===================================================================
+
         updateMarketSessions();
         setInterval(updateMarketSessions, 60000);
     }
 
 
-// ===================================================================
-// BAGIAN BARU: LOGIKA SIMULASI MONTE CARLO
-// ===================================================================
-    let monteCarloChartInstance = null;
-    let runMonteCarloBtn, monteCarloModal, monteCarloCloseBtn;
-
-    function toggleMonteCarloModal(show) {
-            monteCarloModal.classList.toggle('hidden', !show);
-    }
-
-    function calculateTradeStats(trades) {
-        const pnlList = trades.map(t => t.pnl);
-        if (pnlList.length === 0) return { mean: 0, stdDev: 0 };
-
-        const mean = pnlList.reduce((sum, val) => sum + val, 0) / pnlList.length;
-        
-        const variance = pnlList.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / pnlList.length;
-        const stdDev = Math.sqrt(variance);
-
-        return { mean, stdDev };
-    }
-
-    function generateRandomNormal(mean, stdDev) {
-        let u1 = Math.random();
-        let u2 = Math.random();
-        let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
-        return z0 * stdDev + mean;
-    }
-
-function runMonteCarloSimulation(backtesterInstance, historicalTrades, historicalEquityCurve) {
-        const tradeStats = calculateTradeStats(historicalTrades);
-        // Pastikan initialBalance adalah angka yang valid, default ke 1000 jika tidak valid
-        const initialBalance = parseFloat(backtesterInstance.state.settings.initialBalance) || 1000; 
-
-        const NUM_SIMULATIONS = 1000;
-        const NUM_TRADES_PER_SIM = historicalTrades.length;
-
-        let allSimulatedCurves = [];
-        let finalPnlValues = [];
-
-        for (let i = 0; i < NUM_SIMULATIONS; i++) {
-            let currentEquity = initialBalance;
-            let equityCurve = [initialBalance];
-
-            for (let j = 0; j < NUM_TRADES_PER_SIM; j++) {
-                const randomPnl = generateRandomNormal(tradeStats.mean, tradeStats.stdDev);
-                if (isFinite(randomPnl)) {
-                    currentEquity += randomPnl;
-                }
-                equityCurve.push(currentEquity);
-            }
-            const finalPnl = currentEquity - initialBalance;
-            if (isFinite(finalPnl)) {
-                finalPnlValues.push(finalPnl);
-            }
-            // === BARIS PENTING DITAMBAHKAN ===
-            allSimulatedCurves.push(equityCurve); 
-            // =================================
-        }
-
-        // PERBAIKAN KRITIS: Hitung rata-rata hanya dari PNL yang valid
-        const validFinalPnls = finalPnlValues.filter(pnl => isFinite(pnl));
-        const averageFinalPnl = validFinalPnls.length > 0 
-            ? validFinalPnls.reduce((sum, pnl) => sum + pnl, 0) / validFinalPnls.length 
-            : 0; // Set ke 0 jika tidak ada hasil valid (mencegah NaN)
-
-        const lossCount = finalPnlValues.filter(pnl => pnl < 0).length;
-        const lossProbability = (finalPnlValues.length > 0) ? (lossCount / finalPnlValues.length) * 100 : 0;
-
-        document.getElementById('mc-summary-sims').textContent = NUM_SIMULATIONS.toLocaleString('id-ID');
-        document.getElementById('mc-summary-trades').textContent = NUM_TRADES_PER_SIM;
-        document.getElementById('mc-summary-avg-pnl').textContent = `${averageFinalPnl.toFixed(2)} USD`;
-        document.getElementById('mc-summary-loss-prob').textContent = `${lossProbability.toFixed(1)}%`;
-
-        // Memperbarui variabel global dengan nilai yang telah dihitung
-        lastMonteCarloResult = {
-            status: "Validated",
-            simulations_run: NUM_SIMULATIONS,
-            avg_final_pnl_usd: averageFinalPnl,
-            loss_probability_percent: lossProbability,
-            avgPnl_per_trade: tradeStats.mean,
-            stdDevPnl_per_trade: tradeStats.stdDev
-        };
-        ////console.log("Hasil Monte Carlo berhasil disimpan ke memori:", lastMonteCarloResult);
-        renderMonteCarloChart(allSimulatedCurves, historicalEquityCurve);
-    }
-
-    function renderMonteCarloChart(simulatedCurves, historicalEquityCurve) {
-        if (!simulatedCurves || simulatedCurves.length === 0 || !historicalEquityCurve || historicalEquityCurve.length === 0) {
-            console.error("Gagal merender Monte Carlo: Tidak ada kurva simulasi atau data historis yang valid.");
-            return;
-        }
-
-        if (simulatedCurves[0].length === 0) {
-            console.error("Gagal merender Monte Carlo: Kurva simulasi memiliki panjang nol.");
-            return;
-        }
-
-        const ctx = document.getElementById('monte-carlo-chart').getContext('2d');
-
-        if (monteCarloChartInstance) {
-            monteCarloChartInstance.destroy();
-        }
-
-        const numTrades = simulatedCurves[0].length;
-        const labels = Array.from({ length: numTrades }, (_, i) => `Trade ${i}`);
-      
-        let percentile25 = [];
-        let percentile75 = [];
-        
-        for (let i = 0; i < numTrades; i++) {
-            let valuesAtStep = simulatedCurves.map(curve => curve[i]).sort((a, b) => a - b);
-
-            if (valuesAtStep.length > 0) {
-                percentile25.push(valuesAtStep[Math.floor(0.25 * valuesAtStep.length)]);
-                percentile75.push(valuesAtStep[Math.floor(0.75 * valuesAtStep.length)]);
-            } else {
-                percentile25.push(NaN);
-                percentile75.push(NaN);
-            }
-        }
-
-        const sampleCurves = [];
-        for (let i = 0; i < 20; i++) {
-            sampleCurves.push(simulatedCurves[Math.floor(Math.random() * simulatedCurves.length)]);
-        }
-
-        // Bangun dataset untuk Chart.js
-        const datasets = [
-            // Kerucut probabilitas (area antara persentil 25 dan 75)
-            {
-                label: 'Rentang Probabilitas 25%-75%',
-                data: percentile75,
-                fill: '+1', 
-                backgroundColor: 'rgba(100, 100, 100, 0.2)',
-                borderColor: 'transparent',
-                pointRadius: 0,
-            },
-            {
-                label: 'Batas Bawah (25%)',
-                data: percentile25,
-                borderColor: 'transparent',
-                pointRadius: 0,
-            },
-            // Kurva ekuitas historis asli
-            {
-                label: 'Kinerja Historis',
-                data: historicalEquityCurve,
-                borderColor: '#3b82f6', 
-                borderWidth: 3,
-                tension: 0.1,
-                pointRadius: 0,
-            }
-        ];
-
-        // Tambahkan sampel kurva simulasi
-        sampleCurves.forEach((curve, index) => {
-            datasets.push({
-                label: `Simulasi #${index + 1}`,
-                data: curve,
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-                pointRadius: 0,
-                tension: 0.1,
-            });
-        });
-
-
-        monteCarloChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: datasets,
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false 
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                    }
-                },
-                scales: {
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Equity (USD)',
-                            color: '#9ca3af'
-                        },
-                        ticks: { color: '#9ca3af' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Jumlah Trade',
-                            color: '#9ca3af'
-                        },
-                        ticks: { color: '#9ca3af' },
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-    }
-// ===================================================================
-// EVENT LISTENER UNTUK MEMULAI SEMUANYA
-// ===================================================================
     document.addEventListener('DOMContentLoaded', main);
 </script>
 </body>

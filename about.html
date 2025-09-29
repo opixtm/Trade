@@ -8,91 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-    body { font-family: 'Inter', sans-serif; background-color: #000000; color: #E0E0E0; }
-        .card { background-color: #151414; border: 1px solid #333; border-radius: 0.75rem; }
-        .positive { color: #4ade80; }
-        .negative { color: #f87171; }
-        .btn-primary { background-color: #c97c00; color: #1f2937; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background-color 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .btn-primary:hover { background-color: #eb9413; }
-        .btn-special { background-color: #8B5CF6; color: white; font-weight: 600; padding: 0.625rem 1.25rem; border-radius: 0.5rem; transition: background-color 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-        .btn-special:hover { background-color: #7C3AED; }
-        .tab-button.active { border-bottom: 2px solid #c97c00; font-weight: 600; }
-        .toggle-btn { transition: background-color 0.3s; }
-        .toggle-btn.active { background-color: #c97c00; }
-        .toggle-icon { transition: transform 0.3s ease-in-out; }
-        .toggle-icon.rotate-180 { transform: rotate(180deg); }
-        .indicator-label { min-width: 100px; }
-        .hidden-panel { display: none; }
-        .input-primary {
-            background-color: #2c2c2c;
-            border: 1px solid #444;
-            border-radius: 0.5rem;
-            padding: 0.625rem 1rem;
-            width: 100%;
-            color: #E0E0E0;
-        }
-        .loader { display: flex; justify-content: center; align-items: center; gap: 4px; }
-        .dot { width: 8px; height: 8px; background-color: #e1e1e1; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
-        /* ▼▼▼ TAMBAHKAN BLOK CSS INI KE DALAM <style> ▼▼▼ */
-
-        .collapsible-content {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.4s ease-in-out;
-        }
-        .collapsible-content.expanded {
-            grid-template-rows: 1fr;
-        }
-        .collapsible-content > div {
-            overflow: hidden;
-        }
-
-        .btn-secondary {
-            background-color: #374151; /* Warna abu-abu gelap */
-            color: #E0E0E0;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-        .btn-secondary:hover {
-            background-color: #4b5563; /* Sedikit lebih terang saat disentuh mouse */
-        }
-        .chart-tf-btn.active {
-            background-color: #c97c00; /* Warna kuning/gold untuk yang aktif */
-            color: #1f2937; /* Teks gelap agar kontras */
-        }
-
-        .calc-binance-style .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
-        .calc-binance-style .btn-group button { padding: 10px; border-radius: 6px; cursor: pointer; background-color: #2c2f36; border: 1px solid #3a3f4a; color: #e0e0e0; font-weight: 500; transition: background-color 0.2s; }
-        .calc-binance-style .btn-group button:hover { background-color: #3a3f4a; }
-        .calc-binance-style .btn-group button.active { background-color: #f0b90b; color: #14151a; border-color: #f0b90b; }
-        .calc-binance-style .input-group { position: relative; margin-bottom: 1rem; }
-        .calc-binance-style .input-field { width: 100%; padding: 12px; background-color: #2c2f36; border: 1px solid #3a3f4a; border-radius: 8px; color: #e0e0e0; font-size: 1.1em; }
-        .calc-binance-style .input-label-top { font-size: 0.8em; color: #848e9c; margin-bottom: 8px; }
-        .calc-binance-style .margin-slider { width: 100%; -webkit-appearance: none; appearance: none; height: 4px; background: #3a3f4a; outline: none; border-radius: 2px; margin: 1.5rem 0; }
-        .calc-binance-style .margin-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: #f0b90b; cursor: pointer; border-radius: 50%; }
-        .calc-binance-style .slider-ticks { display: flex; justify-content: space-between; font-size: 0.75rem; color: #848e9c; }
-        .calc-binance-style .exec-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 1.5rem; }
-        .calc-binance-style .exec-buttons button { padding: 14px; font-size: 1.1em; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; }
-        .calc-binance-style .btn-buy { background-color: #2ebd85; color: white; }
-        .calc-binance-style .btn-sell { background-color: #f6465d; color: white; }
-        .calc-binance-style .calc-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1rem; font-size: 0.85em; color: #848e9c; }
-        .calc-binance-style .calc-result-grid span:nth-child(even) { text-align: right; font-weight: 600; color: #e0e0e0; }
-        #ts-modal-content .input-field { background-color: #2c2f36; border: 1px solid #3a3f4a; }
-        #ts-modal-close-btn { font-size: 2rem; line-height: 1; }
-
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.2.0/dist/tf.min.js"></script>
+<style>body{font-family:'Inter',sans-serif;background-color:#000000;color:#E0E0E0;}.card{background-color:#151414;border:1px solid #333;border-radius:.75rem;}.positive{color:#4ade80;}.negative{color:#f87171;}.btn-primary{background-color:#c97c00;color:#1f2937;font-weight:600;padding:.625rem 1.25rem;border-radius:.5rem;transition:background-color .3s;display:flex;align-items:center;justify-content:center;gap:.5rem;}.btn-primary:hover{background-color:#eb9413;}.btn-special{background-color:#8B5CF6;color:white;font-weight:600;padding:.625rem 1.25rem;border-radius:.5rem;transition:background-color .3s;display:flex;align-items:center;justify-content:center;gap:.5rem;}.btn-special:hover{background-color:#7C3AED;}.tab-button.active{border-bottom:2px solid #c97c00;font-weight:600;}.toggle-btn{transition:background-color .3s;}.toggle-btn.active{background-color:#c97c00;}.toggle-icon{transition:transform .3s ease-in-out;}.toggle-icon.rotate-180{transform:rotate(180deg);}.indicator-label{min-width:100px;}.hidden-panel{display:none;}.input-primary{background-color:#2c2c2c;border:1px solid #444;border-radius:.5rem;padding:.625rem 1rem;width:100%;color:#E0E0E0;}.loader{display:flex;justify-content:center;align-items:center;gap:4px;}.dot{width:8px;height:8px;background-color:#e1e1e1;border-radius:50%;animation:bounce 1.4s infinite ease-in-out both;}.dot:nth-child(1){animation-delay:-.32s;}.dot:nth-child(2){animation-delay:-.16s;}@keyframes bounce{0%,80%,100%{transform:scale(0);}40%{transform:scale(1.0);}}.collapsible-content{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s ease-in-out;}.collapsible-content.expanded{grid-template-rows:1fr;}.collapsible-content>div{overflow:hidden;}.btn-secondary{background-color:#374151;color:#E0E0E0;font-weight:600;transition:background-color .3s;}.btn-secondary:hover{background-color:#4b5563;}.chart-tf-btn.active{background-color:#c97c00;color:#1f2937;}.calc-binance-style .btn-group{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}.calc-binance-style .btn-group button{padding:10px;border-radius:6px;cursor:pointer;background-color:#2c2f36;border:1px solid #3a3f4a;color:#e0e0e0;font-weight:500;transition:background-color .2s;}.calc-binance-style .btn-group button:hover{background-color:#3a3f4a;}.calc-binance-style .btn-group button.active{background-color:#f0b90b;color:#14151a;border-color:#f0b90b;}.calc-binance-style .input-group{position:relative;margin-bottom:1rem;}.calc-binance-style .input-field{width:100%;padding:12px;background-color:#2c2f36;border:1px solid #3a3f4a;border-radius:8px;color:#e0e0e0;font-size:1.1em;}.calc-binance-style .input-label-top{font-size:.8em;color:#848e9c;margin-bottom:8px;}.calc-binance-style .margin-slider{width:100%;-webkit-appearance:none;appearance:none;height:4px;background:#3a3f4a;outline:none;border-radius:2px;margin:1.5rem 0;}.calc-binance-style .margin-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;background:#f0b90b;cursor:pointer;border-radius:50%;}.calc-binance-style .slider-ticks{display:flex;justify-content:space-between;font-size:.75rem;color:#848e9c;}.calc-binance-style .exec-buttons{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:1.5rem;}.calc-binance-style .exec-buttons button{padding:14px;font-size:1.1em;font-weight:600;border:none;border-radius:8px;cursor:pointer;}.calc-binance-style .btn-buy{background-color:#2ebd85;color:white;}.calc-binance-style .btn-sell{background-color:#f6465d;color:white;}.calc-binance-style .calc-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1rem;font-size:.85em;color:#848e9c;}.calc-binance-style .calc-result-grid span:nth-child(even){text-align:right;font-weight:600;color:#e0e0e0;}#ts-modal-content .input-field{background-color:#2c2f36;border:1px solid #3a3f4a;}#ts-modal-close-btn{font-size:2rem;line-height:1;}
+</style>
 </head>
 <body class="p-8">
 
-    <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold"></h1>
-        <p class="text-gray-400"></p>
-    </header>
+<header class="text-center mb-8"><h1 class="text-3xl font-bold"></h1><p class="text-gray-400"></p></header>
 
     <main class="max-w-7xl mx-auto space-y-8">
         <section id="imported-strategy-section" class="card p-4">
@@ -103,18 +25,24 @@
                 </svg>
             </button>
             <div id="import-content-wrapper" class="collapsible-content">
-                <div class="pt-4 mt-4 border-t border-gray-700">
-                    <div class="flex items-center space-x-4">
-                        <label for="import-file" class="btn-special cursor-pointer flex-grow text-center">
-                            PILIH FILE DNA STRATEGI (.json)
-                        </label>
-                        <input type="file" id="import-file" class="hidden" accept=".json" />
-                    </div>
-                    <div id="imported-sinyal-panel" class="mt-4 pt-4 border-t border-gray-700">
-                        <p class="text-center text-sm text-gray-400"></p>
+                    <div class="pt-4 mt-4 border-t border-gray-700">
+                        <div class="flex items-center space-x-4">
+                            <label for="import-file" class="btn-special cursor-pointer flex-grow text-center">
+                                PILIH FILE DNA STRATEGI (.json)
+                            </label>
+                            <input type="file" id="import-file" class="hidden" accept=".json" />
+                        </div>
+                        
+                        <div class="mt-2 text-center">
+                            <span id="dna-status-display" class="text-sm font-mono text-gray-500">
+                                Status: Belum ada DNA dimuat.
+                            </span>
+                        </div>
+                        <div id="imported-sinyal-panel" class="mt-4 pt-4 border-t border-gray-700">
+                            <p class="text-center text-sm text-gray-400"></p>
+                        </div>
                     </div>
                 </div>
-            </div>
         </section>
 
         <section id="live-data-input-section" class="card p-6 hidden">
@@ -136,348 +64,346 @@
                     </div>
                 </button>
             </div>
-            
-                        <section id="charts-wrapper" class="card p-4 my-4" style="display: none;">
-                            <h2 class="text-xl font-bold mb-4">Live Chart</h2>
-                            
-                            <div id="chart-timeframe-selector" class="flex flex-wrap gap-2 mb-4 border-b border-gray-700 pb-4">
-                                <button data-timeframe="1m" class="chart-tf-btn btn-secondary !text-xs !py-1 !px-3">1m</button>
-                                <button data-timeframe="5m" class="chart-tf-btn btn-secondary !text-xs !py-1 !px-3 active">5m</button>
-                                <button data-timeframe="15m" class="chart-tf-btn btn-secondary !text-xs !py-1 !px-3">15m</button>
-                                <button data-timeframe="1h" class="chart-tf-btn btn-secondary !text-xs !py-1 !px-3">1h</button>
-                            </div>
-                            <div class="chart-container relative">
-                                <div class="pane-title">Price</div>
-                                <div id="main-chart-container" style="height: 450px;"></div>
-                            </div>
-                            <div class="chart-container relative mt-2 pt-2 border-t border-gray-700">
-                                <div class="pane-title">Volume</div>
-                                <div id="volume-chart-container" style="height: 100px;"></div>
-                            </div>
-                            <div class="chart-container relative mt-2 pt-2 border-t border-gray-700">
-                                <div class="pane-title">RSI (14)</div>
-                                <div id="rsi-chart-container" style="height: 120px;"></div>
-                            </div>
-                            <div class="chart-container relative mt-2 pt-2 border-t border-gray-700">
-                                <div class="pane-title">Stochastic RSI</div>
-                                <div id="stoch-chart-container" style="height: 120px;"></div>
-                            </div>
-                            <div class="chart-container relative mt-2 pt-2 border-t border-gray-700">
-                                <div class="pane-title">MACD</div>
-                                <div id="macd-chart-container" style="height: 120px;"></div>
-                            </div>
-                        </section>
-                        <button id="toggle-charts-btn" class="btn-primary w-full mt-4">SHOW CHART</button>
 
-                        <div id="live-signal-panel" class="card p-6 mt-6">
-                            <h2 class="text-xl font-bold mb-4 text-yellow-400 flex items-center justify-between">
-                                <span></span>
-                                <span><span id="live-price-display" class="font-mono text-white">$0.00</span></span>
-                            </h2>
-                            <div id="htf-compass-container" class="mb-4 p-3 rounded-lg bg-gray-900/50 border border-gray-700">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-sm font-semibold text-gray-400">HTF Compass</span>
-                                    <div id="htf-compass-selector" class="flex flex-wrap gap-2">
-                                        <button data-timeframe="3m" class="htf-btn btn-secondary !text-xs !py-1 !px-3">3m</button>
-                                        <button data-timeframe="5m" class="htf-btn btn-secondary !text-xs !py-1 !px-3">5m</button>
-                                        <button data-timeframe="15m" class="htf-btn btn-secondary !text-xs !py-1 !px-3">15m</button>
-                                        <button data-timeframe="30m" class="htf-btn btn-secondary !text-xs !py-1 !px-3">30m</button>
-                                        <button data-timeframe="1h" class="htf-btn btn-secondary !text-xs !py-1 !px-3 active">1H</button>
-                                        <button data-timeframe="4h" class="htf-btn btn-secondary !text-xs !py-1 !px-3">4H</button>
-                                        <button data-timeframe="4h" class="htf-btn btn-secondary !text-xs !py-1 !px-3">8H</button>
-                                        <button data-timeframe="4h" class="htf-btn btn-secondary !text-xs !py-1 !px-3">12H</button>
-                                        <button data-timeframe="1d" class="htf-btn btn-secondary !text-xs !py-1 !px-3">1D</button>
-                                    </div>
-                                </div>
-                                <div id="htf-compass-result" class="text-center mt-2 text-lg font-bold">
-                                    -- Pilih Timeframe --
-                                </div>
-                            </div>
-                            <div id="live-signal-content">
-                                <p class="text-center text-sm text-gray-400">-</p>
-                            </div>
-                            <div id="live-signal-content">
-                                <p class="text-center text-sm text-gray-400">---</p>
-                            </div>
+            <section id="charts-wrapper" class="card p-4 my-4" style="display: none;">
+                <h2 class="text-xl font-bold mb-4">Live Chart</h2>
+                <div id="chart-timeframe-selector" class="flex flex-wrap gap-2 mb-4 border-b border-gray-700 pb-4">
+                    <button data-timeframe="1m" class="chart-tf-btn btn-secondary !text-xs !py-1 !px-3">1m</button>
+                    <button data-timeframe="5m" class="chart-tf-btn btn-secondary !text-xs !py-1 !px-3 active">5m</button>
+                    <button data-timeframe="15m" class="chart-tf-btn btn-secondary !text-xs !py-1 !px-3">15m</button>
+                    <button data-timeframe="1h" class="chart-tf-btn btn-secondary !text-xs !py-1 !px-3">1h</button>
+                </div>
+                <div class="chart-container relative">
+                    <div class="pane-title">Price</div>
+                    <div id="main-chart-container" style="height: 450px;"></div>
+                </div>
+                <div class="chart-container relative mt-2 pt-2 border-t border-gray-700">
+                    <div class="pane-title">Volume</div>
+                    <div id="volume-chart-container" style="height: 100px;"></div>
+                </div>
+                <div class="chart-container relative mt-2 pt-2 border-t border-gray-700">
+                    <div class="pane-title">RSI (14)</div>
+                    <div id="rsi-chart-container" style="height: 120px;"></div>
+                </div>
+                <div class="chart-container relative mt-2 pt-2 border-t border-gray-700">
+                    <div class="pane-title">Stochastic RSI</div>
+                    <div id="stoch-chart-container" style="height: 120px;"></div>
+                </div>
+                <div class="chart-container relative mt-2 pt-2 border-t border-gray-700">
+                    <div class="pane-title">MACD</div>
+                    <div id="macd-chart-container" style="height: 120px;"></div>
+                </div>
+            </section>
+            <button id="toggle-charts-btn" class="btn-primary w-full mt-4">SHOW CHART</button>
+
+            <div id="live-signal-panel" class="card p-6 mt-6">
+                <h2 class="text-xl font-bold mb-4 text-yellow-400 flex items-center justify-between">
+                    <span></span>
+                    <span><span id="live-price-display" class="font-mono text-white">$0.00</span></span>
+                </h2>
+                <div id="htf-compass-container" class="mb-4 p-3 rounded-lg bg-gray-900/50 border border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-semibold text-gray-400">HTF Compass</span>
+                        <div id="htf-compass-selector" class="flex flex-wrap gap-2">
+                            <button data-timeframe="3m" class="htf-btn btn-secondary !text-xs !py-1 !px-3">3m</button>
+                            <button data-timeframe="5m" class="htf-btn btn-secondary !text-xs !py-1 !px-3">5m</button>
+                            <button data-timeframe="15m" class="htf-btn btn-secondary !text-xs !py-1 !px-3">15m</button>
+                            <button data-timeframe="30m" class="htf-btn btn-secondary !text-xs !py-1 !px-3">30m</button>
+                            <button data-timeframe="1h" class="htf-btn btn-secondary !text-xs !py-1 !px-3 active">1H</button>
+                            <button data-timeframe="4h" class="htf-btn btn-secondary !text-xs !py-1 !px-3">4H</button>
+                            <button data-timeframe="4h" class="htf-btn btn-secondary !text-xs !py-1 !px-3">8H</button>
+                            <button data-timeframe="4h" class="htf-btn btn-secondary !text-xs !py-1 !px-3">12H</button>
+                            <button data-timeframe="1d" class="htf-btn btn-secondary !text-xs !py-1 !px-3">1D</button>
                         </div>
-                    </section>
-
-                       <section id="signal-log-analysis-section" class="card p-6">
-    <button id="toggle-signal-log-btn" class="w-full flex justify-between items-center text-left mb-4">
-        <h2 class="text-xl font-bold text-purple-400">
-            🔬 Analisis Kualitas Sinyal (Signal Log)
-        </h2>
-        <svg id="toggle-signal-log-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-        </svg>
-    </button>
-
-    <p id="signal-log-asset-title" class="text-sm font-mono text-gray-400 mb-4 ml-1">
-        -- [DNA: --]
-    </p>
-
-    <div id="signal-log-content-wrapper" class="collapsible-content">
-        <div class="pt-4 mt-4 border-t border-gray-700 space-y-4">
-            
-            <div class="flex justify-end mb-4">
-                <button id="clear-signal-log-btn" class="btn-secondary !text-xs !py-1 !px-3 !bg-red-600 hover:!bg-red-700">
-                    Hapus Riwayat Log (AFT)
-                </button>
-            </div>
-
-            <div id="signal-summary-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div><p class="text-xs text-gray-500">Total Sinyal (Long/Short)</p><p id="stat-total-count" class="font-mono font-bold text-lg text-white">0 (0/0)</p></div>
-                <div><p class="text-xs text-gray-500">Durasi Rata-rata</p><p id="stat-mean-duration" class="font-mono font-bold text-lg text-yellow-400">00m 00s</p></div>
-                <div><p class="text-xs text-gray-500">Durasi Terlama</p><p id="stat-longest-duration" class="font-mono font-bold text-lg positive">00m 00s</p></div>
-                <div><p class="text-xs text-gray-500">Rasio Stabilitas (Std. Dev)</p><p id="stat-std-dev" class="font-mono font-bold text-lg text-blue-400">0.00s</p></div>
-            </div>
-            
-            <div id="signal-log-history-container" class="mt-4">
-                <h3 class="text-sm font-semibold text-gray-400 mb-2">Log Siklus Sinyal (Durasi > 1s)</h3>
-                <div class="overflow-x-auto p-2 bg-gray-900/50 rounded-md">
-                    <table class="min-w-full text-xs text-left text-gray-400">
-                        <thead class="text-gray-400 uppercase bg-gray-700/50">
-                            <tr>
-                                <th scope="col" class="px-3 py-1">TIPE</th><th scope="col" class="px-3 py-1">DURASI</th>
-                                <th scope="col" class="px-3 py-1">SKOR AKHIR</th><th scope="col" class="px-3 py-1">BERAKHIR KARENA</th>
-                            </tr>
-                        </thead>
-                        <tbody id="signal-log-history-body">
-                            <tr class="text-center"><td colspan="4" class="py-2 text-gray-600">Tidak ada siklus sinyal tercatat.</td></tr>
-                        </tbody>
-                    </table>
+                    </div>
+                    <div id="htf-compass-result" class="text-center mt-2 text-lg font-bold">
+                        -- Pilih Timeframe --
+                    </div>
+                </div>
+                <div id="live-signal-content">
+                    <p class="text-center text-sm text-gray-400">-</p>
+                </div>
+                <div id="live-signal-content">
+                    <p class="text-center text-sm text-gray-400">---</p>
                 </div>
             </div>
-        </div>
-    </div>
-</section>
+        </section>
 
-                        <section id="trailing-stop-calc-section" class="card p-6">
-                            <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
-                                <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                            
-                            <div id="ts-calc-content-wrapper" class="collapsible-content">
-                                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
-                                    <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
-                                        ⚡️ Auto-fill dari Setup Scalping
-                                    </button>
-                                    <div class="btn-group">
-                                        <button id="ts-mode-cross" class="active">Cross</button>
-                                        <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
-                                        <button id="ts-mode-isolated" class="">Isolated</button>
-                                        <button id="ts-trailing-stop-options">⚙️ TS</button>
-                                    </div>
+        <section id="signal-log-analysis-section" class="card p-6">
+            <button id="toggle-signal-log-btn" class="w-full flex justify-between items-center text-left mb-4">
+                <h2 class="text-xl font-bold text-purple-400">
+                    🔬 Analisis Kualitas Sinyal (Signal Log)
+                </h2>
+                <svg id="toggle-signal-log-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
 
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div class="input-group">
-                                            <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
-                                            <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
-                                        </div>
-                                        <div class="input-group">
-                                            <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
-                                            <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
-                                        </div>
-                                    </div>
+            <p id="signal-log-asset-title" class="text-sm font-mono text-gray-400 mb-4 ml-1">
+                -- [DNA: --]
+            </p>
 
-                                    <div>
-                                        <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
-                                        <div class="slider-ticks">
-                                            <span>0%</span>
-                                            <span>25%</span>
-                                            <span>50%</span>
-                                            <span>75%</span>
-                                            <span>100%</span>
-                                        </div>
-                                    </div>
+            <div id="signal-log-content-wrapper" class="collapsible-content">
+                <div class="pt-4 mt-4 border-t border-gray-700 space-y-4">
+                    <div class="flex justify-end mb-4">
+                        <button id="clear-signal-log-btn" class="btn-secondary !text-xs !py-1 !px-3 !bg-red-600 hover:!bg-red-700">
+                            Hapus Riwayat Log (AFT)
+                        </button>
+                    </div>
 
-                                    <div class="input-group mt-6">
-                                        <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
-                                        <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
-                                    </div>
+                    <div id="signal-summary-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div><p class="text-xs text-gray-500">Total Sinyal (Long/Short)</p><p id="stat-total-count" class="font-mono font-bold text-lg text-white">0 (0/0)</p></div>
+                        <div><p class="text-xs text-gray-500">Durasi Rata-rata</p><p id="stat-mean-duration" class="font-mono font-bold text-lg text-yellow-400">00m 00s</p></div>
+                        <div><p class="text-xs text-gray-500">Durasi Terlama</p><p id="stat-longest-duration" class="font-mono font-bold text-lg positive">00m 00s</p></div>
+                        <div><p class="text-xs text-gray-500">Rasio Stabilitas (Std. Dev)</p><p id="stat-std-dev" class="font-mono font-bold text-lg text-blue-400">0.00s</p></div>
+                    </div>
 
-                                    <div class="tpsl-section">
-                                        <div class="flex items-center gap-2">
-                                            <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
-                                            <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
-                                        </div>
-                                        <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
-                                            <div class="input-group">
-                                                <label for="ts-take-profit" class="input-label-top">Take Profit</label>
-                                                <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
-                                            </div>
-                                            <div class="input-group">
-                                                <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
-                                                <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
-                                            </div>
-                                        </div>
-                                    </div>
+                    <div id="signal-log-history-container" class="mt-4">
+                        <h3 class="text-sm font-semibold text-gray-400 mb-2">Log Siklus Sinyal (Durasi > 1s)</h3>
+                        <div class="overflow-x-auto p-2 bg-gray-900/50 rounded-md">
+                            <table class="min-w-full text-xs text-left text-gray-400">
+                                <thead class="text-gray-400 uppercase bg-gray-700/50">
+                                    <tr>
+                                        <th scope="col" class="px-3 py-1">TIPE</th><th scope="col" class="px-3 py-1">DURASI</th>
+                                        <th scope="col" class="px-3 py-1">SKOR AKHIR</th><th scope="col" class="px-3 py-1">BERAKHIR KARENA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="signal-log-history-body">
+                                    <tr class="text-center"><td colspan="4" class="py-2 text-gray-600">Tidak ada siklus sinyal tercatat.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                                    <div class="exec-buttons">
-                                        <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
-                                        <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
-                                    </div>
+        <section id="trailing-stop-calc-section" class="card p-6">
+            <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
+                <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
+                <svg id="toggle-ts-calc-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
 
-                                    <div class="calc-result-grid">
-                                        <span>Cost</span>
-                                        <span id="ts-result-cost">--</span>
-                                        <span>Max</span>
-                                        <span id="ts-result-max">--</span>
-                                        <span>Position Size</span>
-                                        <span id="ts-result-position-size">--</span>
-                                        <span>Liq. Price</span>
-                                        <span id="ts-result-liq-price">--</span>
-                                        <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span>
-                                        <span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
-                                        <span>Harga Stop Loss TS</span>
-                                        <span id="ts-result-sl-price">--</span>
-                                        <span>Potensi ROE</span>
-                                        <span id="ts-result-roe">--</span>
-                                    </div>
+            <div id="ts-calc-content-wrapper" class="collapsible-content">
+                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 calc-binance-style">
+                    <button id="autofill-ts-btn" class="btn-primary w-full mb-4">
+                        ⚡️ Auto-fill dari Setup Scalping
+                    </button>
+                    <div class="btn-group">
+                        <button id="ts-mode-cross" class="active">Cross</button>
+                        <input type="number" id="ts-leverage" value="20" class="input-field text-center" style="padding-right: 2.5rem;">
+                        <button id="ts-mode-isolated" class="">Isolated</button>
+                        <button id="ts-trailing-stop-options">⚙️ TS</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-group">
+                            <label for="ts-wallet-balance" class="input-label-top">Available Balance ($)</label>
+                            <input type="number" id="ts-wallet-balance" class="input-field" value="1000">
+                        </div>
+                        <div class="input-group">
+                            <label for="ts-cost" class="input-label-top">Cost / Modal ($)</label>
+                            <input type="number" id="ts-cost" class="input-field" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div>
+                        <input type="range" min="0" max="100" value="0" class="margin-slider" id="ts-margin-slider">
+                        <div class="slider-ticks">
+                            <span>0%</span>
+                            <span>25%</span>
+                            <span>50%</span>
+                            <span>75%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group mt-6">
+                        <label for="ts-market-price" class="input-label-top">Harga Pasar Saat Ini ($)</label>
+                        <input type="number" id="ts-market-price" class="input-field" placeholder="Harga market saat ini...">
+                    </div>
+
+                    <div class="tpsl-section">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="ts-tpsl-toggle" class="form-checkbox h-5 w-5 bg-gray-700 border-gray-600 text-yellow-500">
+                            <label for="ts-tpsl-toggle" class="text-sm">TP/SL</label>
+                        </div>
+                        <div id="ts-tpsl-inputs" class="hidden mt-4 space-y-4">
+                            <div class="input-group">
+                                <label for="ts-take-profit" class="input-label-top">Take Profit</label>
+                                <input type="number" id="ts-take-profit" class="input-field" placeholder="Mark">
+                            </div>
+                            <div class="input-group">
+                                <label for="ts-stop-loss" class="input-label-top">Stop Loss</label>
+                                <input type="number" id="ts-stop-loss" class="input-field" placeholder="Mark">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="exec-buttons">
+                        <button class="btn-buy" id="ts-buy-long-btn">Buy/Long</button>
+                        <button class="btn-sell" id="ts-sell-short-btn">Sell/Short</button>
+                    </div>
+
+                    <div class="calc-result-grid">
+                        <span>Cost</span>
+                        <span id="ts-result-cost">--</span>
+                        <span>Max</span>
+                        <span id="ts-result-max">--</span>
+                        <span>Position Size</span>
+                        <span id="ts-result-position-size">--</span>
+                        <span>Liq. Price</span>
+                        <span id="ts-result-liq-price">--</span>
+                        <span class="pt-2 border-t border-dashed border-gray-700">Status TS</span>
+                        <span id="ts-result-status" class="pt-2 border-t border-dashed border-gray-700">--</span>
+                        <span>Harga Stop Loss TS</span>
+                        <span id="ts-result-sl-price">--</span>
+                        <span>Potensi ROE</span>
+                        <span id="ts-result-roe">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+                <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
+                        <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label for="ts-modal-callback-rate">Callback Rate (%)</label>
+                            <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
+                            <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
+                        </div>
+                    </div>
+                    <div class="mt-6 text-right">
+                        <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="paper-trading-section" class="card p-6">
+            <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
+                <h2 class="text-xl font-bold">Trading Simulation</h2>
+                <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+
+            <div id="paper-trading-content-wrapper" class="collapsible-content">
+                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                        <div>
+                            <p class="text-xs text-gray-500">Equity</p>
+                            <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Unrealized PNL</p>
+                            <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Available Margin</p>
+                            <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
+                        </div>
+                    </div>
+
+                    <div id="sim-active-position-container" class="hidden">
+                        <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
+                        <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
+                                <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                <div>
+                                    <span class="text-gray-400">Size:</span>
+                                    <span id="sim-position-size" class="font-mono"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">Entry:</span>
+                                    <span id="sim-position-entry" class="font-mono"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">Mark:</span>
+                                    <span id="sim-position-mark" class="font-mono"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">Liq:</span>
+                                    <span id="sim-position-liq" class="font-mono"></span>
                                 </div>
                             </div>
-
-                            <div id="ts-modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
-                                <div id="ts-modal-content" class="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <h3 class="text-lg font-bold">Pengaturan Trailing Stop</h3>
-                                        <button id="ts-modal-close-btn" class="text-gray-400 hover:text-white">&times;</button>
-                                    </div>
-                                    <div class="space-y-4">
-                                        <div class="form-group">
-                                            <label for="ts-modal-callback-rate">Callback Rate (%)</label>
-                                            <input type="number" id="ts-modal-callback-rate" class="input-field" placeholder="cth: 0.5">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="ts-modal-activation-price">Harga Aktivasi ($)</label>
-                                            <input type="number" id="ts-modal-activation-price" class="input-field" placeholder="cth: 65000">
-                                        </div>
-                                    </div>
-                                    <div class="mt-6 text-right">
-                                        <button id="ts-modal-save-btn" class="btn-primary">Simpan Pengaturan</button>
-                                    </div>
-                                </div>
+                            <div class="pt-2 border-t border-dashed border-gray-700">
+                                <span class="text-gray-400">PNL (ROE %):</span>
+                                <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
                             </div>
-                        </section>
+                        </div>
+                    </div>
 
-                        <section id="paper-trading-section" class="card p-6">
-                            <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                <h2 class="text-xl font-bold">Trading Simulation</h2>
-                                <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-
-                            <div id="paper-trading-content-wrapper" class="collapsible-content">
-                                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-                                        <div>
-                                            <p class="text-xs text-gray-500">Equity</p>
-                                            <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs text-gray-500">Unrealized PNL</p>
-                                            <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs text-gray-500">Available Margin</p>
-                                            <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
-                                        </div>
-                                        <div class="flex items-center justify-center">
-                                            <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
-                                        </div>
-                                    </div>
-
-                                    <div id="sim-active-position-container" class="hidden">
-                                        <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
-                                        <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
-                                            <div class="flex justify-between items-center">
-                                                <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
-                                                <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
-                                            </div>
-                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                                <div>
-                                                    <span class="text-gray-400">Size:</span>
-                                                    <span id="sim-position-size" class="font-mono"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-gray-400">Entry:</span>
-                                                    <span id="sim-position-entry" class="font-mono"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-gray-400">Mark:</span>
-                                                    <span id="sim-position-mark" class="font-mono"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-gray-400">Liq:</span>
-                                                    <span id="sim-position-liq" class="font-mono"></span>
-                                                </div>
-                                            </div>
-                                            <div class="pt-2 border-t border-dashed border-gray-700">
-                                                <span class="text-gray-400">PNL (ROE %):</span>
-                                                <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div class="flex justify-between items-center mb-2">
-                                            <h3 class="font-semibold text-gray-400">Trade History</h3>
-                                            <div class="flex gap-2">
-                                                <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
-                                                <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
-                                                <input type="file" id="sim-import-input" class="hidden" accept=".csv">
-                                            </div>
-                                        </div>
-                                        <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
-                                            <p class="text-center text-gray-600">No trade history yet.</p>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-semibold text-gray-400">Trade History</h3>
+                            <div class="flex gap-2">
+                                <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
+                                <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
+                                <input type="file" id="sim-import-input" class="hidden" accept=".csv">
                             </div>
-                        </section>
+                        </div>
+                        <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
+                            <p class="text-center text-gray-600">No trade history yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                        <section id="weather-forecast-section" class="card p-6 hidden">
-                            <button id="toggle-forecast-btn" class="w-full flex justify-between items-center text-left mb-4">
-                                <h2 class="text-xl font-bold">Prakiraan "Cuaca" - Proyeksi Ekuitas</h2>
-                                <svg id="toggle-forecast-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                            <div id="forecast-content-wrapper" class="collapsible-content">
-                                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                                    <div class="flex items-center space-x-4">
-                                        <label for="forecast-trade-count" class="text-gray-400">Proyeksikan untuk</label>
-                                        <input type="number" id="forecast-trade-count" value="50" class="input-primary w-24 text-center">
-                                        <span class="text-gray-400">trade ke depan</span>
-                                        <button id="run-live-projection-btn" class="btn-primary flex-grow">Jalankan Proyeksi</button>
-                                    </div>
-                                    <div id="forecast-chart-container" class="mt-4">
-                                        <canvas id="forecast-chart"></canvas>
-                                    </div>
-                                    <div id="forecast-results" class="calc-result-grid mt-4">
-                                        <span>Modal Awal Proyeksi</span><span id="forecast-start-equity" class="text-right font-bold">--</span>
-                                        <span>Potensi PNL Rata-rata</span><span id="forecast-avg-pnl" class="text-right font-bold">--</span>
-                                        <span>Probabilitas Loss</span><span id="forecast-loss-prob" class="text-right font-bold">--</span>
-                                        <span>Worst Case (5%)</span><span id="forecast-worst-case" class="text-right font-bold">--</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        
+        <section id="weather-forecast-section" class="card p-6 hidden">
+            <button id="toggle-forecast-btn" class="w-full flex justify-between items-center text-left mb-4">
+                <h2 class="text-xl font-bold">Prakiraan "Cuaca" - Proyeksi Ekuitas</h2>
+                <svg id="toggle-forecast-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+            <div id="forecast-content-wrapper" class="collapsible-content">
+                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                    <div class="flex items-center space-x-4">
+                        <label for="forecast-trade-count" class="text-gray-400">Proyeksikan untuk</label>
+                        <input type="number" id="forecast-trade-count" value="50" class="input-primary w-24 text-center">
+                        <span class="text-gray-400">trade ke depan</span>
+                        <button id="run-live-projection-btn" class="btn-primary flex-grow">Jalankan Proyeksi</button>
+                    </div>
+                    <div id="forecast-chart-container" class="mt-4">
+                        <canvas id="forecast-chart"></canvas>
+                    </div>
+                    <div id="forecast-results" class="calc-result-grid mt-4">
+                        <span>Modal Awal Proyeksi</span><span id="forecast-start-equity" class="text-right font-bold">--</span>
+                        <span>Potensi PNL Rata-rata</span><span id="forecast-avg-pnl" class="text-right font-bold">--</span>
+                        <span>Probabilitas Loss</span><span id="forecast-loss-prob" class="text-right font-bold">--</span>
+                        <span>Worst Case (5%)</span><span id="forecast-worst-case" class="text-right font-bold">--</span>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
-
-
 <script>
 // ===================================================================
 // BAGIAN 1: DEKLARASI VARIABEL GLOBAL & STATE APLIKASI
 // ===================================================================
-    let activeStrategy = null;
     let liveData = null; 
+        const userSettings = {
+            presets: {
+                'default': { weights: { ma: 2, rsiDivergence: 2.5, macd: 2, pivot: 2, vwap: 2, ichimoku: 3, candlePattern: 1.5, obvDivergence: 3.0, bbSqueeze: 1.5, psar: 1, roc: 1, bollingerBands: 1, rsi: 1.5, stoch: 1, linreg: 1 } },
+            }
+    };
     let liveWebSocket = null;
     let liveInterval = null;
     let currentChartTimeframe = '5m';
@@ -503,7 +429,18 @@
     let lastStableSignal = 'NONE';
     let signalActiveStartTime = null;
     let activeDnaFilename = '--';
-    
+    let regimeSensorModel = null;
+    let activeStrategy = {
+        dnaType: 'Static_v1',
+        weights: userSettings.presets.default.weights, // Default Weights
+        autoWeights: null, // Untuk DNA AutoSwitch_v1
+        parameters: {}
+    };
+
+    const dnaStatusDisplay = document.getElementById('dna-status-display');
+    const aiStatusDisplay = document.getElementById('ai-status');
+    const activeRegimeDisplay = document.getElementById('active-regime-display');
+    const REGIME_LABELS = ['BULL_TREND', 'BEAR_TREND', 'RANGING', 'LOW_VOLATILITY'];
     const importFile = document.getElementById('import-file');
     const importedStrategySection = document.getElementById('imported-strategy-section');
     const importedSinyalPanel = document.getElementById('imported-sinyal-panel');
@@ -516,6 +453,7 @@
     const startLiveLoader = startLiveBtn.querySelector('.loader');
     const toggleChartsBtn = document.getElementById('toggle-charts-btn');
     const chartsWrapper = document.getElementById('charts-wrapper');
+
     const paperTradeElements = {
         equity: document.getElementById('sim-equity'),
         unrealizedPnl: document.getElementById('sim-unrealized-pnl'),
@@ -576,24 +514,18 @@
         '4h': { rsi_period: 21, macd_fast: 12, macd_slow: 26, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 },
         '1d': { rsi_period: 21, macd_fast: 21, macd_slow: 55, macd_signal: 9, stoch_rsi_period: 21, stoch_stoch_period: 14, stoch_k_smooth: 3, stoch_d_smooth: 3 }
     };    
-    const userSettings = {
-            presets: {
-                'default': { weights: { ma: 2, rsiDivergence: 2.5, macd: 2, pivot: 2, vwap: 2, ichimoku: 3, candlePattern: 1.5, obvDivergence: 3.0, bbSqueeze: 1.5, psar: 1, roc: 1, bollingerBands: 1, rsi: 1.5, stoch: 1, linreg: 1 } },
-            }
-    };
+
     const realtimeCache = {
         main: {
             symbol: null,
             tickerData: {},
             latestScalpingSetup: null
         },
-        // *** TAMBAHAN KRITIS INI ***
         indicators: {
             bullScore: 0,
             bearScore: 0,
             htfTrend: 'NEUTRAL',
             atr: 0,
-            // Tambahkan semua variabel yang Anda akses di setInterval di sini
             entryPrice: null, 
             stopLoss: null,
             tp1: null,
@@ -603,7 +535,7 @@
     const paperTrade = {
         state: {
             balance: 1000,
-            position: null, // { type: 'long'/'short', entryPrice: 65000, quantity: 0.1, leverage: 20, cost: 325 }
+            position: null,
             history: []
         },
         elements: {
@@ -821,23 +753,203 @@
         if (savedLog) {
             try {
                 const parsedLog = JSON.parse(savedLog);
-                // Timpa variabel global hanya jika data valid
                 if (parsedLog && Object.keys(parsedLog.statsByDnaFile).length > 0) {
                     signalLogState.statsByDnaFile = parsedLog.statsByDnaFile;
-                    // Tidak perlu panggil updateSignalLogStatistics di sini,
-                    // karena akan dipanggil saat setupAFTPanel() di klik START LIVE.
                 }
             } catch (e) {
                 console.error("Gagal memuat log AFT dari local storage.", e);
             }
         }
-// ===================================================================
+    
+    const signalPanel = document.getElementById('live-signal-panel');
+    const aiStatusHtml = `
+        <div id="current-regime-status-container" class="card p-4 mt-2 hidden">
+            <h3 class="text-lg font-semibold mb-2 text-yellow-500">⚙️ Status Kecerdasan DNA</h3>
+            <div class="space-y-1 text-sm">
+                <p class="flex justify-between"><span>Status AI (Sensor):</span> <span id="ai-status" class="font-medium text-gray-400">LOADING...</span></p>
+                <p class="flex justify-between !mt-2 border-t border-gray-700 pt-2">
+                    <span class="font-bold text-base">Mode Aktif (Rezim):</span> 
+                    <span id="active-regime-display" class="font-bold text-base text-purple-400">LOADING...</span>
+                </p>
+            </div>
+        </div>
+    `;
+    if(signalPanel) signalPanel.insertAdjacentHTML('beforebegin', aiStatusHtml);
+        // ===============================================================
+// PENANAMAN MODEL AI SENSOR REZIM (Disalin dari Genesis Engine)
+// ===============================================================
+    const MODEL_ARTIFACTS_JSON_STRING = `
+    {
+        "format": "layers-model",
+        "generatedBy": "TensorFlow.js tfjs-layers v4.2.0",
+        "convertedBy": null,
+        "modelTopology": {
+            "class_name": "Sequential",
+            "config": {
+                "name": "sequential_1",
+                "layers": [
+                    {
+                        "class_name": "Dense",
+                        "config": {
+                            "units": 64, "activation": "relu", "use_bias": true, "kernel_initializer": {"class_name": "VarianceScaling", "config": {"scale": 1, "mode": "fan_avg", "distribution": "normal", "seed": null}}, "bias_initializer": {"class_name": "Zeros", "config": {}}, "name": "dense_Dense1", "batch_input_shape": [null, 12], "dtype": "float32"
+                        }
+                    },
+                    {"class_name": "Dropout", "config": {"rate": 0.2, "name": "dropout_Dropout1"}},
+                    {
+                        "class_name": "Dense",
+                        "config": {"units": 32, "activation": "relu", "use_bias": true, "kernel_initializer": {"class_name": "VarianceScaling", "config": {"scale": 1, "mode": "fan_avg", "distribution": "normal", "seed": null}}, "bias_initializer": {"class_name": "Zeros", "config": {}}, "name": "dense_Dense2"}
+                    },
+                    {
+                        "class_name": "Dense",
+                        "config": {"units": 4, "activation": "softmax", "use_bias": true, "kernel_initializer": {"class_name": "VarianceScaling", "config": {"scale": 1, "mode": "fan_avg", "distribution": "normal", "seed": null}}, "bias_initializer": {"class_name": "Zeros", "config": {}}, "name": "dense_Dense3"}
+                    }
+                ]
+            },
+            "keras_version": "tfjs-layers 4.2.0",
+            "backend": "tensor_flow.js"
+        },
+        "weightsManifest": [
+            {
+                "paths": ["weights.bin"],
+                "weights": [
+                    {"name": "dense_Dense1/kernel", "shape": [12, 64], "dtype": "float32"},
+                    {"name": "dense_Dense1/bias", "shape": [64], "dtype": "float32"},
+                    {"name": "dense_Dense2/kernel", "shape": [64, 32], "dtype": "float32"},
+                    {"name": "dense_Dense2/bias", "shape": [32], "dtype": "float32"},
+                    {"name": "dense_Dense3/kernel", "shape": [32, 4], "dtype": "float32"},
+                    {"name": "dense_Dense3/bias", "shape": [4], "dtype": "float32"}
+                ]
+            }
+        ]
+    }
+    `;
+    const WEIGHTS_BASE64_STRING = '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';
+
+
+// --- FUNGSI UTAMA AI ---
+    async function loadRegimeSensorModel() {
+        if (regimeSensorModel || typeof tf === 'undefined') {
+            document.getElementById('ai-status').textContent = 'SIAP (Bunglon)'; 
+            return;
+        }
+
+        console.log("🧠 Memuat Model Sensor Rezim (vFinal)...");
+        try {
+            const base64Handler = {
+                load: async () => {
+                    const modelArtifacts = JSON.parse(MODEL_ARTIFACTS_JSON_STRING);
+                    const binaryString = window.atob(WEIGHTS_BASE64_STRING);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    const weightData = bytes.buffer;
+
+                    return {
+                        modelTopology: modelArtifacts.modelTopology, 
+                        weightSpecs: modelArtifacts.weightsManifest[0].weights, 
+                        weightData: weightData
+                    };
+                }
+            };
+
+            regimeSensorModel = await tf.loadLayersModel(base64Handler);
+            console.log('✅ Model Sensor Rezim berhasil dimuat dan siap bekerja!');
+            document.getElementById('ai-status').textContent = 'SIAP (TF.js)';
+
+        } catch (error) {
+            console.error("❌ GAGAL memuat Model Sensor Rezim:", error);
+            document.getElementById('ai-status').textContent = 'ERROR';
+            regimeSensorModel = null;
+        }
+    }
+
+    function calculatePredictionInput(klinesSnapshot) {
+        if (klinesSnapshot.length < 50 || typeof tf === 'undefined') return null; 
+        
+        // Asumsi: Semua fungsi indikator (calculateRSI, calculateMACD, dll.) sudah ada di goldendashboard.html
+
+        const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+        const currentClose = closes[closes.length - 1];
+        
+        const rsiValues = calculateRSI(closes, 14);
+        const stochRsiData = calculateStochasticRSI(closes);
+        const macdData = calculateMACD(closes);
+        const bbData = calculateBollingerBands(closes);
+        const vwap = calculateVWAP(klinesSnapshot, 20);
+        const atrData = calculateATR(klinesSnapshot);
+        
+        const lastRsi = rsiValues.filter(v => v !== undefined).pop() || 50;
+        const lastK = stochRsiData.kLine.filter(v => v !== undefined).pop() || 50;
+        const lastD = stochRsiData.dLine.filter(v => v !== undefined).pop() || 50;
+        const prevK = stochRsiData.kLine.filter(v => v !== undefined).slice(-2, -1)[0] || 50;
+        const prevD = stochRsiData.dLine.filter(v => v !== undefined).slice(-2, -1)[0] || 50;
+        const macdLine = macdData.macdLine.filter(v => v !== undefined).pop() || 0;
+        const signalLine = macdData.signalLine.filter(v => v !== undefined).pop() || 0;
+        const macdHist = macdData.histogram.filter(v => v !== undefined).pop()?.value || 0;
+        const ema50 = calculateEMA(closes, 50).pop() || currentClose;
+        const bbUpper = bbData.upper.filter(v => v !== undefined).pop() || currentClose;
+        const bbLower = bbData.lower.filter(v => v !== undefined).pop() || currentClose;
+        const bbMiddle = bbData.middle.filter(v => v !== undefined).pop() || currentClose; // Perlu untuk BB width
+
+        const features = {
+            rsi: lastRsi,
+            macd_cross: macdLine > signalLine ? 1 : -1,
+            macd_hist: macdHist,
+            ema_dist: (currentClose - ema50) / ema50,
+            bb_width: (bbUpper - bbLower) / bbMiddle,
+            bb_pos: (bbUpper - bbLower) > 0 ? (currentClose - bbLower) / (bbUpper - bbLower) : 0.5,
+            vwap_dist: vwap > 0 ? (currentClose - vwap) / vwap : 0,
+            atr_percent: atrData.atrPercent,
+            stoch_rsi_k: lastK,
+            stoch_rsi_d: lastD,
+            stoch_rsi_cross: (prevK <= prevD && lastK > lastD) ? 1 : ((prevK >= prevD && lastK < lastD) ? -1 : 0),
+            stoch_rsi_state: (lastK > 80 && lastD > 80) ? 1 : ((lastK < 20 && lastD < 20) ? -1 : 0)
+        };
+        
+        const featureOrder = ['rsi','macd_cross','macd_hist','ema_dist','bb_width','bb_pos','vwap_dist','atr_percent','stoch_rsi_k','stoch_rsi_d','stoch_rsi_cross','stoch_rsi_state'];
+        const inputArray = featureOrder.map(key => features[key] || 0);
+
+        if (inputArray.some(val => !isFinite(val))) {
+            return null;
+        }
+        return inputArray;
+    }
+
+    async function predictMarketRegime(klinesSnapshot) {
+        const featureArray = calculatePredictionInput(klinesSnapshot);
+
+        if (!regimeSensorModel || !featureArray) {
+            return 'RANGING'; // Fallback aman
+        }
+
+        return tf.tidy(() => {
+            const inputTensor = tf.tensor2d(featureArray, [1, 12]);
+            const prediction = regimeSensorModel.predict(inputTensor);
+            const predictedClassIndex = prediction.argMax(-1).dataSync()[0];
+            
+            const predictedLabel = REGIME_LABELS[predictedClassIndex];
+            
+            // Format output ke format kunci bobot (misal: BULL_TREND)
+            return predictedLabel; 
+        });
+    }
+
+    function getRegimeColorClass(key) {
+        switch(key) {
+            case 'BULL_TREND': return 'font-bold text-base text-green-400';
+            case 'BEAR_TREND': return 'font-bold text-base text-red-400';
+            case 'RANGING': return 'font-bold text-base text-yellow-400';
+            case 'LOW_VOLATILITY': return 'font-bold text-base text-blue-400';
+            default: return 'font-bold text-base text-gray-500';
+        }
+    }
+    // ===================================================================
 // BAGIAN 2: FUNGSI-FUNGSI PEMBANTU (HELPERS) & KALKULASI
 // ===================================================================
     async function switchChartTimeframe(newTimeframe) {
         if (newTimeframe === currentChartTimeframe) return; 
-
-        //console.log(`Mengganti timeframe chart ke: ${newTimeframe}`);
         const symbol = liveSymbolInput.value.toUpperCase();
         currentChartTimeframe = newTimeframe; 
 
@@ -858,14 +970,12 @@
 
     async function initializePrecisionMap() {
         try {
-            //console.log("Mengambil data presisi aset dari Binance...");
             const response = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
             const data = await response.json();
             
             data.symbols.forEach(symbolInfo => {
                 const priceFilter = symbolInfo.filters.find(f => f.filterType === 'PRICE_FILTER');
                 if (priceFilter && priceFilter.tickSize) {
-                    // Logika untuk mengubah tickSize (misal "0.001") menjadi jumlah digit (3)
                     const tickSize = parseFloat(priceFilter.tickSize);
                     if (tickSize > 0) {
                         precisionMap[symbolInfo.symbol] = Math.round(-Math.log10(tickSize));
@@ -874,7 +984,6 @@
                     }
                 }
             });
-            //console.log("Database presisi berhasil dibuat.", precisionMap['BTCUSDT'], precisionMap['ADAUSDT']);
         } catch (error) {
             console.error("Gagal membuat database presisi, akan menggunakan format default:", error);
         }
@@ -1108,112 +1217,183 @@
         }
     }
 
-// GANTI SELURUH FUNGSI handleFileImport INI
-function handleFileImport(event) {
+    async function handleFileImport(event) {
     const file = event.target.files[0];
     if (!file) {
         return;
     }
-
-    // *** KODE KRITIS: SIMPAN NAMA FILE (TIDAK ADA MANIPULASI DOM DISINI) ***
     activeDnaFilename = file.name;
-    // -------------------------------------
-
+    
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) { 
         try {
             const dnaData = JSON.parse(e.target.result);
             const symbolInput = document.getElementById('live-symbol-input');
             const timeframeSelect = document.getElementById('live-timeframe-select');
             const importedSinyalPanel = document.getElementById('imported-sinyal-panel');
+            
+            importedSinyalPanel.innerHTML = ''; 
 
             if (!dnaData.metadata || !dnaData.parameters || !dnaData.weights) {
                 importedSinyalPanel.innerHTML = `<p class="text-center text-sm negative">❌ Format file DNA tidak valid. Pastikan file diekspor dari Genesis Engine.</p>`;
                 return;
             }
-       
-            displayImportedStrategy(dnaData);
-            
-            const dnaType = dnaData.metadata.dnaType;
-            let qcValidation = dnaData.metadata.qc_validation || null; 
-
-            if (dnaType === 'Specific') {
-                const { sourceAsset, sourceTimeframe } = dnaData.metadata;
-                activeStrategy = dnaData; 
-                symbolInput.value = sourceAsset.toUpperCase();
-                symbolInput.disabled = true;
-                timeframeSelect.value = sourceTimeframe;
-                timeframeSelect.disabled = false;
-                importedSinyalPanel.innerHTML += `<p class="text-center text-sm positive font-bold mt-2 p-2 bg-green-900/50 rounded-md">DNA Spesifik dimuat. Input Aset dikunci, Timeframe dapat diubah.</p>`;
-
-            } else if (dnaType === 'Generic') {
-                symbolInput.disabled = false;
-                timeframeSelect.disabled = false;
-                activeStrategy = {
-                    parameters: dnaData.parameters, weights: dnaData.weights, metadata: { qc_validation: qcValidation }
-                };
-                importedSinyalPanel.innerHTML += `<p class="text-center text-sm text-blue-400 font-bold mt-2 p-2 bg-blue-900/50 rounded-md">DNA Generik dimuat. Silakan pilih Aset & Timeframe secara manual.</p>`;
-          
-            } else {
-                importedSinyalPanel.innerHTML += `<p class="text-center text-sm negative mt-2">❌ Tipe DNA tidak dikenali: ${dnaType}</p>`;
-                return;
-            }
     
+            const dnaType = dnaData.metadata.dnaType || 'Static_v1';
+            
+            // --- PENGISIAN STATE SECARA DEFENSif ---
+            activeStrategy.metadata = dnaData.metadata;
+            activeStrategy.parameters = dnaData.parameters;
+            
+            if (dnaType === 'AutoSwitch_v1') {
+                // DNA Bunglon Dideteksi
+                activeStrategy.dnaType = 'AutoSwitch_v1';
+                activeStrategy.autoWeights = dnaData.weights;
+                
+                // Pastikan weights fallback terisi
+                activeStrategy.weights = dnaData.weights.RANGING 
+                                         || dnaData.weights.BULL_TREND 
+                                         || userSettings.presets.default.weights;
+
+                document.getElementById('dna-status-display').textContent = `DNA: AutoSwitch (${dnaData.metadata.sourceAsset} ${dnaData.metadata.sourceTimeframe})`;
+                document.getElementById('current-regime-status-container').classList.remove('hidden'); 
+                await loadRegimeSensorModel(); 
+
+                alert(`✅ DNA Bunglon (AutoSwitch_v1) dari ${dnaData.metadata.sourceAsset} berhasil dimuat. Dashboard beroperasi dalam mode adaptif.`);
+
+            } else {
+                // DNA Statis/Generik Dideteksi
+                const { sourceAsset, sourceTimeframe } = dnaData.metadata;
+                activeStrategy.dnaType = 'Static_v1';
+                activeStrategy.weights = dnaData.weights; 
+                activeStrategy.autoWeights = null;
+                
+                symbolInput.value = sourceAsset ? sourceAsset.toUpperCase() : symbolInput.value;
+                timeframeSelect.value = sourceTimeframe || timeframeSelect.value;
+                
+                document.getElementById('dna-status-display').textContent = `DNA: Static (${sourceAsset} ${sourceTimeframe || 'N/A'})`;
+                document.getElementById('current-regime-status-container').classList.add('hidden');
+
+                alert(`✅ DNA Strategi Statis (Static) berhasil dimuat.`);
+            }
+
+            // PANGGIL DISPLAY TANPA ARGUMEN (Membaca state global yang sudah terisi penuh)
+            displayImportedStrategy(); 
             document.getElementById('live-data-input-section').classList.remove('hidden');
             document.getElementById('weather-forecast-section').classList.remove('hidden');
-       
-            if (activeStrategy.metadata?.qc_validation) { 
-                // runLiveProjection(parseInt(document.getElementById('forecast-trade-count').value) || 50);
-            }
-
+    
         } catch (error) {
-            importedSinyalPanel.innerHTML = `<p class="text-center text-sm negative">❌ Terjadi kesalahan saat membaca file. Pastikan file JSON tidak rusak.</p>`;
-            console.error("Error parsing DNA JSON:", error);
+            // Tampilkan error message yang lebih jelas di panel
+            importedSinyalPanel.innerHTML = `<p class="text-center text-sm negative">❌ Terjadi kesalahan memproses: ${error.message}</p>`;
+            console.error("Error parsing DNA JSON (Handle Import):", error);
         }
     };
     reader.readAsText(file);
 }
 
-    function displayImportedStrategy(strategyData) {
-        if (!strategyData) {
-            importedSinyalPanel.innerHTML = `<p class="text-center text-sm text-gray-400">Gagal memuat strategi.</p>`;
-            return;
-        }
+    // Ganti: function displayImportedStrategy(strategyData) {
+function displayImportedStrategy() {
+    const strategyData = activeStrategy;
+    
+    // Safety Check: Jika metadata atau parameters masih hilang, hentikan.
+    if (!strategyData || !strategyData.metadata || !strategyData.parameters) {
+        importedSinyalPanel.innerHTML = `<p class="text-center text-sm text-gray-400">Gagal memuat strategi. (Data State tidak lengkap)</p>`;
+        return;
+    }
+    
+    // Pemeriksaan Properti Wajib (untuk menghindari undefined is not object)
+    const getSafeParam = (obj, key, fallback = 'N/A') => {
+        const val = obj[key];
+        if (typeof val === 'number') return val.toFixed(2);
+        return val || fallback;
+    };
+    
+    const getSafeWeight = (weights, key, fallback = 0.0) => {
+        const val = weights[key];
+        if (typeof val === 'number') return val.toFixed(2);
+        return fallback.toFixed(2);
+    };
 
-        importedSinyalPanel.innerHTML = `
-            <div class="mt-2 text-center">
-                <p class="font-bold">Metadata Strategi</p>
-                <p class="font-mono text-xs">
-                    Tipe DNA: ${strategyData.metadata.dnaType} |
-                    Aset: ${Array.isArray(strategyData.metadata.sourceAsset) ? strategyData.metadata.sourceAsset.join(', ') : strategyData.metadata.sourceAsset} |
-                    Timeframe: ${strategyData.metadata.sourceTimeframe}
-                </p>
-                
-                <p class="font-bold mt-2">Parameter Strategi</p>
-                <p class="font-mono text-xs">
-                    R:R Ratio: ${strategyData.parameters.riskRewardRatio.toFixed(2)} | 
-                    EMA: ${strategyData.parameters.pullbackEmaPeriod} | 
-                    Bias: ${strategyData.parameters.biasThreshold} |
-                    ATR Filter: ${strategyData.parameters.atrFilterThreshold}
-                </p>
-                
-                <p class="font-bold mt-4">Bobot Indikator</p>
-                <ul class="text-xs font-mono space-y-1 mt-2">
-                    <li>MA: ${strategyData.weights.ma.toFixed(2)}</li>
-                    <li>RSI Divergence: ${strategyData.weights.rsiDivergence.toFixed(2)}</li>
-                    <li>MACD: ${strategyData.weights.macd.toFixed(2)}</li>
-                    <li>Pivot: ${strategyData.weights.pivot.toFixed(2)}</li>
-                    <li>VWAP: ${strategyData.weights.vwap.toFixed(2)}</li>
-                    <li>Ichimoku: ${strategyData.weights.ichimoku.toFixed(2)}</li>
-                    <li>Candle Pattern: ${strategyData.weights.candlePattern.toFixed(2)}</li>
-                    <li>BB Squeeze: ${strategyData.weights.bbSqueeze.toFixed(2)}</li>
-                    <li>PSAR: ${strategyData.weights.psar.toFixed(2)}</li>
-                </ul>
+    // --- Bagian Parameter Umum ---
+    const paramHtml = `
+        <p class="font-bold mt-2">Parameter Strategi</p>
+        <p class="font-mono text-xs">
+            R:R Ratio: ${getSafeParam(strategyData.parameters, 'riskRewardRatio')} | 
+            EMA: ${getSafeParam(strategyData.parameters, 'pullbackEmaPeriod', 'N/A')} | 
+            Bias: ${getSafeParam(strategyData.parameters, 'biasThreshold', 'N/A')} |
+            ATR Filter: ${getSafeParam(strategyData.parameters, 'atrFilterThreshold', 'N/A')}
+        </p>
+    `;
 
-                <p class="text-gray-400 text-xs mt-4">Strategi diimpor berhasil. Dasbor siap.</p>
-            </div>
+    let weightsDetailHtml = '';
+    const isAutoSwitch = strategyData.dnaType === 'AutoSwitch_v1' && strategyData.autoWeights;
+
+    if (isAutoSwitch) {
+        // --- TIPE 1: AUTO-SWITCH ---
+        const regimes = Object.keys(strategyData.autoWeights);
+        
+        weightsDetailHtml = `
+            <p class="font-bold mt-4 text-purple-400">Bobot Dinamis (AutoSwitch - ${regimes.length} Rezim):</p>
+            <div class="grid grid-cols-2 gap-4 mt-2 text-xs font-mono">
+        `;
+        
+        regimes.forEach(regimeKey => {
+            const weights = strategyData.autoWeights[regimeKey] || {}; // Fallback ke objek kosong
+            
+            // Check dasar: Pastikan kita bisa menampilkan 
+            const isCorrupt = typeof weights.ma === 'undefined';
+
+            weightsDetailHtml += `
+                <div class="p-2 rounded-md ${isCorrupt ? 'bg-red-900/50' : 'bg-gray-900/50'}">
+                    <p class="font-bold ${isCorrupt ? 'text-red-500' : 'text-yellow-400'}">${regimeKey.replace('_', ' ')}</p>
+                    <ul class="text-gray-400 mt-1 space-y-0.5">
+                        <li>MA: ${getSafeWeight(weights, 'ma')}</li>
+                        <li>RSI Div: ${getSafeWeight(weights, 'rsiDivergence')}</li>
+                        <li>MACD: ${getSafeWeight(weights, 'macd')}</li>
+                        <li>BB Squeeze: ${getSafeWeight(weights, 'bbSqueeze')}</li>
+                    </ul>
+                </div>
+            `;
+        });
+
+        weightsDetailHtml += `</div>`;
+        
+    } else {
+        // --- TIPE 2: STATIS ---
+        const weights = strategyData.weights || {};
+        weightsDetailHtml = `
+            <p class="font-bold mt-4">Bobot Statis:</p>
+            <ul class="text-xs font-mono space-y-1 mt-2">
+                <li>MA: ${getSafeWeight(weights, 'ma')}</li>
+                <li>RSI Divergence: ${getSafeWeight(weights, 'rsiDivergence')}</li>
+                <li>MACD: ${getSafeWeight(weights, 'macd')}</li>
+                <li>Pivot: ${getSafeWeight(weights, 'pivot')}</li>
+                <li>VWAP: ${getSafeWeight(weights, 'vwap')}</li>
+                <li>Ichimoku: ${getSafeWeight(weights, 'ichimoku')}</li>
+                <li>Candle Pattern: ${getSafeWeight(weights, 'candlePattern')}</li>
+                <li>BB Squeeze: ${getSafeWeight(weights, 'bbSqueeze')}</li>
+                <li>PSAR: ${getSafeWeight(weights, 'psar')}</li>
+            </ul>
         `;
     }
+
+    // --- RENDERING FINAL ---
+    importedSinyalPanel.innerHTML = `
+        <div class="mt-2 text-center">
+            <p class="font-bold">Metadata Strategi</p>
+            <p class="font-mono text-xs">
+                Tipe DNA: ${strategyData.metadata.dnaType} |
+                Aset: ${strategyData.metadata.sourceAsset || 'N/A'} |
+                Timeframe: ${strategyData.metadata.sourceTimeframe || 'N/A'}
+            </p>
+            
+            ${paramHtml}
+            ${weightsDetailHtml}
+
+            <p class="text-gray-400 text-xs mt-4">Strategi diimpor berhasil. Dashboard siap beradaptasi.</p>
+        </div>
+    `;
+}
 
     function connectToBinance(symbol, interval) {
         if (liveWebSocket) {
@@ -1231,7 +1411,6 @@ function handleFileImport(event) {
         };
 
         liveWebSocket.onclose = () => {
-            //console.log("Koneksi WebSocket terputus. Mencoba terhubung kembali...");
             setTimeout(() => connectToBinance(symbol, interval), 5000);
         };
     }
@@ -1258,274 +1437,255 @@ function handleFileImport(event) {
         }
     }
     
-function displayLiveSignal(signalData) {
-    // 1. Ambil data utama dan variabel (Minimalisasi risiko dengan copy data)
-    realtimeCache.main.latestScalpingSetup = signalData;
-        
-    const symbol = liveSymbolInput.value.toUpperCase(); // Mengambil symbol dari input field
-    const entryPrice = signalData.entry.price !== null ? formatPrice(signalData.entry.price, symbol) : 'N/A';
-    const entryPercentage = signalData.entry.percentage !== null ? `(${signalData.entry.percentage.toFixed(2)}%)` : '';
-    const slPrice = signalData.sl.price !== null ? formatPrice(signalData.sl.price, symbol) : 'N/A';
-    const slPercentage = signalData.sl.percentage !== null ? `(${signalData.sl.percentage.toFixed(2)}%)` : '';
-    const tp1Price = signalData.tp1.price !== null ? formatPrice(signalData.tp1.price, symbol) : 'N/A';
-    const tp1Percentage = signalData.tp1.percentage !== null ? `(${signalData.tp1.percentage.toFixed(2)}%)` : '';
-    const tp2Price = signalData.tp2.price !== null ? formatPrice(signalData.tp2.price, symbol) : 'N/A';
-    const tp2Percentage = signalData.tp2.percentage !== null ? `(${signalData.tp2.percentage.toFixed(2)}%)` : '';
-    const tp3Price = signalData.tp3.price !== null ? formatPrice(signalData.tp3.price, symbol) : 'N/A';
-    const tp3Percentage = signalData.tp3.percentage !== null ? `(${signalData.tp3.percentage.toFixed(2)}%)` : '';
-    
-    const newSignalState = signalData.bias.status;
-    
-    // ===================================================================
-    // KODE 1: ATR DISPLAY (Mengekstrak dari string detail)
-    // ===================================================================
-    // Mencari pola Filtered by ATR (X.XXXX% < Y.YYYY%)
-    const atrDetailMatch = signalData.bias.detail.match(/\(([\d\.]+)% [\<\>] ([\d\.]+)%\)/);
-    let atrDisplayHtml = '';
+    function displayLiveSignal(signalData) {
+        realtimeCache.main.latestScalpingSetup = signalData;
+            
+        const symbol = liveSymbolInput.value.toUpperCase(); // Mengambil symbol dari input field
+        const entryPrice = signalData.entry.price !== null ? formatPrice(signalData.entry.price, symbol) : 'N/A';
+        const entryPercentage = signalData.entry.percentage !== null ? `(${signalData.entry.percentage.toFixed(2)}%)` : '';
+        const slPrice = signalData.sl.price !== null ? formatPrice(signalData.sl.price, symbol) : 'N/A';
+        const slPercentage = signalData.sl.percentage !== null ? `(${signalData.sl.percentage.toFixed(2)}%)` : '';
+        const tp1Price = signalData.tp1.price !== null ? formatPrice(signalData.tp1.price, symbol) : 'N/A';
+        const tp1Percentage = signalData.tp1.percentage !== null ? `(${signalData.tp1.percentage.toFixed(2)}%)` : '';
+        const tp2Price = signalData.tp2.price !== null ? formatPrice(signalData.tp2.price, symbol) : 'N/A';
+        const tp2Percentage = signalData.tp2.percentage !== null ? `(${signalData.tp2.percentage.toFixed(2)}%)` : '';
+        const tp3Price = signalData.tp3.price !== null ? formatPrice(signalData.tp3.price, symbol) : 'N/A';
+        const tp3Percentage = signalData.tp3.percentage !== null ? `(${signalData.tp3.percentage.toFixed(2)}%)` : '';
+        const newSignalState = signalData.bias.status;
+        const atrDetailMatch = signalData.bias.detail.match(/\(([\d\.]+)% [\<\>] ([\d\.]+)%\)/);
+        let atrDisplayHtml = '';
 
-    if (atrDetailMatch) {
-        const actualATR = parseFloat(atrDetailMatch[1]);
-        const targetATR = parseFloat(atrDetailMatch[2]);
-        
-        // Logika kelulusan: Volatilitas AKTUAL harus lebih besar atau sama dengan TARGET
-        const isLolos = actualATR >= targetATR; 
-        const colorClass = isLolos ? 'positive' : 'negative';
-        
-        // Tentukan simbol yang harus ditampilkan: ≥ jika LULUS, < jika GAGAL
-        const displayOperator = isLolos ? '&ge;' : '<'; // HTML entity for >=
-        
-        atrDisplayHtml = `
-            <div class="mt-2 text-xs font-mono flex justify-center space-x-4 p-2 bg-gray-900/50 rounded-md">
-                <span class="text-gray-400">ATR Current: <strong class="${colorClass}">${actualATR.toFixed(4)}%</strong></span>
-                <span class="text-gray-400">| Target Min: <strong>${targetATR.toFixed(4)}%</strong></span>
+        if (atrDetailMatch) {
+            const actualATR = parseFloat(atrDetailMatch[1]);
+            const targetATR = parseFloat(atrDetailMatch[2]);
+            const isLolos = actualATR >= targetATR; 
+            const colorClass = isLolos ? 'positive' : 'negative';
+            const displayOperator = isLolos ? '&ge;' : '<';
+            
+            atrDisplayHtml = `
+                <div class="mt-2 text-xs font-mono flex justify-center space-x-4 p-2 bg-gray-900/50 rounded-md">
+                    <span class="text-gray-400">ATR Current: <strong class="${colorClass}">${actualATR.toFixed(4)}%</strong></span>
+                    <span class="text-gray-400">| Target Min: <strong>${targetATR.toFixed(4)}%</strong></span>
+                    
+                    <span class="text-xs text-gray-500 ml-1">(${actualATR.toFixed(4)}% ${displayOperator} ${targetATR.toFixed(4)}%)</span>
+                </div>
+            `;
+        }
+
+        const updateTimerDisplay = () => {
+            const currentTimerEl = document.getElementById('signal-time-elapsed');
+            if (!signalStartTime) return; 
+            
+            const elapsedMs = Date.now() - signalStartTime;
+            const formattedTime = formatTimeElapsed(elapsedMs);
+            
+            if (currentTimerEl) {
+                currentTimerEl.textContent = `Aktif sejak: ${formattedTime}`;
+                if (elapsedMs > 5 * 60 * 1000) {
+                    currentTimerEl.classList.add('text-red-500');
+                    currentTimerEl.classList.remove('text-yellow-400');
+                } else {
+                    currentTimerEl.classList.add('text-yellow-400');
+                    currentTimerEl.classList.remove('text-red-500');
+                }
+            }
+        };
+
+        const wasPreviouslyActive = !lastStableSignal.includes('NEUTRAL') && !lastStableSignal.includes('CHOP');
+        const isCurrentlyActive = !newSignalState.includes('NEUTRAL') && !newSignalState.includes('CHOP');
+
+        if (newSignalState !== lastStableSignal) {
+            
+            // 1. PENCATATAN LOG SIKLUS LAMA
+            if (wasPreviouslyActive && signalActiveStartTime !== null) {
+                const cycleDurationSec = Math.round((Date.now() - signalActiveStartTime) / 1000);
                 
-                <span class="text-xs text-gray-500 ml-1">(${actualATR.toFixed(4)}% ${displayOperator} ${targetATR.toFixed(4)}%)</span>
+                if (cycleDurationSec >= 1) { 
+                    if (!signalLogState.statsByDnaFile[activeDnaFilename]) {
+                        signalLogState.statsByDnaFile[activeDnaFilename] = { totalCycles: 0, longCount: 0, shortCount: 0, durations: [], history: [] };
+                    }
+                    const fileStats = signalLogState.statsByDnaFile[activeDnaFilename];
+                    const cycleType = lastStableSignal.includes('LONG') ? 'LONG' : 'SHORT';
+                    
+                    fileStats.totalCycles++;
+                    if (cycleType === 'LONG') fileStats.longCount++;
+                    else fileStats.shortCount++;
+                    
+                    fileStats.durations.push(cycleDurationSec);
+                    fileStats.history.unshift({ type: cycleType, duration: cycleDurationSec, endState: newSignalState });
+                    if (fileStats.history.length > 10) fileStats.history.pop();
+                    
+                    updateSignalLogStatistics();
+                }
+                signalActiveStartTime = null;
+            }
+            
+            // 2. RESET TIMER WAKTU BERJALAN & LOGIK BARU
+            if (isCurrentlyActive) {
+                signalStartTime = Date.now(); 
+                signalActiveStartTime = Date.now(); // Mulai siklus log baru
+            } else {
+                signalStartTime = null; // Hentikan timer UI
+            }
+            
+            // 3. Update Status Stabil
+            lastStableSignal = newSignalState;
+        }
+        
+        // 4. Bersihkan Interval Timer Lama
+        if (timeElapsedInterval) {
+            clearInterval(timeElapsedInterval);
+            timeElapsedInterval = null;
+        }
+
+        // 5. Jika sinyal AKTIF, siapkan timer baru
+        if (isCurrentlyActive) {
+            timeElapsedInterval = setInterval(updateTimerDisplay, 1000); 
+        }
+
+        const biasColor = lastStableSignal.includes('LONG') ? 'positive' : (lastStableSignal.includes('SHORT') ? 'negative' : 'text-gray-400');
+        
+        let initialTimerText;
+        if (isCurrentlyActive) {
+            initialTimerText = 'Aktif sejak: 00m 00s'; 
+        } else {
+            initialTimerText = '— Sinyal Netral —';
+        }
+
+        // ===================================================================
+        // KODE 3: RENDERING HTML FINAL
+        // ===================================================================
+        document.getElementById('live-signal-content').innerHTML = `
+            <div class="space-y-4">
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="text-center">
+                        <p class="font-bold text-lg ${biasColor}">${lastStableSignal}</p> 
+                        <p class="text-sm text-gray-400">Contextual Bias</p>
+                        <p class="text-xs ${biasColor}">(${signalData.bias.detail})</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-yellow-400">${entryPrice}</p>
+                        <p class="text-sm text-gray-400">Entry</p>
+                        <p class="text-xs text-yellow-400">${entryPercentage}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-red-400">${slPrice}</p>
+                        <p class="text-sm text-gray-400">Stop Loss</p>
+                        <p class="text-xs text-red-400">${slPercentage}</p>
+                    </div>
+                </div>
+
+                ${atrDisplayHtml} 
+
+                <hr class="border-gray-700"/>
+                
+                <p id="signal-time-elapsed" class="text-center text-sm font-mono text-gray-500 mt-2">
+                    ${initialTimerText}
+                </p>
+                
+                <hr class="border-gray-700"/>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-green-400">${tp1Price}</p>
+                        <p class="text-sm text-gray-400">TP 1 (Struktural)</p>
+                        <p class="text-xs text-green-400">${tp1Percentage}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-green-400">${tp2Price}</p>
+                        <p class="text-sm text-gray-400">TP 2 (R:R 1:1.5)</p>
+                        <p class="text-xs text-green-400">${tp2Percentage}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-gray-400">${tp3Price}</p>
+                        <p class="text-sm text-gray-400">TP 3 (Key Level)</p>
+                        <p class="text-xs text-gray-400">${tp3Percentage}</p>
+                    </div>
+                </div>
             </div>
         `;
+        
+        if (isCurrentlyActive && document.getElementById('signal-time-elapsed')) {
+            updateTimerDisplay(); 
+        }
     }
-    // ===================================================================
 
-    // ===================================================================
-    // KODE 2: LOGIKA AFT TIMER & SIKLUS
-    // ===================================================================
-    const updateTimerDisplay = () => {
-        const currentTimerEl = document.getElementById('signal-time-elapsed');
-        if (!signalStartTime) return; 
+    function updateSignalLogStatistics() {
+        let allDurations = [];
+        let totalCycles = 0;
+        let longCount = 0;
+        let shortCount = 0;
         
-        const elapsedMs = Date.now() - signalStartTime;
-        const formattedTime = formatTimeElapsed(elapsedMs);
-        
-        if (currentTimerEl) {
-            currentTimerEl.textContent = `Aktif sejak: ${formattedTime}`;
-            if (elapsedMs > 5 * 60 * 1000) {
-                 currentTimerEl.classList.add('text-red-500');
-                 currentTimerEl.classList.remove('text-yellow-400');
-            } else {
-                 currentTimerEl.classList.add('text-yellow-400');
-                 currentTimerEl.classList.remove('text-red-500');
-            }
+        for (const file in signalLogState.statsByDnaFile) {
+            const stats = signalLogState.statsByDnaFile[file];
+            allDurations.push(...stats.durations);
+            totalCycles += stats.totalCycles;
+            longCount += stats.longCount;
+            shortCount += stats.shortCount;
         }
-    };
 
-    const wasPreviouslyActive = !lastStableSignal.includes('NEUTRAL') && !lastStableSignal.includes('CHOP');
-    const isCurrentlyActive = !newSignalState.includes('NEUTRAL') && !newSignalState.includes('CHOP');
-
-    if (newSignalState !== lastStableSignal) {
+        const durations = allDurations; 
         
-        // 1. PENCATATAN LOG SIKLUS LAMA
-        if (wasPreviouslyActive && signalActiveStartTime !== null) {
-            const cycleDurationSec = Math.round((Date.now() - signalActiveStartTime) / 1000);
+        // A. Durasi Rata-rata dan Standar Deviasi (Academis!)
+        let mean = 0, longest = 0, stdDev = 0;
+        if (durations.length > 0) {
+            const sum = durations.reduce((a, b) => a + b, 0);
+            mean = sum / durations.length;
+            longest = Math.max(...durations);
             
-            if (cycleDurationSec >= 1) { 
-                if (!signalLogState.statsByDnaFile[activeDnaFilename]) {
-                    signalLogState.statsByDnaFile[activeDnaFilename] = { totalCycles: 0, longCount: 0, shortCount: 0, durations: [], history: [] };
-                }
-                const fileStats = signalLogState.statsByDnaFile[activeDnaFilename];
-                const cycleType = lastStableSignal.includes('LONG') ? 'LONG' : 'SHORT';
-                
-                fileStats.totalCycles++;
-                if (cycleType === 'LONG') fileStats.longCount++;
-                else fileStats.shortCount++;
-                
-                fileStats.durations.push(cycleDurationSec);
-                fileStats.history.unshift({ type: cycleType, duration: cycleDurationSec, endState: newSignalState });
-                if (fileStats.history.length > 10) fileStats.history.pop();
-                
-                updateSignalLogStatistics();
-            }
-            signalActiveStartTime = null;
+            const variance = durations.reduce((sum, d) => sum + Math.pow(d - mean, 2), 0) / durations.length;
+            stdDev = Math.sqrt(variance);
         }
         
-        // 2. RESET TIMER WAKTU BERJALAN & LOGIK BARU
-        if (isCurrentlyActive) {
-            signalStartTime = Date.now(); 
-            signalActiveStartTime = Date.now(); // Mulai siklus log baru
+        // B. Perbarui Grid Statistik
+        document.getElementById('stat-total-count').textContent = `${totalCycles} (${longCount}/${shortCount})`;
+        document.getElementById('stat-mean-duration').textContent = formatTimeElapsed(mean * 1000);
+        document.getElementById('stat-longest-duration').textContent = formatTimeElapsed(longest * 1000);
+        document.getElementById('stat-std-dev').textContent = `${stdDev.toFixed(2)}s`;
+
+
+        // C. Perbarui Judul ASET/DNA (Pivot Table Title)
+        const symbolInput = document.getElementById('live-symbol-input');
+        const currentSymbol = symbolInput ? symbolInput.value.toUpperCase() : 'N/A';
+
+        const titleEl = document.getElementById('signal-log-asset-title');
+        if (titleEl) {
+            titleEl.textContent = `${currentSymbol} [DNA: ${activeDnaFilename}]`;
+        }
+        
+        // D. Perbarui Log Histori (TABEL BARU)
+        const currentFileStats = signalLogState.statsByDnaFile[activeDnaFilename] || { totalCycles: 0, longCount: 0, shortCount: 0, durations: [], history: [] };
+        const historyBody = document.getElementById('signal-log-history-body');
+        
+        if (currentFileStats.totalCycles > 0) {
+            historyBody.innerHTML = currentFileStats.history.map(log => {
+                const colorClass = log.type === 'LONG' ? 'positive' : 'negative';
+                const durationText = `${log.duration}s`;
+                const endReason = log.endState.includes('NEUTRAL') ? 'Netralisasi' : 'Sinyal Balik';
+                
+                return `
+                    <tr class="hover:bg-gray-800">
+                        <td class="px-3 py-1 ${colorClass} font-semibold">${log.type}</td>
+                        <td class="px-3 py-1 font-mono">${durationText}</td>
+                        <td class="px-3 py-1 font-mono">${log.endState.split('(')[0].trim()}</td>
+                        <td class="px-3 py-1 text-gray-500">${endReason}</td>
+                    </tr>
+                `;
+            }).join('');
         } else {
-            signalStartTime = null; // Hentikan timer UI
-        }
-        
-        // 3. Update Status Stabil
-        lastStableSignal = newSignalState;
-    }
-    
-    // 4. Bersihkan Interval Timer Lama
-    if (timeElapsedInterval) {
-        clearInterval(timeElapsedInterval);
-        timeElapsedInterval = null;
-    }
-
-    // 5. Jika sinyal AKTIF, siapkan timer baru
-    if (isCurrentlyActive) {
-        timeElapsedInterval = setInterval(updateTimerDisplay, 1000); 
-    }
-
-    const biasColor = lastStableSignal.includes('LONG') ? 'positive' : (lastStableSignal.includes('SHORT') ? 'negative' : 'text-gray-400');
-    
-    let initialTimerText;
-    if (isCurrentlyActive) {
-        initialTimerText = 'Aktif sejak: 00m 00s'; 
-    } else {
-        initialTimerText = '— Sinyal Netral —';
-    }
-
-    // ===================================================================
-    // KODE 3: RENDERING HTML FINAL
-    // ===================================================================
-    document.getElementById('live-signal-content').innerHTML = `
-        <div class="space-y-4">
-            <div class="grid grid-cols-3 gap-2">
-                <div class="text-center">
-                    <p class="font-bold text-lg ${biasColor}">${lastStableSignal}</p> 
-                    <p class="text-sm text-gray-400">Contextual Bias</p>
-                    <p class="text-xs ${biasColor}">(${signalData.bias.detail})</p>
-                </div>
-                <div class="text-center">
-                    <p class="font-bold text-lg text-yellow-400">${entryPrice}</p>
-                    <p class="text-sm text-gray-400">Entry</p>
-                    <p class="text-xs text-yellow-400">${entryPercentage}</p>
-                </div>
-                <div class="text-center">
-                    <p class="font-bold text-lg text-red-400">${slPrice}</p>
-                    <p class="text-sm text-gray-400">Stop Loss</p>
-                    <p class="text-xs text-red-400">${slPercentage}</p>
-                </div>
-            </div>
-
-            ${atrDisplayHtml} 
-
-            <hr class="border-gray-700"/>
-            
-            <p id="signal-time-elapsed" class="text-center text-sm font-mono text-gray-500 mt-2">
-                 ${initialTimerText}
-            </p>
-            
-            <hr class="border-gray-700"/>
-
-            <div class="grid grid-cols-3 gap-2">
-                <div class="text-center">
-                    <p class="font-bold text-lg text-green-400">${tp1Price}</p>
-                    <p class="text-sm text-gray-400">TP 1 (Struktural)</p>
-                    <p class="text-xs text-green-400">${tp1Percentage}</p>
-                </div>
-                <div class="text-center">
-                    <p class="font-bold text-lg text-green-400">${tp2Price}</p>
-                    <p class="text-sm text-gray-400">TP 2 (R:R 1:1.5)</p>
-                    <p class="text-xs text-green-400">${tp2Percentage}</p>
-                </div>
-                <div class="text-center">
-                    <p class="font-bold text-lg text-gray-400">${tp3Price}</p>
-                    <p class="text-sm text-gray-400">TP 3 (Key Level)</p>
-                    <p class="text-xs text-gray-400">${tp3Percentage}</p>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    if (isCurrentlyActive && document.getElementById('signal-time-elapsed')) {
-        updateTimerDisplay(); 
-    }
-}
-
-function updateSignalLogStatistics() {
-    
-    // --- AMBIL DATA DARI PIVOT TABLE STATE (DARI SEMUA FILE) ---
-    let allDurations = [];
-    let totalCycles = 0;
-    let longCount = 0;
-    let shortCount = 0;
-    
-    // Loop melalui semua file yang pernah dicatat
-    for (const file in signalLogState.statsByDnaFile) {
-        const stats = signalLogState.statsByDnaFile[file];
-        allDurations.push(...stats.durations);
-        totalCycles += stats.totalCycles;
-        longCount += stats.longCount;
-        shortCount += stats.shortCount;
-    }
-
-    const durations = allDurations; 
-    
-    // A. Durasi Rata-rata dan Standar Deviasi (Academis!)
-    let mean = 0, longest = 0, stdDev = 0;
-    if (durations.length > 0) {
-        const sum = durations.reduce((a, b) => a + b, 0);
-        mean = sum / durations.length;
-        longest = Math.max(...durations);
-        
-        const variance = durations.reduce((sum, d) => sum + Math.pow(d - mean, 2), 0) / durations.length;
-        stdDev = Math.sqrt(variance);
-    }
-    
-    // B. Perbarui Grid Statistik
-    document.getElementById('stat-total-count').textContent = `${totalCycles} (${longCount}/${shortCount})`;
-    document.getElementById('stat-mean-duration').textContent = formatTimeElapsed(mean * 1000);
-    document.getElementById('stat-longest-duration').textContent = formatTimeElapsed(longest * 1000);
-    document.getElementById('stat-std-dev').textContent = `${stdDev.toFixed(2)}s`;
-
-
-    // C. Perbarui Judul ASET/DNA (Pivot Table Title)
-    const symbolInput = document.getElementById('live-symbol-input');
-    const currentSymbol = symbolInput ? symbolInput.value.toUpperCase() : 'N/A';
-
-    const titleEl = document.getElementById('signal-log-asset-title');
-    if (titleEl) {
-        titleEl.textContent = `${currentSymbol} [DNA: ${activeDnaFilename}]`;
-    }
-    
-    // D. Perbarui Log Histori (TABEL BARU)
-    const currentFileStats = signalLogState.statsByDnaFile[activeDnaFilename] || { totalCycles: 0, longCount: 0, shortCount: 0, durations: [], history: [] };
-    const historyBody = document.getElementById('signal-log-history-body');
-    
-    if (currentFileStats.totalCycles > 0) {
-        historyBody.innerHTML = currentFileStats.history.map(log => {
-            const colorClass = log.type === 'LONG' ? 'positive' : 'negative';
-            const durationText = `${log.duration}s`;
-            const endReason = log.endState.includes('NEUTRAL') ? 'Netralisasi' : 'Sinyal Balik';
-            
-            return `
-                <tr class="hover:bg-gray-800">
-                    <td class="px-3 py-1 ${colorClass} font-semibold">${log.type}</td>
-                    <td class="px-3 py-1 font-mono">${durationText}</td>
-                    <td class="px-3 py-1 font-mono">${log.endState.split('(')[0].trim()}</td>
-                    <td class="px-3 py-1 text-gray-500">${endReason}</td>
+            historyBody.innerHTML = `
+                <tr class="text-center">
+                    <td colspan="4" class="py-2 text-gray-600">Tidak ada siklus sinyal tercatat.</td>
                 </tr>
             `;
-        }).join('');
-    } else {
-        historyBody.innerHTML = `
-            <tr class="text-center">
-                <td colspan="4" class="py-2 text-gray-600">Tidak ada siklus sinyal tercatat.</td>
-            </tr>
-        `;
-    }
+        }
 
-    // *** KODE BARU: SIMPAN DATA KE LOCAL STORAGE ***
-    try {
-        localStorage.setItem('aftSignalLog', JSON.stringify(signalLogState));
-    } catch (e) {
-        console.error("Gagal menyimpan log AFT ke local storage:", e);
+        try {
+            localStorage.setItem('aftSignalLog', JSON.stringify(signalLogState));
+        } catch (e) {
+            console.error("Gagal menyimpan log AFT ke local storage:", e);
+        }
     }
-}
 
     function formatPrice(price, symbol) {
         if (price === null || isNaN(price) || typeof price !== 'number') {
@@ -1696,28 +1856,28 @@ function updateSignalLogStatistics() {
     };
 
     const calculateRSI = (closes, period = 14) => {
-    if (!closes || closes.length <= period) {
-        return Array(closes.length).fill(undefined);
-    }
-    
-    let gains = [];
-    let losses = [];
-    for (let i = 1; i < closes.length; i++) {
-        const diff = closes[i] - closes[i - 1];
-        gains.push(diff > 0 ? diff : 0);
-        losses.push(diff < 0 ? -diff : 0);
-    }
-    let rsi = Array(period).fill(undefined);
-    let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
-    let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
-    rsi[period - 1] = (avgLoss === 0) ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
-    for (let i = period; i < gains.length; i++) {
-        avgGain = (avgGain * (period - 1) + gains[i]) / period;
-        avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
-        rsi.push((avgLoss === 0) ? 100 : 100 - (100 / (1 + (avgGain / avgLoss))));
-    }
-    return rsi;
-};
+        if (!closes || closes.length <= period) {
+            return Array(closes.length).fill(undefined);
+        }
+        
+        let gains = [];
+        let losses = [];
+        for (let i = 1; i < closes.length; i++) {
+            const diff = closes[i] - closes[i - 1];
+            gains.push(diff > 0 ? diff : 0);
+            losses.push(diff < 0 ? -diff : 0);
+        }
+        let rsi = Array(period).fill(undefined);
+        let avgGain = gains.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        let avgLoss = losses.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        rsi[period - 1] = (avgLoss === 0) ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+        for (let i = period; i < gains.length; i++) {
+            avgGain = (avgGain * (period - 1) + gains[i]) / period;
+            avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+            rsi.push((avgLoss === 0) ? 100 : 100 - (100 / (1 + (avgGain / avgLoss))));
+        }
+        return rsi;
+    };
     
     const calculateMACD = (closes, fast, slow, signal) => {
         if (fast === undefined) {
@@ -2147,7 +2307,7 @@ function updateSignalLogStatistics() {
         return { summary, score };
     }
 
-    function calculateConfluenceScoreForCandle(activeWeights, indicators) { // htfTrend dihapus dari parameter
+    function calculateConfluenceScoreForCandle(activeWeights, indicators) { 
         let totalBullScore = 0, totalBearScore = 0, maxPossibleScore = 0;
 
         for (const indicator in activeWeights) {
@@ -2162,8 +2322,6 @@ function updateSignalLogStatistics() {
             }
         }
         
-        // Logika htfWeight DIHAPUS dari sini
-
         const bullPercentage = maxPossibleScore > 0 ? (totalBullScore / maxPossibleScore) * 100 : 0;
         const bearPercentage = maxPossibleScore > 0 ? (totalBearScore / maxPossibleScore) * 100 : 0;
 
@@ -2312,8 +2470,6 @@ function updateSignalLogStatistics() {
             elements.slider.value = Math.min(100, percentage);
         });
         elements.autofillBtn.addEventListener('click', () => tsCalc.autofill());
-
-        // --- LOGIKA BARU UNTUK MODAL TS ---
         elements.tsOptionsBtn.addEventListener('click', () => tsCalc.toggleModal(true));
         elements.modalCloseBtn.addEventListener('click', () => tsCalc.toggleModal(false));
         elements.modalContainer.addEventListener('click', (e) => {
@@ -2420,13 +2576,12 @@ function updateSignalLogStatistics() {
     }
 
     function resetLiveSession() {
-        //console.log("--- RESETTING LIVE SESSION ---");
         if (liveInterval) {
             clearInterval(liveInterval);
             liveInterval = null;
         }
         if (liveWebSocket) {
-            liveWebSocket.onclose = null; // Penting untuk mencegah logika rekoneksi
+            liveWebSocket.onclose = null; 
             liveWebSocket.close();
             liveWebSocket = null;
         }
@@ -2460,181 +2615,171 @@ function updateSignalLogStatistics() {
         }
     }
 
-    // ===================================================================
-// MODUL PRAKIRAWAN CUACA
 // ===================================================================
-
-
+// MODUL PRAKIRAAN CUACA
+// ===================================================================
     function runLiveProjection(tradeCount) {
-    // 1. Cek Data DNA dan QC (Monte Carlo)
-    if (!activeStrategy || !activeStrategy.metadata || !activeStrategy.metadata.qc_validation) {
-        alert("Mohon impor file DNA strategi yang sudah divalidasi dengan Monte Carlo terlebih dahulu.");
-        return;
-    }
-
-    const qcData = activeStrategy.metadata.qc_validation;
-
-    // Perbaikan: Ambil data statistik dari variabel yang sudah diperbaiki
-    const avgPnl = qcData.avgPnl_per_trade;
-    const stdDevPnl = qcData.stdDevPnl_per_trade;
-
-    // Cek terakhir untuk memastikan data statistik ada
-    if (typeof avgPnl !== 'number' || typeof stdDevPnl !== 'number' || stdDevPnl === 0) {
-        alert("Error: Data statistik (avgPnl/stdDevPnl) tidak valid atau standar deviasi nol. Jalankan simulasi Monte Carlo lagi.");
-        return;
-    }
-
-    // 2. Cek Keselamatan Elemen HTML (Safety Check)
-    const startEquityEl = document.getElementById('forecast-start-equity');
-    if (!startEquityEl) { 
-        alert("Gagal memuat panel hasil proyeksi. Coba muat ulang dasbor.");
-        return;
-    }
-
-    // 3. Logika Simulasi Monte Carlo
-    const startEquity = paperTrade.state.balance;
-    const numSimulations = 1000;
-    const equityCurves = [];
-
-    for (let i = 0; i < numSimulations; i++) {
-        let currentEquity = startEquity;
-        const curve = [startEquity];
-        for (let j = 0; j < tradeCount; j++) {
-            // Gunakan fungsi distribusi normal (Box-Muller transform)
-            let u1 = Math.random();
-            let u2 = Math.random();
-            let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
-            const randomPnl = z0 * stdDevPnl + avgPnl;
-            currentEquity += randomPnl;
-            curve.push(currentEquity);
+        // 1. Cek Data DNA dan QC (Monte Carlo)
+        if (!activeStrategy || !activeStrategy.metadata || !activeStrategy.metadata.qc_validation) {
+            alert("Mohon impor file DNA strategi yang sudah divalidasi dengan Monte Carlo terlebih dahulu.");
+            return;
         }
-        equityCurves.push(curve);
-    }
-    
-    // 4. Hitung dan Tampilkan Hasil
-    
-    // Hitung rata-rata dan zona probabilitas
-    const numTrades = equityCurves[0].length - 1;
-    const finalEquities = equityCurves.map(c => c.slice(-1)[0]);
-    const avgFinalEquity = finalEquities.reduce((sum, eq) => sum + eq, 0) / finalEquities.length;
-    
-    const worstCase = finalEquities.sort((a,b) => a-b)[Math.floor(finalEquities.length * 0.05)];
-    const lossProbability = (finalEquities.filter(eq => eq < startEquity).length / numSimulations) * 100;
-    
-    // Perbarui Output di Grid Hasil
-    document.getElementById('forecast-start-equity').textContent = formatPrice(startEquity, realtimeCache.main.symbol);
-    document.getElementById('forecast-avg-pnl').textContent = formatPrice(avgFinalEquity - startEquity, realtimeCache.main.symbol);
-    document.getElementById('forecast-loss-prob').textContent = `${lossProbability.toFixed(1)}%`;
-    document.getElementById('forecast-worst-case').textContent = formatPrice(worstCase, realtimeCache.main.symbol);
 
-    // 5. Render Chart
-    renderProjectionChart(equityCurves, startEquity);
-}
+        const qcData = activeStrategy.metadata.qc_validation;
+
+        // Perbaikan: Ambil data statistik dari variabel yang sudah diperbaiki
+        const avgPnl = qcData.avgPnl_per_trade;
+        const stdDevPnl = qcData.stdDevPnl_per_trade;
+
+        // Cek terakhir untuk memastikan data statistik ada
+        if (typeof avgPnl !== 'number' || typeof stdDevPnl !== 'number' || stdDevPnl === 0) {
+            alert("Error: Data statistik (avgPnl/stdDevPnl) tidak valid atau standar deviasi nol. Jalankan simulasi Monte Carlo lagi.");
+            return;
+        }
+
+        // 2. Cek Keselamatan Elemen HTML (Safety Check)
+        const startEquityEl = document.getElementById('forecast-start-equity');
+        if (!startEquityEl) { 
+            alert("Gagal memuat panel hasil proyeksi. Coba muat ulang dasbor.");
+            return;
+        }
+
+        // 3. Logika Simulasi Monte Carlo
+        const startEquity = paperTrade.state.balance;
+        const numSimulations = 1000;
+        const equityCurves = [];
+
+        for (let i = 0; i < numSimulations; i++) {
+            let currentEquity = startEquity;
+            const curve = [startEquity];
+            for (let j = 0; j < tradeCount; j++) {
+                // Gunakan fungsi distribusi normal (Box-Muller transform)
+                let u1 = Math.random();
+                let u2 = Math.random();
+                let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                const randomPnl = z0 * stdDevPnl + avgPnl;
+                currentEquity += randomPnl;
+                curve.push(currentEquity);
+            }
+            equityCurves.push(curve);
+        }
+        
+        // 4. Hitung dan Tampilkan Hasil
+        
+        // Hitung rata-rata dan zona probabilitas
+        const numTrades = equityCurves[0].length - 1;
+        const finalEquities = equityCurves.map(c => c.slice(-1)[0]);
+        const avgFinalEquity = finalEquities.reduce((sum, eq) => sum + eq, 0) / finalEquities.length;
+        
+        const worstCase = finalEquities.sort((a,b) => a-b)[Math.floor(finalEquities.length * 0.05)];
+        const lossProbability = (finalEquities.filter(eq => eq < startEquity).length / numSimulations) * 100;
+        
+        // Perbarui Output di Grid Hasil
+        document.getElementById('forecast-start-equity').textContent = formatPrice(startEquity, realtimeCache.main.symbol);
+        document.getElementById('forecast-avg-pnl').textContent = formatPrice(avgFinalEquity - startEquity, realtimeCache.main.symbol);
+        document.getElementById('forecast-loss-prob').textContent = `${lossProbability.toFixed(1)}%`;
+        document.getElementById('forecast-worst-case').textContent = formatPrice(worstCase, realtimeCache.main.symbol);
+
+        // 5. Render Chart
+        renderProjectionChart(equityCurves, startEquity);
+    }
 
     function renderProjectionChart(equityCurves, startEquity) {
-    const ctx = document.getElementById('forecast-chart').getContext('2d');
-    if (forecastChart) forecastChart.destroy();
-    
-    // 1. Ambil Data Agregat
-    const numTrades = equityCurves[0].length - 1;
-    const finalEquities = equityCurves.map(c => c.slice(-1)[0]);
-    const avgFinalEquity = finalEquities.reduce((sum, eq) => sum + eq, 0) / finalEquities.length;
-    const worstCase = finalEquities.sort((a,b) => a-b)[Math.floor(finalEquities.length * 0.05)];
-    const lossProbability = (finalEquities.filter(eq => eq < startEquity).length / 1000) * 100;
+        const ctx = document.getElementById('forecast-chart').getContext('2d');
+        if (forecastChart) forecastChart.destroy();
+        
+        // 1. Ambil Data Agregat
+        const numTrades = equityCurves[0].length - 1;
+        const finalEquities = equityCurves.map(c => c.slice(-1)[0]);
+        const avgFinalEquity = finalEquities.reduce((sum, eq) => sum + eq, 0) / finalEquities.length;
+        const worstCase = finalEquities.sort((a,b) => a-b)[Math.floor(finalEquities.length * 0.05)];
+        const lossProbability = (finalEquities.filter(eq => eq < startEquity).length / 1000) * 100;
 
-    // 2. KODE KRITIS: MEMASTIKAN STRUKTUR OUTPUT HASIL SELALU DIBUAT ULANG
-    const resultsContainer = document.getElementById('forecast-results');
-    if (resultsContainer) {
-        resultsContainer.innerHTML = `
-            <span>Modal Awal Proyeksi</span><span id="forecast-start-equity" class="text-right font-bold">${formatPrice(startEquity, realtimeCache.main.symbol)}</span>
-            <span>Potensi PNL Rata-rata</span><span id="forecast-avg-pnl" class="text-right font-bold">${formatPrice(avgFinalEquity - startEquity, realtimeCache.main.symbol)}</span>
-            <span>Probabilitas Loss</span><span id="forecast-loss-prob" class="text-right font-bold">${lossProbability.toFixed(1)}%</span>
-            <span>Worst Case (5%)</span><span id="forecast-worst-case" class="text-right font-bold">${formatPrice(worstCase, realtimeCache.main.symbol)}</span>
-        `;
-    }
-    // -------------------------------------------------------------
-
-    // 3. Render Chart (Logika Chart.js di sini)
-    // ... (Logika Chart.js, menggunakan data dan elemen yang sudah ada) ...
-    const avgCurve = Array(numTrades + 1).fill(0).map((_, i) => equityCurves.reduce((sum, curve) => sum + curve[i], 0) / equityCurves.length);
-    const labels = Array.from({ length: numTrades + 1 }, (_, i) => `Trade ${i}`);
-    
-    const data = {
-        labels,
-        datasets: [{
-            label: 'Jalur Ekuitas Rata-rata',
-            data: avgCurve,
-            borderColor: '#F59E0B',
-            tension: 0.1,
-            pointRadius: 0
-        }]
-    };
-    
-    forecastChart = new Chart(ctx, {
-        type: 'line', data: data, options: {
-            responsive: true,
-            scales: { y: { beginAtZero: false, title: { display: true, text: 'Ekuitas (USD)' } }, x: { title: { display: true, text: 'Jumlah Trade' } } }
+        // 2. KODE KRITIS: MEMASTIKAN STRUKTUR OUTPUT HASIL SELALU DIBUAT ULANG
+        const resultsContainer = document.getElementById('forecast-results');
+        if (resultsContainer) {
+            resultsContainer.innerHTML = `
+                <span>Modal Awal Proyeksi</span><span id="forecast-start-equity" class="text-right font-bold">${formatPrice(startEquity, realtimeCache.main.symbol)}</span>
+                <span>Potensi PNL Rata-rata</span><span id="forecast-avg-pnl" class="text-right font-bold">${formatPrice(avgFinalEquity - startEquity, realtimeCache.main.symbol)}</span>
+                <span>Probabilitas Loss</span><span id="forecast-loss-prob" class="text-right font-bold">${lossProbability.toFixed(1)}%</span>
+                <span>Worst Case (5%)</span><span id="forecast-worst-case" class="text-right font-bold">${formatPrice(worstCase, realtimeCache.main.symbol)}</span>
+            `;
         }
-    });
-}
-function clearSignalLogHistory() {
-    if (!confirm("Apakah Anda yakin ingin menghapus semua riwayat Signal Log (AFT) dan mereset statistik?")) {
-        return;
-    }
-    
-    // 1. Reset state log
-    signalLogState.statsByDnaFile = {};
-    
-    // 2. Clear variabel live
-    signalActiveStartTime = null;
-    
-    // 3. Update tampilan UI
-    updateSignalLogStatistics();
-    
-    // 4. Pastikan timer yang sedang berjalan dihentikan
-    if (timeElapsedInterval) {
-        clearInterval(timeElapsedInterval);
-        timeElapsedInterval = null;
+
+        const avgCurve = Array(numTrades + 1).fill(0).map((_, i) => equityCurves.reduce((sum, curve) => sum + curve[i], 0) / equityCurves.length);
+        const labels = Array.from({ length: numTrades + 1 }, (_, i) => `Trade ${i}`);
+        
+        const data = {
+            labels,
+            datasets: [{
+                label: 'Jalur Ekuitas Rata-rata',
+                data: avgCurve,
+                borderColor: '#F59E0B',
+                tension: 0.1,
+                pointRadius: 0
+            }]
+        };
+        
+        forecastChart = new Chart(ctx, {
+            type: 'line', data: data, options: {
+                responsive: true,
+                scales: { y: { beginAtZero: false, title: { display: true, text: 'Ekuitas (USD)' } }, x: { title: { display: true, text: 'Jumlah Trade' } } }
+            }
+        });
     }
 
-    // 5. Reset tampilan timer aktif menjadi netral
-    const timeElapsedEl = document.getElementById('signal-time-elapsed');
-    if (timeElapsedEl) {
-        timeElapsedEl.textContent = '— Sinyal Netral —';
-        timeElapsedEl.classList.remove('text-red-500', 'text-yellow-400');
-        timeElapsedEl.classList.add('text-gray-500');
+    function clearSignalLogHistory() {
+        if (!confirm("Apakah Anda yakin ingin menghapus semua riwayat Signal Log (AFT) dan mereset statistik?")) {
+            return;
+        }
+        
+        // 1. Reset state log
+        signalLogState.statsByDnaFile = {};
+        
+        // 2. Clear variabel live
+        signalActiveStartTime = null;
+        
+        // 3. Update tampilan UI
+        updateSignalLogStatistics();
+        
+        // 4. Pastikan timer yang sedang berjalan dihentikan
+        if (timeElapsedInterval) {
+            clearInterval(timeElapsedInterval);
+            timeElapsedInterval = null;
+        }
+
+        // 5. Reset tampilan timer aktif menjadi netral
+        const timeElapsedEl = document.getElementById('signal-time-elapsed');
+        if (timeElapsedEl) {
+            timeElapsedEl.textContent = '— Sinyal Netral —';
+            timeElapsedEl.classList.remove('text-red-500', 'text-yellow-400');
+            timeElapsedEl.classList.add('text-gray-500');
+        }
+
+        alert("Riwayat Signal Log AFT berhasil direset.");
     }
 
-    alert("Riwayat Signal Log AFT berhasil direset.");
-}
-function setupAFTPanel() {
-    // 1. Pasang Event Listener Tombol Clear (FIX TIMING ERROR)
-    const clearBtn = document.getElementById('clear-signal-log-btn');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', clearSignalLogHistory);
-    }
-    
-    // 2. Perbaiki Bug Toggle (Jika belum terinisiasi)
-    setupToggle('toggle-signal-log-btn', 'signal-log-content-wrapper', 'toggle-signal-log-icon', false);
+    function setupAFTPanel() {
+        const clearBtn = document.getElementById('clear-signal-log-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearSignalLogHistory);
+        }
+        
+        setupToggle('toggle-signal-log-btn', 'signal-log-content-wrapper', 'toggle-signal-log-icon', false);
 
-    // 3. Panggil Statistik Awal untuk mengisi grid 0/0
-    updateSignalLogStatistics();
-}
+        updateSignalLogStatistics();
+    }
 // ===================================================================
 // Event listener untuk tombol import (GANTI SELURUH BLOK INI)
 // ===================================================================      
 document.addEventListener('DOMContentLoaded', async () => { 
     await initializePrecisionMap(); 
-
-    // --- SETUP TOGGLE BARU ---
+    
     setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', false);
     setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', false);
     setupToggle('toggle-import-btn', 'import-content-wrapper', 'toggle-import-icon', true);
     setupToggle('toggle-forecast-btn', 'forecast-content-wrapper', 'toggle-forecast-icon', true);
-    
-    // ** PERBAIKAN TOGGLE SIGNAL LOG **
     setupToggle('toggle-signal-log-btn', 'signal-log-content-wrapper', 'toggle-signal-log-icon', false); 
-    
     toggleChartsBtn.addEventListener('click', toggleChartsVisibility);
     
     importFile.addEventListener('change', (event) => {
@@ -2642,177 +2787,218 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
 startLiveBtn.addEventListener('click', async () => {
-    if (!activeStrategy) {
-        alert("Mohon impor file DNA strategi terlebih dahulu.");
-        return;
-    }
-
-    // --- LOGIKA AFT: RESET SEMUA VARIBEL LOG & TIMER ---
-    resetLiveSession();
-    signalLogState.statsByDnaFile[activeDnaFilename] = { 
-        totalCycles: 0, 
-        longCount: 0, 
-        shortCount: 0, 
-        durations: [], 
-        history: [] 
-    };
-    updateSignalLogStatistics();
-    
-    // Safety check Awal agar timer tidak bug
-    signalStartTime = null;
-    signalActiveStartTime = null;
-    lastStableSignal = 'NONE';
-    // --- END RESET AFT ---
-
-    setButtonState(startLiveBtn, true, "Running...");
-
-    const liveSymbolInput = document.getElementById('live-symbol-input');
-    const liveTimeframeSelect = document.getElementById('live-timeframe-select');
-    const symbol = liveSymbolInput.value.toUpperCase();
-    const timeframe = liveTimeframeSelect.value;
-    realtimeCache.main.symbol = symbol;
-
-    // Fix DOM Error: Tunda Pembaruan Judul Log
-    setTimeout(() => {
-        const titleEl = document.getElementById('signal-log-asset-title');
-        if (titleEl) {
-            const currentSymbol = liveSymbolInput.value.toUpperCase() || 'N/A';
-            titleEl.textContent = `${currentSymbol} [DNA: ${activeDnaFilename}]`;
+        if (!activeStrategy) {
+            alert("Mohon impor file DNA strategi terlebih dahulu.");
+            return;
         }
-    }, 50); 
-    
 
-    try {
-        await fetchInitialData(symbol, timeframe);
-        connectToBinance(symbol, timeframe);
-        
-        setButtonState(startLiveBtn, false, "▶️ STOP LIVE"); // Diubah menjadi STOP LIVE
-        liveSignalPanel.classList.remove('hidden');
-        updateHtfCompass('1h');
+        // Cek jika tombol berfungsi sebagai STOP
+        if (startLiveText.textContent.includes("STOP")) {
+            resetLiveSession();
+            setButtonState(startLiveBtn, false, "▶️ START LIVE");
+            return;
+        }
 
-        setupAFTPanel();
+        resetLiveSession();
+        // Reset Log AFT
+        signalLogState.statsByDnaFile[activeDnaFilename] = {
+            totalCycles: 0,
+            longCount: 0,
+            shortCount: 0,
+            durations: [],
+            history: []
+        };
+        updateSignalLogStatistics();
 
-        document.querySelectorAll('.htf-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.htf-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                updateHtfCompass(btn.dataset.timeframe);
+        signalStartTime = null;
+        signalActiveStartTime = null;
+        lastStableSignal = 'NONE';
+
+        setButtonState(startLiveBtn, true, "Mengambil data...");
+
+        const liveSymbolInput = document.getElementById('live-symbol-input');
+        const liveTimeframeSelect = document.getElementById('live-timeframe-select');
+        const symbol = liveSymbolInput.value.toUpperCase();
+        const timeframe = liveTimeframeSelect.value;
+        realtimeCache.main.symbol = symbol;
+
+        setTimeout(() => {
+            const titleEl = document.getElementById('signal-log-asset-title');
+            if (titleEl) {
+                const currentSymbol = liveSymbolInput.value.toUpperCase() || 'N/A';
+                titleEl.textContent = `${currentSymbol} [DNA: ${activeDnaFilename}]`;
+            }
+        }, 50);
+
+        try {
+            await fetchInitialData(symbol, timeframe);
+            connectToBinance(symbol, timeframe);
+
+            setButtonState(startLiveBtn, false, "⏹️ STOP LIVE");
+            liveSignalPanel.classList.remove('hidden');
+            updateHtfCompass('1h');
+
+            setupAFTPanel();
+
+            document.querySelectorAll('.htf-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.htf-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateHtfCompass(btn.dataset.timeframe);
+                });
             });
-        });
 
-// GANTI SELURUH BLOK liveInterval = setInterval(...) ANDA
-liveInterval = setInterval(async () => {
-    if (!liveData || liveData.length < 50 || !activeStrategy) return;
+            // =================================================
+            // INTI LOGIKA LIVE INTERVAL (PALING SENSITIF)
+            // =================================================
+            liveInterval = setInterval(async () => {
+                if (!liveData || liveData.length < 50 || !activeStrategy) return;
 
-    // --- TAHAP 1: KALKULASI DATA UTAMA ---
-    const closes = liveData.map(k => parseFloat(k[4]));
-    const lastClose = closes.slice(-1)[0];
-    const currentMarketPrice = lastClose; 
+                // Ambil 500 candle terbaru untuk kalkulasi indikator
+                const klinesSnapshot = liveData.slice(-500); 
+                const closes = klinesSnapshot.map(k => parseFloat(k[4]));
+                const lastClose = closes.slice(-1)[0];
+                const currentMarketPrice = lastClose;
 
-    // Ambil parameter DNA
-    const biasThreshold = activeStrategy.parameters.biasThreshold;
-    const atrThresholdJSON = activeStrategy.parameters.atrFilterThreshold; 
-    const pullbackEma = activeStrategy.parameters.pullbackEmaPeriod;
-    const swingLookback = activeStrategy.parameters.swingLookback;
+                const parameters = activeStrategy.parameters;
+                const biasThreshold = parameters.biasThreshold;
+                const atrThresholdJSON = parameters.atrFilterThreshold;
+                const pullbackEma = parameters.pullbackEmaPeriod;
+                const swingLookback = parameters.swingLookback;
 
-    // --- KALKULASI & NORMALISASI ATR KRITIS (ATR %) ---
-    const atrData = calculateATR(liveData, 14); 
-    const currentATR_Persen = atrData.atrPercent;
-    const atrThresholdPersen = atrThresholdJSON * 100; // 0.00049 -> 0.049%
+                const atrData = calculateATR(klinesSnapshot, 14);
+                const currentATR_Persen = atrData.atrPercent;
+                const atrThresholdPersen = atrThresholdJSON * 100;
 
-    // --- LANJUTAN KALKULASI INDIKATOR ---
-    const rsiValues = calculateRSI(closes, 14);
-    const macdData = calculateMACD(closes);
-    const ema21 = calculateEMA(closes, 21).pop();
-    const ema50 = calculateEMA(closes, 50).pop();
-    const htfStatus = (ema21 > ema50) ? 'BULLISH' : 'DOWNTREND';
-    
-    const indicators = {
-        ma: { status: htfStatus },
-        rsi: { status: rsiValues.pop() > 70 ? 'Overbought' : (rsiValues.pop() < 30 ? 'Oversold' : 'Netral') },
-        macd: macdData,
-        rsiDivergence: detectRSIDivergence(closes, rsiValues),
-        candlePattern: findCandlestickPatterns(liveData.slice(-2)),
-        obvDivergence: detectOBVDivergence(closes, liveData),
-        bbSqueeze: { status: calculateBollingerBands(closes).squeezeStatus },
-        psar: calculateParabolicSAR(liveData),
-        roc: calculateROC(closes),
-        linreg: calculateLinearRegressionChannel(closes),
-        vwap: { status: lastClose > calculateVWAP(liveData) ? 'BULLISH' : 'BEARISH' },
-        ichimoku: calculateIchimokuCloud(liveData),
-    };
+                // =================================================
+                // 1. LOGIKA AUTO-SWITCH (MENGAMBIL BOBOT DINAMIS)
+                // =================================================
+                let currentWeights = activeStrategy.weights;
+                let activeRegimeKey = 'STATIC'; // Default
 
-    const confluenceScores = calculateConfluenceScoreForCandle(activeStrategy.weights, indicators, htfStatus);
-    const bullScore = confluenceScores.bull;
-    const bearScore = confluenceScores.bear;
-    
-    const isLongBias_LTF = bullScore > bearScore && (bullScore - bearScore) > biasThreshold;
-    const isShortBias_LTF = bearScore > bullScore && (bearScore - bullScore) > biasThreshold;
+                if (activeStrategy.dnaType === 'AutoSwitch_v1' && activeStrategy.autoWeights) {
+                    
+                    // a. DETEKSI REZIM PASAR MENGGUNAKAN AI
+                    const detectedRegime = await predictMarketRegime(klinesSnapshot);
+                    
+                    // b. SELEKSI BOBOT DINAMIS
+                    activeRegimeKey = detectedRegime;
+                    if (activeStrategy.autoWeights[activeRegimeKey]) {
+                        currentWeights = activeStrategy.autoWeights[activeRegimeKey];
+                        document.getElementById('active-regime-display').textContent = activeRegimeKey.replace('_', ' ');
+                        document.getElementById('active-regime-display').className = getRegimeColorClass(activeRegimeKey); 
+                    } else {
+                        document.getElementById('active-regime-display').textContent = 'FALLBACK (Default)';
+                        document.getElementById('active-regime-display').className = 'font-bold text-base text-gray-500';
+                        currentWeights = activeStrategy.weights;
+                    }
+                } else {
+                    document.getElementById('active-regime-display').textContent = activeRegimeKey;
+                    document.getElementById('active-regime-display').className = 'font-bold text-base text-gray-500';
+                }
+                
+                // =================================================
+                // 2. KALKULASI SINYAL DENGAN BOBOT TERPILIH
+                // =================================================
+                
+                const rsiValues = calculateRSI(closes, 14);
+                const htfStatus = calculateEMA(closes, 21).pop() > calculateEMA(closes, 50).pop() ? 'BULLISH' : 'DOWNTREND';
 
-    let entryPrice = calculateEMA(closes, pullbackEma).pop();
-    let stopLoss = 0, tp1 = 0, tp2 = 0; 
-    let biasStatus = 'NEUTRAL';
-    
-    // 1. Tentukan Bias Utama
-    if (isLongBias_LTF) {
-        biasStatus = (htfStatus === 'UPTREND') ? 'LONG - FOLLOW TREND' : 'LONG - COUNTER TREND';
-    } else if (isShortBias_LTF) {
-        biasStatus = (htfStatus === 'DOWNTREND') ? 'SHORT - FOLLOW TREND' : 'SHORT - COUNTER TREND';
-    } else {
-        if (bullScore > 0 && bearScore > 0 && bullScore + bearScore < biasThreshold * 1.5) {
-             biasStatus = 'NEUTRAL - CHOP / RANGING';
-        } else {
-             biasStatus = 'NEUTRAL - NO BIAS';
-        }
-    }
+                const indicators = {
+                    ma: { status: htfStatus },
+                    rsi: { status: rsiValues.slice(-1)[0] > 70 ? 'Overbought' : (rsiValues.slice(-1)[0] < 30 ? 'Oversold' : 'Netral') },
+                    macd: calculateMACD(closes),
+                    rsiDivergence: detectRSIDivergence(closes, rsiValues),
+                    candlePattern: findCandlestickPatterns(klinesSnapshot.slice(-2)),
+                    obvDivergence: detectOBVDivergence(closes, klinesSnapshot),
+                    bbSqueeze: { status: calculateBollingerBands(closes).squeezeStatus },
+                    psar: calculateParabolicSAR(klinesSnapshot),
+                    roc: calculateROC(closes),
+                    linreg: calculateLinearRegressionChannel(closes),
+                    vwap: { status: lastClose > calculateVWAP(klinesSnapshot) ? 'BULLISH' : 'BEARISH' },
+                    ichimoku: calculateIchimokuCloud(klinesSnapshot),
+                };
+                
+                const confluenceScores = calculateConfluenceScoreForCandle(currentWeights, indicators);
+                const bullScore = confluenceScores.bull;
+                const bearScore = confluenceScores.bear;
 
-    // --- TAHAP 2: FILTRASI ATR KRITIS (PENGAMAN VIP) ---
-    const isATRBlocked = currentATR_Persen < atrThresholdPersen;
-    
-    // Logika Final Status
-    if (!biasStatus.includes('NEUTRAL') && isATRBlocked) {
-        // Blokir sinyal kuat yang ATR-nya rendah
-        biasStatus = 'NEUTRAL - LOW VOLATILITY'; 
-    } else if (biasStatus.includes('NEUTRAL') && isATRBlocked) {
-        // Jika sudah netral dan ATR rendah
-        biasStatus = 'NEUTRAL - LOW VOLATILITY';
-    }
-    
-    // --- TAHAP 3: KALKULASI DETAIL DAN PENAMPILAN ---
-    
-    // *** PERBAIKAN KRITIS: SELALU MASUKKAN DATA ATR KE DETAIL ***
-    let finalBiasDetail = `Bull (${bullScore.toFixed(1)}) vs Bear (${bearScore.toFixed(1)})` + 
-                         ` | ATR Check: (${currentATR_Persen.toFixed(4)}% < ${atrThresholdPersen.toFixed(4)}%)`;
-    // ***************************************************************
+                // =================================================
+                // 3. LOGIKA ENTRI & FILTER (STANDAR INTERNASIONAL)
+                // =================================================
 
-    // 4. Tentukan SL/TP hanya jika sinyal aktif (setelah filter ATR)
-    if (entryPrice && !biasStatus.includes('NEUTRAL')) {
-        const recentSwingLow = Math.min(...liveData.slice(-swingLookback).map(k => parseFloat(k[3])));
-        const recentSwingHigh = Math.max(...liveData.slice(-swingLookback).map(k => parseFloat(k[2])));
-        const rrRatio = activeStrategy.parameters.riskRewardRatio;
-        if (biasStatus.includes('LONG')) {
-            stopLoss = recentSwingLow * 0.999;
-            tp1 = recentSwingHigh;
-            tp2 = entryPrice + (Math.abs(entryPrice - stopLoss) * rrRatio);
-        } else {
-            stopLoss = recentSwingHigh * 1.001;
-            tp1 = recentSwingLow;
-            tp2 = entryPrice - (Math.abs(stopLoss - entryPrice) * rrRatio);
-        }
-    }
-    
-    const signalData = {
-        bias: { status: biasStatus, detail: finalBiasDetail },
-        entry: { price: entryPrice, percentage: entryPrice ? ((entryPrice - currentMarketPrice) / currentMarketPrice) * 100 : null },
-        sl: { price: stopLoss, percentage: stopLoss && entryPrice ? ((stopLoss - entryPrice) / entryPrice) * 100 : null },
-        tp1: { price: tp1, percentage: tp1 && entryPrice ? ((tp1 - entryPrice) / entryPrice) * 100 : null },
-        tp2: { price: tp2, percentage: tp2 && entryPrice ? ((tp2 - entryPrice) / entryPrice) * 100 : null },
-        tp3: { price: null, percentage: null }
-    };
-    displayLiveSignal(signalData);
-    paperTrade.update();
-    
-}, 5000);
+                const isLongBias_LTF = bullScore > bearScore && (bullScore - bearScore) > biasThreshold;
+                const isShortBias_LTF = bearScore > bullScore && (bearScore - bullScore) > biasThreshold;
+                
+                let entryPrice = calculateEMA(closes, pullbackEma).pop();
+                let stopLoss = 0, tp1 = 0, tp2 = 0;
+                let biasStatus = 'NEUTRAL';
+                let finalBiasDetail = '';
+                const currentRegime = activeRegimeKey; // (e.g., BULL_TREND, RANGING)
+
+                // --- 3.1. Penentuan Sinyal Kontekstual ---
+                if (isLongBias_LTF) {
+                    if (currentRegime === 'BULL_TREND') biasStatus = 'LONG FOLLOW TREND';
+                    else if (currentRegime === 'BEAR_TREND') biasStatus = 'LONG COUNTER TREND';
+                    else if (currentRegime === 'RANGING') biasStatus = 'LONG REVERSION';
+                    else if (currentRegime === 'LOW_VOLATILITY') biasStatus = 'LONG BREAKOUT SETUP';
+                    else biasStatus = 'LONG BIAS (STATIC)';
+                } else if (isShortBias_LTF) {
+                    if (currentRegime === 'BEAR_TREND') biasStatus = 'SHORT FOLLOW TREND';
+                    else if (currentRegime === 'BULL_TREND') biasStatus = 'SHORT COUNTER TREND';
+                    else if (currentRegime === 'RANGING') biasStatus = 'SHORT REVERSION';
+                    else if (currentRegime === 'LOW_VOLATILITY') biasStatus = 'SHORT BREAKOUT SETUP';
+                    else biasStatus = 'SHORT BIAS (STATIC)';
+                } else {
+                    biasStatus = 'NEUTRAL - NO BIAS';
+                }
+                
+                // Filter ATR
+                const isATRBlocked = currentATR_Persen < atrThresholdPersen;
+
+                // Tambahkan detail Rezim Aktif dan Konfluensi
+                finalBiasDetail = `[Regime: ${currentRegime}] | Bull (${bullScore.toFixed(1)}) vs Bear (${bearScore.toFixed(1)})` +
+                    ` | ATR Check: (${currentATR_Persen.toFixed(4)}% ${isATRBlocked ? '<' : '≥'} ${atrThresholdPersen.toFixed(4)}%)`;
+
+                if (!biasStatus.includes('NEUTRAL') && isATRBlocked) {
+                    biasStatus = 'NEUTRAL - LOW VOLATILITY FILTERED'; // Sinyal kuat, tapi diblokir ATR
+                }
+
+                if (entryPrice && !biasStatus.includes('NEUTRAL')) {
+                    const recentSwingLow = Math.min(...klinesSnapshot.slice(-swingLookback).map(k => parseFloat(k[3])));
+                    const recentSwingHigh = Math.max(...klinesSnapshot.slice(-swingLookback).map(k => parseFloat(k[2])));
+                    const rrRatio = parameters.riskRewardRatio;
+
+                    if (biasStatus.includes('LONG')) {
+                        stopLoss = recentSwingLow * 0.999;
+                        tp1 = recentSwingHigh;
+                        tp2 = entryPrice + (Math.abs(entryPrice - stopLoss) * rrRatio);
+                    } else {
+                        stopLoss = recentSwingHigh * 1.001;
+                        tp1 = recentSwingLow;
+                        tp2 = entryPrice - (Math.abs(stopLoss - entryPrice) * rrRatio);
+                    }
+                }
+
+                // =================================================
+                // 4. DISPLAY
+                // =================================================
+                const signalData = {
+                    bias: {
+                        status: biasStatus,
+                        detail: finalBiasDetail
+                    },
+                    entry: { price: entryPrice, percentage: entryPrice ? ((entryPrice - currentMarketPrice) / currentMarketPrice) * 100 : null },
+                    sl: { price: stopLoss, percentage: stopLoss && entryPrice ? ((stopLoss - entryPrice) / entryPrice) * 100 : null },
+                    tp1: { price: tp1, percentage: tp1 && entryPrice ? ((tp1 - entryPrice) / entryPrice) * 100 : null },
+                    tp2: { price: tp2, percentage: tp2 && entryPrice ? ((tp2 - entryPrice) / entryPrice) * 100 : null },
+                    tp3: { price: null, percentage: null }
+                };
+
+                displayLiveSignal(signalData);
+                paperTrade.update();
+
+            }, 5000); // interval 5 detik
 
         } catch (error) {
             console.error("Gagal memulai sesi live (FATAL):", error);
@@ -2839,7 +3025,7 @@ liveInterval = setInterval(async () => {
 
         initializeNewCalculator();
         paperTrade.init();
-        
+        loadRegimeSensorModel();
 });
 
 </script>
