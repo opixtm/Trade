@@ -178,6 +178,118 @@
             </div>
         </section>
 
+        <section id="paper-trading-section" class="card p-6">
+            <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
+                <h2 class="text-xl font-bold">Auto/Manual Trading Simulation</h2>
+                <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+                <div id="sim-metrics-dashboard" class="card p-4 mt-4 bg-gray-900/50">
+                            <h3 class="text-sm font-semibold mb-3 text-yellow-400 border-b border-gray-700 pb-1">
+                                Dasbor Performa Kuantitatif
+                            </h3>
+                            <div class="grid grid-cols-3 md:grid-cols-7 gap-4 text-center">
+                                <div>
+                                    <p class="text-xs text-gray-500">💰 Total P/L</p>
+                                    <p id="sim-result-pnl" class="font-mono font-bold text-sm negative">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">🎯 Win Rate</p>
+                                    <p id="sim-result-winrate" class="font-mono font-bold text-sm">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">📈 Profit Factor</p>
+                                    <p id="sim-result-profit-factor" class="font-mono font-bold text-sm">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">Trades</p>
+                                    <p id="sim-result-total-trades" class="font-mono font-bold text-sm">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">📉 Max Drawdown</p>
+                                    <p id="sim-result-max-drawdown" class="font-mono font-bold text-sm negative">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">🎲 Expectancy</p>
+                                    <p id="sim-result-expectancy" class="font-mono font-bold text-sm">--</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500">🔥 Max Lose Streak</p>
+                                    <p id="sim-result-losing-streak" class="font-mono font-bold text-sm">--</p>
+                                </div>
+                            </div>
+            <div id="paper-trading-content-wrapper" class="collapsible-content">
+                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                        <div>
+                            <p class="text-xs text-gray-500">Equity</p>
+                            <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Unrealized PNL</p>
+                            <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">Available Margin</p>
+                            <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
+                        </div>
+                    
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
+                        </div>
+                    </div>
+
+                    <div id="sim-active-position-container" class="hidden">
+                        <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
+                        <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
+                                <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                <div>
+                                    <span class="text-gray-400">Size:</span>
+                                    <span id="sim-position-size" class="font-mono"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">Entry:</span>
+                                    <span id="sim-position-entry" class="font-mono"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">Mark:</span>
+                                    <span id="sim-position-mark" class="font-mono"></span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">Liq:</span>
+                                    <span id="sim-position-liq" class="font-mono"></span>
+                                </div>
+                            </div>
+                            <div class="pt-2 border-t border-dashed border-gray-700">
+                                <span class="text-gray-400">PNL (ROE %):</span>
+                                <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-semibold text-gray-400">Trade History</h3>
+                            <div class="flex gap-2">
+                                <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
+                                <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
+                                <input type="file" id="sim-import-input" class="hidden" accept=".csv">
+                            </div>
+                        </div>
+                        <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
+                            <p class="text-center text-gray-600">No trade history yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="trailing-stop-calc-section" class="card p-6">
             <button id="toggle-ts-calc-btn" class="w-full flex justify-between items-center text-left mb-4">
                 <h2 class="text-xl font-bold">Kalkulator Eksekusi</h2>
@@ -289,82 +401,7 @@
             </div>
         </section>
 
-        <section id="paper-trading-section" class="card p-6">
-            <button id="toggle-paper-trading-btn" class="w-full flex justify-between items-center text-left mb-4">
-                <h2 class="text-xl font-bold">Trading Simulation</h2>
-                <svg id="toggle-paper-trading-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                </svg>
-            </button>
-
-            <div id="paper-trading-content-wrapper" class="collapsible-content">
-                <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-                        <div>
-                            <p class="text-xs text-gray-500">Equity</p>
-                            <p id="sim-equity" class="font-mono font-bold text-lg text-blue-400">$1,000.00</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500">Unrealized PNL</p>
-                            <p id="sim-unrealized-pnl" class="font-mono font-bold text-lg text-gray-400">$0.00</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500">Available Margin</p>
-                            <p id="sim-available-margin" class="font-mono font-bold text-lg text-gray-400">$1,000.00</p>
-                        </div>
-                        <div class="flex items-center justify-center">
-                            <button id="sim-reset-account-btn" class="btn-secondary !text-xs !py-1 !px-2">Reset Account</button>
-                        </div>
-                    </div>
-
-                    <div id="sim-active-position-container" class="hidden">
-                        <h3 class="font-semibold text-yellow-400 mb-2">Active Position</h3>
-                        <div class="p-3 rounded-md bg-gray-800/50 text-sm space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span id="sim-position-header" class="font-bold text-lg">LONG / 20x</span>
-                                <button id="sim-close-position-btn" class="btn-primary !bg-red-600 !text-xs !py-1 !px-3">Close Position</button>
-                            </div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                <div>
-                                    <span class="text-gray-400">Size:</span>
-                                    <span id="sim-position-size" class="font-mono"></span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Entry:</span>
-                                    <span id="sim-position-entry" class="font-mono"></span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Mark:</span>
-                                    <span id="sim-position-mark" class="font-mono"></span>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Liq:</span>
-                                    <span id="sim-position-liq" class="font-mono"></span>
-                                </div>
-                            </div>
-                            <div class="pt-2 border-t border-dashed border-gray-700">
-                                <span class="text-gray-400">PNL (ROE %):</span>
-                                <span id="sim-position-pnl" class="font-mono font-bold text-lg ml-2"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="font-semibold text-gray-400">Trade History</h3>
-                            <div class="flex gap-2">
-                                <button id="sim-export-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Export CSV</button>
-                                <button id="sim-import-btn" class="btn-secondary !text-[10px] !py-0.5 !px-2">Import CSV</button>
-                                <input type="file" id="sim-import-input" class="hidden" accept=".csv">
-                            </div>
-                        </div>
-                        <div id="sim-trade-history-list" class="space-y-2 text-xs max-h-48 overflow-y-auto">
-                            <p class="text-center text-gray-600">No trade history yet.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        
 
         <section id="weather-forecast-section" class="card p-6 hidden">
             <button id="toggle-forecast-btn" class="w-full flex justify-between items-center text-left mb-4">
@@ -571,7 +608,7 @@
                 this.render();
             },
 
-            openPosition: function(type, leverage, cost, entryPrice) {
+            openPosition: function(type, leverage, cost, entryPrice, flag = 'Manual') { // Modifikasi: Tambah flag
                 if (this.state.position) {
                     alert("Hanya 1 posisi yang bisa dibuka dalam satu waktu.");
                     return;
@@ -584,7 +621,10 @@
                 const positionSize = cost * leverage;
                 const quantity = entryPrice > 0 ? positionSize / entryPrice : 0;
                 const maintenanceMarginRate = 0.005; 
-                const liqPriceChange = (cost / positionSize) * (1 - maintenanceMarginRate);
+                const marginUsed = (this.state.marginMode === 'isolated' ? cost : this.state.balance);
+                
+                const liqPriceChange = marginUsed / positionSize * (1 - maintenanceMarginRate);
+                
                 const liqPrice = type === 'long' 
                     ? entryPrice * (1 - liqPriceChange) 
                     : entryPrice * (1 + liqPriceChange);
@@ -596,18 +636,26 @@
                     quantity: quantity,
                     leverage: leverage,
                     cost: cost,
-                    liqPrice: liqPrice
+                    liqPrice: liqPrice,
+                    flag: flag,
+                    symbol: realtimeCache.main.symbol,
+                    // 🔥 INJEKSI STATE TRAILING STOP BARU (FUCKING CRITICAL) 🔥
+                    trailingStopPrice: type === 'long' ? 0 : 99999999, // Inisialisasi TS ke 0 (Long) atau Max (Short)
+                    highestMarkPrice: entryPrice, // Harga tertinggi saat ini = Entry Price
+                    lowestMarkPrice: entryPrice,  // Harga terendah saat ini = Entry Price
+                    breakEvenSet: false
+                    // 🔥 AKHIR INJEKSI 🔥
                 };
                 
                 this.saveState();
                 this.render();
             },
 
-            closePosition: function() {
+            closePosition: function(closeReason = 'Manual') { // Modifikasi: Tambah Alasan Penutupan
                 if (!this.state.position) return;
                 const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
                 if (isNaN(markPrice)) {
-                    alert("Tidak bisa menutup posisi, harga pasar tidak tersedia.");
+                    console.warn("Tidak bisa menutup posisi, harga pasar tidak tersedia.");
                     return;
                 }
                 
@@ -626,7 +674,9 @@
                     pnl: pnl,
                     roe: (pnl / pos.cost) * 100,
                     closedAt: new Date(),
-                    liquidated: false
+                    liquidated: false,
+                    flag: pos.flag, // Flag AFT/Manual dari Entry
+                    closeReason: closeReason // Alasan penutupan (AFT - REVERSAL, Manual, dll.)
                 });
                 
                 if (this.state.history.length > 20) this.state.history.pop();
@@ -636,49 +686,124 @@
                 this.render();
             },
 
+            checkTrailingStop: function() {
+                if (!this.state.position || !tsCalc.state.callbackRate) return null;
+
+                const pos = this.state.position;
+                const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+                const isLong = pos.type === 'long';
+                
+                // --- 1. INISIASI DAN UPDATE JALUR TRAILING ---
+                
+                // Tentukan level harga tertinggi/terendah yang pernah dicapai posisi
+                // Simpan high/low ini di posisi state (Tambahkan logic ini ke paperTrade.openPosition)
+                const currentExtremum = isLong ? pos.highestMarkPrice : pos.lowestMarkPrice; 
+
+                // --- 2. LOGIKA BREAK-EVEN (ANTI-LOSS) ---
+                
+                // Target Break-Even (Misal: 0.5% profit untuk mengamankan biaya)
+                const BE_TRIGGER_PROFIT = 0.005; 
+                const BE_PRICE = isLong ? pos.entryPrice * (1 + 0.0001) : pos.entryPrice * (1 - 0.0001); // Harga BE + sedikit slippage
+                
+                // Hitung profit aktual dalam persentase
+                const actualProfitPercent = (markPrice - pos.entryPrice) / pos.entryPrice;
+                
+                if (!pos.breakEvenSet && Math.abs(actualProfitPercent) >= BE_TRIGGER_PROFIT) {
+                    // Set Trailing Stop ke Break-Even (di entry price)
+                    pos.trailingStopPrice = BE_PRICE; 
+                    pos.breakEvenSet = true;
+                    console.log(`🔒 BE Set! TS diatur ke ${BE_PRICE.toFixed(4)}`);
+                }
+                
+                // --- 3. LOGIKA TRAILING BERDASARKAN CALLBACK RATE ---
+                
+                const callbackRate = tsCalc.state.callbackRate / 100;
+                let newStopPrice = pos.trailingStopPrice;
+
+                if (isLong) {
+                    const dynamicTS = currentExtremum * (1 - callbackRate);
+                    // TS bergerak naik atau tetap di Break-Even
+                    newStopPrice = Math.max(dynamicTS, pos.breakEvenSet ? BE_PRICE : 0);
+                    
+                    if (markPrice <= newStopPrice) return 'TRAILING_STOP_HIT';
+                    if (newStopPrice > pos.trailingStopPrice) pos.trailingStopPrice = newStopPrice; // Geser TS
+                } else { // Short
+                    const dynamicTS = currentExtremum * (1 + callbackRate);
+                    // TS bergerak turun atau tetap di Break-Even
+                    newStopPrice = Math.min(dynamicTS, pos.breakEvenSet ? BE_PRICE : 999999); 
+
+                    if (markPrice >= newStopPrice) return 'TRAILING_STOP_HIT';
+                    if (newStopPrice < pos.trailingStopPrice) pos.trailingStopPrice = newStopPrice; // Geser TS
+                }
+
+                // Update status highest/lowest mark price
+                if (isLong) pos.highestMarkPrice = Math.max(pos.highestMarkPrice, markPrice);
+                else pos.lowestMarkPrice = Math.min(pos.lowestMarkPrice, markPrice);
+                
+                // Perlu memanggil saveState di sini
+                this.saveState();
+                return null; // TS belum terpicu
+            },
+
             update: function() {
                 if (!this.state.position) return;
-                
+
                 const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
                 if (isNaN(markPrice)) return;
                 
                 const pos = this.state.position;
+
+                // 🔥 INJEKSI KRUSIAL: Update highest/lowest mark price sebelum Trailing Stop check
+                if (pos.type === 'long') {
+                    pos.highestMarkPrice = Math.max(pos.highestMarkPrice || pos.entryPrice, markPrice);
+                } else { // short
+                    pos.lowestMarkPrice = Math.min(pos.lowestMarkPrice || pos.entryPrice, markPrice);
+                }
+                // 🔥 AKHIR INJEKSI 🔥
+                
+                // --- 1. Pengecekan Trailing Stop ---
+                const tsStatus = this.checkTrailingStop();
+                
+                if (tsStatus === 'TRAILING_STOP_HIT') {
+                    this.closePosition('AFT - TRAILING STOP');
+                    console.log("🚨 TRAILING STOP HIT! Posisi ditutup.");
+                    tsCalc.recalculate(); 
+                    return;
+                }
+
+                // --- 2. Pengecekan Liquidasi ---
+                const liquidated = pos.type === 'long' 
+                    ? markPrice <= pos.liqPrice 
+                    : markPrice >= pos.liqPrice;
+
+                if (liquidated) {
+                    this.state.position.liquidated = true;
+                    this.closePosition('LIQUIDATION');
+                    console.error("🔥 LIQUIDATED!");
+                    return;
+                }
+
+                // --- 3. Update PNL & Display ---
                 const pnl = (pos.type === 'long') 
                     ? (markPrice - pos.entryPrice) * pos.quantity 
                     : (pos.entryPrice - markPrice) * pos.quantity;
-                
-                const equity = this.state.balance + pos.cost + pnl;
-                
-                this.elements.equity.textContent = formatPrice(equity);
-                this.elements.unrealizedPnl.textContent = formatPrice(pnl);
-                this.elements.unrealizedPnl.className = `font-mono font-bold text-lg ${pnl >= 0 ? 'positive' : 'negative'}`;
-                this.elements.positionMark.textContent = formatPrice(markPrice);
-                
-                const roe = (pnl / pos.cost) * 100;
-                this.elements.positionPnl.textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
-                this.elements.positionPnl.className = `font-mono font-bold text-lg ml-2 ${pnl >= 0 ? 'positive' : 'negative'}`;
 
-                if ((pos.type === 'long' && markPrice <= pos.liqPrice) || (pos.type === 'short' && markPrice >= pos.liqPrice)) {
-                    alert(`Posisi ${pos.type.toUpperCase()} terlikuidasi!`);
-                    this.state.history.unshift({
-                        symbol: realtimeCache.main.symbol,
-                        type: pos.type,
-                        entryPrice: pos.entryPrice,
-                        closePrice: markPrice,
-                        pnl: -pos.cost,
-                        roe: -100,
-                        closedAt: new Date(),
-                        liquidated: true
-                    });
-                    this.state.position = null;
-                    this.saveState();
-                    this.render();
-                }
+                const roe = (pnl / pos.cost) * 100;
+                
+                // Update UI Display
+                document.getElementById('sim-unrealized-pnl').textContent = formatPrice(pnl);
+                document.getElementById('sim-unrealized-pnl').className = pnl >= 0 ? 'positive font-mono font-bold text-lg' : 'negative font-mono font-bold text-lg';
+                document.getElementById('sim-position-pnl').textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
+                document.getElementById('sim-position-pnl').className = pnl >= 0 ? 'positive font-mono font-bold text-lg ml-2' : 'negative font-mono font-bold text-lg ml-2';
+                document.getElementById('sim-position-mark').textContent = formatPrice(markPrice);
+                
+                this.saveState();
             },
 
-            render: function() {
+render: function() {
                 const pos = this.state.position;
                 
+                // --- LOGIC RENDER SALDO & POSISI AKTIF (SAMA SEPERTI SEBELUMNYA) ---
                 if (pos) {
                     const equity = this.state.balance + pos.cost;
                     this.elements.equity.textContent = formatPrice(equity);
@@ -699,7 +824,8 @@
                     this.elements.positionContainer.classList.add('hidden');
                 }
 
-                if (this.state.history.length > 0) {
+                // --- LOGIC RENDER TRADE HISTORY (SAMA SEPERTI SEBELUMNYA) ---
+                if (this.state.history && this.state.history.length > 0) {
                     this.elements.tradeHistoryList.innerHTML = this.state.history.map(trade => `
                         <div class="p-1.5 rounded-md ${trade.pnl >= 0 ? 'bg-green-900/40' : 'bg-red-900/40'}">
                             <div class="flex justify-between items-center">
@@ -720,6 +846,27 @@
                 } else {
                     this.elements.tradeHistoryList.innerHTML = '<p class="text-center text-gray-600">No trade history yet.</p>';
                 }
+                
+                // 🔥 INJEKSI FINAL: PANGGIL METRIK DAN UPDATE DISPLAY KUANTITATIF 🔥
+                const metrics = this.calculateMetrics();
+                
+                const pnlEl = document.getElementById('sim-result-pnl');
+                if(pnlEl) {
+                    pnlEl.textContent = `${metrics.totalPnl.toFixed(2)} USD (${metrics.pnlPercent.toFixed(2)}%)`;
+                    pnlEl.className = `font-mono font-bold text-sm ${metrics.totalPnl >= 0 ? 'positive' : 'negative'}`;
+                }
+                
+                document.getElementById('sim-result-winrate').textContent = `${metrics.winRate.toFixed(2)}%`;
+                document.getElementById('sim-result-profit-factor').textContent = metrics.profitFactor === Infinity ? '∞' : metrics.profitFactor.toFixed(2);
+                document.getElementById('sim-result-total-trades').textContent = `${metrics.totalTrades}`;
+                document.getElementById('sim-result-max-drawdown').textContent = `${metrics.maxDrawdown.toFixed(2)}%`;
+                
+                const expectancyEl = document.getElementById('sim-result-expectancy');
+                expectancyEl.textContent = `${metrics.expectancy.toFixed(2)} USD`;
+                expectancyEl.className = `${metrics.expectancy >= 0 ? 'positive' : 'negative'} font-mono font-bold text-sm`;
+                
+                document.getElementById('sim-result-losing-streak').textContent = `${metrics.maxLosingStreak}`;
+                // 🔥 AKHIR INJEKSI FINAL 🔥
             },
 
             resetAccount: function() {
@@ -732,6 +879,68 @@
                 }
             },
 
+calculateMetrics: function() {
+                const history = this.state.history.filter(t => !t.liquidated);
+                if (history.length === 0) {
+                    return { totalPnl: 0, winRate: 0, profitFactor: 0, totalTrades: 0, maxDrawdown: 0, expectancy: 0, maxLosingStreak: 0 };
+                }
+
+                let totalPnl = 0, grossProfit = 0, grossLoss = 0, wins = 0;
+                
+                // 🔥 FIX KRUSIAL: SALDO AWAL UNTUK PERHITUNGAN DRAWDOWN 🔥
+                // Saldo awal adalah Saldo Akhir (this.state.balance) MINUS total PNL dari seluruh history.
+                // Ini mengembalikan saldo ke titik sebelum trading dimulai, untuk perhitungan DD yang akurat.
+                const totalPnlHistory = history.reduce((sum, trade) => sum + trade.pnl, 0);
+                let initialBalance = (this.state.balance || 1000) - totalPnlHistory;
+                initialBalance = Math.max(1, initialBalance); // Pastikan tidak negatif
+
+                let equity = initialBalance;
+                let peakEquity = equity;
+                let maxDrawdown = 0;
+                let losingStreak = 0, maxLosingStreak = 0;
+                
+                // Sortir history agar dari yang paling TUA ke TERBARU
+                // (Penting untuk perhitungan Drawdown yang benar)
+                const sortedHistory = [...history].reverse(); 
+
+                sortedHistory.forEach(trade => {
+                    const realizedPnl = trade.pnl;
+                    
+                    totalPnl += realizedPnl;
+                    equity += realizedPnl; 
+                    
+                    peakEquity = Math.max(peakEquity, equity);
+                    const drawdown = ((peakEquity - equity) / peakEquity) * 100;
+                    maxDrawdown = Math.max(maxDrawdown, drawdown);
+
+                    if (realizedPnl > 0) {
+                        grossProfit += realizedPnl;
+                        wins++;
+                        losingStreak = 0; 
+                    } else {
+                        grossLoss += Math.abs(realizedPnl);
+                        losingStreak++;
+                        maxLosingStreak = Math.max(maxLosingStreak, losingStreak);
+                    }
+                });
+
+                const winRate = (wins / history.length) * 100;
+                const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : Infinity;
+                const expectancy = totalPnl / history.length;
+                const pnlPercent = ((totalPnl / initialBalance) * 100);
+
+                return {
+                    totalPnl: totalPnl,
+                    pnlPercent: pnlPercent,
+                    winRate: winRate,
+                    profitFactor: profitFactor,
+                    totalTrades: history.length,
+                    maxDrawdown: maxDrawdown,
+                    expectancy: expectancy,
+                    maxLosingStreak: maxLosingStreak
+                };
+            },
+
             saveState: function() {
                 localStorage.setItem('paperTradeState', JSON.stringify(this.state));
             },
@@ -740,11 +949,25 @@
                 const savedState = localStorage.getItem('paperTradeState');
                 if (savedState) {
                     this.state = JSON.parse(savedState);
-                    if (this.state.history) {
-                        this.state.history.forEach(trade => trade.closedAt = new Date(trade.closedAt));
+                    
+                    // KRUSIAL: Memastikan history ada dan mengkonversi string tanggal ke objek Date
+                    if (this.state.history && Array.isArray(this.state.history)) {
+                        this.state.history = this.state.history.map(trade => ({
+                             ...trade,
+                             closedAt: new Date(trade.closedAt)
+                        }));
+                    } else {
+                         this.state.history = []; // Default ke array kosong jika data rusak/hilang
                     }
+                } else {
+                    // Jika tidak ada state tersimpan, inisialisasi dengan nilai default
+                    this.state = {
+                        balance: 1000,
+                        position: null,
+                        history: []
+                    };
                 }
-            }
+            },
     };
     const signalLogState = {
         statsByDnaFile: {}, 
@@ -1279,6 +1502,7 @@
 
             // PANGGIL DISPLAY TANPA ARGUMEN (Membaca state global yang sudah terisi penuh)
             displayImportedStrategy(); 
+            updateSignalLogStatistics();
             document.getElementById('live-data-input-section').classList.remove('hidden');
             document.getElementById('weather-forecast-section').classList.remove('hidden');
     
@@ -1753,9 +1977,24 @@ function displayImportedStrategy() {
         },
 
         recalculate: function() {
-            this.state.walletBalance = parseFloat(this.elements.walletBalance.value) || 0;
+            // Dapatkan equity total (modal awal + PNL realisasi) dari Trading Simulation
+            // DEKLARASI DEFENSif: Gunakan 0 jika properti tidak ada
+            const totalEquity = (paperTrade.state.balance || 0) + (paperTrade.state.position ? (paperTrade.state.position.cost || 0) : 0);
+            
+            // Perhitungan Cost/Modal Otomatis (10% dari Total Equity)
+            const autoCost = totalEquity * 0.10; 
+
+            // Update UI Balance (Equity Total)
+            this.elements.walletBalance.value = totalEquity.toFixed(2);
+            
+            // Update UI Cost dan Slider dengan nilai AutoCost 10%
+            this.elements.cost.value = autoCost.toFixed(2);
+            this.elements.slider.value = 10; // Set slider ke 10%
+
+            this.state.walletBalance = totalEquity;
             this.state.leverage = parseFloat(this.elements.leverage.value) || 20;
-            this.state.cost = parseFloat(this.elements.cost.value) || 0;
+            this.state.cost = autoCost; // State cost disetel ke 10%
+            
             const entry = parseFloat(this.elements.marketPrice.value) || currentMarketPrice || 0;
             if (entry === 0) return;
 
@@ -1765,6 +2004,7 @@ function displayImportedStrategy() {
             
             let liqPrice = 0;
             if (positionSize > 0) {
+                // Logika Kalkulasi Liq Price (Cross vs Isolated)
                 if (this.state.marginMode === 'isolated') {
                     const priceChange = (this.state.cost / positionSize) * (1 - 0.005);
                     liqPrice = this.state.positionType === 'long' ? entry * (1 - priceChange) : entry * (1 + priceChange);
@@ -2741,7 +2981,8 @@ function displayImportedStrategy() {
         
         // 3. Update tampilan UI
         updateSignalLogStatistics();
-        
+        // 🔥 INJEKSI KRUSIAL: Hapus dari Local Storage
+        localStorage.removeItem('aftSignalLog');
         // 4. Pastikan timer yang sedang berjalan dihentikan
         if (timeElapsedInterval) {
             clearInterval(timeElapsedInterval);
@@ -2776,10 +3017,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initializePrecisionMap(); 
     
     setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', false);
-    setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', false);
+    setupToggle('toggle-paper-trading-btn', 'paper-trading-content-wrapper', 'toggle-paper-trading-icon', true);
     setupToggle('toggle-import-btn', 'import-content-wrapper', 'toggle-import-icon', true);
     setupToggle('toggle-forecast-btn', 'forecast-content-wrapper', 'toggle-forecast-icon', true);
-    setupToggle('toggle-signal-log-btn', 'signal-log-content-wrapper', 'toggle-signal-log-icon', false); 
+    setupToggle('toggle-signal-log-btn', 'signal-log-content-wrapper', 'toggle-signal-log-icon', true); 
     toggleChartsBtn.addEventListener('click', toggleChartsVisibility);
     
     importFile.addEventListener('change', (event) => {
@@ -2800,7 +3041,7 @@ startLiveBtn.addEventListener('click', async () => {
         }
 
         resetLiveSession();
-        // Reset Log AFT
+        // Reset Log AFT (Log Sinyal)
         signalLogState.statsByDnaFile[activeDnaFilename] = {
             totalCycles: 0,
             longCount: 0,
@@ -2820,6 +3061,17 @@ startLiveBtn.addEventListener('click', async () => {
         const liveTimeframeSelect = document.getElementById('live-timeframe-select');
         const symbol = liveSymbolInput.value.toUpperCase();
         const timeframe = liveTimeframeSelect.value;
+         if (paperTrade.state.position && paperTrade.state.position.symbol !== symbol) {
+            // Simpan simbol lama
+            const oldSymbol = paperTrade.state.position.symbol;
+            
+            // Tutup posisi lama dengan alasan yang jelas
+            paperTrade.closePosition('Manual - Asset Switch');
+            
+            // Beri notifikasi (Opsional, tapi bagus untuk debug)
+            alert(`Posisi aktif di ${oldSymbol} ditutup secara otomatis karena perubahan aset ke ${symbol}.`);
+        }
+
         realtimeCache.main.symbol = symbol;
 
         setTimeout(() => {
@@ -2853,13 +3105,14 @@ startLiveBtn.addEventListener('click', async () => {
             // =================================================
             liveInterval = setInterval(async () => {
                 if (!liveData || liveData.length < 50 || !activeStrategy) return;
-
-                // Ambil 500 candle terbaru untuk kalkulasi indikator
+                
+                // --- KUMPULKAN DATA CANDLE & HARGA ---
                 const klinesSnapshot = liveData.slice(-500); 
                 const closes = klinesSnapshot.map(k => parseFloat(k[4]));
                 const lastClose = closes.slice(-1)[0];
                 const currentMarketPrice = lastClose;
 
+                // --- KUMPULKAN PARAMETER DNA ---
                 const parameters = activeStrategy.parameters;
                 const biasThreshold = parameters.biasThreshold;
                 const atrThresholdJSON = parameters.atrFilterThreshold;
@@ -2871,17 +3124,13 @@ startLiveBtn.addEventListener('click', async () => {
                 const atrThresholdPersen = atrThresholdJSON * 100;
 
                 // =================================================
-                // 1. LOGIKA AUTO-SWITCH (MENGAMBIL BOBOT DINAMIS)
+                // 1. LOGIKA AUTO-SWITCH (DAPATKAN BOBOT TERPILIH)
                 // =================================================
                 let currentWeights = activeStrategy.weights;
-                let activeRegimeKey = 'STATIC'; // Default
+                let activeRegimeKey = 'STATIC';
 
                 if (activeStrategy.dnaType === 'AutoSwitch_v1' && activeStrategy.autoWeights) {
-                    
-                    // a. DETEKSI REZIM PASAR MENGGUNAKAN AI
                     const detectedRegime = await predictMarketRegime(klinesSnapshot);
-                    
-                    // b. SELEKSI BOBOT DINAMIS
                     activeRegimeKey = detectedRegime;
                     if (activeStrategy.autoWeights[activeRegimeKey]) {
                         currentWeights = activeStrategy.autoWeights[activeRegimeKey];
@@ -2924,7 +3173,7 @@ startLiveBtn.addEventListener('click', async () => {
                 const bearScore = confluenceScores.bear;
 
                 // =================================================
-                // 3. LOGIKA ENTRI & FILTER (STANDAR INTERNASIONAL)
+                // 3. LOGIKA ENTRI & FILTER (PENENTUAN FINAL BIAS)
                 // =================================================
 
                 const isLongBias_LTF = bullScore > bearScore && (bullScore - bearScore) > biasThreshold;
@@ -2934,7 +3183,7 @@ startLiveBtn.addEventListener('click', async () => {
                 let stopLoss = 0, tp1 = 0, tp2 = 0;
                 let biasStatus = 'NEUTRAL';
                 let finalBiasDetail = '';
-                const currentRegime = activeRegimeKey; // (e.g., BULL_TREND, RANGING)
+                const currentRegime = activeRegimeKey; 
 
                 // --- 3.1. Penentuan Sinyal Kontekstual ---
                 if (isLongBias_LTF) {
@@ -2956,12 +3205,11 @@ startLiveBtn.addEventListener('click', async () => {
                 // Filter ATR
                 const isATRBlocked = currentATR_Persen < atrThresholdPersen;
 
-                // Tambahkan detail Rezim Aktif dan Konfluensi
                 finalBiasDetail = `[Regime: ${currentRegime}] | Bull (${bullScore.toFixed(1)}) vs Bear (${bearScore.toFixed(1)})` +
                     ` | ATR Check: (${currentATR_Persen.toFixed(4)}% ${isATRBlocked ? '<' : '≥'} ${atrThresholdPersen.toFixed(4)}%)`;
 
                 if (!biasStatus.includes('NEUTRAL') && isATRBlocked) {
-                    biasStatus = 'NEUTRAL - LOW VOLATILITY FILTERED'; // Sinyal kuat, tapi diblokir ATR
+                    biasStatus = 'NEUTRAL - LOW VOLATILITY FILTERED';
                 }
 
                 if (entryPrice && !biasStatus.includes('NEUTRAL')) {
@@ -2981,7 +3229,71 @@ startLiveBtn.addEventListener('click', async () => {
                 }
 
                 // =================================================
-                // 4. DISPLAY
+                // 4. LOGIKA AUTO CLOSED & AUTO ENTRY (AFT)
+                //    (Sekarang Reversal/Neutralize adalah *Close Reason*)
+                // =================================================
+
+                const activePosition = paperTrade.state.position;
+                const currentTradeType = biasStatus.includes('LONG') ? 'long' : (biasStatus.includes('SHORT') ? 'short' : 'none');
+                const isSignalActive = !biasStatus.includes('NEUTRAL');
+                
+                let positionAction = 'HOLD';
+                let closeReason = 'N/A';
+
+                // --- A. LOGIKA CLOSE OLEH SINYAL (Immediate Executor) ---
+                if (activePosition) {
+                    const isSignalReversal = (activePosition.type === 'long' && currentTradeType === 'short') || 
+                                             (activePosition.type === 'short' && currentTradeType === 'long');
+                    const isSignalNeutralized = biasStatus.includes('NEUTRAL');
+
+                    if (isSignalReversal) {
+                        positionAction = 'REVERSE_AND_CLOSE';
+                        closeReason = 'REVERSAL';
+                    } else if (isSignalNeutralized) {
+                        // Jika TS sudah berjalan, biarkan TS bekerja. Jika belum, tutup.
+                        // Di sini kita tutup karena sinyal hilang (override Trailing Stop)
+                        positionAction = 'CLOSE_ONLY';
+                        closeReason = 'NEUTRALIZED';
+                    } else {
+                        positionAction = 'HOLD';
+                    }
+                }
+
+                // --- EKSEKUSI EXIT ---
+                if (positionAction === 'REVERSE_AND_CLOSE' || positionAction === 'CLOSE_ONLY') {
+                    paperTrade.closePosition('AFT - ' + closeReason); 
+                    console.log(`✅ AFT CLOSED: Posisi ${activePosition.type.toUpperCase()} ditutup karena ${closeReason}.`);
+                    tsCalc.recalculate(); // Update saldo untuk entry baru
+                }
+
+                // --- B. LOGIKA AUTO ENTRY / REOPEN ---
+                if (isSignalActive && (!activePosition || positionAction === 'REVERSE_AND_CLOSE')) {
+                    
+                    const tradeType = currentTradeType;
+                    const entryPriceFinal = entryPrice || currentMarketPrice; 
+                    
+                    if (entryPriceFinal > 0) {
+                        const leverage = tsCalc.state.leverage;
+                        const cost = tsCalc.state.cost; 
+                        
+                        // Perlu inisialisasi TS State untuk posisi baru
+                        const initialTSState = {
+                            trailingStopPrice: entryPriceFinal, 
+                            highestMarkPrice: entryPriceFinal,
+                            lowestMarkPrice: entryPriceFinal,
+                            breakEvenSet: false
+                        };
+                        
+                        // NOTE: Lo harus mengintegrasikan initialTSState ini ke paperTrade.openPosition
+                        // agar logic Trailing Stop di paperTrade.checkTrailingStop bekerja.
+                        
+                        paperTrade.openPosition(tradeType, leverage, cost, entryPriceFinal, 'AFT'); 
+                        console.log(`🚀 AFT ENTRY: ${tradeType.toUpperCase()} @ ${entryPriceFinal.toFixed(4)}...`);
+                    }
+                }
+
+                // =================================================
+                // 5. DISPLAY Sinyal Final
                 // =================================================
                 const signalData = {
                     bias: {
@@ -3005,6 +3317,7 @@ startLiveBtn.addEventListener('click', async () => {
             alert(`Gagal memulai sesi untuk ${symbol}. Cek konsol untuk detail.`);
             setButtonState(startLiveBtn, false, "▶️ START LIVE");
             resetLiveSession();
+            tsCalc.recalculate();
         }
     });
 
@@ -3026,6 +3339,7 @@ startLiveBtn.addEventListener('click', async () => {
         initializeNewCalculator();
         paperTrade.init();
         loadRegimeSensorModel();
+        updateSignalLogStatistics();
 });
 
 </script>
