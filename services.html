@@ -1880,100 +1880,72 @@
             }
 // ===================================================================        
         async function startAutoSwitchDNAExport() {
-            // 1. Cek Data & Settings
-            const symbols = document.getElementById('backtest-symbol-input').value.split(',').map(s => s.trim()).filter(s => s);
-            if (symbols.length > 1) {
-                alert("Ekspor DNA Auto-Switch saat ini hanya mendukung satu aset. Pilih satu aset saja.");
-                return;
-            }
-            if (symbols.length === 0) {
-                alert("Mohon tentukan aset yang akan diuji.");
-                return;
-            }
-            
-            // Panggil gatherSettings yang sudah didefinisikan dan siap
-            backtester.gatherSettings(); 
-            const settings = backtester.state.settings;
-            const symbol = symbols[0];
-            
-            // Dapatkan data historis yang sudah tersimpan atau lakukan sinkronisasi
-            let historicalData = evolutionState.historicalData[symbol];
-            if (!historicalData || historicalData.length < 200) {
-                const syncSuccess = await syncDataLake();
-                historicalData = evolutionState.historicalData[symbol];
-                if (!syncSuccess || historicalData.length < 200) {
-                    alert("Gagal memuat data historis yang cukup (min 200 candle) untuk evolusi per rezim.");
-                    return;
-                }
-            }
-
-            // Ambil elemen UI untuk feedback
             const exportBtn = document.getElementById('export-autodna-btn');
             const originalText = exportBtn.querySelector('span').textContent;
-            const weightsContainer = {};
-            const regimeFilters = ['bullTrend', 'bearTrend', 'ranging', 'lowVolatility'];
-            
-            // 2. Jalankan Evolusi untuk Setiap Rezim
-            try {
-                setButtonState(exportBtn, true, "Memulai Komposer DNA...");
-                
-                for (let i = 0; i < regimeFilters.length; i++) {
-                    const regime = regimeFilters[i];
-                    const upperRegime = regime.toUpperCase().replace('TREND', '_TREND').replace('LOWVOLATILITY', 'LOW_VOLATILITY');
-                    
-                    // 2.1. Update UI Feedback
-                    exportBtn.querySelector('span').textContent = `Tahap ${i + 1}/${regimeFilters.length}: Mencari strategi ${upperRegime} terbaik...`;
-                    
-                    // 2.2. Mengambil Preset Weights (GANTI DENGAN LOGIKA EVOLUSI NYATA JIKA ADA)
-                    let bestRegimeWeights;
-                    if (userSettings.presets[regime]) {
-                        bestRegimeWeights = userSettings.presets[regime].weights;
-                    } else {
-                        // Fallback: Gunakan DNA Juara Evolusi atau Default
-                        bestRegimeWeights = evolutionState.champion ? evolutionState.champion.weights : userSettings.presets.default.weights;
-                    }
-                    
-                    const upperKey = upperRegime;
-                    weightsContainer[upperKey] = bestRegimeWeights;
+            setButtonState(exportBtn, true, "Memulai Backtest Adaptif...");
 
-                    // Simulasi jeda waktu untuk proses 'evolusi'
-                    await new Promise(resolve => setTimeout(resolve, 500)); 
+            try {
+                // LANGKAH 1: Jalankan backtest adaptif secara penuh menggunakan setelan saat ini.
+                await backtester.run();
+
+                // Cek apakah backtest menghasilkan cukup trade untuk dianalisis.
+                if (!backtester.state.lastRunMetrics || backtester.state.lastRunMetrics.totalTrades < 2) {
+                    alert("Backtest tidak menghasilkan cukup data (minimal 2 trade) untuk simulasi Monte Carlo.");
+                    throw new Error("Backtest tidak menghasilkan trade.");
                 }
                 
-                // 3. Merakit & Mengekspor DNA "Bunglon"
-                exportBtn.querySelector('span').textContent = "Merakit DNA Bunglon...";
+                setButtonState(exportBtn, true, "Menjalankan Simulasi Monte Carlo...");
+                await new Promise(resolve => setTimeout(resolve, 500)); // Jeda singkat untuk feedback UI
 
+                // LANGKAH 2: Jalankan Monte Carlo secara otomatis pada hasil backtest.
+                const simBacktester = { state: { settings: { initialBalance: backtester.state.settings.initialBalance } } };
+                runMonteCarloSimulation(simBacktester, backtester.state.lastRunMetrics.trades, backtester.state.lastRunMetrics.equityCurve);
+                
+                // Cek apakah hasil Monte Carlo valid.
+                if (!lastMonteCarloResult) {
+                    throw new Error("Simulasi Monte Carlo gagal dijalankan.");
+                }
+
+                setButtonState(exportBtn, true, "Merakit DNA Final...");
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // LANGKAH 3: Rakit objek DNA final, gabungkan preset bobot dengan hasil QC Validation.
+                const settings = backtester.state.settings;
                 const dnaObject = {
-                    metadata: { 
-                        dnaType: "AutoSwitch_v1", 
-                        sourceAsset: symbol, 
-                        sourceTimeframe: settings.timeframe, 
-                        exportedAt: new Date().toISOString() 
+                    metadata: {
+                        dnaType: "AutoSwitch_v1_QC", // Penanda bahwa ini adalah versi yang sudah tervalidasi QC.
+                        sourceAsset: settings.symbol,
+                        sourceTimeframe: settings.timeframe,
+                        exportedAt: new Date().toISOString(),
+                        qc_validation: lastMonteCarloResult // INI BAGIAN PENTINGNYA: Hasil QC dimasukkan di sini.
                     },
-                    parameters: settings.parameters, // Mengambil parameter yang sama untuk semua rezim
-                    weights: weightsContainer 
+                    parameters: settings.parameters, // Ambil parameter dari setelan backtest terakhir.
+                    weights: userSettings.presets // Kita tetap ekspor semua preset bobot (Bull, Bear, dll.) sebagai referensi.
                 };
-                
-                // 4. Proses Ekspor File
+
+                // LANGKAH 4: Buat file JSON dan picu download.
                 const jsonString = JSON.stringify(dnaObject, null, 2);
-                const filename = `dna_autoswitch_${symbol.replace(/,/g, '-')}_${settings.timeframe}.json`;
-                
+                const filename = `dna_autoswitch_qc_${settings.symbol}_${settings.timeframe}.json`;
                 const blob = new Blob([jsonString], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; 
+                a.href = url;
                 a.download = filename;
-                document.body.appendChild(a); 
-                a.click(); 
+                document.body.appendChild(a);
+                a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                alert(`File DNA Bunglon '${filename}' telah berhasil diekspor!`);
+                alert(`File DNA Auto-Switch Tervalidasi '${filename}' telah berhasil diekspor!`);
 
             } catch (error) {
-                console.error("Error saat ekspor DNA Auto-Switch:", error);
-                alert(`Ekspor gagal: ${error.message}`);
+                console.error("Error saat ekspor DNA Auto-Switch otomatis:", error);
+                // Jangan tampilkan alert error jika sudah ada alert spesifik sebelumnya (misal, 0 trade).
+                if (!error.message.includes("Backtest tidak menghasilkan trade")) {
+                    alert(`Proses ekspor otomatis gagal: ${error.message}`);
+                }
             } finally {
+                // Kembalikan tombol ke keadaan semula.
                 setButtonState(exportBtn, false, originalText);
             }
         }
@@ -3031,8 +3003,9 @@
                                 linreg: calculateLinearRegressionChannel(closesSnapshot)
                             };
                             
-                            const score = calculateConfluenceScoreForCandle(this.state.settings.weights, indicators);
-                            analysisCache.push({ bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] });
+                            //const score = calculateConfluenceScoreForCandle(activeWeights, indicators);
+                            //analysisCache.push({ bullScore: score.bull, bearScore: score.bear, atrValue: allAtrValues[i] });
+                            analysisCache.push({ indicators: indicators, atrValue: allAtrValues[i] });
                         }
 
                         currentIndex = chunkEnd;
@@ -3136,7 +3109,37 @@
                     }
 
                     const currentRegime = await predictMarketRegime(featureInputs); 
+                    //console.log(`Candle #${i}: Rezim terdeteksi -> ${currentRegime}`);
+                    // =================== BLOK KODE BARU UNTUK SWITCHING STRATEGI ===================
+                    let activeWeights; // Variabel baru untuk menampung bobot (strategi) yang aktif
+                    let dnaAutoSwitch = userSettings.presets; // Asumsi dna_autoswitch dimuat di sini, kita akan perbaiki ini nanti jika perlu
 
+                    // Logika "JIKA-MAKA" untuk memilih strategi berdasarkan deteksi AI
+                    switch (currentRegime) {
+                    case 'BULL_TREND':
+                        // Jika BULL_TREND terdeteksi
+                        activeWeights = dnaAutoSwitch.bullTrend.weights;
+                        break;
+                    case 'BEAR_TREND':
+                        // Jika BEAR_TREND terdeteksi
+                        activeWeights = dnaAutoSwitch.bearTrend.weights;
+                        break;
+                    case 'RANGING':
+                        // Jika RANGING terdeteksi
+                        activeWeights = dnaAutoSwitch.ranging.weights;
+                        break;
+                    case 'LOW_VOLATILITY':
+                        // Jika LOW_VOLATILITY terdeteksi
+                        activeWeights = dnaAutoSwitch.lowVolatility.weights;
+                        break;
+                    default:
+                        // Jika karena suatu hal prediksinya aneh, pakai strategi RANGING sebagai cadangan
+                        activeWeights = dnaAutoSwitch.ranging.weights; 
+                        break;
+                    }
+                    // =============================== AKHIR BLOK KODE BARU ===============================
+                    // Hitung skor secara real-time menggunakan strategi yang tepat (activeWeights)
+                    const score = calculateConfluenceScoreForCandle(activeWeights, cacheEntry.indicators);
                     if (settings.filterRegime && settings.filterRegime.length > 0) {
                         const checkboxFormatRegime = currentRegime.charAt(0).toLowerCase() + currentRegime.slice(1).replace(/_([a-z])/g, g => g[1].toUpperCase());
 
@@ -3191,7 +3194,8 @@
                         const closes = fullCloses.slice(0, i + 1);
 
                         if (currentRegime === 'BULL_TREND' || currentRegime === 'BEAR_TREND') {
-                            const bias = (cacheEntry.bullScore > cacheEntry.bearScore + settings.biasThreshold) ? 'LONG' : (cacheEntry.bearScore > cacheEntry.bullScore + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
+                            //const bias = (score.bull > score.bear + settings.biasThreshold) ? 'LONG' : (score.bear > score.bull + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
+                            const bias = (score.bull > score.bear + settings.biasThreshold) ? 'LONG' : (score.bear > score.bull + settings.biasThreshold) ? 'SHORT' : 'NETRAL';
                             const emaEntry = calculateEMA(closes, settings.pullbackEmaPeriod).pop();
                             if (bias !== 'NETRAL' && emaEntry && currentLow <= emaEntry && currentHigh >= emaEntry) {
                                 entrySignal = true; detectedBias = bias; entryPrice = emaEntry;
@@ -3696,70 +3700,95 @@
             evolutionState.fitnessChart.update();
         }
 
-        function exportStrategyDNA() {
-            let strategyData, dnaType, sourceAsset = document.getElementById('backtest-symbol-input').value.toUpperCase().trim(), sourceTimeframe = document.getElementById('backtest-timeframe-select').value;
-   
-            if (evolutionState.champion && evolutionState.champion.metrics.totalTrades > 0) {
-                strategyData = {
-                    parameters: { 
-                        riskRewardRatio: evolutionState.champion.riskRewardRatio, 
-                        pullbackEmaPeriod: evolutionState.champion.pullbackEmaPeriod, 
-                        swingLookback: evolutionState.champion.swingLookback, 
-                        biasThreshold: evolutionState.champion.biasThreshold, 
-                        atrFilterThreshold: parseFloat(evolutionState.champion.atrFilterThreshold) 
-                    },
-                    weights: evolutionState.champion.weights
-                };
-                dnaType = sourceAsset.includes(',') ? "Generic" : "Specific";
-            } 
+function exportStrategyDNA() {
+    let strategyData = null;
+    let sourceAsset = document.getElementById('backtest-symbol-input').value.toUpperCase().trim();
+    let sourceTimeframe = document.getElementById('backtest-timeframe-select').value;
+    let dnaType;
 
-            else if (backtester.state.lastRunMetrics && backtester.state.lastRunMetrics.totalTrades > 0) {
-                const settings = backtester.state.settings;
-                strategyData = {
-                    parameters: { 
-                        riskRewardRatio: settings.riskRewardRatio, 
-                        pullbackEmaPeriod: settings.pullbackEmaPeriod, 
-                        swingLookback: settings.swingLookback, 
-                        biasThreshold: settings.biasThreshold, 
-                        atrFilterThreshold: settings.atrFilterThreshold 
-                    },
-                    weights: settings.weights
-                };
-                dnaType = settings.symbol.includes(',') ? "Generic" : "Specific";
-                sourceAsset = settings.symbol;
-            } 
+    let symbolsArray = sourceAsset.split(',').map(s => s.trim()).filter(s => s);
+    let isMultiAsset = symbolsArray.length > 1;
+    let exportAutoSwitch = document.getElementById('export-autodna-btn')?.textContent.includes('Auto-Switch');
+
+    // --- 1. PENENTUAN TIPE DNA & SOURCE ASSET YANG AMAN ---
+    if (isMultiAsset) {
+        sourceAsset = 'GENERIC_MULTI_ASSET'; 
+        dnaType = exportAutoSwitch ? "AutoSwitch_V1" : "Generic_V1";
+    } else {
+        dnaType = exportAutoSwitch ? "AutoSwitch_V1" : "Specific_V1";
+    }
+
+    // --- 2. AMBIL DATA DARI CHAMPION / LAST BACKTEST ---
+    let isValidChampion = evolutionState.champion && evolutionState.champion.metrics && evolutionState.champion.metrics.totalTrades > 0;
+    let isValidBacktest = backtester.state.lastRunMetrics && backtester.state.lastRunMetrics.totalTrades > 0;
+
+    if (isValidChampion) {
+        // AMBIL DARI CHAMPION EVOLUSI V1
+        strategyData = {
+            parameters: { 
+                riskRewardRatio: evolutionState.champion.riskRewardRatio, 
+                pullbackEmaPeriod: evolutionState.champion.pullbackEmaPeriod, 
+                swingLookback: evolutionState.champion.swingLookback, 
+                biasThreshold: evolutionState.champion.biasThreshold, 
+                atrFilterThreshold: parseFloat(evolutionState.champion.atrFilterThreshold) 
+            },
+            // KRITIS: Untuk AutoSwitch, kita ambil SEMUA presets (BULL_TREND, BEAR_TREND, etc.)
+            weights: (dnaType.includes('AutoSwitch')) ? userSettings.presets : evolutionState.champion.weights
+        };
+        sourceAsset = isMultiAsset ? 'GENERIC_MULTI_ASSET' : symbolsArray[0]; 
         
-            else { 
-                alert("Tidak ada hasil backtest yang valid untuk diekspor."); 
-                return; 
-            }
-            
-            const dnaObject = { 
-                metadata: { dnaType, sourceAsset, sourceTimeframe, exportedAt: new Date().toISOString() }, 
-                parameters: strategyData.parameters, 
-                weights: strategyData.weights 
-            };
+    } else if (isValidBacktest) {
+        // AMBIL DARI BACKTEST MANUAL TERAKHIR
+        const settings = backtester.state.settings;
+        strategyData = {
+            parameters: settings.parameters,
+            weights: (dnaType.includes('AutoSwitch')) ? userSettings.presets : settings.weights
+        };
+        sourceAsset = settings.symbol;
+    } else if (exportAutoSwitch) {
+        // 🔥 JALUR DARURAT: Jika Champion GAGAL, FORCE EXPORT PRESET AMAN 🔥
+        strategyData = {
+            parameters: { 
+                riskRewardRatio: 1.8, pullbackEmaPeriod: 13, swingLookback: 15, biasThreshold: 15, atrFilterThreshold: 0.0
+            },
+            weights: userSettings.presets
+        };
+        sourceAsset = 'FALLBACK_PRESET';
+        dnaType = "AutoSwitch_V1_Fallback";
+    }
+    else { 
+        alert("Tidak ada hasil backtest yang valid (total trades > 0) untuk diekspor. Jalankan Evolution V1 terlebih dahulu."); 
+        return; 
+    }
 
-            if (lastMonteCarloResult && isFinite(lastMonteCarloResult.avg_final_pnl_usd)) { 
-                dnaObject.metadata.qc_validation = lastMonteCarloResult; 
-            } else {
-            }
-            
-            const jsonString = JSON.stringify(dnaObject, null, 2);
-            const filename = `dna_${dnaObject.metadata.dnaType.toLowerCase()}_${dnaObject.metadata.sourceAsset.replace(/,/g, '-')}_${dnaObject.metadata.sourceTimeframe}.json`;
-            
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; 
-            a.download = filename;
-            document.body.appendChild(a); 
-            a.click(); 
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            alert(`File DNA '${filename}' telah berhasil diekspor!`);
-        }
+    // --- 3. RAKIT FINAL DNA OBJECT ---
+    const dnaObject = { 
+        metadata: { dnaType, sourceAsset, sourceTimeframe, exportedAt: new Date().toISOString() }, 
+        parameters: strategyData.parameters, 
+        weights: strategyData.weights 
+    };
+
+    if (lastMonteCarloResult && isFinite(lastMonteCarloResult.avg_final_pnl_usd)) { 
+        dnaObject.metadata.qc_validation = lastMonteCarloResult; 
+    }
+    
+    // --- 4. EKSPOR FILE DENGAN NAMA YANG AMAN ---
+    const jsonString = JSON.stringify(dnaObject, null, 2);
+    const safeAssetName = sourceAsset.replace(/,/g, '-'); 
+    const filename = `dna_${dnaObject.metadata.dnaType.toLowerCase()}_${safeAssetName}_${dnaObject.metadata.sourceTimeframe}.json`;
+    
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; 
+    a.download = filename;
+    document.body.appendChild(a); 
+    a.click(); 
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    alert(`File DNA '${filename}' telah berhasil diekspor!`);
+}
 
         function updateChampionDNA(champion) {
             const dnaElement = document.getElementById('champion-dna');
@@ -4181,7 +4210,7 @@
         backtestTimeframeSelect.addEventListener('change', calculateAndDisplayCandleCount);
         filterCheckboxes.forEach(cb => cb.addEventListener('change', calculateAndDisplayCandleCount));
 
-        document.getElementById('export-autodna-btn').addEventListener('click', startAutoSwitchDNAExport);
+        document.getElementById('export-autodna-btn').addEventListener('click', exportStrategyDNA);
         document.getElementById('duration-btn-3d').addEventListener('click', () => applyDuration('days', 3));
         document.getElementById('duration-btn-1w').addEventListener('click', () => applyDuration('weeks', 1));
         document.getElementById('duration-btn-1m').addEventListener('click', () => applyDuration('months', 1));
