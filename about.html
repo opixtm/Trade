@@ -34,14 +34,14 @@
         
         <div>
             <button id="connect-api-btn" class="btn-primary">
-                <span>🔗 Hubungkan Akun</span>
+                <span>🔗 Connect to Binance TestNET </span>
             </button>
         </div>
 
         <div id="api-status-display" class="flex items-center gap-2 text-sm font-mono">
             <div class="flex items-center gap-2">
                 <div id="api-status-dot" class="w-3 h-3 rounded-full bg-gray-500"></div>
-                <span id="api-status-text" class="text-gray-400">Tidak Terhubung</span>
+                <span id="api-status-text" class="text-gray-400">Not Connected To TestNET</span>
             </div>
             
             <div class="border-l border-gray-600 pl-4">
@@ -576,6 +576,7 @@
         parameters: {}
     };
 
+    const USE_TESTNET = true; // Ganti ke 'false' HANYA JIKA Anda siap live dengan uang sungguhan
     const dnaStatusDisplay = document.getElementById('dna-status-display');
     const aiStatusDisplay = document.getElementById('ai-status');
     const activeRegimeDisplay = document.getElementById('active-regime-display');
@@ -711,56 +712,151 @@
                 setInterval(() => this.update(), 500);
                 this.render();
             },
-            // GANTI SELURUH FUNGSI paperTrade.openPosition DENGAN KODE LENGKAP INI
-openPosition: function(type, leverage, cost, entryPrice, tp1, tp2, flag = 'Manual') {
-    if (this.state.position) {
-        console.warn("Posisi baru diblokir, posisi lama masih aktif.");
-        return;
-    }
-    if (cost > this.state.balance) {
-        alert("Modal tidak cukup.");
-        return;
-    }
+                // BARU: Fungsi untuk sinkronisasi dengan state akun Binance asli
+            syncAccountState: async function() {
+                if (!binanceApiKeys.key) return; // Jangan lakukan apa-apa jika belum konek
 
-    const positionSize = cost * leverage;
-    const quantity = entryPrice > 0 ? positionSize / entryPrice : 0;
-    const maintenanceMarginRate = 0.005; 
-    const marginUsed = this.state.marginMode === 'isolated' ? cost : this.state.balance;
-    const liqPriceChange = (marginUsed / positionSize) * (1 - maintenanceMarginRate);
-    const liqPrice = type === 'long' 
-        ? entryPrice * (1 - liqPriceChange) 
-        : entryPrice * (1 + liqPriceChange);
-    
-    // Asumsi SL awal adalah SL struktural dari setup
-    const slPrice = (type === 'long') 
-        ? (realtimeCache.main.latestScalpingSetup?.sl.price || 0) 
-        : (realtimeCache.main.latestScalpingSetup?.sl.price || 0);
+                try {
+                    const [accountData, positionData] = await Promise.all([
+                        sendBinanceRequest('GET', '/v2/account'),
+                        sendBinanceRequest('GET', '/v2/positionRisk')
+                    ]);
+                    
+                    const currentSymbol = realtimeCache.main.symbol;
+                    const activePosition = positionData.find(p => p.symbol === currentSymbol && parseFloat(p.positionAmt) !== 0);
 
-    this.state.balance -= cost;
-    this.state.position = {
-        type: type,
-        entryPrice: entryPrice,
-        quantity: quantity,
-        leverage: leverage,
-        cost: cost,
-        liqPrice: liqPrice,
-        sl: slPrice, // SL awal disetel ke SL struktural
-        tp1: tp1,
-        tp2: tp2,
-        tp1Hit: false,
-        flag: flag,
-        symbol: realtimeCache.main.symbol,
-        trailingStopPrice: type === 'long' ? 0 : 99999999,
-        highestMarkPrice: entryPrice,
-        lowestMarkPrice: entryPrice,
-        
-        // 🔥 PERBAIKAN KRITIS: Properti isSafe disetel saat posisi dibuka 🔥
-        isSafe: false, 
-    };
-    
-    this.saveState();
-    this.render();
-},
+                    // Update saldo
+                    this.state.balance = parseFloat(accountData.availableBalance);
+
+                    // Update posisi
+                    if (activePosition) {
+                        this.state.position = {
+                            type: parseFloat(activePosition.positionAmt) > 0 ? 'long' : 'short',
+                            entryPrice: parseFloat(activePosition.entryPrice),
+                            quantity: Math.abs(parseFloat(activePosition.positionAmt)),
+                            leverage: parseFloat(activePosition.leverage),
+                            liqPrice: parseFloat(activePosition.liquidationPrice),
+                            unrealizedProfit: parseFloat(activePosition.unrealizedProfit),
+                            cost: (Math.abs(parseFloat(activePosition.positionAmt)) * parseFloat(activePosition.entryPrice)) / parseFloat(activePosition.leverage),
+                            symbol: activePosition.symbol
+                        };
+                    } else {
+                        this.state.position = null;
+                    }
+                } catch (error) {
+                    console.error("Gagal sinkronisasi dengan akun Binance:", error);
+                    // Anda bisa tambahkan notifikasi error di UI di sini jika perlu
+                }
+                this.render(); // Render ulang UI dengan data terbaru dari Binance
+            },
+            // Fungsi ini HANYA bertugas mengirim order OPEN ke Binance
+            executeApiOpen: async function(tradeType, leverage, cost, entryPrice) {
+                const symbol = realtimeCache.main.symbol;
+                const side = (tradeType === 'long') ? 'BUY' : 'SELL';
+                const quantity = (cost * leverage) / entryPrice;
+                const symbolInfo = precisionMap[symbol]; 
+                const quantityPrecision = symbolInfo ? symbolInfo.quantityPrecision : 3;
+
+                const orderParams = {
+                    symbol: symbol, side: side, type: 'MARKET',
+                    quantity: quantity.toFixed(quantityPrecision)
+                };
+
+                try {
+                    console.log(`🚀 MENGIRIM ORDER OPEN ${side} KE BINANCE...`, orderParams);
+                    const orderResponse = await sendBinanceRequest('POST', '/v1/order', orderParams);
+                    console.log('✅ RESPON BINANCE (OPEN):', orderResponse);
+                    // Sinkronisasi akan dipanggil oleh interval, jadi tidak perlu di sini
+                } catch (error) {
+                    console.error("❌ GAGAL MEMBUKA POSISI API:", error);
+                    alert(`GAGAL MEMBUKA POSISI API: ${error.message}`);
+                }
+            },
+
+            // Fungsi ini HANYA bertugas mengirim order CLOSE ke Binance
+            executeApiClose: async function() {
+                const pos = this.state.position;
+                if (!pos) return;
+
+                const orderParams = {
+                    symbol: pos.symbol,
+                    side: (pos.type === 'long') ? 'SELL' : 'BUY',
+                    type: 'MARKET',
+                    quantity: pos.quantity.toFixed(precisionMap[pos.symbol] || 3),
+                    reduceOnly: 'true'
+                };
+
+                try {
+                    console.log(`⏹️ MENGIRIM ORDER CLOSE KE BINANCE...`, orderParams);
+                    const orderResponse = await sendBinanceRequest('POST', '/v1/order', orderParams);
+                    console.log('✅ RESPON BINANCE (CLOSE):', orderResponse);
+                } catch (error) {
+                    console.error("❌ GAGAL MENUTUP POSISI API:", error);
+                    alert(`GAGAL MENUTUP POSISI API: ${error.message}`);
+                }
+            },
+
+            openPosition: function(type, leverage, cost, entryPrice, tp1, tp2, flag = 'Manual') {
+                if (lastUsedApiMode && this.state.balance <= 0) {
+                    alert("SALDO TESTNET NOL. Tidak bisa membuka posisi.");
+                    return; // Hentikan fungsi di sini
+                }
+                // --- HYBRID LOGIC ---
+                if (lastUsedApiMode) {
+                    // Mode ONLINE: Panggil eksekutor API
+                    this.executeApiOpen(type, leverage, cost, entryPrice);
+                    return; // Hentikan di sini, sinkronisasi akan menangani update state
+                }
+                // --- END HYBRID LOGIC ---
+
+                // Jika kode sampai di sini, artinya kita di MODE OFFLINE
+                // Logika simulasi Anda yang lama tetap berjalan aman di sini
+                if (this.state.position) {
+                    console.warn("Posisi baru diblokir, posisi lama masih aktif.");
+                    return;
+                }
+                if (cost > this.state.balance) {
+                    alert("Modal tidak cukup.");
+                    return;
+                }
+
+                const positionSize = cost * leverage;
+                const quantity = entryPrice > 0 ? positionSize / entryPrice : 0;
+                const maintenanceMarginRate = 0.005; 
+                const marginUsed = this.state.marginMode === 'cross' ? cost : this.state.balance;
+                const liqPriceChange = (marginUsed / positionSize) * (1 - maintenanceMarginRate);
+                const liqPrice = type === 'long' 
+                    ? entryPrice * (1 - liqPriceChange) 
+                    : entryPrice * (1 + liqPriceChange);
+                
+                // Asumsi SL awal adalah SL struktural dari setup
+                const slPrice = (type === 'long') 
+                    ? (realtimeCache.main.latestScalpingSetup?.sl.price || 0) 
+                    : (realtimeCache.main.latestScalpingSetup?.sl.price || 0);
+
+                this.state.balance -= cost;
+                this.state.position = {
+                    type: type,
+                    entryPrice: entryPrice,
+                    quantity: quantity,
+                    leverage: leverage,
+                    cost: cost,
+                    liqPrice: liqPrice,
+                    sl: slPrice, // SL awal disetel ke SL struktural
+                    tp1: tp1,
+                    tp2: tp2,
+                    tp1Hit: false,
+                    flag: flag,
+                    symbol: realtimeCache.main.symbol,
+                    trailingStopPrice: type === 'long' ? 0 : 99999999,
+                    highestMarkPrice: entryPrice,
+                    lowestMarkPrice: entryPrice,
+                    isSafe: false, 
+                };
+                
+                this.saveState();
+                this.render();
+            },
             partialClosePosition: function(percentageToClose, closeReason = 'AFT - TP1 Hit') {
                 const pos = this.state.position;
                 if (!pos) return;
@@ -796,7 +892,17 @@ openPosition: function(type, leverage, cost, entryPrice, tp1, tp2, flag = 'Manua
                 console.log(`🔒 RISK-FREE: Stop Loss dipindahkan ke Break-Even (${formatPrice(pos.entryPrice)})`);
                 this.saveState();
             },
-            closePosition: function(closeReason = 'Manual') { // Modifikasi: Tambah Alasan Penutupan
+            closePosition: function(closeReason = 'Manual') { 
+                // --- HYBRID LOGIC ---
+                if (lastUsedApiMode) {
+                    // Mode ONLINE: Panggil eksekutor API
+                    this.executeApiClose();
+                    return; // Hentikan di sini, sinkronisasi akan menangani update state
+                }
+                // --- END HYBRID LOGIC ---
+
+                // Jika kode sampai di sini, artinya kita di MODE OFFLINE
+                // Logika simulasi Anda yang lama tetap berjalan aman di sini
                 if (!this.state.position) return;
                 const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
                 if (isNaN(markPrice)) {
@@ -868,100 +974,96 @@ openPosition: function(type, leverage, cost, entryPrice, tp1, tp2, flag = 'Manua
 
                 return null; // TS belum terpicu
             },
-            // =====================================================================================================================================================================
-// === GANTI SELURUH FUNGSI paperTrade.update DENGAN VERSI INI ===
-// =====================================================================================================================================================================
-update: function() {
-    const pos = this.state.position;
-    if (!pos) {
-        this.render(); 
-        return;
-    }
+            update: function() {
+                const pos = this.state.position;
+                if (!pos) {
+                    this.render(); 
+                    return;
+                }
 
-    const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
-    if (isNaN(markPrice)) return;
+                const markPrice = parseFloat(realtimeCache.main.tickerData.lastPrice);
+                if (isNaN(markPrice)) return;
 
-    const isLong = pos.type === 'long';
-    const pnl = (pos.type === 'long') 
-        ? (markPrice - pos.entryPrice) * pos.quantity 
-        : (pos.entryPrice - markPrice) * pos.quantity;
-    const profitPercent = (pnl / pos.cost) * 100;
-    
-    // Update harga puncak/lembah untuk trailing stop
-    if (isLong) {
-        pos.highestMarkPrice = Math.max(pos.highestMarkPrice || pos.entryPrice, markPrice);
-    } else {
-        pos.lowestMarkPrice = Math.min(pos.lowestMarkPrice || pos.entryPrice, markPrice);
-    }
+                const isLong = pos.type === 'long';
+                const pnl = (pos.type === 'long') 
+                    ? (markPrice - pos.entryPrice) * pos.quantity 
+                    : (pos.entryPrice - markPrice) * pos.quantity;
+                const profitPercent = (pnl / pos.cost) * 100;
+                
+                // Update harga puncak/lembah untuk trailing stop
+                if (isLong) {
+                    pos.highestMarkPrice = Math.max(pos.highestMarkPrice || pos.entryPrice, markPrice);
+                } else {
+                    pos.lowestMarkPrice = Math.min(pos.lowestMarkPrice || pos.entryPrice, markPrice);
+                }
 
-    // --- LOGIKA AGRESIIF ANTI-LOSS ---
-    const BE_THRESHOLD = 0.5; // Persentase profit minimum (0.5%) untuk memicu SL to BE
-    if (!pos.isSafe && profitPercent >= BE_THRESHOLD) {
-        this.moveStopLossToBreakEven();
-        pos.isSafe = true; // Kunci status ke Risk-Free
-        this.saveState();
-    }
-    
-    // 1. Cek Pencapaian TP1 & Partial Close (tetap ada)
-    if (!pos.tp1Hit && pos.tp1 && ((isLong && markPrice >= pos.tp1) || (!isLong && markPrice <= pos.tp1))) {
-        this.partialClosePosition(0.5); 
-        // Note: SL to BE sudah dipicu di atas oleh BE_THRESHOLD, tidak perlu dipicu lagi di sini.
-        pos.tp1Hit = true; 
-        this.saveState();
-    }
-    
-    // 2. Cek Trailing Stop (TS)
-    const tsConfig = this.state.ts;
-    if (tsConfig.enabled && pos.isSafe) { // TS hanya aktif jika sudah Risk-Free
-        const extremumPrice = isLong ? pos.highestMarkPrice : pos.lowestMarkPrice;
-        const callbackAmount = extremumPrice * (tsConfig.callbackRate / 100);
-        const dynamicStopPrice = isLong ? extremumPrice - callbackAmount : extremumPrice + callbackAmount;
+                // --- LOGIKA AGRESIIF ANTI-LOSS ---
+                const BE_THRESHOLD = 0.5; // Persentase profit minimum (0.5%) untuk memicu SL to BE
+                if (!pos.isSafe && profitPercent >= BE_THRESHOLD) {
+                    this.moveStopLossToBreakEven();
+                    pos.isSafe = true; // Kunci status ke Risk-Free
+                    this.saveState();
+                }
+                
+                // 1. Cek Pencapaian TP1 & Partial Close (tetap ada)
+                if (!pos.tp1Hit && pos.tp1 && ((isLong && markPrice >= pos.tp1) || (!isLong && markPrice <= pos.tp1))) {
+                    this.partialClosePosition(0.5); 
+                    // Note: SL to BE sudah dipicu di atas oleh BE_THRESHOLD, tidak perlu dipicu lagi di sini.
+                    pos.tp1Hit = true; 
+                    this.saveState();
+                }
+                
+                // 2. Cek Trailing Stop (TS)
+                const tsConfig = this.state.ts;
+                if (tsConfig.enabled && pos.isSafe) { // TS hanya aktif jika sudah Risk-Free
+                    const extremumPrice = isLong ? pos.highestMarkPrice : pos.lowestMarkPrice;
+                    const callbackAmount = extremumPrice * (tsConfig.callbackRate / 100);
+                    const dynamicStopPrice = isLong ? extremumPrice - callbackAmount : extremumPrice + callbackAmount;
 
-        // Perbarui TS Price Internal (hanya naik/turun sesuai arah profit)
-        if ((isLong && dynamicStopPrice > pos.trailingStopPrice) || (!isLong && dynamicStopPrice < pos.trailingStopPrice)) {
-            pos.trailingStopPrice = dynamicStopPrice;
-        }
+                    // Perbarui TS Price Internal (hanya naik/turun sesuai arah profit)
+                    if ((isLong && dynamicStopPrice > pos.trailingStopPrice) || (!isLong && dynamicStopPrice < pos.trailingStopPrice)) {
+                        pos.trailingStopPrice = dynamicStopPrice;
+                    }
 
-        // Cek Pemicu TS
-        if ((isLong && markPrice <= pos.trailingStopPrice) || (!isLong && markPrice >= pos.trailingStopPrice)) {
-            this.closePosition('AFT - TRAILING STOP');
-            return;
-        }
-    }
+                    // Cek Pemicu TS
+                    if ((isLong && markPrice <= pos.trailingStopPrice) || (!isLong && markPrice >= pos.trailingStopPrice)) {
+                        this.closePosition('AFT - TRAILING STOP');
+                        return;
+                    }
+                }
 
 
-    // 3. Cek Stop Loss (SL) & Likuidasi (SL ke BE hanya dipicu jika isSafe=true)
-    const slHit = (isLong && markPrice <= pos.sl) || (!isLong && markPrice >= pos.sl);
-    if (slHit) {
-        this.closePosition('AFT - STOP LOSS');
-        return;
-    }
-    const liquidated = (isLong && markPrice <= pos.liqPrice) || (!isLong && markPrice >= pos.liqPrice);
-    if (liquidated) {
-        this.closePosition('LIQUIDATION');
-        return;
-    }
+                // 3. Cek Stop Loss (SL) & Likuidasi (SL ke BE hanya dipicu jika isSafe=true)
+                const slHit = (isLong && markPrice <= pos.sl) || (!isLong && markPrice >= pos.sl);
+                if (slHit) {
+                    this.closePosition('AFT - STOP LOSS');
+                    return;
+                }
+                const liquidated = (isLong && markPrice <= pos.liqPrice) || (!isLong && markPrice >= pos.liqPrice);
+                if (liquidated) {
+                    this.closePosition('LIQUIDATION');
+                    return;
+                }
 
-    // 4. Cek Sinyal Pembalikan Arah (Exit Cerdas - logic AFT)
-    const currentBias = realtimeCache.main.latestScalpingSetup?.bias.status || 'NEUTRAL';
-    const isReversalSignal = (isLong && currentBias.includes('SHORT')) || (!isLong && currentBias.includes('LONG'));
-    if (isReversalSignal) {
-        this.closePosition('AFT - REVERSAL SIGNAL');
-        return;
-    }
+                // 4. Cek Sinyal Pembalikan Arah (Exit Cerdas - logic AFT)
+                const currentBias = realtimeCache.main.latestScalpingSetup?.bias.status || 'NEUTRAL';
+                const isReversalSignal = (isLong && currentBias.includes('SHORT')) || (!isLong && currentBias.includes('LONG'));
+                if (isReversalSignal) {
+                    this.closePosition('AFT - REVERSAL SIGNAL');
+                    return;
+                }
 
-    // --- 5. Update PNL & Display ---
-    const roe = (pnl / pos.cost) * 100;
-    
-    document.getElementById('sim-unrealized-pnl').textContent = formatPrice(pnl);
-    document.getElementById('sim-unrealized-pnl').className = pnl >= 0 ? 'positive font-mono font-bold text-lg' : 'negative font-mono font-bold text-lg';
-    document.getElementById('sim-position-pnl').textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
-    document.getElementById('sim-position-pnl').className = pnl >= 0 ? 'positive font-mono font-bold text-lg ml-2' : 'negative font-mono font-bold text-lg ml-2';
-    document.getElementById('sim-position-mark').textContent = formatPrice(markPrice);
-    
-    this.saveState();
-},
-// =====================================================================================================================================================================
+                // --- 5. Update PNL & Display ---
+                const roe = (pnl / pos.cost) * 100;
+                
+                document.getElementById('sim-unrealized-pnl').textContent = formatPrice(pnl);
+                document.getElementById('sim-unrealized-pnl').className = pnl >= 0 ? 'positive font-mono font-bold text-lg' : 'negative font-mono font-bold text-lg';
+                document.getElementById('sim-position-pnl').textContent = `${formatPrice(pnl)} (${roe.toFixed(2)}%)`;
+                document.getElementById('sim-position-pnl').className = pnl >= 0 ? 'positive font-mono font-bold text-lg ml-2' : 'negative font-mono font-bold text-lg ml-2';
+                document.getElementById('sim-position-mark').textContent = formatPrice(markPrice);
+                
+                this.saveState();
+            },
             render: function() {
                 const pos = this.state.position;
                 
@@ -1044,7 +1146,7 @@ update: function() {
                 }
                 // 🔥 AKHIR KOREKSI 🔥
             },
-            resetAccount: function(confirmFirst = true) { // Tambahkan parameter
+            resetAccount: function(confirmFirst = true) { 
                 const doReset = () => {
                     // Jika offline, reset ke 1000. Jika online, biarkan balance dari API.
                     // this.state.balance = 1000; // Baris ini bisa dihapus atau disesuaikan
@@ -1128,7 +1230,6 @@ update: function() {
             saveState: function() {
                 localStorage.setItem('paperTradeState', JSON.stringify(this.state));
             },
-            // GANTI SELURUH FUNGSI 'loadState' YANG LAMA DENGAN INI
             loadState: function() {
                 const defaultState = {
                     balance: 1000,
@@ -2339,32 +2440,30 @@ function extractLSTMFeatures(klines) {
         }
     }
 
-    async function createBinanceSignedRequest(endpoint, params = {}) {
-        if (!binanceApiKeys.key || !binanceApiKeys.secret) {
-            throw new Error("API Key atau Secret Key belum diatur.");
-        }
-
-        const baseUrl = 'https://fapi.binance.com';
-        const timestamp = Date.now();
-        const queryString = new URLSearchParams({ ...params, timestamp }).toString();
-        
-        // Membuat signature menggunakan CryptoJS yang sudah kita impor
-        const signature = CryptoJS.HmacSHA256(queryString, binanceApiKeys.secret).toString(CryptoJS.enc.Hex);
-
-        const url = `${baseUrl}${endpoint}?${queryString}&signature=${signature}`;
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: { 'X-MBX-APIKEY': binanceApiKeys.key }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Binance API Error: ${errorData.msg} (code: ${errorData.code})`);
-        }
-
-        return response.json();
+    async function sendBinanceRequest(method, endpoint, params = {}) {
+    if (!binanceApiKeys.key || !binanceApiKeys.secret) {
+        throw new Error("API Key atau Secret Key belum diatur.");
     }
+
+    // URL akan otomatis berubah berdasarkan toggle USE_TESTNET
+    const baseUrl = USE_TESTNET ? 'https://testnet.binancefuture.com/fapi' : 'https://fapi.binance.com';
+    const timestamp = Date.now();
+    const queryString = new URLSearchParams({ ...params, timestamp }).toString();
+    const signature = CryptoJS.HmacSHA256(queryString, binanceApiKeys.secret).toString(CryptoJS.enc.Hex);
+    const url = `${baseUrl}${endpoint}?${queryString}&signature=${signature}`;
+    
+    const response = await fetch(url, {
+        method: method.toUpperCase(),
+        headers: { 'X-MBX-APIKEY': binanceApiKeys.key }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Binance API Error: ${errorData.msg} (code: ${errorData.code})`);
+    }
+
+    return response.json();
+}
 
     function toggleApiKeyModal(show) {
         const modal = document.getElementById('api-key-modal');
@@ -2862,163 +2961,178 @@ function extractLSTMFeatures(klines) {
         }
     }
     
-// =====================================================================================================================================================================
-// === FUNGSI formatBiasDetail (FINAL: Mengubah Input Menjadi String yang Aman) ===
-// =====================================================================================================================================================================
-function formatBiasDetail(finalBiasDetail, bullScore, bearScore, biasStatus) {
-    // Parameter finalBiasDetail tidak digunakan karena kita menggunakan skor mentah yang baru.
+    function displayLiveSignal(signalData) {
+        realtimeCache.main.latestScalpingSetup = signalData;
+            
+        const symbol = liveSymbolInput.value.toUpperCase(); // Mengambil symbol dari input field
+        const entryPrice = signalData.entry.price !== null ? formatPrice(signalData.entry.price, symbol) : 'N/A';
+        const entryPercentage = signalData.entry.percentage !== null ? `(${signalData.entry.percentage.toFixed(2)}%)` : '';
+        const slPrice = signalData.sl.price !== null ? formatPrice(signalData.sl.price, symbol) : 'N/A';
+        const slPercentage = signalData.sl.percentage !== null ? `(${signalData.sl.percentage.toFixed(2)}%)` : '';
+        const tp1Price = signalData.tp1.price !== null ? formatPrice(signalData.tp1.price, symbol) : 'N/A';
+        const tp1Percentage = signalData.tp1.percentage !== null ? `(${signalData.tp1.percentage.toFixed(2)}%)` : '';
+        const tp2Price = signalData.tp2.price !== null ? formatPrice(signalData.tp2.price, symbol) : 'N/A';
+        const tp2Percentage = signalData.tp2.percentage !== null ? `(${signalData.tp2.percentage.toFixed(2)}%)` : '';
+        const tp3Price = signalData.tp3.price !== null ? formatPrice(signalData.tp3.price, symbol) : 'N/A';
+        const tp3Percentage = signalData.tp3.percentage !== null ? `(${signalData.tp3.percentage.toFixed(2)}%)` : '';
+        const newSignalState = signalData.bias.status;
+        const atrDetailMatch = signalData.bias.detail.match(/\(([\d\.]+)% [\<\>] ([\d\.]+)%\)/);
+        let atrDisplayHtml = '';
 
-    // 1. Ekstrak data Rezim
-    const regime = (biasStatus || 'STATIC').replace('LONG ', '').replace('SHORT ', '').replace(/_/g, ' ');
-
-    // 2. Format Skor Bull/Bear (menggunakan simbol aman)
-    const bullLabel = 'Bull';
-    const bearLabel = 'Bear';
-    
-    const scoreLine = `${bullLabel} ${bullScore.toFixed(1)} vs ${bearLabel} ${bearScore.toFixed(1)}`;
-    
-    // 3. Format ATR Check (Gunakan data dari ATR Check di liveInterval)
-    const detailString = String(finalBiasDetail || '');
-    const atrMatch = detailString.match(/ATR Check: \(([\d\.]+)% [\<\>] ([\d\.]+)%\)/);
-
-    let atrLine = 'ATR Check N/A';
-    if (atrMatch) {
-        const atrValue = parseFloat(atrMatch[1]).toFixed(2);
-        const atrThreshold = parseFloat(atrMatch[2]).toFixed(2);
-        atrLine = `ATR ${atrValue}% ≥ ${atrThreshold}%`;
-    }
-
-    // Gabungkan menjadi format final yang ringkas
-    return {
-        line1: `${regime} | ${scoreLine}`,
-        line2: atrLine
-    };
-}
-// =====================================================================================================================================================================
-    
-    // =====================================================================================================================================================================
-// === FUNGSI displayLiveSignal (DENGAN PERBAIKAN FINAL DAN PENGAMAN) ===
-// =====================================================================================================================================================================
-function displayLiveSignal(signalData) {
-    // --- TAMBAH INI: Deklarasi Variabel Pengaman (Anti-ReferenceError) ---
-    // Di goldendashboard.html, variabel ini dulunya dibuat di liveInterval,
-    // tapi sekarang hanya perlu dideklarasikan di sini agar kodenya tidak crash
-    let atrDisplayHtml = ''; // Variabel ini sekarang hanya berfungsi sebagai placeholder aman
-    // ----------------------------------------------------------------------
-    
-    // Asumsi Anda telah mengimpor dan mendefinisikan variabel global di atas:
-    const symbol = realtimeCache.main.symbol;
-    const currentMarketPrice = parseFloat(realtimeCache.main.tickerData.lastPrice || '0');
-    
-    const entryPrice = signalData.entry.price !== null ? formatPrice(signalData.entry.price, symbol) : 'N/A';
-    const entryPercentage = signalData.entry.percentage !== null ? `(${signalData.entry.percentage.toFixed(2)}%)` : '';
-    const slPrice = signalData.sl.price !== null ? formatPrice(signalData.sl.price, symbol) : 'N/A';
-    const slPercentage = signalData.sl.percentage !== null ? `(${signalData.sl.percentage.toFixed(2)}%)` : '';
-    const tp1Price = signalData.tp1.price !== null ? formatPrice(signalData.tp1.price, symbol) : 'N/A';
-    const tp1Percentage = signalData.tp1.percentage !== null ? `(${signalData.tp1.percentage.toFixed(2)}%)` : '';
-    const tp2Price = signalData.tp2.price !== null ? formatPrice(signalData.tp2.price, symbol) : 'N/A';
-    const tp2Percentage = signalData.tp2.percentage !== null ? `(${signalData.tp2.percentage.toFixed(2)}%)` : '';
-    const tp3Price = signalData.tp3.price !== null ? formatPrice(signalData.tp3.price, symbol) : 'N/A';
-    const tp3Percentage = signalData.tp3.percentage !== null ? `(${signalData.tp3.percentage.toFixed(2)}%)` : '';
-
-    const newSignalState = signalData.bias.status;
-    const lastStableSignal = newSignalState; // Di sini sudah disinkronkan
-    const biasColor = lastStableSignal.includes('LONG') ? 'positive' : (lastStableSignal.includes('SHORT') ? 'negative' : 'text-gray-400');
-    
-    const updateTimerDisplay = () => {
-        const currentTimerEl = document.getElementById('signal-time-elapsed');
-        if (!signalStartTime) return; 
-        
-        const elapsedMs = Date.now() - signalStartTime;
-        const formattedTime = formatTimeElapsed(elapsedMs);
-        
-        if (currentTimerEl) {
-            currentTimerEl.textContent = `Aktif sejak: ${formattedTime}`;
-            if (elapsedMs > 5 * 60 * 1000) {
-                currentTimerEl.classList.add('text-red-500');
-                currentTimerEl.classList.remove('text-yellow-400');
-            } else {
-                currentTimerEl.classList.add('text-yellow-400');
-                currentTimerEl.classList.remove('text-red-500');
-            }
+        if (atrDetailMatch) {
+            const actualATR = parseFloat(atrDetailMatch[1]);
+            const targetATR = parseFloat(atrDetailMatch[2]);
+            const isLolos = actualATR >= targetATR; 
+            const colorClass = isLolos ? 'positive' : 'negative';
+            const displayOperator = isLolos ? '&ge;' : '<';
+            
+            atrDisplayHtml = `
+                <div class="mt-2 text-xs font-mono flex justify-center space-x-4 p-2 bg-gray-900/50 rounded-md">
+                    <span class="text-gray-400">ATR Current: <strong class="${colorClass}">${actualATR.toFixed(4)}%</strong></span>
+                    <span class="text-gray-400">| Target Min: <strong>${targetATR.toFixed(4)}%</strong></span>
+                    
+                    <span class="text-xs text-gray-500 ml-1">(${actualATR.toFixed(4)}% ${displayOperator} ${targetATR.toFixed(4)}%)</span>
+                </div>
+            `;
         }
-    };
-    
-    // Logika Timer
-    // (Jika ada perubahan sinyal, timer akan disetel di liveInterval. Di sini hanya update)
-    if (timeElapsedInterval) {
-        clearInterval(timeElapsedInterval);
-        timeElapsedInterval = null;
-    }
-    if (!lastStableSignal.includes('NEUTRAL')) {
-        timeElapsedInterval = setInterval(updateTimerDisplay, 1000); 
-    }
-    
-    let initialTimerText = '— Sinyal Netral —';
-    if (!lastStableSignal.includes('NEUTRAL')) {
-        initialTimerText = 'Aktif sejak: 00m 00s';
-    }
 
+        const updateTimerDisplay = () => {
+            const currentTimerEl = document.getElementById('signal-time-elapsed');
+            if (!signalStartTime) return; 
+            
+            const elapsedMs = Date.now() - signalStartTime;
+            const formattedTime = formatTimeElapsed(elapsedMs);
+            
+            if (currentTimerEl) {
+                currentTimerEl.textContent = `Aktif sejak: ${formattedTime}`;
+                if (elapsedMs > 5 * 60 * 1000) {
+                    currentTimerEl.classList.add('text-red-500');
+                    currentTimerEl.classList.remove('text-yellow-400');
+                } else {
+                    currentTimerEl.classList.add('text-yellow-400');
+                    currentTimerEl.classList.remove('text-red-500');
+                }
+            }
+        };
 
-    // ===================================================================
-    // KODE RENDERING HTML FINAL
-    // ===================================================================
-    document.getElementById('live-signal-content').innerHTML = `
-        <div class="space-y-4">
-            <div class="grid grid-cols-3 gap-2">
-                <div class="text-center">
-                    <p class="font-bold text-lg ${biasColor}">${lastStableSignal}</p> 
-                    <p class="text-sm text-gray-400">Contextual Bias</p>
+        const wasPreviouslyActive = !lastStableSignal.includes('NEUTRAL') && !lastStableSignal.includes('CHOP');
+        const isCurrentlyActive = !newSignalState.includes('NEUTRAL') && !newSignalState.includes('CHOP');
+
+        if (newSignalState !== lastStableSignal) {
+            
+            // 1. PENCATATAN LOG SIKLUS LAMA
+            if (wasPreviouslyActive && signalActiveStartTime !== null) {
+                const cycleDurationSec = Math.round((Date.now() - signalActiveStartTime) / 1000);
+                
+                if (cycleDurationSec >= 1) { 
+                    if (!signalLogState.statsByDnaFile[activeDnaFilename]) {
+                        signalLogState.statsByDnaFile[activeDnaFilename] = { totalCycles: 0, longCount: 0, shortCount: 0, durations: [], history: [] };
+                    }
+                    const fileStats = signalLogState.statsByDnaFile[activeDnaFilename];
+                    const cycleType = lastStableSignal.includes('LONG') ? 'LONG' : 'SHORT';
                     
-               
+                    fileStats.totalCycles++;
+                    if (cycleType === 'LONG') fileStats.longCount++;
+                    else fileStats.shortCount++;
                     
+                    fileStats.durations.push(cycleDurationSec);
+                    fileStats.history.unshift({ type: cycleType, duration: cycleDurationSec, endState: newSignalState });
+                    if (fileStats.history.length > 10) fileStats.history.pop();
+                    
+                    updateSignalLogStatistics();
+                }
+                signalActiveStartTime = null;
+            }
+            
+            // 2. RESET TIMER WAKTU BERJALAN & LOGIK BARU
+            if (isCurrentlyActive) {
+                signalStartTime = Date.now(); 
+                signalActiveStartTime = Date.now(); // Mulai siklus log baru
+            } else {
+                signalStartTime = null; // Hentikan timer UI
+            }
+            
+            // 3. Update Status Stabil
+            lastStableSignal = newSignalState;
+        }
+        
+        // 4. Bersihkan Interval Timer Lama
+        if (timeElapsedInterval) {
+            clearInterval(timeElapsedInterval);
+            timeElapsedInterval = null;
+        }
+
+        // 5. Jika sinyal AKTIF, siapkan timer baru
+        if (isCurrentlyActive) {
+            timeElapsedInterval = setInterval(updateTimerDisplay, 1000); 
+        }
+
+        const biasColor = lastStableSignal.includes('LONG') ? 'positive' : (lastStableSignal.includes('SHORT') ? 'negative' : 'text-gray-400');
+        
+        let initialTimerText;
+        if (isCurrentlyActive) {
+            initialTimerText = 'Aktif sejak: 00m 00s'; 
+        } else {
+            initialTimerText = '— Sinyal Netral —';
+        }
+
+        // ===================================================================
+        // KODE 3: RENDERING HTML FINAL
+        // ===================================================================
+        document.getElementById('live-signal-content').innerHTML = `
+            <div class="space-y-4">
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="text-center">
+                        <p class="font-bold text-lg ${biasColor}">${lastStableSignal}</p> 
+                        <p class="text-sm text-gray-400">Contextual Bias</p>
+                        <p class="text-xs text-gray-400">(${signalData.bias.detail})</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-yellow-400">${entryPrice}</p>
+                        <p class="text-sm text-gray-400">Entry</p>
+                        <p class="text-xs text-yellow-400">${entryPercentage}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-red-400">${slPrice}</p>
+                        <p class="text-sm text-gray-400">Stop Loss</p>
+                        <p class="text-xs text-red-400">${slPercentage}</p>
+                    </div>
                 </div>
-                <div class="text-center">
-                    <p class="font-bold text-lg text-yellow-400">${entryPrice}</p>
-                    <p class="text-sm text-gray-400">Entry</p>
-                    <p class="text-xs text-yellow-400">${entryPercentage}</p>
-                </div>
-                <div class="text-center">
-                    <p class="font-bold text-lg text-red-400">${slPrice}</p>
-                    <p class="text-sm text-gray-400">Stop Loss</p>
-                    <p class="text-xs text-red-400">${slPercentage}</p>
+
+                ${atrDisplayHtml} 
+
+                <hr class="border-gray-700"/>
+                
+                <p id="signal-time-elapsed" class="text-center text-sm font-mono text-gray-500 mt-2">
+                    ${initialTimerText}
+                </p>
+                
+                <hr class="border-gray-700"/>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-green-400">${tp1Price}</p>
+                        <p class="text-sm text-gray-400">TP 1 (Struktural)</p>
+                        <p class="text-xs text-green-400">${tp1Percentage}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-green-400">${tp2Price}</p>
+                        <p class="text-sm text-gray-400">TP 2 (R:R 1:1.5)</p>
+                        <p class="text-xs text-green-400">${tp2Percentage}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg text-gray-400">${tp3Price}</p>
+                        <p class="text-sm text-gray-400">TP 3 (Key Level)</p>
+                        <p class="text-xs text-gray-400">${tp3Percentage}</p>
+                    </div>
                 </div>
             </div>
-
-            <hr class="border-gray-700"/>
-            
-            <p id="signal-time-elapsed" class="text-center text-sm font-mono text-gray-500 mt-2">
-                ${initialTimerText}
-            </p>
-            
-            <hr class="border-gray-700"/>
-
-            <div class="grid grid-cols-3 gap-2">
-                <div class="text-center">
-                    <p class="font-bold text-lg text-green-400">${tp1Price}</p>
-                    <p class="text-sm text-gray-400">TP 1 (Struktural)</p>
-                    <p class="text-xs text-green-400">${tp1Percentage}</p>
-                </div>
-                <div class="text-center">
-                    <p class="font-bold text-lg text-green-400">${tp2Price}</p>
-                    <p class="text-sm text-gray-400">TP 2 (R:R 1:1.5)</p>
-                    <p class="text-xs text-green-400">${tp2Percentage}</p>
-                </div>
-                <div class="text-center">
-                    <p class="font-bold text-lg text-gray-400">${tp3Price}</p>
-                    <p class="text-sm text-gray-400">TP 3 (Key Level)</p>
-                    <p class="text-xs text-gray-400">${tp3Percentage}</p>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Panggil update timer segera untuk menyetel tampilan awal
-    if (!lastStableSignal.includes('NEUTRAL')) {
-        updateTimerDisplay(); 
+        `;
+        
+        if (isCurrentlyActive && document.getElementById('signal-time-elapsed')) {
+            updateTimerDisplay(); 
+        }
     }
-}
-// =====================================================================================================================================================================
 
     function updateSignalLogStatistics() {
         let allDurations = [];
@@ -3238,6 +3352,7 @@ function displayLiveSignal(signalData) {
     }
 
     function resetLiveSession() {
+        if (window.syncInterval) clearInterval(window.syncInterval);
         if (latencyInterval) {
             clearInterval(latencyInterval);
             latencyInterval = null;
@@ -3310,10 +3425,18 @@ async function startSimulation(useApi = false) {
         // --- SETUP SALDO DAN KONEKSI ---
         if (useApi) {
             // (Logika koneksi API di sini)
+            await paperTrade.syncAccountState(); // Sinkronisasi pertama
+            if (window.syncInterval) clearInterval(window.syncInterval);
+            window.syncInterval = setInterval(() => paperTrade.syncAccountState(), 5000);
         } else {
+            // ▼▼▼ PERBAIKAN DI SINI ▼▼▼
             paperTrade.state.balance = 1000;
-            paperTrade.resetAccount(false);
-            document.getElementById('api-status-display').textContent = 'Status: Offline (Lokal)';
+            paperTrade.resetAccount(false); // Ini akan mereset state & me-render ulang
+            
+            // Ganti baris lama dengan dua baris ini untuk mengontrol UI baru
+            document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-yellow-500';
+            document.getElementById('api-status-text').textContent = 'Offline (Lokal)';
+            // ▲▲▲ AKHIR PERBAIKAN ▲▲▲
         }
         
         // --- SETUP DATA DASAR ---
@@ -3427,140 +3550,129 @@ async function startSimulation(useApi = false) {
             const bullScore = confluenceScores.bull;
             const bearScore = confluenceScores.bear;
             
-            // --- 4. PENENTUAN BIAS DAN SETUP TP/SL ---
-// Gunakan variabel lokal untuk skor yang sudah dihitung
-const bull = confluenceScores.bull;
-const bear = confluenceScores.bear;
+            // --- 4. PENENTUAN BIAS DAN SETUP TP/SL (PULIH) ---
+            const isLongBias_LTF = bullScore > bearScore && (bullScore - bearScore) > biasThreshold;
+            const isShortBias_LTF = bearScore > bullScore && (bearScore - bullScore) > biasThreshold;
+            
+            let entryPrice = calculateEMA(closes, parameters.pullbackEmaPeriod).pop();
+            let stopLoss = 0, tp1 = 0, tp2 = 0;
+            let biasStatus = 'NEUTRAL';
+            const currentRegimeDisplay = activeRegimeKey; 
+            const atrThresholdPersen = parameters.atrFilterThreshold * 100;
+            const currentATR_Persen = atrData.atrPercent;
 
-const isLongBias_LTF = bull > bear && (bull - bear) > biasThreshold;
-const isShortBias_LTF = bear > bull && (bear - bull) > biasThreshold;
-
-let entryPrice = calculateEMA(closes, parameters.pullbackEmaPeriod).pop();
-let stopLoss = 0, tp1 = 0, tp2 = 0;
-let biasStatus = 'NEUTRAL';
-const currentRegimeDisplay = activeRegimeKey; 
-const atrThresholdPersen = parameters.atrFilterThreshold * 100;
-const currentATR_Persen = atrData.atrPercent;
-
-// --- Dapatkan Detail Bias Final (String Panjang) ---
-const detailString = `([Regime: ${currentRegimeDisplay}] | Bull (${bull.toFixed(1)}) vs Bear (${bear.toFixed(1)}) | ATR Check: (${currentATR_Persen.toFixed(4)}% ${currentATR_Persen < atrThresholdPersen ? '<' : '≥'} ${atrThresholdPersen.toFixed(4)}%))`;
-
-// 🔥 PANGGIL HELPER FORMAT RINGKAS 🔥
-const formattedBias = formatBiasDetail(detailString, bull, bear, biasStatus); 
-// formattedBias kini berisi: { line1: '...', line2: '...' }
-
-
-// --- Logika Penentuan Status Bias ---
-if (isLongBias_LTF) {
-    if (currentRegime === 'BULL_TREND') biasStatus = 'LONG FOLLOW TREND';
-    else if (currentRegime === 'BEAR_TREND') biasStatus = 'LONG COUNTER TREND';
-    else if (currentRegime === 'RANGING') biasStatus = 'LONG REVERSION';
-    else if (currentRegime === 'LOW_VOLATILITY') biasStatus = 'LONG BREAKOUT SETUP';
-    else biasStatus = 'LONG BIAS (STATIC)';
-} else if (isShortBias_LTF) {
-    if (currentRegime === 'BEAR_TREND') biasStatus = 'SHORT FOLLOW TREND';
-    else if (currentRegime === 'BULL_TREND') biasStatus = 'SHORT COUNTER TREND';
-    else if (currentRegime === 'RANGING') biasStatus = 'SHORT REVERSION';
-    else if (currentRegime === 'LOW_VOLATILITY') biasStatus = 'SHORT BREAKOUT SETUP';
-    else biasStatus = 'SHORT BIAS (STATIC)';
-} else {
-    biasStatus = 'NEUTRAL - NO BIAS';
-}
-
-// ATR Filter
-const isATRBlocked = currentATR_Persen < atrThresholdPersen;
-if (!biasStatus.includes('NEUTRAL') && isATRBlocked) {
-    biasStatus = 'NEUTRAL - LOW VOLATILITY FILTERED';
-}
-
-// Hitung SL/TP hanya jika ada sinyal
-if (entryPrice && !biasStatus.includes('NEUTRAL')) {
-    const swingLookback = parameters.swingLookback || 20;
-    const recentSwingLow = Math.min(...klinesSnapshot.slice(-swingLookback).map(k => parseFloat(k[3])));
-    const recentSwingHigh = Math.max(...klinesSnapshot.slice(-swingLookback).map(k => parseFloat(k[2])));
-    const rrRatio = parameters.riskRewardRatio;
-    if (biasStatus.includes('LONG')) {
-        stopLoss = recentSwingLow * 0.999;
-        tp1 = recentSwingHigh;
-        tp2 = entryPrice + (Math.abs(entryPrice - stopLoss) * rrRatio);
-    } else {
-        stopLoss = recentSwingHigh * 1.001;
-        tp1 = recentSwingLow;
-        tp2 = entryPrice - (Math.abs(stopLoss - entryPrice) * rrRatio);
-    }
-}
-
-// --- 5. EKSEKUSI AFT DAN PEMBARUAN UI ---
-
-const activePosition = paperTrade.state.position;
-const currentTradeType = biasStatus.includes('LONG') ? 'long' : (biasStatus.includes('SHORT') ? 'short' : 'none');
-const isSignalActive = !biasStatus.includes('NEUTRAL');
-
-let positionAction = 'HOLD';
-let closeReason = 'N/A';
-
-if (activePosition) {
-    const isSignalReversal = (activePosition.type === 'long' && currentTradeType === 'short') || (activePosition.type === 'short' && currentTradeType === 'long');
-    const isSignalNeutralized = biasStatus.includes('NEUTRAL');
-    if (isSignalReversal) {
-        positionAction = 'REVERSE_AND_CLOSE';
-        closeReason = 'REVERSAL';
-    } else if (isSignalNeutralized) {
-        positionAction = 'CLOSE_ONLY';
-        closeReason = 'NEUTRALIZED';
-    }
-}
-
-if (positionAction === 'REVERSE_AND_CLOSE' || positionAction === 'CLOSE_ONLY') {
-    paperTrade.closePosition('AFT - ' + closeReason); 
-    tsCalc.recalculate();
-}
-
-if (isSignalActive && !activePosition) {
-    const allowedStrategies = getAftAllowedStrategies();
-    if (allowedStrategies.includes(biasStatus)) {
-        const selectedEntryMode = document.querySelector('input[name="entry-mode"]:checked').value;
-        const tradeType = currentTradeType;
-        let entryPriceFinal = 0;
-
-        if (selectedEntryMode === 'AGRESIF') {
-            entryPriceFinal = currentMarketPrice;
-        } else {
-            const suggestedEntry = entryPrice;
-            const triggerConditionMet = (tradeType === 'long' && currentMarketPrice <= suggestedEntry) ||
-                                        (tradeType === 'short' && currentMarketPrice >= suggestedEntry);
-
-            if (triggerConditionMet) {
-                entryPriceFinal = currentMarketPrice;
+            if (isLongBias_LTF) {
+                if (currentRegime === 'BULL_TREND') biasStatus = 'LONG FOLLOW TREND';
+                else if (currentRegime === 'BEAR_TREND') biasStatus = 'LONG COUNTER TREND';
+                else if (currentRegime === 'RANGING') biasStatus = 'LONG REVERSION';
+                else if (currentRegime === 'LOW_VOLATILITY') biasStatus = 'LONG BREAKOUT SETUP';
+                else biasStatus = 'LONG BIAS (STATIC)';
+            } else if (isShortBias_LTF) {
+                if (currentRegime === 'BEAR_TREND') biasStatus = 'SHORT FOLLOW TREND';
+                else if (currentRegime === 'BULL_TREND') biasStatus = 'SHORT COUNTER TREND';
+                else if (currentRegime === 'RANGING') biasStatus = 'SHORT REVERSION';
+                else if (currentRegime === 'LOW_VOLATILITY') biasStatus = 'SHORT BREAKOUT SETUP';
+                else biasStatus = 'SHORT BIAS (STATIC)';
+            } else {
+                biasStatus = 'NEUTRAL - NO BIAS';
             }
-        }
-        
-        if (entryPriceFinal > 0) {
-            const leverage = tsCalc.state.leverage;
-            const cost = tsCalc.state.cost; 
-            paperTrade.openPosition(tradeType, leverage, cost, entryPriceFinal, tp1, tp2, 'AFT');
-        }
-    }
-}
+            
+            // ATR Filter
+            const isATRBlocked = currentATR_Persen < atrThresholdPersen;
+            if (!biasStatus.includes('NEUTRAL') && isATRBlocked) {
+                biasStatus = 'NEUTRAL - LOW VOLATILITY FILTERED';
+            }
 
-// --- Pembaruan UI Final ---
-const signalData = {
-    // 🔥 GUNAKAN FORMATTED BIAS DI OBJEK FINAL 🔥
-    bias: { status: biasStatus, detail: formattedBias }, 
-    entry: { price: entryPrice, percentage: entryPrice ? ((entryPrice - currentMarketPrice) / currentMarketPrice) * 100 : null },
-    sl: { price: stopLoss, percentage: stopLoss && entryPrice ? ((stopLoss - entryPrice) / entryPrice) * 100 : null },
-    tp1: { price: tp1, percentage: tp1 && entryPrice ? ((tp1 - currentMarketPrice) / currentMarketPrice) * 100 : null }, // Hitung TP persen dari Market Price
-    tp2: { price: tp2, percentage: tp2 && entryPrice ? ((tp2 - currentMarketPrice) / currentMarketPrice) * 100 : null }, // Hitung TP persen dari Market Price
-    tp3: { price: null, percentage: null }
-};
-realtimeCache.main.latestScalpingSetup = signalData; 
+            // Hitung SL/TP hanya jika ada sinyal
+            if (entryPrice && !biasStatus.includes('NEUTRAL')) {
+                const swingLookback = parameters.swingLookback || 20;
+                const recentSwingLow = Math.min(...klinesSnapshot.slice(-swingLookback).map(k => parseFloat(k[3])));
+                const recentSwingHigh = Math.max(...klinesSnapshot.slice(-swingLookback).map(k => parseFloat(k[2])));
+                const rrRatio = parameters.riskRewardRatio;
+                if (biasStatus.includes('LONG')) {
+                    stopLoss = recentSwingLow * 0.999;
+                    tp1 = recentSwingHigh;
+                    tp2 = entryPrice + (Math.abs(entryPrice - stopLoss) * rrRatio);
+                } else {
+                    stopLoss = recentSwingHigh * 1.001;
+                    tp1 = recentSwingLow;
+                    tp2 = entryPrice - (Math.abs(stopLoss - entryPrice) * rrRatio);
+                }
+            }
 
-displayLiveSignal(signalData);
-paperTrade.update();
+            // --- 5. EKSEKUSI AFT DAN PEMBARUAN UI (INI ADALAH BLOK YANG HILANG) ---
+            const finalBiasDetail = `([Regime: ${currentRegimeDisplay}] | Bull (${bullScore.toFixed(1)}) vs Bear (${bearScore.toFixed(1)}) | ATR Check: (${currentATR_Persen.toFixed(4)}% ${currentATR_Persen < atrThresholdPersen ? '<' : '≥'} ${atrThresholdPersen.toFixed(4)}%))`;
+            
+            const activePosition = paperTrade.state.position;
+            const currentTradeType = biasStatus.includes('LONG') ? 'long' : (biasStatus.includes('SHORT') ? 'short' : 'none');
+            const isSignalActive = !biasStatus.includes('NEUTRAL');
 
-document.getElementById('active-regime-display').textContent = currentRegime.replace('_', ' ');
-document.getElementById('active-regime-display').className = getRegimeColorClass(currentRegime);
-document.getElementById('ai-status').textContent = 'SIAP (TF.js)';
+            let positionAction = 'HOLD';
+            let closeReason = 'N/A';
+            
+            if (activePosition) {
+                const isSignalReversal = (activePosition.type === 'long' && currentTradeType === 'short') || (activePosition.type === 'short' && currentTradeType === 'long');
+                const isSignalNeutralized = biasStatus.includes('NEUTRAL');
+                if (isSignalReversal) {
+                    positionAction = 'REVERSE_AND_CLOSE';
+                    closeReason = 'REVERSAL';
+                } else if (isSignalNeutralized) {
+                    positionAction = 'CLOSE_ONLY';
+                    closeReason = 'NEUTRALIZED';
+                }
+            }
+
+            if (positionAction === 'REVERSE_AND_CLOSE' || positionAction === 'CLOSE_ONLY') {
+                paperTrade.closePosition('AFT - ' + closeReason); 
+                console.log(`✅ AFT CLOSED: Posisi ${activePosition.type.toUpperCase()} ditutup karena ${closeReason}.`);
+                tsCalc.recalculate();
+            }
+
+            if (isSignalActive && !activePosition) {
+                const allowedStrategies = getAftAllowedStrategies();
+                if (allowedStrategies.includes(biasStatus)) {
+                    const selectedEntryMode = document.querySelector('input[name="entry-mode"]:checked').value;
+                    const tradeType = currentTradeType;
+                    let entryPriceFinal = 0;
+
+                    if (selectedEntryMode === 'AGRESIF') {
+                        entryPriceFinal = currentMarketPrice;
+                    } else {
+                        const suggestedEntry = entryPrice;
+                        const triggerConditionMet = (tradeType === 'long' && currentMarketPrice <= suggestedEntry) ||
+                                                    (tradeType === 'short' && currentMarketPrice >= suggestedEntry);
+
+                        if (triggerConditionMet) {
+                            entryPriceFinal = currentMarketPrice;
+                        }
+                    }
+                    
+                    if (entryPriceFinal > 0) {
+                        const leverage = tsCalc.state.leverage;
+                        const cost = tsCalc.state.cost; 
+                        paperTrade.openPosition(tradeType, leverage, cost, entryPriceFinal, tp1, tp2, 'AFT');
+                        console.log(`🚀 AFT ENTRY [${selectedEntryMode}]: ${tradeType.toUpperCase()} @ ${entryPriceFinal.toFixed(4)}`);
+                    }
+                }
+            }
+            
+            // --- Pembaruan UI Final ---
+            const signalData = {
+                bias: { status: biasStatus, detail: finalBiasDetail },
+                entry: { price: entryPrice, percentage: entryPrice ? ((entryPrice - currentMarketPrice) / currentMarketPrice) * 100 : null },
+                sl: { price: stopLoss, percentage: stopLoss && entryPrice ? ((stopLoss - entryPrice) / entryPrice) * 100 : null },
+                tp1: { price: tp1, percentage: tp1 && entryPrice ? ((tp1 - entryPrice) / entryPrice) * 100 : null },
+                tp2: { price: tp2, percentage: tp2 && entryPrice ? ((tp2 - entryPrice) / entryPrice) * 100 : null },
+                tp3: { price: null, percentage: null }
+            };
+            realtimeCache.main.latestScalpingSetup = signalData; 
+
+            displayLiveSignal(signalData);
+            paperTrade.update();
+
+            document.getElementById('active-regime-display').textContent = currentRegime.replace('_', ' ');
+            document.getElementById('active-regime-display').className = getRegimeColorClass(currentRegime);
+            document.getElementById('ai-status').textContent = 'SIAP (TF.js)'; // Kunci status ke SIAP (TF.js)
 
         }, 5000); // end of setInterval
 
@@ -3767,7 +3879,7 @@ document.getElementById('ai-status').textContent = 'SIAP (TF.js)';
             if (binanceApiKeys.key && binanceApiKeys.secret) {
             toggleApiKeyModal(false);
             document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-green-500';
-            document.getElementById('api-status-text').textContent = 'Terhubung (Read-Only)';
+            document.getElementById('api-status-text').textContent = 'BINANCE TESTNET Connected';
             startSimulation(true);
             } else {
                 alert("Mohon isi kedua kunci API untuk mode online.");
