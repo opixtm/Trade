@@ -2783,10 +2783,17 @@
                     
                     if (historicalData.length < 200) throw new Error("Data historis tidak cukup (min. 200 candle).");
 
-                    const onSimulationProgress = (percentage) => {
+                    // Tambahkan parameter currentCandle dan totalCandles
+                    const onSimulationProgress = (percentage, currentCandle, totalCandles) => {
                         const finalProgress = 50 + (percentage * 0.5);
                         backtestProgressBar.style.width = `${finalProgress}%`;
-                        backtestStatusText.textContent = `Simulasi berjalan: ${percentage.toFixed(0)}%`;
+                        
+                        // Logika tampilan yang lebih rinci
+                        if (currentCandle && totalCandles) {
+                            backtestStatusText.textContent = `Simulasi berjalan: ${percentage.toFixed(0)}% (${currentCandle.toLocaleString('id-ID')} dari ${totalCandles.toLocaleString('id-ID')} candle)`;
+                        } else {
+                            backtestStatusText.textContent = `Simulasi berjalan: ${percentage.toFixed(0)}%`;
+                        }
                     };
 
                     const { trades: simTrades, analysisCache } = await this.runSimulation_unifiedContextual(
@@ -2926,7 +2933,7 @@
                 return allKlines.filter(k => k[0] >= startDate && k[0] <= endDate).sort((a, b) => a[0] - b[0]);
             },
 
-            async processIndicatorCacheInChunks(filteredData, settings) {
+            async processIndicatorCacheInChunks(filteredData, settings, onProgress = () => {}) { 
                 return new Promise((resolve, reject) => {
                     const cacheKey = generateIndicatorCacheKey(settings);
                     try {
@@ -3011,8 +3018,12 @@
                         currentIndex = chunkEnd;
 
                         if (currentIndex < totalCandles) {
+                            // Hitung persentase untuk kalkulasi indikator
+                            const percentage = (currentIndex / totalCandles) * 100;
+                            onProgress(percentage); // <--- BARIS INI DITAMBAHKAN
                             setTimeout(processChunk, 0);
                         } else {
+                            onProgress(100); // Pastikan 100% saat selesai <--- BARIS INI DITAMBAHKAN
                             try {
                                 localStorage.setItem(cacheKey, JSON.stringify(analysisCache));
                             } catch (e) {
@@ -3080,7 +3091,24 @@
                     }
                 }
                 
-                const analysisCache = await this.processIndicatorCacheInChunks(filteredData, settings);
+                const onIndicatorProgress = (percentage) => { 
+                    // Progress dari 50% hingga 75% total bar
+                    const finalProgress = 50 + (percentage * 0.25); 
+                    backtestProgressBar.style.width = `${finalProgress}%`; 
+                    backtestStatusText.textContent = `⚙️ Menghitung Indikator: ${percentage.toFixed(0)}% Selesai...`; 
+                }; 
+                const analysisCache = await this.processIndicatorCacheInChunks(
+                    filteredData, 
+                    this.state.settings, 
+                    onIndicatorProgress // <--- BARIS BARU: Teruskan callback 
+                ); 
+                // Progress bar diset ke 75% setelah kalkulasi indikator selesai 
+                backtestProgressBar.style.width = `75%`; 
+                backtestProgressBar.style.backgroundColor = '#4ade80'; // Ubah warna untuk transisi yang jelas
+                backtestStatusText.textContent = `✅ Indikator siap. Memulai simulasi perdagangan...`; 
+                await new Promise(resolve => setTimeout(resolve, 500)); 
+                backtestProgressBar.style.backgroundColor = '#3b82f6'; // Kembalikan warna ke biru untuk fase simulasi
+                
                 const fullCloses = filteredData.map(k => parseFloat(k[4]));
                 
                 await new Promise(resolve => setTimeout(resolve, 0));
@@ -3091,11 +3119,16 @@
                 
                 const totalCandles = filteredData.length;
                 let candlesProcessedInChunk = 0;
-                const CHUNK_SIZE = 1000;
+                // Jika callback progres disediakan (dipanggil dari Backtest Manual/Evolusi), gunakan CHUNK_SIZE lebih kecil.
+                // Jika tidak, gunakan CHUNK_SIZE default yang besar (misal 1000) untuk performa cepat.
+                const EVOLUTION_CHUNK_SIZE = 50; 
+                const CHUNK_SIZE = onProgress !== undefined ? EVOLUTION_CHUNK_SIZE : 1000;
 
                 for (let i = 200; i < totalCandles; i++) {
                     if (this.state.isStopped) break;
-
+ if (i % 1000 === 0) {
+                        console.log(`[PROGRESS CHECK] Candle ke-${i} sedang diproses. Total Candle: ${totalCandles}`);
+                    }
                     const currentCandle = filteredData[i];
                     const cacheEntry = analysisCache[i];
                     const currentLow = parseFloat(currentCandle[3]);
@@ -3251,12 +3284,14 @@
                         candlesProcessedInChunk = 0;
                         
                         const percentage = ((i + 1) / totalCandles) * 100;
-                        if (onProgress) onProgress(percentage);
+                        // Meneruskan jumlah candle yang diproses saat ini
+                        if (onProgress) onProgress(percentage, i + 1, totalCandles);
                     }
                 }
                 
                 const finalPercentage = 100;
-                if (onProgress) onProgress(finalPercentage); 
+                // Meneruskan total candle saat selesai
+                if (onProgress) onProgress(finalPercentage, totalCandles, totalCandles); 
 
                 return { trades, analysisCache };
             },
@@ -3561,7 +3596,9 @@
             let completedWorkUnits = 0;
            
             if (genomeEvalText) {
-                genomeEvalText.textContent = `Mengevaluasi Genom #${1} / Gen ${evolutionState.currentGeneration}: Memulai iterasi...`;
+                // Atur pesan awal yang segera menunjukkan apa yang sedang diuji
+                const firstSymbol = symbols[0] || 'N/A';
+                genomeEvalText.textContent = `⚙️ Gen ${evolutionState.currentGeneration}: Mempersiapkan Genom #1 (${firstSymbol})...`;
             }
 
             for (let i = 0; i < population.length; i++) {
@@ -3574,23 +3611,34 @@
                 genomeProgressBar.style.width = `${initialProgress}%`;
 
                 for (let j = 0; j < totalSymbols; j++) {
+                    if (!evolutionState.isRunning) break; // Cek status stop di setiap aset
+                    
                     const symbol = symbols[j];
                     const singleAssetData = multiAssetHistoricalData[symbol];
+                    console.log(`[EVALUASI GENOM] Memulai backtest untuk ${symbol} dengan ${singleAssetData.length} candle.`);
+                    if (!singleAssetData) continue; // Lewati jika data aset kosong
                     
                     // --- FUNGSI PROGRESS BAR GENOM (GRANULAR) ---
-                    const onSimulationProgress = (simulationPercentage) => {
-                        // Kalkulasi total progres granular: 
-                        const currentAssetWeight = 1 / totalSymbols;
+                    // Callback ini menerima currentCandle dan totalCandles dari runSimulation_unifiedContextual
+                    const onSimulationProgress = (simulationPercentage, currentCandle, totalCandles) => {
+                        // Variabel 'j' dan 'totalSymbols' harus tersedia dari loop luar.
+                        const currentAssetWeight = 1 / totalSymbols; 
+                        
+                        // 'totalAssetProgress' adalah progres aset saat ini (misal 1/3 aset sudah 50% selesai).
                         const totalAssetProgress = (j / totalSymbols) + (simulationPercentage / 100 * currentAssetWeight);
                         
-                        // Kalkulasi Total Progres Genom: 
+                        // 'genomeProgress' adalah total progres Genom saat ini terhadap seluruh populasi.
                         const genomeProgress = (i / totalGenomes * 100) + (totalAssetProgress / totalGenomes * 100);
                         
                         // Visualisasi (Bar kecil)
                         genomeProgressBar.style.width = `${genomeProgress}%`;
                         
-                        // Visualisasi (Text) - PESAN UTAMA GRANULAR
-                        genomeEvalText.textContent = `Mengevaluasi Genom #${i + 1} (${symbol}) - Aset ${j + 1} dari ${totalSymbols}... (${simulationPercentage.toFixed(0)}% Candle)`;
+                        // Visualisasi (Text) - PESAN UTAMA GRANULAR (TAMBAHKAN DETAIL CANDLE)
+                        if (currentCandle && totalCandles) {
+                            genomeEvalText.textContent = `Gen ${evolutionState.currentGeneration}: Genom #${i + 1} (${symbol}) - ${currentCandle.toLocaleString('id-ID')} dari ${totalCandles.toLocaleString('id-ID')} candle... (${simulationPercentage.toFixed(0)}%)`;
+                        } else {
+                            genomeEvalText.textContent = `Gen ${evolutionState.currentGeneration}: Genom #${i + 1} (${symbol}) - Mempersiapkan... (${simulationPercentage.toFixed(0)}%)`;
+                        }
                     };
                     // --- END FUNGSI PROGRESS BAR GENOM ---
 

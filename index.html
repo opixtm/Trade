@@ -6674,44 +6674,78 @@ function calculateAndDisplayScalpingSetup() {
 
         entryPrice = ema9; // Entry di EMA9 (Pullback)
 
-        if (biasKalkulator === 'LONG') {
-            // SL: Gunakan S1 atau VAL, dengan buffer ATR 1x di bawah level tersebut.
-            const structuralSL = pivots?.S1 || vpvr.val;
-            stopLoss = structuralSL - atrValue;
-            
-            // TP1: Gunakan R1 atau VAH
-            takeProfit1 = pivots?.R1 || vpvr.vah;
-            
-            // TP2: Target RR 1:1.5
+        let structuralSL, structuralTP1;
+
+    if (biasKalkulator === 'LONG') {
+        // LONG: SL harus Support, TP1 harus Resistance
+        structuralSL = pivots?.S1 || vpvr.val; // Ambil nilai Support terdekat
+        structuralTP1 = pivots?.R1 || vpvr.vah; // Ambil nilai Resistance terdekat
+        
+        stopLoss = structuralSL - atrValue;
+        takeProfit1 = structuralTP1; 
+
+        // CRITICAL CHECK: Jika TP1 ternyata lebih rendah dari Entry (kesalahan data/logika), 
+        // kita paksa TP1 menggunakan TP2 (RR 1:1) dan SL harus valid.
+        if (takeProfit1 <= entryPrice) {
             const risk = Math.abs(entryPrice - stopLoss);
-            takeProfit2 = entryPrice + (risk * 1.5);
-            
-            slColorClass = 'negative';
-            tpColorClass = 'positive';
-        } else { // SHORT
-            // SL: Gunakan R1 atau VAH, dengan buffer ATR 1x di atas level tersebut.
-            const structuralSL = pivots?.R1 || vpvr.vah;
-            stopLoss = structuralSL + atrValue;
-
-            // TP1: Gunakan S1 atau VAL
-            takeProfit1 = pivots?.S1 || vpvr.val;
-
-            // TP2: Target RR 1:1.5
-            const risk = Math.abs(stopLoss - entryPrice);
-            takeProfit2 = entryPrice - (risk * 1.5);
-            
-            slColorClass = 'negative';
-            tpColorClass = 'positive';
+            takeProfit1 = entryPrice + risk; // Paksa RR 1:1
         }
         
-        // Finalisasi persentase
-        entryPercent = `(Pullback to ${calculatePercentage(entryPrice, lastPrice)})`;
-        slPercent = calculatePercentage(stopLoss, entryPrice);
-        tp1Percent = calculatePercentage(takeProfit1, entryPrice);
-        tp2Percent = calculatePercentage(takeProfit2, entryPrice);
+        const risk = Math.abs(entryPrice - stopLoss);
+        takeProfit2 = entryPrice + (risk * 1.5);
+
+        slColorClass = 'negative';
+        tpColorClass = 'positive';
+    } else { // SHORT
+        // SHORT: SL harus Resistance, TP1 harus Support
+        structuralSL = pivots?.R1 || vpvr.vah; // Ambil nilai Resistance terdekat
+        structuralTP1 = pivots?.S1 || vpvr.val; // Ambil nilai Support terdekat
+
+        stopLoss = structuralSL + atrValue;
+        takeProfit1 = structuralTP1; 
+
+        // CRITICAL CHECK: Jika TP1 ternyata lebih tinggi dari Entry (kesalahan data/logika), 
+        // kita paksa TP1 menggunakan TP2 (RR 1:1) dan SL harus valid.
+        if (takeProfit1 >= entryPrice) {
+            const risk = Math.abs(stopLoss - entryPrice);
+            takeProfit1 = entryPrice - risk; // Paksa RR 1:1
+        }
         
-        realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
-    } else {
+        const risk = Math.abs(stopLoss - entryPrice);
+        takeProfit2 = entryPrice - (risk * 1.5);
+        
+        slColorClass = 'negative';
+        tpColorClass = 'positive';
+    }
+        const getPNLPercentage = (target, entry, bias) => {
+                if (typeof target !== 'number' || entry === 0) return '';
+                const change = (target - entry) / entry;
+                
+                // Jika TP (profit), selalu positif
+                const isTP = (bias === 'LONG' && target > entry) || (bias === 'SHORT' && target < entry);
+                if (isTP) {
+                    return `(+${(Math.abs(change) * 100).toFixed(2)}%)`;
+                }
+                
+                // Jika SL (loss), selalu negatif
+                const isSL = (bias === 'LONG' && target < entry) || (bias === 'SHORT' && target > entry);
+                if (isSL) {
+                    return `(${(change * 100).toFixed(2)}%)`;
+                }
+
+                // Untuk Entry Percent, hitung murni
+                return `(${(change * 100).toFixed(2)}%)`;
+            };
+
+            entryPercent = getPNLPercentage(entryPrice, lastPrice, biasKalkulator);
+            slPercent = getPNLPercentage(stopLoss, entryPrice, biasKalkulator);
+            tp1Percent = getPNLPercentage(takeProfit1, entryPrice, biasKalkulator);
+            tp2Percent = getPNLPercentage(takeProfit2, entryPrice, biasKalkulator);
+
+            slColorClass = 'negative';
+            tpColorClass = 'positive';
+            realtimeCache.main.latestScalpingSetup = { entry: entryPrice, sl: stopLoss, tp1: takeProfit1 };
+        } else {
         finalVerdictHtml = `
             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center p-4 rounded-lg bg-gray-100 dark:bg-gray-800/50">
                 <p class="font-semibold text-sm text-yellow-400">SIDEWAYS</p>
@@ -6779,11 +6813,48 @@ function calculateAndDisplayScalpingSetup() {
 }
 // 
     // --- Fungsi Pembantu (Helper) yang diperlukan oleh Scalping Setup ---
-function calculatePercentage(target, entry) {
+// TEMUKAN FUNGSI calculatePercentage dan GANTI SELURUHNYA
+// TEMUKAN FUNGSI calculatePercentage (BARIS 1530) dan GANTI SELURUHNYA
+function calculatePercentage(target, entry, biasKalkulator = 'LONG') { 
     if (typeof target !== 'number' || typeof entry !== 'number' || isNaN(target) || isNaN(entry) || entry === 0) {
         return '';
     }
-    return `(${( (target - entry) / entry * 100).toFixed(2)}%)`;
+    
+    let change = (target - entry) / entry;
+    
+    // Perbaikan Kritis: Jika posisi adalah SHORT, balikkan tanda (Short profit = harga turun, PNL harus positif).
+    if (biasKalkulator === 'SHORT') {
+        change = -change; 
+    }
+    
+    // Selalu tampilkan tanda negatif untuk Stop Loss (asumsi SL selalu dihitung agar menghasilkan change negatif)
+    if (biasKalkulator !== 'NETRAL' && target < entry && Math.abs(change * 100) > 0.01 && biasKalkulator === 'LONG') {
+         // Jika Target (SL Long) lebih rendah dari Entry, pastikan itu negatif
+         return `(${(change * 100).toFixed(2)}%)`;
+    }
+    if (biasKalkulator !== 'NETRAL' && target > entry && Math.abs(change * 100) > 0.01 && biasKalkulator === 'SHORT') {
+        // Jika Target (SL Short) lebih tinggi dari Entry, pastikan itu negatif
+        return `(${(change * 100).toFixed(2)}%)`;
+    }
+
+    // Jika ini TP, atau SL yang sudah dibalikkan (di atas), tampilkan positif
+    const sign = change >= 0 ? '' : '-'; // HANYA untuk kasus-kasus khusus seperti entry percent
+    const absChange = Math.abs(change);
+    
+    // Periksa apakah ini SL (di mana kita ingin tanda negatif yang benar)
+    // Cara terbaik adalah menghitung persentase SL terpisah tanpa membalikkan tanda, 
+    // lalu memanggil fungsi ini untuk TP. Tapi karena ini satu fungsi, kita gunakan logika ini:
+    
+    // JIKA target adalah SL, kembalikan tanda negatif
+    const isSL = (biasKalkulator === 'LONG' && target < entry) || (biasKalkulator === 'SHORT' && target > entry);
+    if (isSL) {
+        // Hitung persentase murni Entry ke Target dan pastikan negatif
+        const pureChange = (target - entry) / entry * 100;
+        return `(${pureChange.toFixed(2)}%)`;
+    }
+
+    // JIKA target adalah TP, kembalikan tanda positif
+    return `(+${(absChange * 100).toFixed(2)}%)`;
 }
 
     function updateShortScoreUI(symbol, score, breakdown) {
