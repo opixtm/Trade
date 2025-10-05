@@ -80,7 +80,7 @@
                 </div>
         </section>
 
-        <section id="live-data-input-section" class="card p-3 hidden">
+        <section id="live-data-input-section" class="card p-3">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <input type="text" id="live-symbol-input" placeholder="BTCUSDT" value="BTCUSDT" class="input-primary flex-grow text-center uppercase">
                 <select id="live-timeframe-select" class="input-primary">
@@ -129,13 +129,7 @@
                 </div>
             </section>
             <button id="toggle-charts-btn" class="btn-primary w-full mt-4">SHOW CHART</button>
-<div class="dashboard-panel">
-    <h3>AI Regime Confidence</h3>
-    <div id="ai-confidence-display">
-        <span id="confidence-score" style="font-size: 1.5em; font-weight: bold;">--</span>
-        <span id="regime-status" style="margin-left: 10px;">(Memuat...)</span>
-    </div>
-</div>
+
             <div id="live-signal-panel" class="card p-3 mt-6">
                 <h2 class="text-xl font-semibold mb-4 text-orange-500 flex items-center justify-between">
                     <span></span>
@@ -179,11 +173,9 @@
                     </div>
                 </div>
                 <div id="live-signal-content">
-                    <p class="text-center text-sm text-gray-400">-</p>
+                    <p class="text-center text-sm text-gray-400"></p>
                 </div>
-                <div id="live-signal-content">
-                    <p class="text-center text-sm text-gray-400">---</p>
-                </div>
+                
             </div>
         </section>
 
@@ -513,13 +505,15 @@
         </section>
     </main>
 <div id="aft-filter-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-gray-800 p-3 rounded-xl shadow-2xl w-full max-w-2xl">
-        <div class="flex justify-between items-center mb-4">
+    <div class="bg-gray-800 p-3 rounded-xl shadow-2xl w-full max-w-2xl relative max-h-[95vh] m-auto">
+        
+        <div class="flex justify-between items-center mb-4 pr-8">
             <h3 class="text-lg font-semibold text-yellow-400">Pengaturan AFT (Auto-Trade)</h3>
-            <button id="close-aft-filter-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            <button id="close-aft-filter-btn" class="text-gray-400 hover:text-white text-3xl absolute top-2 right-2 p-2 leading-none">&times;</button>
         </div>
 
-<div class="mb-6 pb-4 border-b border-gray-700">
+        <div class="overflow-y-auto max-h-[85vh] pr-3">
+
             <div class="mb-6 pb-4 border-b border-gray-700">
                 <h4 class="font-semibold text-base mb-3">Filter Stabilitas Rezim AI (Fase 2)</h4>
                 <div class="flex gap-2">
@@ -536,81 +530,75 @@
                 </div>
             </div>
             <div class="mb-6 pb-4 border-b border-gray-700">
-                <h4 class="font-semibold text-base mb-3">Filter Keyakinan AI (Fase 6)</h4>
-                <div class="flex items-center space-x-4">
-                    <label for="minConfidenceThreshold" class="text-sm">Minimal Keyakinan AI (%)</label>
-                    <input type="number" id="minConfidenceThreshold" value="65" min="0" max="100" class="input-primary w-20 text-center">
+                <h4 class="font-semibold text-base mb-3">Mode Eksekusi Entri</h4>
+                <div class="flex gap-2">
+                    <label class="flex-1 p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
+                        <input type="radio" name="entry-mode" value="AGRESIF" class="form-radio" checked>
+                        <span class="ml-2 font-semibold">Agresif</span>
+                        <p class="text-xs text-gray-400 mt-1">Masuk di harga pasar saat sinyal muncul. Cepat, tapi berisiko mendapat harga kurang ideal.</p>
+                    </label>
+                    <label class="flex-1 p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
+                        <input type="radio" name="entry-mode" value="PRESISI" class="form-radio">
+                        <span class="ml-2 font-semibold">Presisi</span>
+                        <p class="text-xs text-gray-400 mt-1">Menunggu harga pasar menyentuh rekomendasi `Entry`. Lebih aman, tapi berisiko ketinggalan.</p>
+                    </label>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">Entry akan diblokir jika Confidence Score AI di bawah ambang batas ini.</p>
             </div>
-            <h4 class="font-semibold text-base mb-3">Mode Eksekusi Entri</h4>
-            <div class="flex gap-2">
-                <label class="flex-1 p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                    <input type="radio" name="entry-mode" value="AGRESIF" class="form-radio" checked>
-                    <span class="ml-2 font-semibold">Agresif</span>
-                    <p class="text-xs text-gray-400 mt-1">Masuk di harga pasar saat sinyal muncul. Cepat, tapi berisiko mendapat harga kurang ideal.</p>
-                </label>
-                <label class="flex-1 p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                    <input type="radio" name="entry-mode" value="PRESISI" class="form-radio">
-                    <span class="ml-2 font-semibold">Presisi</span>
-                    <p class="text-xs text-gray-400 mt-1">Menunggu harga pasar menyentuh rekomendasi `Entry`. Lebih aman, tapi berisiko ketinggalan.</p>
-                </label>
-            </div>
-        </div>
-        
-        <div class="mb-6 pb-4 border-b border-gray-700">
-            <h4 class="font-semibold text-base mb-3">Position Sizing Mode</h4>
-            <div class="grid grid-cols-2 gap-2">
-                <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                    <input type="radio" name="sizing-mode" value="RISK_BASED" class="form-radio" checked>
-                    <span class="ml-2 font-semibold text-red-400">Risk-Based (2%)</span>
-                    <p class="text-xs text-gray-400 mt-1">Sistem akan menyesuaikan modal agar risiko kerugian SL hanya 2% dari Equity.</p>
-                </label>
-                <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                    <input type="radio" name="sizing-mode" value="FIXED_MARGIN" class="form-radio">
-                    <span class="ml-2 font-semibold text-yellow-400">Fixed Margin (10%)</span>
-                    <p class="text-xs text-gray-400 mt-1">Menggunakan 10% dari Equity sebagai modal, mengabaikan jarak Stop Loss.</p>
-                </label>
-            </div>
-        </div>
-        <div class="mb-6 pb-4 border-b border-gray-700">
-            <h4 class="font-semibold text-base mb-3">Trailing Stop (TS) Mode</h4>
-            <div class="grid grid-cols-3 gap-2">
-                <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                    <input type="radio" name="ts-mode" value="PERCENTAGE" class="form-radio" checked>
-                    <span class="ml-2 font-semibold">Persentase</span>
-                    <p class="text-xs text-gray-400 mt-1">TS mengikuti harga puncak/lembah dengan jarak persentase tetap (Callback Rate).</p>
-                </label>
-                <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                    <input type="radio" name="ts-mode" value="ATR" class="form-radio">
-                    <span class="ml-2 font-semibold text-blue-400">ATR</span>
-                    <p class="text-xs text-gray-400 mt-1">TS menjaga jarak berdasarkan 1.5x nilai volatilitas (ATR) terakhir. Adaptif terhadap pasar.</p>
-                </label>
-                <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                    <input type="radio" name="ts-mode" value="PSAR" class="form-radio">
-                    <span class="ml-2 font-semibold text-purple-400">PSAR</span>
-                    <p class="text-xs text-gray-400 mt-1">TS menggunakan titik Parabolic SAR sebagai level stop. Efektif untuk mengikuti momentum.</p>
-                </label>
-            </div>
-        </div>
-        <div>
-            <h4 class="font-semibold text-base mb-3">Filter Strategi Aktif</h4>
-            <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                <div class="space-y-2">
-                    <h4 class="font-semibold border-b border-gray-600 pb-1">STRATEGI LONG</h4>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG FOLLOW TREND" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Follow Trend</span></label>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG COUNTER TREND" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Counter Trend</span></label>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG REVERSION" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Mean Reversion</span></label>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG BREAKOUT SETUP" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Breakout</span></label>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG BIAS (STATIC)" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Static Bias</span></label>
+            
+            <div class="mb-6 pb-4 border-b border-gray-700">
+                <h4 class="font-semibold text-base mb-3">Position Sizing Mode</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
+                        <input type="radio" name="sizing-mode" value="RISK_BASED" class="form-radio" checked>
+                        <span class="ml-2 font-semibold text-red-400">Risk-Based (2%)</span>
+                        <p class="text-xs text-gray-400 mt-1">Sistem akan menyesuaikan modal agar risiko kerugian SL hanya 2% dari Equity.</p>
+                    </label>
+                    <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
+                        <input type="radio" name="sizing-mode" value="FIXED_MARGIN" class="form-radio">
+                        <span class="ml-2 font-semibold text-yellow-400">Fixed Margin (10%)</span>
+                        <p class="text-xs text-gray-400 mt-1">Menggunakan 10% dari Equity sebagai modal, mengabaikan jarak Stop Loss.</p>
+                    </label>
                 </div>
-                <div class="space-y-2">
-                    <h4 class="font-semibold border-b border-gray-600 pb-1">STRATEGI SHORT</h4>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT FOLLOW TREND" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Follow Trend</span></label>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT COUNTER TREND" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Counter Trend</span></label>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT REVERSION" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Mean Reversion</span></label>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT BREAKOUT SETUP" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Breakout</span></label>
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT BIAS (STATIC)" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Static Bias</span></label>
+            </div>
+            <div class="mb-6 pb-4 border-b border-gray-700">
+                <h4 class="font-semibold text-base mb-3">Trailing Stop (TS) Mode</h4>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
+                        <input type="radio" name="ts-mode" value="PERCENTAGE" class="form-radio">
+                        <span class="ml-2 font-semibold">Persentase</span>
+                        <p class="text-xs text-gray-400 mt-1">TS mengikuti harga puncak/lembah dengan jarak persentase tetap (Callback Rate).</p>
+                    </label>
+                    <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
+                        <input type="radio" name="ts-mode" value="ATR" class="form-radio" checked>
+                        <span class="ml-2 font-semibold text-blue-400">ATR</span>
+                        <p class="text-xs text-gray-400 mt-1">TS menjaga jarak berdasarkan 1.5x nilai volatilitas (ATR) terakhir. Adaptif terhadap pasar.</p>
+                    </label>
+                    <label class="p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
+                        <input type="radio" name="ts-mode" value="PSAR" class="form-radio">
+                        <span class="ml-2 font-semibold text-purple-400">PSAR</span>
+                        <p class="text-xs text-gray-400 mt-1">TS menggunakan titik Parabolic SAR sebagai level stop. Efektif untuk mengikuti momentum.</p>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-semibold text-base mb-3">Filter Strategi Aktif</h4>
+                <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    <div class="space-y-2">
+                        <h4 class="font-semibold border-b border-gray-600 pb-1">STRATEGI LONG</h4>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG FOLLOW TREND" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Follow Trend</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG COUNTER TREND" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Counter Trend</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG REVERSION" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Mean Reversion</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG BREAKOUT SETUP" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Breakout</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="LONG BIAS (STATIC)" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Static Bias</span></label>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="font-semibold border-b border-gray-600 pb-1">STRATEGI SHORT</h4>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT FOLLOW TREND" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Follow Trend</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT COUNTER TREND" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Counter Trend</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT REVERSION" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Mean Reversion</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT BREAKOUT SETUP" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Breakout</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="SHORT BIAS (STATIC)" class="aft-strategy-filter form-checkbox h-4 w-4 bg-gray-700 border-gray-600 text-yellow-500" checked><span>Static Bias</span></label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -680,10 +668,27 @@
         dnaType: 'Static_v1',
         weights: userSettings.presets.default.weights, // Default Weights
         autoWeights: null, // Untuk DNA AutoSwitch_v1
-        parameters: {}
+        // 🔥 TAMBAHAN KRUSIAL: Default metadata dan parameters
+        metadata: {
+            dnaType: 'Static_v1',
+            sourceAsset: 'BTCUSDT',
+            sourceTimeframe: '5m',
+            filename: 'DEFAULT_PRESET.json'
+        },
+        parameters: {
+            riskRewardRatio: 1.5,
+            pullbackEmaPeriod: 13,
+            biasThreshold: 10.0,
+            atrFilterThreshold: 0.0,
+            swingLookback: 20
+        }
     };
     let regimeMemory = ['RANGING', 'RANGING', 'RANGING', 'RANGING'];
-    
+    let lastAiUpdate = 0; 
+    let lastMarketStructureUpdate = 0; 
+
+    const AI_UPDATE_INTERVAL_MS = 60000; // 1 menit
+    const MS_UPDATE_INTERVAL_MS = 30000; // 30 detik
     const REGIME_MEMORY_SIZE = 4;
     const USE_TESTNET = true; // Ganti ke 'false' HANYA JIKA Anda siap live dengan uang sungguhan
     const dnaStatusDisplay = document.getElementById('dna-status-display');
@@ -1503,10 +1508,14 @@
     
     const signalPanel = document.getElementById('live-signal-panel');
     const aiStatusHtml = `
-        <div id="current-regime-status-container" class="card p-4 mt-2 hidden">
+       <div id="current-regime-status-container" class="card p-4 mt-2 hidden">
             <h3 class="text-lg font-semibold mb-2 text-yellow-500">⚙️ Status Kecerdasan DNA</h3>
             <div class="space-y-1 text-sm">
                 <p class="flex justify-between"><span>Status AI (Sensor):</span> <span id="ai-status" class="font-medium text-gray-400">LOADING...</span></p>
+                <p class="flex justify-between">
+                    <span>Keyakinan Prediksi:</span> 
+                    <span id="regime-confidence-score" class="font-medium text-gray-400">--</span>
+                </p>
                 <p class="flex justify-between !mt-2 border-t border-gray-700 pt-2">
                     <span class="text-base">Mode Aktif (Rezim):</span> 
                     <span id="active-regime-display" class="text-base text-purple-400">LOADING...</span>
@@ -1546,47 +1555,47 @@
 // CUSTOM CONSOLE LOGGER
 // ===================================================================
 
-(function() {
-    const originalConsoleLog = console.log;
-    const logPanel = document.getElementById('live-console-output');
+    (function() {
+        const originalConsoleLog = console.log;
+        const logPanel = document.getElementById('live-console-output');
 
-    // Fungsi untuk memformat waktu saat ini
-    function formatTime() {
-        const now = new Date();
-        return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-    }
-
-    // Ganti console.log bawaan
-    console.log = function(...args) {
-        // 1. Log ke console bawaan (agar developer tools tetap berfungsi)
-        originalConsoleLog.apply(console, args);
-
-        // 2. Log ke panel HTML jika elemen tersedia
-        if (logPanel) {
-            const message = args.map(arg => {
-                if (typeof arg === 'object' && arg !== null) {
-                    try {
-                        return JSON.stringify(arg);
-                    } catch (e) {
-                        return String(arg); // fallback
-                    }
-                }
-                return String(arg);
-            }).join(' ');
-
-            const logEntry = document.createElement('p');
-            logEntry.className = 'py-0.5 border-b border-gray-800 text-gray-400';
-            logEntry.innerHTML = `<span class="text-blue-400">[${formatTime()}]</span> ${message}`;
-
-            logPanel.prepend(logEntry); // Tambahkan log baru di atas
-
-            // Batasi jumlah log untuk performa
-            while (logPanel.children.length > 50) {
-                logPanel.removeChild(logPanel.lastChild);
-            }
+        // Fungsi untuk memformat waktu saat ini
+        function formatTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
         }
-    };
-})();
+
+        // Ganti console.log bawaan
+        console.log = function(...args) {
+            // 1. Log ke console bawaan (agar developer tools tetap berfungsi)
+            originalConsoleLog.apply(console, args);
+
+            // 2. Log ke panel HTML jika elemen tersedia
+            if (logPanel) {
+                const message = args.map(arg => {
+                    if (typeof arg === 'object' && arg !== null) {
+                        try {
+                            return JSON.stringify(arg);
+                        } catch (e) {
+                            return String(arg); // fallback
+                        }
+                    }
+                    return String(arg);
+                }).join(' ');
+
+                const logEntry = document.createElement('p');
+                logEntry.className = 'py-0.5 border-b border-gray-800 text-gray-400';
+                logEntry.innerHTML = `<span class="text-blue-400">[${formatTime()}]</span> ${message}`;
+
+                logPanel.prepend(logEntry); // Tambahkan log baru di atas
+
+                // Batasi jumlah log untuk performa
+                while (logPanel.children.length > 50) {
+                    logPanel.removeChild(logPanel.lastChild);
+                }
+            }
+        };
+    })();
 
 // ===================================================================
 
@@ -2101,6 +2110,20 @@
     }
 
 // =====================================================================================================================================================================
+    function toggleAftFilterModal(show) {
+        const modal = document.getElementById('aft-filter-modal');
+        if (modal) {
+            modal.classList.toggle('hidden', !show);
+            
+            // 🔥 Perbaikan KRUSIAL untuk mobile: Mengunci scroll body
+            if (show) {
+                document.body.style.overflow = 'hidden'; // Kunci scroll
+            } else {
+                document.body.style.overflow = ''; // Bebaskan scroll
+            }
+        }
+    }
+
 // === FUNGSI KONTEKSTUAL FINAL (LENGKAP DAN TERINTEGRASI) ===
 // =====================================================================================================================================================================
     function getUltimateSignalScore(indicator, signalData, currentRegime, allIndicators) { 
@@ -2618,48 +2641,31 @@
         return inputArray;
     }
 
-// GANTI SELURUH ISI FUNGSI predictMarketRegime() INI
-async function predictMarketRegime(klinesSnapshot) {
-    const featureSequence = extractLSTMFeatures(klinesSnapshot);
-    const LSTM_LOOKBACK_WINDOW = 10;
-    const NUM_FEATURES = 12;
+    async function predictMarketRegime(klinesSnapshot) {
+        const featureSequence = extractLSTMFeatures(klinesSnapshot);
+        const LSTM_LOOKBACK_WINDOW = 10;
+        const NUM_FEATURES = 12;
 
-    if (!regimeSensorModel || !featureSequence || featureSequence.length !== LSTM_LOOKBACK_WINDOW) {
-        // Fallback aman
-        return { 
-            regime: 'RANGING', 
-            confidence: 0.50 
-        }; 
-    }
-
-    // Mengubah array 2D [10, 12] menjadi Tensor 3D [1, 10, 12]
-    return tf.tidy(() => {
-        const inputTensor = tf.tensor3d([featureSequence], [1, LSTM_LOOKBACK_WINDOW, NUM_FEATURES]);
-        const prediction = regimeSensorModel.predict(inputTensor);
-        
-        // Ambil array probabilitas
-        const predictionData = prediction.dataSync();
-        
-        let highestProb = 0;
-        let predictedClassIndex = 0;
-        
-        // Cari probabilitas tertinggi
-        for (let i = 0; i < predictionData.length; i++) {
-            if (predictionData[i] > highestProb) {
-                highestProb = predictionData[i];
-                predictedClassIndex = i;
-            }
+        if (!regimeSensorModel || !featureSequence || featureSequence.length !== LSTM_LOOKBACK_WINDOW) {
+            return { label: 'RANGING', confidence: 0.5 }; // Fallback aman
         }
-        
-        const predictedRegime = REGIME_LABELS[predictedClassIndex];
-        
-        // KEMBALIKAN OBJEK DENGAN REGIME DAN CONFIDENCE SCORE
-        return { 
-            regime: predictedRegime, 
-            confidence: highestProb 
-        };
-    });
-}
+
+        // Mengubah array 2D [10, 12] menjadi Tensor 3D [1, 10, 12]
+        return tf.tidy(() => {
+            const inputTensor = tf.tensor3d([featureSequence], [1, LSTM_LOOKBACK_WINDOW, NUM_FEATURES]);
+            const prediction = regimeSensorModel.predict(inputTensor);
+            const predictionData = prediction.dataSync();
+            const predictedClassIndex = prediction.argMax(-1).dataSync()[0];
+            const predictedLabel = REGIME_LABELS[predictedClassIndex];
+            const highestProbability = predictionData[predictedClassIndex];
+
+            // 🔥 Mengembalikan objek lengkap: label dan confidence score
+            return { 
+                label: predictedLabel || 'RANGING',
+                confidence: highestProbability || 0.5
+            };
+        });
+    }
     
     function getRegimeColorClass(key) {
         switch(key) {
@@ -2670,32 +2676,7 @@ async function predictMarketRegime(klinesSnapshot) {
             default: return 'text-base text-gray-500';
         }
     }
-
-// TAMBAH KODE INI di file JavaScript Anda
-function displayRegimeConfidence(score, regime) {
-    const scoreElement = document.getElementById('confidence-score');
-    const regimeElement = document.getElementById('regime-status');
-    
-    if (!scoreElement || !regimeElement) return;
-
-    // Format skor menjadi persentase dan tentukan warna
-    const scorePercent = (score * 100).toFixed(1) + '%'; 
-    let color = 'gray';
-    
-    if (score >= 0.80) { // Keyakinan Tinggi
-        color = 'green';
-    } else if (score >= 0.60) { // Keyakinan Sedang
-        color = 'orange';
-    } else { // Keyakinan Rendah
-        color = 'red';
-    }
-
-    scoreElement.textContent = scorePercent;
-    scoreElement.style.color = color;
-    regimeElement.textContent = `(${regime})`;
-    regimeElement.title = `Tingkat keyakinan AI terhadap rezim ${regime} saat ini.`;
-}
-    // ===================================================================
+// ===================================================================
 // BAGIAN 2: FUNGSI-FUNGSI PEMBANTU (HELPERS) & KALKULASI
 // ===================================================================
     function formatDollar(amount) {
@@ -3504,21 +3485,30 @@ function displayLiveSignal(signalData) {
                 <div class="text-center">
                     <p class="text-lg text-yellow-400">${formatPrice(entry.price, symbol)}</p>
                     <p class="text-sm text-gray-400">Entry</p>
+                    <p class="text-xs text-yellow-500">(${entry.percentage ? entry.percentage.toFixed(2) : '--'}%)</p>
                 </div>
                 <div class="text-center">
                     <p class="text-lg text-red-400">${formatPrice(sl.price, symbol)}</p>
                     <p class="text-sm text-gray-400">Stop Loss</p>
+                    <p class="text-xs text-red-500">(${sl.percentage ? sl.percentage.toFixed(2) : '--'}%)</p>
                 </div>
             </div>
             <hr class="border-gray-700"/>
-            <div class="grid grid-cols-2 gap-4">
-                 <div class="text-center">
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-center">
                     <p class="text-lg text-green-400">${formatPrice(tp1.price, symbol)}</p>
-                    <p class="text-sm text-gray-400">TP 1</p>
+                    <p class="text-sm text-gray-400">TP 1 (Struktural)</p>
+                    <p class="text-xs text-green-500">(${tp1.percentage ? tp1.percentage.toFixed(2) : '--'}%)</p>
                 </div>
                 <div class="text-center">
                     <p class="text-lg text-green-400">${formatPrice(tp2.price, symbol)}</p>
-                    <p class="text-sm text-gray-400">TP 2</p>
+                    <p class="text-sm text-gray-400">TP 2 (R:R 1:1.5)</p>
+                    <p class="text-xs text-green-500">(${tp2.percentage ? tp2.percentage.toFixed(2) : '--'}%)</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-lg ${tp3.price ? 'text-green-400' : 'text-gray-400'}">${formatPrice(tp3.price, symbol)}</p>
+                    <p class="text-sm text-gray-400">TP 3 (R:R 1:2)</p>
+                    <p class="text-xs ${tp3.price ? 'text-green-500' : 'text-gray-500'}">(${tp3.percentage ? tp3.percentage.toFixed(2) : '--'}%)</p>
                 </div>
             </div>
         </div>
@@ -3897,10 +3887,19 @@ function displayLiveSignal(signalData) {
 
             // --- 1. FETCH DATA SENTIMEN ASYNC ---
             const symbol = realtimeCache.main.symbol;
-            if (!window.lastMarketStructureUpdate || Date.now() - window.lastMarketStructureUpdate > 30000) {
-                updateMarketStructurePanel(symbol, '4h'); // Gunakan timeframe 4h sebagai default
-                window.lastMarketStructureUpdate = Date.now();
+            
+            
+            //if (!window.lastMarketStructureUpdate || Date.now() - window.lastMarketStructureUpdate > 30000) {
+                //updateMarketStructurePanel(symbol, '4h'); // Gunakan timeframe 4h sebagai default
+                //window.lastMarketStructureUpdate = Date.now();
+            //}
+
+            // 🔥 FASE 7: THROTTLING MARKET STRUCTURE (30 detik) 🔥
+            if (Date.now() - lastMarketStructureUpdate > MS_UPDATE_INTERVAL_MS) {
+                updateMarketStructurePanel(symbol, '4h'); // Pemanggilan Market Structure HTF
+                lastMarketStructureUpdate = Date.now();
             }
+
             let fundingRateData = { lastFundingRate: 0 };
             let lsRatioData = { longShortRatio: 1.0 };
             let openInterestData = [];
@@ -3925,17 +3924,33 @@ function displayLiveSignal(signalData) {
             const prevClose = closes.slice(-2)[0];
             const currentMarketPrice = lastClose;
             const parameters = activeStrategy.parameters;
-            const biasThreshold = parameters.biasThreshold;
+                        const biasThreshold = parameters.biasThreshold;
 
-            // --- 2. PREDIKSI AI DAN WEIGHTS (FASE 6 DI SINI) ---
-            const AI_Prediction_Result = await predictMarketRegime(klinesSnapshot);
-            const currentRegime = AI_Prediction_Result.regime || 'RANGING'; // Ambil Rezim
-            const confidenceScore = AI_Prediction_Result.confidence || 0.50; // Ambil Confidence Score
-
-            // Panggil fungsi display (yang sudah Anda tambahkan sebelumnya)
-            displayRegimeConfidence(confidenceScore, currentRegime);
+            // --- 2. PREDIKSI AI dan WEIGHTS (DITHROTTLING FASE 7) ---
             
-            regimeMemory.push(currentRegime);
+            // Dapatkan nilai rezim dan confidence terakhir dari UI/state (jika ada) sebagai fallback
+            let detectedRegime = document.getElementById('active-regime-display')?.textContent.replace(/\s/g, '_') || 'RANGING'; 
+            let regimeConfidence = parseFloat(document.getElementById('regime-confidence-score')?.textContent) / 100 || 0.5;
+
+            // 🔥 FASE 7: THROTTLING PREDIKSI AI (HANYA UPDATE JIKA WAKTUNYA TIBA) 🔥
+            if (Date.now() - lastAiUpdate > AI_UPDATE_INTERVAL_MS) {
+                const newPrediction = await predictMarketRegime(klinesSnapshot);
+                if (newPrediction && typeof newPrediction.confidence === 'number') {
+                     detectedRegime = newPrediction.label;
+                     regimeConfidence = newPrediction.confidence;
+                }
+                lastAiUpdate = Date.now();
+            }
+            
+            const currentRegime = detectedRegime; // Tetapkan currentRegime untuk dipakai oleh logika AFT
+
+            // 🔥 FASE 6: UPDATE UI CONFIDENCE SCORE 🔥
+            const confidenceElement = document.getElementById('regime-confidence-score');
+            if (confidenceElement) {
+                confidenceElement.textContent = `${(regimeConfidence * 100).toFixed(1)}%`;
+                // Menambahkan kelas warna berdasarkan confidence
+                confidenceElement.className = `font-mono ${regimeConfidence > 0.8 ? 'positive' : (regimeConfidence < 0.6 ? 'negative' : 'text-yellow-400')}`;
+            }
 
             regimeMemory.push(currentRegime);
             if (regimeMemory.length > REGIME_MEMORY_SIZE) {
@@ -3996,7 +4011,7 @@ function displayLiveSignal(signalData) {
             const isShortBias_LTF = bearScore > bullScore && (bearScore - bullScore) > biasThreshold;
             
             let entryPrice = calculateEMA(closes, parameters.pullbackEmaPeriod).pop();
-            let stopLoss = 0, tp1 = 0, tp2 = 0;
+            let stopLoss = 0, tp1 = 0, tp2 = 0, tp3 = 0; 
             let biasStatus = 'NEUTRAL';
             const currentRegimeDisplay = activeRegimeKey; 
             const atrThresholdPersen = parameters.atrFilterThreshold * 100;
@@ -4029,15 +4044,31 @@ function displayLiveSignal(signalData) {
                 const swingLookback = parameters.swingLookback || 20;
                 const recentSwingLow = Math.min(...klinesSnapshot.slice(-swingLookback).map(k => parseFloat(k[3])));
                 const recentSwingHigh = Math.max(...klinesSnapshot.slice(-swingLookback).map(k => parseFloat(k[2])));
-                const rrRatio = parameters.riskRewardRatio;
+                const rrRatio = parameters.riskRewardRatio; // Biasanya 1.5
+
                 if (biasStatus.includes('LONG')) {
+                    // SL ke Swing Low (dengan buffer 0.1%)
                     stopLoss = recentSwingLow * 0.999;
+                    const riskAmount = Math.abs(entryPrice - stopLoss);
+                    
+                    // TP1: Ke Swing High (Struktural)
                     tp1 = recentSwingHigh;
-                    tp2 = entryPrice + (Math.abs(entryPrice - stopLoss) * rrRatio);
-                } else {
+                    // TP2: R:R 1:1.5
+                    tp2 = entryPrice + (riskAmount * 1.5);
+                    // 🔥 TP3: R:R 1:2 (Standar Industri)
+                    tp3 = entryPrice + (riskAmount * 2.0); 
+
+                } else { // SHORT
+                    // SL ke Swing High (dengan buffer 0.1%)
                     stopLoss = recentSwingHigh * 1.001;
+                    const riskAmount = Math.abs(stopLoss - entryPrice);
+                    
+                    // TP1: Ke Swing Low (Struktural)
                     tp1 = recentSwingLow;
-                    tp2 = entryPrice - (Math.abs(stopLoss - entryPrice) * rrRatio);
+                    // TP2: R:R 1:1.5
+                    tp2 = entryPrice - (riskAmount * 1.5);
+                    // 🔥 TP3: R:R 1:2 (Standar Industri)
+                    tp3 = entryPrice - (riskAmount * 2.0);
                 }
             }
 
@@ -4062,7 +4093,7 @@ function displayLiveSignal(signalData) {
                 sl: { price: stopLoss, percentage: stopLoss && entryPrice ? ((stopLoss - entryPrice) / entryPrice) * 100 : null },
                 tp1: { price: tp1, percentage: tp1 && entryPrice ? ((tp1 - entryPrice) / entryPrice) * 100 : null },
                 tp2: { price: tp2, percentage: tp2 && entryPrice ? ((tp2 - entryPrice) / entryPrice) * 100 : null },
-                tp3: { price: null, percentage: null }
+                tp3: { price: tp3, percentage: tp3 && entryPrice ? ((tp3 - entryPrice) / entryPrice) * 100 : null }
             };
             
             const activePosition = paperTrade.state.position;
@@ -4111,13 +4142,6 @@ function displayLiveSignal(signalData) {
             if (isSignalActive && !activePosition) {
                 const allowedStrategies = getAftAllowedStrategies();
 
-                // 🔥 START FASE 6 FILTER: CONFIDENCE SCORE 🔥
-                const minConfThreshold = (parseFloat(document.getElementById('minConfidenceThreshold')?.value) || 65) / 100;
-                if (confidenceScore < minConfThreshold) {
-                console.log(`❌ [AFT FILTER] Ditolak: Confidence Score AI (${(confidenceScore*100).toFixed(1)}%) di bawah minimal (${(minConfThreshold*100).toFixed(1)}%).`);
-                return; // Hentikan proses entry
-                }
-                 // 🔥 END FASE 6 FILTER 🔥
                 // 🔥 MODIFIKASI FASE 2: PENERAPAN FILTER STABILITAS 🔥
                 const regimeFilterMode = document.querySelector('input[name="regime-filter-mode"]:checked')?.value || 'KONFIRMASI';
 
@@ -4463,10 +4487,11 @@ function displayLiveSignal(signalData) {
             }
 
             // Jika bukan tombol STOP, maka ini adalah perintah START.
-            if (!activeStrategy.metadata) {
-                alert("Mohon impor file DNA strategi terlebih dahulu.");
-                return;
-            }
+            // 🔥 HAPUS BLOK IF INI
+            // if (!activeStrategy.metadata) {
+            //     alert("Mohon impor file DNA strategi terlebih dahulu.");
+            //     return;
+            // }
             
             // --- PERBAIKAN UTAMA: Langsung jalankan simulasi dengan mode terakhir ---
             console.log(`Memulai ulang sesi dengan mode terakhir (Online: ${lastUsedApiMode})`);
