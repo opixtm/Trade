@@ -22,6 +22,13 @@
             padding-top: 1rem;
             padding-bottom: 1rem;
         }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .blinking-status {
+            animation: blink 1.5s infinite;
+        }
 </style>
 </head>
 <body class="p-8">
@@ -34,7 +41,7 @@
         
         <div>
             <button id="connect-api-btn" class="btn-primary">
-                <span>🔗 TESTNET</span>
+                <span id="connect-api-status-text">⚡️ LIVE TRADE</span>
             </button>
         </div>
 
@@ -607,7 +614,7 @@
 
     <div id="api-key-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-gray-800 p-3 rounded-xl shadow-2xl w-full max-w-md">
-        <h3 class="text-lg font-semibold text-yellow-400 mb-4">Binance Testnet</h3>
+        <h3 class="text-lg font-semibold text-yellow-400 mb-4">Binance Live Trade</h3>
         <div class="space-y-4">
             <div>
                 <label for="api-key-input" class="text-sm text-gray-400">API Key</label>
@@ -690,7 +697,6 @@
     const AI_UPDATE_INTERVAL_MS = 60000; // 1 menit
     const MS_UPDATE_INTERVAL_MS = 30000; // 30 detik
     const REGIME_MEMORY_SIZE = 4;
-    const USE_TESTNET = true; // Ganti ke 'false' HANYA JIKA Anda siap live dengan uang sungguhan
     const dnaStatusDisplay = document.getElementById('dna-status-display');
     const aiStatusDisplay = document.getElementById('ai-status');
     const activeRegimeDisplay = document.getElementById('active-regime-display');
@@ -813,7 +819,7 @@
                 tradeHistoryList: document.getElementById('sim-trade-history-list'),
             },
             init: function() {
-                this.loadState();
+                //this.loadState();
                 this.elements.resetBtn.addEventListener('click', () => this.resetAccount());
                 this.elements.closePositionBtn.addEventListener('click', () => this.closePosition());
                 
@@ -827,40 +833,67 @@
                 this.render();
             },
             syncAccountState: async function() {
-                if (!binanceApiKeys.key) return; // Jangan lakukan apa-apa jika belum konek
+                if (binanceApiKeys.key && binanceApiKeys.secret) {
+                    try {
+                        // 1. Ambil data Akun (Balance)
+                        const accountData = await sendBinanceRequest('GET', '/v1/account', true, null);
+                        const positionData = await sendBinanceRequest('GET', '/v1/positionRisk', true, null);
 
-                try {
-                    const [accountData, positionData] = await Promise.all([
-                        sendBinanceRequest('GET', '/v2/account'),
-                        sendBinanceRequest('GET', '/v2/positionRisk')
-                    ]);
-                    
-                    const currentSymbol = realtimeCache.main.symbol;
-                    const activePosition = positionData.find(p => p.symbol === currentSymbol && parseFloat(p.positionAmt) !== 0);
+                        // Asumsi: Kita hanya tertarik pada aset USDT
+                        const usdtBalance = accountData.assets.find(a => a.asset === 'USDT');
+                        
+                        // Pastikan variabel diupdate di objek 'this' (paperTrade)
+                        this.equity = parseFloat(usdtBalance.walletBalance);
+                        this.availableMargin = parseFloat(usdtBalance.availableBalance);
+                        
+                        // Hitung total Unrealized PNL dari semua posisi
+                        let totalUnrealizedPnl = positionData.reduce((sum, pos) => {
+                            return sum + parseFloat(pos.unrealizedProfit);
+                        }, 0);
 
-                    // Update saldo
-                    this.state.balance = parseFloat(accountData.availableBalance);
+                        // --- LOGIKA FAIL-SAFE (LIQUIDATION CHECK) 🔥 ---
+                        const minBalanceThreshold = 1.00; // Batas Minimum ($1.00)
+                        
+                        if (this.availableMargin <= minBalanceThreshold) {
+                            
+                            // 🚨 Peringatan dan Fallback ke Simulasi
+                            alert(`🚨 AKUN LIKUIDASI/SALDO KOSONG! Margin Tersedia ($${this.availableMargin.toFixed(2)}) di bawah $${minBalanceThreshold.toFixed(2)}. Trading LIVE dihentikan. Beralih ke mode SIMULASI.`);
 
-                    // Update posisi
-                    if (activePosition) {
-                        this.state.position = {
-                            type: parseFloat(activePosition.positionAmt) > 0 ? 'long' : 'short',
-                            entryPrice: parseFloat(activePosition.entryPrice),
-                            quantity: Math.abs(parseFloat(activePosition.positionAmt)),
-                            leverage: parseFloat(activePosition.leverage),
-                            liqPrice: parseFloat(activePosition.liquidationPrice),
-                            unrealizedProfit: parseFloat(activePosition.unrealizedProfit),
-                            cost: (Math.abs(parseFloat(activePosition.positionAmt)) * parseFloat(activePosition.entryPrice)) / parseFloat(activePosition.leverage),
-                            symbol: activePosition.symbol
-                        };
-                    } else {
-                        this.state.position = null;
+                            // Hentikan interval Live Trade
+                            if (window.syncInterval) clearInterval(window.syncInterval);
+                            if (window.liveInterval) clearInterval(window.liveInterval);
+
+                            // Panggil fungsi Fallback (asumsi fungsi ini sudah Anda tambahkan)
+                            fallbackToSimulationMode(); 
+                            
+                            return; // Hentikan fungsi sinkronisasi lebih lanjut
+                        }
+                        // --- AKHIR LOGIKA FAIL-SAFE ---
+
+
+                        // 2. Update status posisi (Untuk dashboard)
+                        this.positions = positionData
+                            .filter(pos => parseFloat(pos.positionAmt) !== 0)
+                            .map(pos => ({
+                                symbol: pos.symbol,
+                                entryPrice: parseFloat(pos.entryPrice),
+                                positionAmt: parseFloat(pos.positionAmt),
+                                unrealizedPnl: parseFloat(pos.unrealizedProfit),
+                                // ... tambahkan data posisi lain yang Anda butuhkan
+                            }));
+                        
+                        // 3. Update UI (Angka-angka di dashboard)
+                        document.getElementById('sim-equity').textContent = `$${this.equity.toFixed(2)}`;
+                        document.getElementById('sim-unrealized-pnl').textContent = `$${totalUnrealizedPnl.toFixed(2)}`;
+                        document.getElementById('sim-available-margin').textContent = `$${this.availableMargin.toFixed(2)}`;
+
+
+                    } catch (error) {
+                        console.error("Error syncing account state. Check API Keys/Connectivity:", error);
+                        // Tambahkan error handling visual jika gagal koneksi
+                        document.getElementById('api-status-text').textContent = 'ERROR (Check API)';
                     }
-                } catch (error) {
-                    console.error("Gagal sinkronisasi dengan akun Binance:", error);
-                    // Anda bisa tambahkan notifikasi error di UI di sini jika perlu
                 }
-                this.render(); // Render ulang UI dengan data terbaru dari Binance
             },
             // Fungsi ini HANYA bertugas mengirim order OPEN ke Binance
             executeApiOpen: async function(tradeType, leverage, cost, entryPrice) {
@@ -869,7 +902,11 @@
                 const quantity = (cost * leverage) / entryPrice;
                 const symbolInfo = precisionMap[symbol]; 
                 const quantityPrecision = symbolInfo ? symbolInfo.quantityPrecision : 3;
-
+                if (parseFloat(quantity.toFixed(quantityPrecision)) === 0) {
+                    console.error("❌ GAGAL MEMBUKA POSISI: Quantity yang dihitung SANGAT KECIL atau NOL. Order dihentikan secara lokal.");
+                    alert("GAGAL MEMBUKA POSISI: Kuantitas Order Nol. Periksa modal atau leverage Anda.");
+                    return; 
+                }
                 const orderParams = {
                     symbol: symbol, side: side, type: 'MARKET',
                     quantity: quantity.toFixed(quantityPrecision)
@@ -910,17 +947,26 @@
             },
 
             openPosition: function(type, leverage, cost, entryPrice, tp1, tp2, flag = 'Manual', signalPrice, biasStatus = 'N/A') {
-                if (lastUsedApiMode && this.state.balance <= 0) {
-                    alert("SALDO TESTNET NOL. Tidak bisa membuka posisi.");
-                    return; // Hentikan fungsi di sini
-                }
-                // --- HYBRID LOGIC ---
+                
+                // 1. Pengecekan Saldo untuk Mode LIVE
                 if (lastUsedApiMode) {
+                    // Cek saldo riil yang sudah di-sync (availableMargin)
+                    if (this.availableMargin <= 0.01) { 
+                        alert("🚨 SALDO RIIL NOL atau KRITIS. Tidak dapat membuka posisi Live Trade.");
+                        // Fail-safe untuk mencegah open di kondisi kritis
+                        if (window.syncInterval) clearInterval(window.syncInterval);
+                        if (window.liveInterval) clearInterval(window.liveInterval);
+                        fallbackToSimulationMode();
+                        return;
+                    }
+                    
                     // Mode ONLINE: Panggil eksekutor API
-                    this.executeApiOpen(type, leverage, cost, entryPrice);
+                    // KRUSIAL: Panggil fungsi GLOBAL executeApiOpen (tanpa 'this.')
+                    executeApiOpen(type, leverage, cost, entryPrice); 
                     return; // Hentikan di sini, sinkronisasi akan menangani update state
                 }
-                // --- END HYBRID LOGIC ---
+                
+                // --- Jika kode sampai di sini, artinya kita di MODE OFFLINE/SIMULASI ---
 
                 // Jika kode sampai di sini, artinya kita di MODE OFFLINE
                 if (this.state.position) {
@@ -2123,7 +2169,24 @@
             }
         }
     }
+    function fallbackToSimulationMode() {
+        // Hapus API Keys agar tidak terhubung ke Live lagi
+        binanceApiKeys.key = '';
+        binanceApiKeys.secret = '';
 
+        // Reset status UI ke mode Offline/Simulasi
+        document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-yellow-500';
+        document.getElementById('api-status-text').textContent = 'Offline (Lokal)';
+        
+        // Reset tombol koneksi
+        const connectBtnSpan = document.getElementById('connect-api-status-text');
+        connectBtnSpan.textContent = '🔗 SIMULASI'; // Kembalikan teks ke SIMULASI/OFFLINE
+        connectBtnSpan.classList.remove('blinking-status');
+        document.getElementById('connect-api-btn').classList.remove('!bg-red-600');
+        
+        // Panggil startSimulation(false) untuk memulai ulang di mode lokal
+        startSimulation(false); 
+    }
 // === FUNGSI KONTEKSTUAL FINAL (LENGKAP DAN TERINTEGRASI) ===
 // =====================================================================================================================================================================
     function getUltimateSignalScore(indicator, signalData, currentRegime, allIndicators) { 
@@ -2725,29 +2788,38 @@
     }
 
     async function sendBinanceRequest(method, endpoint, params = {}) {
-    if (!binanceApiKeys.key || !binanceApiKeys.secret) {
-        throw new Error("API Key atau Secret Key belum diatur.");
+        if (!binanceApiKeys.key || !binanceApiKeys.secret) {
+            throw new Error("API Key atau Secret Key belum diatur.");
+        }
+
+        // URL diatur permanen ke Live Trade
+        const baseUrl = 'https://fapi.binance.com';
+        const timestamp = Date.now();
+        const queryString = new URLSearchParams({ ...params, timestamp }).toString();
+        const signature = CryptoJS.HmacSHA256(queryString, binanceApiKeys.secret).toString(CryptoJS.enc.Hex);
+        const url = `${baseUrl}${endpoint}?${queryString}&signature=${signature}`;
+        
+        const response = await fetch(url, {
+            method: method.toUpperCase(),
+            headers: { 'X-MBX-APIKEY': binanceApiKeys.key }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            
+            // 🔥 TAMBAHAN LOGIKA FAIL-SAFE BARU 🔥
+            if (errorData.code === -2015 || errorData.msg.includes('Load failed')) {
+                console.error("❌ API ERROR KRITIS! Kunci salah atau IP diblokir. Mereset sesi...");
+                alert(`🚨 KONEKSI PUTUS: Gagal otentikasi/Load failed. Cek IP Whitelist & Izin Kunci Anda. Sistem dialihkan ke Simulasi.`);
+                fallbackToSimulationMode(); // Panggil fungsi fallback yang sudah kita buat
+            }
+            // 🔥 AKHIR TAMBAHAN 🔥
+
+            throw new Error(`Binance API Error: ${errorData.msg} (code: ${errorData.code})`);
+        }
+
+        return response.json();
     }
-
-    // URL akan otomatis berubah berdasarkan toggle USE_TESTNET
-    const baseUrl = USE_TESTNET ? 'https://testnet.binancefuture.com/fapi' : 'https://fapi.binance.com';
-    const timestamp = Date.now();
-    const queryString = new URLSearchParams({ ...params, timestamp }).toString();
-    const signature = CryptoJS.HmacSHA256(queryString, binanceApiKeys.secret).toString(CryptoJS.enc.Hex);
-    const url = `${baseUrl}${endpoint}?${queryString}&signature=${signature}`;
-    
-    const response = await fetch(url, {
-        method: method.toUpperCase(),
-        headers: { 'X-MBX-APIKEY': binanceApiKeys.key }
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Binance API Error: ${errorData.msg} (code: ${errorData.code})`);
-    }
-
-    return response.json();
-}
 
     function toggleApiKeyModal(show) {
         const modal = document.getElementById('api-key-modal');
@@ -3313,11 +3385,8 @@
         if (liveWebSocket) {
             liveWebSocket.close();
         }
-        
-        // --- PERBAIKAN: URL WebSocket sekarang adaptif ---
-        const baseUrl = USE_TESTNET 
-            ? 'wss://stream.binancefuture.com' 
-            : 'wss://fstream.binance.com';
+  
+        const baseUrl = 'wss://fstream.binance.com';
 
         const wsUrl = `${baseUrl}/ws/${symbol.toLowerCase()}@kline_${interval}`;
         //console.log(`Menghubungkan ke WebSocket: ${wsUrl}`); // Untuk debugging
@@ -3346,9 +3415,7 @@
             orderFlowSocket.close();
         }
 
-        const baseUrl = USE_TESTNET 
-            ? 'wss://stream.binancefuture.com' 
-            : 'wss://fstream.binance.com';
+        const baseUrl = 'wss://fstream.binance.com';
 
         // Endpoint ini khusus untuk data order book (5 level kedalaman, update setiap 100ms)
         const wsUrl = `${baseUrl}/ws/${symbol.toLowerCase()}@depth5@100ms`;
@@ -3831,10 +3898,10 @@ function displayLiveSignal(signalData) {
             // (Logika koneksi API di sini)
             await paperTrade.syncAccountState(); // Sinkronisasi pertama
             if (window.syncInterval) clearInterval(window.syncInterval);
-            window.syncInterval = setInterval(() => paperTrade.syncAccountState(), 5000);
+            window.syncInterval = setInterval(() => paperTrade.syncAccountState(), 500);
         } else {
             // Jaga Saldo Normal (TIDAK ADA RESET OTOMATIS DI SINI)
-            paperTrade.state.balance = 1000;
+            paperTrade.loadState(); // 🔥 KRUSIAL: Ambil state terakhir (misal: saldo $1000.00)
             paperTrade.render(); 
             
             // Atur status UI
@@ -4430,6 +4497,7 @@ function displayLiveSignal(signalData) {
 // Event listener untuk tombol import (GANTI SELURUH BLOK INI)
 // ===================================================================      
     document.addEventListener('DOMContentLoaded', async () => { 
+        lastUsedApiMode = false;
         await initializePrecisionMap(); 
         
         setupToggle('toggle-ts-calc-btn', 'ts-calc-content-wrapper', 'toggle-ts-calc-icon', false);
@@ -4461,18 +4529,35 @@ function displayLiveSignal(signalData) {
             binanceApiKeys.key = document.getElementById('api-key-input').value;
             binanceApiKeys.secret = document.getElementById('api-secret-input').value;
             if (binanceApiKeys.key && binanceApiKeys.secret) {
-            toggleApiKeyModal(false);
-            document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-green-500';
-            document.getElementById('api-status-text').textContent = 'BINANCE TESTNET';
-            startSimulation(true);
+                toggleApiKeyModal(false);
+                
+                // --- LOGIKA LIVE TRADE ---
+                document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-green-500';
+                document.getElementById('api-status-text').textContent = 'BINANCE LIVE';
+                
+                const connectBtnSpan = document.getElementById('connect-api-status-text');
+                connectBtnSpan.textContent = '⚡️ LIVE TRADE'; // Ubah teks tombol ke Live Trade
+                connectBtnSpan.classList.add('blinking-status'); // Aktifkan blinking
+                document.getElementById('connect-api-btn').classList.add('!bg-red-600'); // Opsional: Beri warna merah
+                
+                startSimulation(true);
             } else {
                 alert("Mohon isi kedua kunci API untuk mode online.");
             }
         });
+        // Temukan blok ini: document.getElementById('api-key-cancel-btn').addEventListener(...)
         document.getElementById('api-key-cancel-btn').addEventListener('click', () => {
             toggleApiKeyModal(false);
+            
+            // --- LOGIKA SIMULASI ---
             document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-yellow-500';
             document.getElementById('api-status-text').textContent = 'Offline (Lokal)';
+            
+            const connectBtnSpan = document.getElementById('connect-api-status-text');
+            connectBtnSpan.textContent = '🔗 SIMULASI'; // Kembalikan teks ke SIMULASI/OFFLINE
+            connectBtnSpan.classList.remove('blinking-status'); // Nonaktifkan blinking
+            document.getElementById('connect-api-btn').classList.remove('!bg-red-600');
+            
             startSimulation(false);
         });
 
