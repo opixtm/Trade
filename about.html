@@ -165,6 +165,25 @@
                             <p id="htf-support-price" class="font-mono text-lg positive">--</p>
                             <p class="text-xs text-gray-500">HTF Support</p>
                         </div>
+                        <div id="fib-targets-display" class="mt-3 flex justify-center col-span-2">
+                            </div>
+                    </div>
+                    <div class="mt-4">
+                        <details>
+                            <summary class="cursor-pointer text-sm text-gray-400 hover:text-white">Sentiment & Volatility Indicators</summary>
+                            <div id="sentiment-indicators-content" class="pt-2 mt-2 border-t border-gray-700 text-xs space-y-1 font-mono">
+                                <div class="flex justify-between"><span>Parabolic SAR</span><span id="sentiment-psar">--</span></div>
+                                <div class="flex justify-between"><span>Rate of Change (12)</span><span id="sentiment-roc">--</span></div>
+                                <div class="flex justify-between"><span>ADX (14)</span><span id="sentiment-adx">--</span></div>
+                                <div class="flex justify-between"><span>ATR (% of Price)</span><span id="sentiment-atr">--</span></div>
+                                <hr class="border-gray-700/50 my-1"/>
+                                <div class="flex justify-between"><span>L/S Ratio (Global)</span><span id="sentiment-ls-global">--</span></div>
+                                <div class="flex justify-between"><span>L/S Ratio (Top)</span><span id="sentiment-ls-top">--</span></div>
+                                <div class="flex justify-between"><span>Funding Interval</span><span id="sentiment-funding-interval">--:--:--</span></div>
+                                <div class="flex justify-between"><span>Funding Rate</span><span id="sentiment-funding">--</span></div>
+                                <div class="flex justify-between"><span>Open Interest</span><span id="sentiment-oi">--</span></div>
+                            </div>
+                        </details>
                     </div>
                 </div>
                 <div id="order-flow-container" class="mb-4 p-3 rounded-lg bg-gray-900/50 border border-gray-700">
@@ -194,7 +213,10 @@
                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                 </svg>
             </button>
-                <div id="sim-metrics-dashboard" class="card p-4 mt-4 bg-gray-900/50">
+                
+            <div id="paper-trading-content-wrapper" class="collapsible-content">
+                <div class="pt-4 mt-4 border-t border-gray-700 space-y-4">
+                    <div id="sim-metrics-dashboard" class="card p-4 mt-4 bg-gray-900/50">
                             <h3 class="text-sm font-normal mb-3 text-yellow-400 border-b border-gray-700 pb-1">
                                 Dasbor Performa Kuantitatif
                             </h3>
@@ -246,9 +268,8 @@
                                     </div>
                                 </div>
                             </div>
-            <div id="paper-trading-content-wrapper" class="collapsible-content">
-                <div class="pt-4 mt-4 border-t border-gray-700 space-y-4">
                     <div class="flex justify-between items-center gap-2">
+                        
                         <div class="grid grid-cols-3 gap-3 text-center flex-grow">
                             <div>
                                 <p class="text-xs text-gray-500">Equity</p>
@@ -486,7 +507,7 @@
         
         <section id="weather-forecast-section" class="card p-3 hidden">
             <button id="toggle-forecast-btn" class="w-full flex justify-between items-center text-left mb-4">
-                <h2 class="text-xl font-semibold">Prakiraan "Cuaca" - Proyeksi Ekuitas</h2>
+                <h2 class="text-xl font-semibold">Monte Carlo Simulation</h2>
                 <svg id="toggle-forecast-icon" class="w-6 h-6 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                 </svg>
@@ -516,7 +537,7 @@
     <div class="bg-gray-800 p-3 rounded-xl shadow-2xl w-full max-w-2xl relative max-h-[95vh] m-auto">
         
         <div class="flex justify-between items-center mb-4 pr-8">
-            <h3 class="text-lg font-semibold text-yellow-400">Pengaturan AFT (Auto-Trade)</h3>
+            <h3 class="text-lg font-semibold text-yellow-400">Auto Trade Settings (Risk Management)</h3>
             <button id="close-aft-filter-btn" class="text-gray-400 hover:text-white text-3xl absolute top-2 right-2 p-2 leading-none">&times;</button>
         </div>
 
@@ -526,13 +547,13 @@
                 <h4 class="font-semibold text-base mb-3">Filter Stabilitas Rezim AI (Fase 2)</h4>
                 <div class="flex gap-2">
                     <label class="flex-1 p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                        <input type="radio" name="regime-filter-mode" value="REAKTIF" class="form-radio">
+                        <input type="radio" name="regime-filter-mode" value="REAKTIF" class="form-radio" checked>
                         <span class="ml-2 font-semibold">Reaktif (Tanpa Filter)</span>
                         <p class="text-xs text-gray-400 mt-1">Masuk posisi segera setelah sinyal muncul, mengabaikan stabilitas rezim AI.</p>
                     </label>
                     <label class="flex-1 p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700">
-                        <input type="radio" name="regime-filter-mode" value="KONFIRMASI" class="form-radio" checked>
-                        <span class="ml-2 font-semibold text-yellow-400">Konfirmasi (Wajib Stabil)</span>
+                        <input type="radio" name="regime-filter-mode" value="KONFIRMASI" class="form-radio">
+                        <span class="ml-2 font-semibold text-yellow-400">Konfirmasi (Filter Ketat)</span>
                         <p class="text-xs text-gray-400 mt-1">Memerlukan mayoritas 3 dari 4 prediksi rezim terakhir selaras dengan sinyal.</p>
                     </label>
                 </div>
@@ -612,33 +633,15 @@
         </div>
     </div>
 </div>
-
-    <div id="api-key-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-gray-800 p-3 rounded-xl shadow-2xl w-full max-w-md">
-        <h3 class="text-lg font-semibold text-yellow-400 mb-4">Binance Live Trade</h3>
-        <div class="space-y-4">
-            <div>
-                <label for="api-key-input" class="text-sm text-gray-400">API Key</label>
-                <input type="password" id="api-key-input" class="input-primary mt-1" placeholder="API Key ...">
-            </div>
-            <div>
-                <label for="api-secret-input" class="text-sm text-gray-400">Secret Key</label>
-                <input type="password" id="api-secret-input" class="input-primary mt-1" placeholder="Secret Key ...">
-            </div>
-        </div>
-        <div class="mt-6 flex justify-end gap-2">
-            <button id="api-key-cancel-btn" class="btn-secondary">Cancel</button>
-            <button id="api-key-save-btn" class="btn-primary">Connect</button>
-        </div>
-    </div>
-</div>
 <script>
 // ===================================================================
 // BAGIAN 1: DEKLARASI VARIABEL GLOBAL & STATE APLIKASI
 // ===================================================================
+    let nextFundingTimestamp = 0;
+    let isFibRetracementVisible = false; // Default untuk menampilkan Extension
     let lastUsedApiMode = false; // false = Offline, true = Online
     let latencyInterval = null;
-    let binanceApiKeys = { key: null, secret: null };
+    let binanceApiKeys = { key: 'PROXY_KEY_ACTIVE', secret: 'PROXY_SECRET_ACTIVE' };
     let liveData = null; 
     const userSettings = {
             presets: {
@@ -694,7 +697,7 @@
     let regimeMemory = ['RANGING', 'RANGING', 'RANGING', 'RANGING'];
     let lastAiUpdate = 0; 
     let lastMarketStructureUpdate = 0; 
-
+    
     const AI_UPDATE_INTERVAL_MS = 60000; // 1 menit
     const MS_UPDATE_INTERVAL_MS = 30000; // 30 detik
     const REGIME_MEMORY_SIZE = 4;
@@ -1184,7 +1187,6 @@
                 }
 
                 if (pos.symbol !== realtimeCache.main.symbol) {
-                    // Posisi ini berasal dari sesi aset yang berbeda. Abaikan.
                     return;
                 }
 
@@ -1196,82 +1198,61 @@
                     ? (markPrice - pos.entryPrice) * pos.quantity 
                     : (pos.entryPrice - markPrice) * pos.quantity;
                 const profitPercent = (pnl / pos.cost) * 100;
-                
-                // Update harga puncak/lembah untuk trailing stop
+
                 if (isLong) {
                     pos.highestMarkPrice = Math.max(pos.highestMarkPrice || pos.entryPrice, markPrice);
                 } else {
                     pos.lowestMarkPrice = Math.min(pos.lowestMarkPrice || pos.entryPrice, markPrice);
                 }
 
-                // --- LOGIKA AGRESIIF ANTI-LOSS ---
-                const BE_THRESHOLD = 0.5; // Persentase profit minimum (0.5%) untuk memicu SL to BE
+                const BE_THRESHOLD = 0.5;
                 if (!pos.isSafe && profitPercent >= BE_THRESHOLD) {
                     this.moveStopLossToBreakEven();
-                    // 🔥 NOTIFIKASI TRAILING STOP AKTIF (BARU DITAMBAHKAN)
                     const tsConfig = this.state.ts;
                     console.log(`🔒 TS AKTIF: Posisi mencapai ${BE_THRESHOLD}% profit. Trailing Stop (${tsConfig.callbackRate}%) mulai berjalan dari harga puncak/lembah.`);
-                    pos.isSafe = true; // Kunci status ke Risk-Free
+                    pos.isSafe = true;
                     this.saveState();
                 }
-                
-                // 1. Cek Pencapaian TP1 & Partial Close (tetap ada)
+
                 if (!pos.tp1Hit && pos.tp1 && ((isLong && markPrice >= pos.tp1) || (!isLong && markPrice <= pos.tp1))) {
                     this.partialClosePosition(0.5); 
-                    // Note: SL to BE sudah dipicu di atas oleh BE_THRESHOLD, tidak perlu dipicu lagi di sini.
                     pos.tp1Hit = true; 
                     this.saveState();
                 }
-                
-                // 2. Cek Trailing Stop (TS) Lanjutan
-            const selectedTsMode = document.querySelector('input[name="ts-mode"]:checked')?.value || 'PERCENTAGE';
 
-            // TS hanya akan aktif jika posisi sudah "aman" (mencapai profit threshold yang ditentukan sebelumnya)
-            if (pos.isSafe) { 
-                let dynamicStopPrice = 0;
-                const extremumPrice = isLong ? pos.highestMarkPrice : pos.lowestMarkPrice;
-
-                // Logika berdasarkan mode yang dipilih di UI
-                if (selectedTsMode === 'ATR') {
-                    const klinesSnapshot = liveData.slice(-50); // Ambil data candle terakhir untuk kalkulasi
-                    const atrValue = calculateATR(klinesSnapshot, 14).value;
-                    const atrMultiplier = 1.5; // Jarak 1.5x ATR (standar industri)
-
-                    if (atrValue > 0) {
-                        dynamicStopPrice = isLong ? extremumPrice - (atrValue * atrMultiplier) : extremumPrice + (atrValue * atrMultiplier);
+                const selectedTsMode = document.querySelector('input[name="ts-mode"]:checked')?.value || 'PERCENTAGE';
+                if (pos.isSafe) { 
+                    let dynamicStopPrice = 0;
+                    const extremumPrice = isLong ? pos.highestMarkPrice : pos.lowestMarkPrice;
+                    if (selectedTsMode === 'ATR') {
+                        const klinesSnapshot = liveData.slice(-50);
+                        const atrValue = calculateATR(klinesSnapshot, 14).value;
+                        const atrMultiplier = 1.5;
+                        if (atrValue > 0) {
+                            dynamicStopPrice = isLong ? extremumPrice - (atrValue * atrMultiplier) : extremumPrice + (atrValue * atrMultiplier);
+                        }
+                    } else if (selectedTsMode === 'PSAR') {
+                        const klinesSnapshot = liveData.slice(-50);
+                        const psarData = calculateParabolicSAR(klinesSnapshot);
+                        if (psarData && typeof psarData.value === 'number') {
+                            dynamicStopPrice = psarData.value;
+                        }
+                    } else {
+                        const tsConfig = this.state.ts;
+                        const callbackAmount = extremumPrice * (tsConfig.callbackRate / 100);
+                        dynamicStopPrice = isLong ? extremumPrice - callbackAmount : extremumPrice + callbackAmount;
                     }
-
-                } else if (selectedTsMode === 'PSAR') {
-                const klinesSnapshot = liveData.slice(-50);
-                const psarData = calculateParabolicSAR(klinesSnapshot);
-
-                // Ambil nilai harga PSAR dari fungsi yang sudah kita perbarui
-                if (psarData && typeof psarData.value === 'number') {
-                    dynamicStopPrice = psarData.value;
-                }
-
-                } else { // Mode default adalah 'PERCENTAGE'
-                    const tsConfig = this.state.ts;
-                    const callbackAmount = extremumPrice * (tsConfig.callbackRate / 100);
-                    dynamicStopPrice = isLong ? extremumPrice - callbackAmount : extremumPrice + callbackAmount;
-                }
-
-                // Perbarui Trailing Stop Price Internal jika level stop baru lebih menguntungkan
-                if (dynamicStopPrice > 0) {
-                    if ((isLong && dynamicStopPrice > pos.trailingStopPrice) || (!isLong && dynamicStopPrice < pos.trailingStopPrice)) {
-                        pos.trailingStopPrice = dynamicStopPrice;
+                    if (dynamicStopPrice > 0) {
+                        if ((isLong && dynamicStopPrice > pos.trailingStopPrice) || (!isLong && dynamicStopPrice < pos.trailingStopPrice)) {
+                            pos.trailingStopPrice = dynamicStopPrice;
+                        }
+                    }
+                    if ((isLong && markPrice <= pos.trailingStopPrice) || (!isLong && markPrice >= pos.trailingStopPrice)) {
+                        this.closePosition(`AFT - TRAILING STOP (${selectedTsMode})`);
+                        return;
                     }
                 }
 
-                // Cek Pemicu Trailing Stop (logika ini sama untuk semua mode)
-                if ((isLong && markPrice <= pos.trailingStopPrice) || (!isLong && markPrice >= pos.trailingStopPrice)) {
-                    this.closePosition(`AFT - TRAILING STOP (${selectedTsMode})`);
-                    return;
-                }
-            }
-
-
-                // 3. Cek Stop Loss (SL) & Likuidasi (SL ke BE hanya dipicu jika isSafe=true)
                 const slHit = (isLong && markPrice <= pos.sl) || (!isLong && markPrice >= pos.sl);
                 if (slHit) {
                     this.closePosition('AFT - STOP LOSS');
@@ -1283,7 +1264,6 @@
                     return;
                 }
 
-                // 4. Cek Sinyal Pembalikan Arah (Exit Cerdas - logic AFT)
                 const currentBias = realtimeCache.main.latestScalpingSetup?.bias.status || 'NEUTRAL';
                 const isReversalSignal = (isLong && currentBias.includes('SHORT')) || (!isLong && currentBias.includes('LONG'));
                 if (isReversalSignal) {
@@ -1291,15 +1271,15 @@
                     return;
                 }
 
-                // --- 5. Update PNL & Display ---
                 const roe = (pnl / pos.cost) * 100;
-                
-                document.getElementById('sim-unrealized-pnl').textContent = formatDollar(pnl);
+
+                // PERBAIKAN: Gunakan formatPrice dengan simbol yang benar
+                document.getElementById('sim-unrealized-pnl').textContent = formatPrice(pnl, pos.symbol);
                 document.getElementById('sim-unrealized-pnl').className = pnl >= 0 ? 'positive font-mono font-semibold text-lg' : 'negative font-mono font-semibold text-lg';
-                document.getElementById('sim-position-pnl').textContent = `${formatDollar(pnl)} (${roe.toFixed(2)}%)`;
+                document.getElementById('sim-position-pnl').textContent = `${formatPrice(pnl, pos.symbol)} (${roe.toFixed(2)}%)`;
                 document.getElementById('sim-position-pnl').className = pnl >= 0 ? 'positive font-mono font-semibold text-lg ml-2' : 'negative font-mono font-semibold text-lg ml-2';
-                document.getElementById('sim-position-mark').textContent = formatPrice(markPrice);
-                
+                document.getElementById('sim-position-mark').textContent = formatPrice(markPrice, pos.symbol);
+
                 this.saveState();
             },
             render: function() {
@@ -1555,7 +1535,7 @@
     const signalPanel = document.getElementById('live-signal-panel');
     const aiStatusHtml = `
        <div id="current-regime-status-container" class="card p-4 mt-2 hidden">
-            <h3 class="text-lg font-semibold mb-2 text-yellow-500">⚙️ Status Kecerdasan DNA</h3>
+            <h3 class="text-lg font-semibold mb-2 text-yellow-500">🧠</h3>
             <div class="space-y-1 text-sm">
                 <p class="flex justify-between"><span>Status AI (Sensor):</span> <span id="ai-status" class="font-medium text-gray-400">LOADING...</span></p>
                 <p class="flex justify-between">
@@ -2061,6 +2041,103 @@
         return { P: (high + low + close) / 3 };
     }
 
+// --- TAMBAHAN BARU DIMULAI (KODE FUNGSI FIBONACCI YANG HILANG) ---
+
+function findPivots(klines, lookback = 10) {
+    const pivots = [];
+    if (klines.length < lookback * 2 + 1) return [];
+
+    for (let i = lookback; i < klines.length - lookback; i++) {
+        const high = parseFloat(klines[i][2]);
+        const low = parseFloat(klines[i][3]);
+        let isHigh = true, isLow = true;
+
+        for (let j = 1; j <= lookback; j++) {
+            if (parseFloat(klines[i - j][2]) > high || parseFloat(klines[i + j][2]) > high) isHigh = false;
+            if (parseFloat(klines[i - j][3]) < low || parseFloat(klines[i + j][3]) < low) isLow = false;
+        }
+        if (isHigh) pivots.push({ type: 'high', price: high, index: i });
+        else if (isLow) pivots.push({ type: 'low', price: low, index: i });
+    }
+    return pivots;
+}
+
+function calculateSlope(p1, p2) {
+    if (p2.index === p1.index) return Infinity;
+    return (p2.price - p1.price) / (p2.index - p1.index);
+}
+
+function findLastSignificantSwing(klines) {
+    const pivots = findPivots(klines.slice(-300), 5);
+    if (pivots.length < 3) return null;
+
+    for (let i = pivots.length - 1; i >= 2; i--) {
+        const p3 = pivots[i];
+        const p2 = pivots[i - 1];
+        const p1 = pivots[i - 2];
+
+        if (p1.type === 'low' && p2.type === 'high' && p3.type === 'low') {
+            if (p3.price > p1.price) {
+                return { A: p1, B: p2, C: p3, type: 'UP' };
+            }
+        }
+
+        if (p1.type === 'high' && p2.type === 'low' && p3.type === 'high') {
+            if (p3.price < p1.price) {
+                return { A: p1, B: p2, C: p3, type: 'DOWN' };
+            }
+        }
+    }
+    return null;
+}
+
+function calculateAdvancedFibonacciExtension(swing) {
+    if (!swing || !swing.A?.price || !swing.B?.price || !swing.C?.price || !swing.type) return null;
+    const priceA = parseFloat(swing.A.price), priceB = parseFloat(swing.B.price), priceC = parseFloat(swing.C.price);
+    if (isNaN(priceA) || isNaN(priceB) || isNaN(priceC)) return null;
+
+    const impulseMove = Math.abs(priceB - priceA);
+    const fibLevels = [0, 0.618, 1.0, 1.272, 1.618, 2.618];
+    const calculatedLevels = {};
+
+    fibLevels.forEach(level => {
+        let targetPrice = (swing.type === 'UP') ? priceC + (impulseMove * level) : priceC - (impulseMove * level);
+        calculatedLevels[`level_${level.toString().replace('.', '_')}`] = targetPrice;
+    });
+
+    return {
+        swingPoints: { A: priceA, B: priceB, C: priceC },
+        type: swing.type,
+        levels: calculatedLevels
+    };
+}
+
+function calculateFibonacciRetracement(swing) {
+    if (!swing || !swing.A?.price || !swing.B?.price) return null;
+    const priceA = parseFloat(swing.A.price), priceB = parseFloat(swing.B.price);
+    if (isNaN(priceA) || isNaN(priceB)) return null;
+
+    const impulseMove = Math.abs(priceB - priceA);
+    const retracementLevels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+    const calculatedLevels = {};
+
+    retracementLevels.forEach(level => {
+        let targetPrice = (swing.type === 'UP') ? priceB - (impulseMove * level) : priceB + (impulseMove * level);
+        calculatedLevels[`level_${level.toString().replace('.', '_')}`] = targetPrice;
+    });
+
+    return {
+        swingPoints: { A: priceA, B: priceB },
+        type: swing.type,
+        levels: calculatedLevels
+    };
+}
+
+// --- TAMBAHAN BARU SELESAI ---
+
+
+
+    
     function calculateVWAP(klines, period = 20) {
         if (!klines || klines.length < period) return 0;
         let sumPV = 0, sumV = 0;
@@ -2156,6 +2233,84 @@
     }
 
 // =====================================================================================================================================================================
+    function startFundingCountdown() {
+        setInterval(() => {
+            const el = document.getElementById('sentiment-funding-interval');
+            if (!el || nextFundingTimestamp === 0) {
+                if (el) el.textContent = '--:--:--';
+                return;
+            }
+
+            const diff = nextFundingTimestamp - Date.now();
+
+            if (diff <= 0) {
+                el.textContent = '00:00:00';
+                return;
+            }
+
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+
+            const pad = (num) => num.toString().padStart(2, '0');
+            el.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        }, 1000); // Timer ini berjalan setiap detik
+    }
+
+    function updateSentimentDisplay(data) {
+        const sentimentPanel = document.getElementById('sentiment-indicators-content');
+        if (!sentimentPanel) return;
+
+        const updateEl = (id, value, colorClass = '') => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = value;
+                el.className = colorClass;
+            }
+        };
+
+        // Parabolic SAR
+        const psarColor = data.psar === 'Bullish' ? 'positive' : (data.psar === 'Bearish' ? 'negative' : 'text-gray-400');
+        updateEl('sentiment-psar', data.psar || '--', psarColor);
+
+        // Rate of Change (ROC)
+        const rocColor = data.roc > 0 ? 'positive' : (data.roc < 0 ? 'negative' : 'text-gray-400');
+        updateEl('sentiment-roc', isNaN(data.roc) ? '--' : `${data.roc.toFixed(2)}%`, rocColor);
+
+        // ADX
+        const adxColor = data.adx > 25 ? 'positive' : 'text-gray-400'; // Trending if > 25
+        updateEl('sentiment-adx', isNaN(data.adx) ? '--' : data.adx.toFixed(2), adxColor);
+
+        // ATR
+        const atrStatus = data.atr.status;
+        let atrColor = 'text-gray-400';
+        if (atrStatus === 'High' || atrStatus === 'Very High') atrColor = 'positive';
+        if (atrStatus === 'Low' || atrStatus === 'Very Low') atrColor = 'text-yellow-500'; // More descriptive for low volatility
+        updateEl('sentiment-atr', `${data.atr.atrPercent.toFixed(2)}% (${atrStatus})`, atrColor);
+        
+        // L/S Ratios
+        updateEl('sentiment-ls-global', isNaN(data.lsGlobal) ? '--' : data.lsGlobal.toFixed(4));
+        updateEl('sentiment-ls-top', isNaN(data.lsTop) ? '--' : data.lsTop.toFixed(4));
+        
+        // Funding Rate
+        const fundingRatePercent = data.funding * 100;
+        const fundingColor = fundingRatePercent > 0.01 ? 'negative' : (fundingRatePercent < 0 ? 'positive' : 'text-gray-400'); // High positive funding is generally bearish
+        updateEl('sentiment-funding', `${fundingRatePercent.toFixed(4)}%`, fundingColor);
+
+        // Open Interest
+        let oiFormatted = '--';
+        if (data.oi > 0) {
+            if (data.oi >= 1e9) {
+                oiFormatted = `$${(data.oi / 1e9).toFixed(2)}B`;
+            } else if (data.oi >= 1e6) {
+                oiFormatted = `$${(data.oi / 1e6).toFixed(2)}M`;
+            } else {
+                oiFormatted = `$${data.oi.toFixed(0)}`;
+            }
+        }
+        updateEl('sentiment-oi', oiFormatted);
+    }
+
     function toggleAftFilterModal(show) {
         const modal = document.getElementById('aft-filter-modal');
         if (modal) {
@@ -2621,7 +2776,7 @@
 
     async function loadRegimeSensorModel() {
         if (regimeSensorModel || typeof tf === 'undefined') {
-            document.getElementById('ai-status').textContent = 'SIAP (Bunglon)'; 
+            document.getElementById('ai-status').textContent = 'Auto Switch (No AI)'; 
             return;
         }
 
@@ -2648,7 +2803,7 @@
 
             regimeSensorModel = await tf.loadLayersModel(base64Handler);
             console.log('✅ Model Sensor Rezim berhasil dimuat dan siap bekerja!');
-            document.getElementById('ai-status').textContent = 'AI Ready (TF.js)';
+            document.getElementById('ai-status').textContent = 'AI Ready (LSTM TF.js)';
 
         } catch (error) {
             console.error("❌ GAGAL memuat Model Sensor Rezim:", error);
@@ -2742,13 +2897,20 @@
 // ===================================================================
 // BAGIAN 2: FUNGSI-FUNGSI PEMBANTU (HELPERS) & KALKULASI
 // ===================================================================
-    function formatDollar(amount) {
-        if (amount === null || isNaN(amount) || typeof amount !== 'number') {
-            return '$0.00';
+    function toggleFibView(event) {
+        event.stopPropagation(); // Mencegah panel <details> tertutup saat tombol diklik
+        isFibRetracementVisible = !isFibRetracementVisible;
+        // Panggil ulang displayLiveSignal untuk me-render ulang panel dengan data terakhir
+        if (realtimeCache.main.latestScalpingSetup) {
+            displayLiveSignal(realtimeCache.main.latestScalpingSetup);
         }
-        // Menggunakan toFixed(2) untuk membatasi 2 digit desimal
-        return `$${amount.toFixed(2)}`; 
     }
+
+    function formatDollar(amount, symbol) {
+    if (amount === null || isNaN(amount)) return '$0.00';
+    // Sekarang memanggil formatPrice agar presisinya selalu benar
+    return formatPrice(amount, symbol); 
+}
 
     function toggleAftFilterModal(show) {
         const modal = document.getElementById('aft-filter-modal');
@@ -2788,52 +2950,47 @@
     }
 
     // GANTI FUNGSI INI
-async function sendBinanceRequest(method, endpoint, isSigned = true, params = {}) {
-    if (!binanceApiKeys.key || !binanceApiKeys.secret) {
-        throw new Error("API Key atau Secret Key belum diatur.");
-    }
+// GANTI SELURUH FUNGSI sendBinanceRequest DENGAN INI:
+async function sendBinanceRequest(method, endpoint, isSigned = false, params = {}) {
+    // 💥 Base URL menunjuk ke Proxy lokal Anda
+    const proxyUrl = 'http://localhost:3000'; 
     
-    const baseUrl = 'https://fapi.binance.com/fapi/v1';
-    let finalUrl = `${baseUrl}${endpoint}`;
-
-    // 1. Kumpulkan semua parameter, termasuk timestamp jika perlu
-    let allParams = { ...params };
-    
-    if (isSigned) {
-        // PENTING: Tambahkan timestamp ke parameter yang akan di-sign
-        allParams.timestamp = Date.now();
+    // Perhatikan, kita hanya perlu satu endpoint GET untuk SYNC
+    if (endpoint === '/account' || endpoint === '/positionRisk') { 
         
-        // 2. Sortir Parameter secara alfabetis
-        const sortedKeys = Object.keys(allParams).sort();
-        const sortedParams = sortedKeys.map(key => `${key}=${allParams[key]}`).join('&');
+        console.log(`⚙️ Menggunakan Proxy: Meminta status akun dari ${proxyUrl}/sync-futures-account`);
         
-        // 3. Buat Signature
-        const signature = CryptoJS.HmacSHA256(sortedParams, binanceApiKeys.secret).toString(CryptoJS.enc.Hex);
+        const response = await fetch(`${proxyUrl}/sync-futures-account`); 
         
-        // 4. Gabungkan Query String dengan Signature
-        finalUrl = `${finalUrl}?${sortedParams}&signature=${signature}`;
-    } else if (Object.keys(allParams).length > 0) {
-        // Untuk endpoint publik (tidak bertanda tangan)
-        finalUrl = `${finalUrl}?${new URLSearchParams(allParams).toString()}`;
-    }
-
-    // KIRIM PERMINTAAN
-    const response = await fetch(finalUrl, {
-        method: method.toUpperCase(),
-        headers: { 'X-MBX-APIKEY': binanceApiKeys.key }
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.code === -2015 || errorData.msg.includes('Load failed')) {
-            console.error("❌ API ERROR KRITIS! Kunci salah atau IP diblokir. Mereset sesi...");
-            alert(`🚨 KONEKSI PUTUS: Gagal otentikasi/Load failed. Cek IP Whitelist & Izin Kunci Anda. Sistem dialihkan ke Simulasi.`);
-            fallbackToSimulationMode(); 
+        if (!response.ok) {
+            console.error("❌ Proxy Down atau Error (Cek Terminal Node.js Anda)");
+            throw new Error(`Proxy Error: ${response.statusText}`);
         }
-        throw new Error(`Binance API Error: ${errorData.msg} (code: ${errorData.code})`);
+        
+        const accountData = await response.json();
+        
+        // Data yang dikembalikan oleh Proxy harus diproses untuk /account dan /positionRisk
+        if (endpoint === '/account') {
+             // Mengembalikan data mentah yang dibutuhkan untuk saldo
+             return accountData;
+        } else if (endpoint === '/positionRisk') {
+            // Mengembalikan data yang diproses untuk posisi aktif (sesuai format aslinya)
+            return accountData.positions.map(pos => ({
+                symbol: pos.symbol,
+                entryPrice: parseFloat(pos.entryPrice),
+                positionAmt: parseFloat(pos.positionAmt),
+                unrealizedProfit: parseFloat(pos.unrealizedProfit),
+                liquidationPrice: parseFloat(pos.liquidationPrice),
+            })).filter(pos => parseFloat(pos.positionAmt) !== 0); // Filter posisi yang nol
+        }
+    }
+    
+    // Untuk order placement (POST) - akan diimplementasikan setelah sinkronisasi saldo berhasil
+    if (method === 'POST') {
+        throw new Error("Order placement (POST) belum diimplementasikan di proxy lokal.");
     }
 
-    return response.json();
+    throw new Error(`Endpoint ${endpoint} tidak didukung dalam mode Proxy.`);
 }
 
     function toggleApiKeyModal(show) {
@@ -3250,7 +3407,7 @@ async function sendBinanceRequest(method, endpoint, isSigned = true, params = {}
                     document.getElementById('current-regime-status-container').classList.remove('hidden'); 
                     await loadRegimeSensorModel(); 
 
-                    alert(`✅ DNA Bunglon (AutoSwitch_v1) dari ${dnaData.metadata.sourceAsset} berhasil dimuat. Dashboard beroperasi dalam mode adaptif.`);
+                    alert(`✅ DNA AutoSwitch_v1 dari ${dnaData.metadata.sourceAsset} berhasil dimuat. Dashboard beroperasi dalam mode adaptif.`);
 
                 } else {
                     // DNA Statis/Generik Dideteksi
@@ -3512,92 +3669,152 @@ async function sendBinanceRequest(method, endpoint, isSigned = true, params = {}
     }
     
 function displayLiveSignal(signalData) {
-    realtimeCache.main.latestScalpingSetup = signalData;
-    const symbol = document.getElementById('live-symbol-input').value.toUpperCase();
-    const { bias, scores, entry, sl, tp1, tp2, tp3 } = signalData;
-    const newSignalState = bias.status;
-    const biasColor = newSignalState.includes('LONG') ? 'positive' : (newSignalState.includes('SHORT') ? 'negative' : 'text-gray-400');
-    const isCurrentlyActive = !newSignalState.includes('NEUTRAL');
+        realtimeCache.main.latestScalpingSetup = signalData;
+        const symbol = document.getElementById('live-symbol-input').value.toUpperCase();
+        const { bias, scores, entry, sl, tp1, tp2, tp3 } = signalData;
+        const newSignalState = bias.status;
+        const biasColor = newSignalState.includes('LONG') ? 'positive' : (newSignalState.includes('SHORT') ? 'negative' : 'text-gray-400');
+        const isCurrentlyActive = !newSignalState.includes('NEUTRAL');
 
-    if (newSignalState !== lastStableSignal) {
-        if (isCurrentlyActive) { signalStartTime = Date.now(); } else { signalStartTime = null; }
-        lastStableSignal = newSignalState;
+        if (newSignalState !== lastStableSignal) {
+            if (isCurrentlyActive) { signalStartTime = Date.now(); } else { signalStartTime = null; }
+            lastStableSignal = newSignalState;
+        }
+
+        if (timeElapsedInterval) { clearInterval(timeElapsedInterval); timeElapsedInterval = null; }
+        const updateTimerDisplay = () => { 
+            const el = document.getElementById('signal-time-elapsed'); 
+            if (el && signalStartTime) { el.textContent = `Aktif sejak: ${formatTimeElapsed(Date.now() - signalStartTime)}`; } 
+        };
+        if (isCurrentlyActive) { timeElapsedInterval = setInterval(updateTimerDisplay, 1000); }
+
+        const bullVal = scores?.bull || 0;
+        const bearVal = scores?.bear || 0;
+        const totalConfluence = bullVal + bearVal;
+        const bullPercent = totalConfluence > 0 ? (bullVal / totalConfluence) * 100 : 50;
+        const bearPercent = 100 - bullPercent;
+
+        document.getElementById('live-signal-content').innerHTML = `
+            <div class="space-y-4">
+                <div class="text-center">
+                    <p class="text-xl font-semibold ${biasColor} mb-1">${lastStableSignal}</p> 
+                    <p class="text-sm text-gray-400">Contextual Bias</p>
+
+                    <div class="my-3 px-2">
+                        <div class="flex justify-between items-center text-xs font-mono mb-1">
+                            <span class="font-bold text-lg positive">${bullVal.toFixed(1)}</span>
+                            <span class="text-gray-400 text-sm">Confluence Meter</span>
+                            <span class="font-bold text-lg negative">${bearVal.toFixed(1)}</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-2.5 flex border border-gray-700">
+                            <div class="bg-green-500 h-full rounded-l-full" style="width: ${bullPercent}%;"></div>
+                            <div class="bg-red-500 h-full rounded-r-full" style="width: ${bearPercent}%;"></div>
+                        </div>
+                    </div>
+                    <p class="text-base font-mono text-gray-400 p-2 rounded-md bg-gray-900/50 mt-2">
+                        ${bias.detail}
+                    </p>
+                </div>
+
+                <hr class="border-gray-700"/>
+                <p id="signal-time-elapsed" class="text-center text-sm font-mono text-gray-500 mt-2">${isCurrentlyActive ? 'Aktif sejak: 00m 00s' : '— Sinyal Netral —'}</p>
+                <hr class="border-gray-700"/>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center">
+                        <p class="text-lg text-yellow-400">${formatPrice(entry.price, symbol)}</p>
+                        <p class="text-sm text-gray-400">Entry</p>
+                        <p class="text-xs text-yellow-500">(${entry.percentage ? entry.percentage.toFixed(2) : '--'}%)</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg text-red-400">${formatPrice(sl.price, symbol)}</p>
+                        <p class="text-sm text-gray-400">Stop Loss</p>
+                        <p class="text-xs text-red-500">(${sl.percentage ? sl.percentage.toFixed(2) : '--'}%)</p>
+                    </div>
+                </div>
+                <hr class="border-gray-700"/>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <p class="text-lg text-green-400">${formatPrice(tp1.price, symbol)}</p>
+                        <p class="text-sm text-gray-400">TP 1 (Struktural)</p>
+                        <p class="text-xs text-green-500">(${tp1.percentage ? tp1.percentage.toFixed(2) : '--'}%)</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg text-green-400">${formatPrice(tp2.price, symbol)}</p>
+                        <p class="text-sm text-gray-400">TP 2 (R:R 1:1.5)</p>
+                        <p class="text-xs text-green-500">(${tp2.percentage ? tp2.percentage.toFixed(2) : '--'}%)</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg ${tp3.price ? 'text-green-400' : 'text-gray-400'}">${formatPrice(tp3.price, symbol)}</p>
+                        <p class="text-sm text-gray-400">TP 3 (R:R 1:2)</p>
+                        <p class="text-xs ${tp3.price ? 'text-green-500' : 'text-gray-500'}">(${tp3.percentage ? tp3.percentage.toFixed(2) : '--'}%)</p>
+                    </div>
+                
+                </div>
+            </div>
+        `;
+
+        if (isCurrentlyActive) { updateTimerDisplay(); }
+        
+        const fibContainer = document.getElementById('fib-targets-display');
+        if (fibContainer && signalData.fib_levels && (signalData.fib_levels.extension || signalData.fib_levels.retracement)) {
+            let title = '';
+            let buttonHTML = '';
+            let contentHTML = '';
+            const symbol = realtimeCache.main.symbol;
+
+            if (isFibRetracementVisible && signalData.fib_levels.retracement) {
+                const retrLevels = signalData.fib_levels.retracement.levels;
+                const fibType = signalData.fib_levels.retracement.type || '';
+                const fibColor = signalData.bias.status.includes('LONG') ? 'negative' : 'positive';
+                
+                title = `🎯 Fibonacci Retracement Targets (${fibType})`;
+                buttonHTML = `<button onclick="toggleFibView(event)" class="btn-secondary !text-[10px] !py-0.5 !px-2">Show Extension</button>`;
+                contentHTML = `
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-1">
+                        <div class="flex justify-between"><span class="text-gray-400">0</span><span class="${fibColor}">${formatPrice(retrLevels.level_0, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">0.236</span><span class="${fibColor}">${formatPrice(retrLevels.level_0_236, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">0.382</span><span class="${fibColor}">${formatPrice(retrLevels.level_0_382, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">0.5</span><span class="${fibColor}">${formatPrice(retrLevels.level_0_5, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">0.618</span><span class="${fibColor}">${formatPrice(retrLevels.level_0_618, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">0.786</span><span class="${fibColor}">${formatPrice(retrLevels.level_0_786, symbol)}</span></div>
+                        <div class="flex justify-between col-span-2"><span class="text-gray-400">1</span><span class="${fibColor}">${formatPrice(retrLevels.level_1, symbol)}</span></div>
+                    </div>`;
+
+            } else if (signalData.fib_levels.extension) {
+                const extLevels = signalData.fib_levels.extension.levels;
+                const fibType = signalData.fib_levels.extension.type || '';
+                const fibColor = signalData.bias.status.includes('LONG') ? 'positive' : 'negative';
+
+                title = `🎯 Fibonacci Extension Targets (${fibType})`;
+                buttonHTML = `<button onclick="toggleFibView(event)" class="btn-secondary !text-[10px] !py-0.5 !px-2">Show Retracement</button>`;
+                contentHTML = `
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-1">
+                        <div class="flex justify-between"><span class="text-gray-400">0</span><span class="${fibColor}">${formatPrice(extLevels.level_0, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">0.618</span><span class="${fibColor}">${formatPrice(extLevels.level_0_618, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">1</span><span class="${fibColor}">${formatPrice(extLevels.level_1, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">1.272</span><span class="${fibColor}">${formatPrice(extLevels.level_1_272, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">1.618</span><span class="${fibColor}">${formatPrice(extLevels.level_1_618, symbol)}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">2.618</span><span class="${fibColor}">${formatPrice(extLevels.level_2_618, symbol)}</span></div>
+                    </div>`;
+            }
+
+            fibContainer.innerHTML = `
+                <details class="w-full max-w-sm">
+                    <summary class="cursor-pointer flex justify-between items-center list-none -mb-1">
+                        <span class="text-xs text-yellow-400">${title}</span>
+                        ${buttonHTML}
+                    </summary>
+                    <div class="text-xs font-mono bg-gray-800/50 p-2 rounded-md mt-2">
+                        ${contentHTML}
+                    </div>
+                </details>
+            `;
+
+        } else if (fibContainer) {
+            fibContainer.innerHTML = '';
+        }
     }
-
-    if (timeElapsedInterval) { clearInterval(timeElapsedInterval); timeElapsedInterval = null; }
-    const updateTimerDisplay = () => { 
-        const el = document.getElementById('signal-time-elapsed'); 
-        if (el && signalStartTime) { el.textContent = `Aktif sejak: ${formatTimeElapsed(Date.now() - signalStartTime)}`; } 
-    };
-    if (isCurrentlyActive) { timeElapsedInterval = setInterval(updateTimerDisplay, 1000); }
-
-    const bullVal = scores?.bull || 0;
-    const bearVal = scores?.bear || 0;
-    const totalConfluence = bullVal + bearVal;
-    const bullPercent = totalConfluence > 0 ? (bullVal / totalConfluence) * 100 : 50;
-    const bearPercent = 100 - bullPercent;
-
-    document.getElementById('live-signal-content').innerHTML = `
-        <div class="space-y-4">
-            <div class="text-center">
-                <p class="text-xl font-semibold ${biasColor} mb-1">${lastStableSignal}</p> 
-                <p class="text-sm text-gray-400">Contextual Bias</p>
-
-                <div class="my-3 px-2">
-                    <div class="flex justify-between items-center text-xs font-mono mb-1">
-                        <span class="font-bold text-lg positive">${bullVal.toFixed(1)}</span>
-                        <span class="text-gray-400 text-sm">Confluence Meter</span>
-                        <span class="font-bold text-lg negative">${bearVal.toFixed(1)}</span>
-                    </div>
-                    <div class="w-full bg-gray-800 rounded-full h-2.5 flex border border-gray-700">
-                        <div class="bg-green-500 h-full rounded-l-full" style="width: ${bullPercent}%;"></div>
-                        <div class="bg-red-500 h-full rounded-r-full" style="width: ${bearPercent}%;"></div>
-                    </div>
-                </div>
-                <p class="text-base font-mono text-gray-400 p-2 rounded-md bg-gray-900/50 mt-2">
-                    ${bias.detail}
-                </p>
-            </div>
-
-            <hr class="border-gray-700"/>
-            <p id="signal-time-elapsed" class="text-center text-sm font-mono text-gray-500 mt-2">${isCurrentlyActive ? 'Aktif sejak: 00m 00s' : '— Sinyal Netral —'}</p>
-            <hr class="border-gray-700"/>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="text-center">
-                    <p class="text-lg text-yellow-400">${formatPrice(entry.price, symbol)}</p>
-                    <p class="text-sm text-gray-400">Entry</p>
-                    <p class="text-xs text-yellow-500">(${entry.percentage ? entry.percentage.toFixed(2) : '--'}%)</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-lg text-red-400">${formatPrice(sl.price, symbol)}</p>
-                    <p class="text-sm text-gray-400">Stop Loss</p>
-                    <p class="text-xs text-red-500">(${sl.percentage ? sl.percentage.toFixed(2) : '--'}%)</p>
-                </div>
-            </div>
-            <hr class="border-gray-700"/>
-            <div class="grid grid-cols-3 gap-4">
-                <div class="text-center">
-                    <p class="text-lg text-green-400">${formatPrice(tp1.price, symbol)}</p>
-                    <p class="text-sm text-gray-400">TP 1 (Struktural)</p>
-                    <p class="text-xs text-green-500">(${tp1.percentage ? tp1.percentage.toFixed(2) : '--'}%)</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-lg text-green-400">${formatPrice(tp2.price, symbol)}</p>
-                    <p class="text-sm text-gray-400">TP 2 (R:R 1:1.5)</p>
-                    <p class="text-xs text-green-500">(${tp2.percentage ? tp2.percentage.toFixed(2) : '--'}%)</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-lg ${tp3.price ? 'text-green-400' : 'text-gray-400'}">${formatPrice(tp3.price, symbol)}</p>
-                    <p class="text-sm text-gray-400">TP 3 (R:R 1:2)</p>
-                    <p class="text-xs ${tp3.price ? 'text-green-500' : 'text-gray-500'}">(${tp3.percentage ? tp3.percentage.toFixed(2) : '--'}%)</p>
-                </div>
-            </div>
-        </div>
-    `;
-
-    if (isCurrentlyActive) { updateTimerDisplay(); }
-}
 
     function updateSignalLogStatistics() {
         let allDurations = [];
@@ -3686,11 +3903,21 @@ function displayLiveSignal(signalData) {
             return 'N/A';
         }
 
-        const precision = precisionMap[symbol];
+        // 1. Coba dapatkan presisi dari simbol yang diberikan secara spesifik.
+        let precision = precisionMap[symbol];
 
+        // 2. JIKA GAGAL (atau simbol tidak diberikan): Gunakan simbol utama yang sedang aktif sebagai fallback.
+        if (typeof precision !== 'number' && realtimeCache.main.symbol) {
+            precision = precisionMap[realtimeCache.main.symbol];
+        }
+
+        // 3. Jika presisi berhasil ditemukan (dari salah satu cara di atas), format harga.
         if (typeof precision === 'number') {
             return `$${price.toFixed(precision)}`;
-        } else {
+        } 
+        
+        // 4. Fallback terakhir jika semua gagal (seharusnya jarang terjadi setelah sesi live dimulai).
+        else {
             return price >= 1 ? `$${price.toFixed(2)}` : `$${parseFloat(price.toFixed(8))}`;
         }
     }
@@ -3890,7 +4117,7 @@ function displayLiveSignal(signalData) {
     setButtonState(startLiveBtn, true, "Menunggu AI Ready...");
     const modelReady = await waitForModel();
     if (!modelReady) {
-        alert("Gagal memuat model AI (TF.js). Beralih ke mode Bunglon.");
+        alert("Gagal memuat model AI (TF.js). Beralih ke mode AutoSwitch Without AI");
         setButtonState(startLiveBtn, false, "▶️ START LIVE");
         return;
     }
@@ -3955,9 +4182,21 @@ function displayLiveSignal(signalData) {
 
         document.querySelectorAll('.htf-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                // 1. Logic standar (mengatur tombol aktif)
                 document.querySelectorAll('.htf-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                updateHtfCompass(btn.dataset.timeframe);
+                
+                const newTimeframe = btn.dataset.timeframe;
+                const symbol = liveSymbolInput.value.toUpperCase();
+
+                // 2. Update VWAP Trend (Kompas)
+                updateHtfCompass(newTimeframe); 
+
+                // 3. 🔥 PERBAIKAN KRUSIAL: Update Resistance/Support menggunakan timeframe baru
+                updateMarketStructurePanel(symbol, newTimeframe); 
+
+                // Opsional: Reset throttling agar segera update
+                lastMarketStructureUpdate = 0; 
             });
         });
 
@@ -3969,38 +4208,57 @@ function displayLiveSignal(signalData) {
 
             // --- 1. FETCH DATA SENTIMEN ASYNC ---
             const symbol = realtimeCache.main.symbol;
-            
-            
-            //if (!window.lastMarketStructureUpdate || Date.now() - window.lastMarketStructureUpdate > 30000) {
-                //updateMarketStructurePanel(symbol, '4h'); // Gunakan timeframe 4h sebagai default
-                //window.lastMarketStructureUpdate = Date.now();
-            //}
+           // GANTI SELURUH BLOK LAMA (LOGIKA PEMANGGILAN MARKET STRUCTURE) DENGAN KODE BARU INI:
+            // ----------------------------------------------------------------------
 
-            // 🔥 FASE 7: THROTTLING MARKET STRUCTURE (30 detik) 🔥
+            // 1. Tentukan Timeframe: Ambil dari tombol HTF yang sedang aktif (misalnya 1H atau 4H)
+            const activeHtfButton = document.querySelector('.htf-btn.active');
+            const selectedHtfTimeframe = activeHtfButton ? activeHtfButton.dataset.timeframe : '4h'; // Default ke 4H
+
+            // 2. Throttling: Hanya jalankan Market Structure setiap 30 detik
             if (Date.now() - lastMarketStructureUpdate > MS_UPDATE_INTERVAL_MS) {
-                updateMarketStructurePanel(symbol, '4h'); // Pemanggilan Market Structure HTF
+                // PANGGIL Market Structure (Resistance/Support) dengan Timeframe yang dipilih
+                updateMarketStructurePanel(symbol, selectedHtfTimeframe); 
+                
+                // Reset timer
                 lastMarketStructureUpdate = Date.now();
             }
 
+            // ----------------------------------------------------------------------
+
             let fundingRateData = { lastFundingRate: 0 };
             let lsRatioData = { longShortRatio: 1.0 };
+            let lsTopRatioRes; // <-- Tambahkan deklarasi ini
             let openInterestData = [];
             
             try {
-                const [fundingRes, lsRatioRes, openInterestRes] = await Promise.all([
+                let fundingRes, lsRatioRes, openInterestRes;
+                [fundingRes, lsRatioRes, lsTopRatioRes, openInterestRes] = await Promise.all([
                     fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${symbol}`),
                     fetch(`https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=${symbol}&period=5m&limit=1`),
+                    fetch(`https://fapi.binance.com/futures/data/topLongShortAccountRatio?symbol=${symbol}&period=5m&limit=1`),
                     fetch(`https://fapi.binance.com/futures/data/openInterestHist?symbol=${symbol}&period=5m&limit=2`)
                 ]);
-                if (fundingRes.ok) fundingRateData = await fundingRes.json();
+
+                if (fundingRes.ok) {
+                    fundingRateData = await fundingRes.json();
+                    nextFundingTimestamp = fundingRateData.nextFundingTime || 0; // <-- Tambahkan baris ini
+                }
                 if (lsRatioRes.ok) {
                     const lsData = await lsRatioRes.json();
                     if (lsData.length > 0) lsRatioData = lsData[0];
                 }
                 if (openInterestRes.ok) openInterestData = await openInterestRes.json();
-            } catch (e) {}
+            } catch (e) { console.error("Gagal mengambil data sentimen:", e); }
 
             const klinesSnapshot = liveData.slice(-500); 
+
+            let lsTopRatioData = { longShortRatio: 0 };
+            if (lsTopRatioRes.ok) {
+                const lsTopData = await lsTopRatioRes.json();
+                if (lsTopData.length > 0) lsTopRatioData = lsTopData[0];
+            }
+
             const closes = klinesSnapshot.map(k => parseFloat(k[4]));
             const lastClose = closes.slice(-1)[0];
             const prevClose = closes.slice(-2)[0];
@@ -4082,17 +4340,50 @@ function displayLiveSignal(signalData) {
                     ? ( (lastClose - prevClose > 0 && parseFloat(openInterestData[1].sumOpenInterestValue) > parseFloat(openInterestData[0].sumOpenInterestValue)) ? 'BULLISH_CONFIRMATION' : ((lastClose - prevClose < 0 && parseFloat(openInterestData[1].sumOpenInterestValue) > parseFloat(openInterestData[0].sumOpenInterestValue)) ? 'BEARISH_CONFIRMATION' : 'NETRAL') )
                     : 'NETRAL' }
             };
-            
-            // Kalkulasi Skor Konfluensi
-            const confluenceScores = calculateConfluenceScoreForCandle(currentWeights, indicators, currentRegime);
-            const bullScore = confluenceScores.bull;
-            const bearScore = confluenceScores.bear;
+            let entryPrice = calculateEMA(closes, parameters.pullbackEmaPeriod).pop();
+            // Kalkulasi Skor Konfluensi & Fibonacci
+                const confluenceScores = calculateConfluenceScoreForCandle(currentWeights, indicators, currentRegime);
+                let fibRetracementLevels = null;
+                let fibExtensionLevels = null;
+
+                // Cari ayunan harga (swing) signifikan terakhir
+                const lastSwing = findLastSignificantSwing(klinesSnapshot);
+
+                if (lastSwing) {
+                    fibRetracementLevels = calculateFibonacciRetracement(lastSwing);
+                    fibExtensionLevels = calculateAdvancedFibonacciExtension(lastSwing);
+                }
+
+                // --- PENGUATAN SKOR KONFLUENSI DARI FIBONACCI (KODE DEFINITIF) ---
+                if (fibRetracementLevels && fibRetracementLevels.levels) {
+                    const entryPriceCandle = entryPrice; 
+                    const zoneTop = Math.max(fibRetracementLevels.levels.level_0_5, fibRetracementLevels.levels.level_0_618);
+                    const zoneBottom = Math.min(fibRetracementLevels.levels.level_0_5, fibRetracementLevels.levels.level_0_618);
+
+                    if (entryPriceCandle >= zoneBottom && entryPriceCandle <= zoneTop) {
+                        const fiboBoostValue = 15.0;
+
+                        if (confluenceScores.bull > confluenceScores.bear) { 
+                            confluenceScores.totalBullScore += fiboBoostValue;
+                            console.log(`🧠 Fibo Boost: Skor Bullish +${fiboBoostValue} (Entri di Golden Zone)`);
+                        } else if (confluenceScores.bear > confluenceScores.bull) { 
+                            confluenceScores.totalBearScore += fiboBoostValue;
+                            console.log(`🧠 Fibo Boost: Skor Bearish +${fiboBoostValue} (Entri di Golden Zone)`);
+                        }
+                        confluenceScores.maxPossibleScore += fiboBoostValue;
+                    }
+                }
+
+                // Hitung ulang persentase SETELAH potensi boost dari Fibo
+                const bullScore = confluenceScores.maxPossibleScore > 0 ? (confluenceScores.totalBullScore / confluenceScores.maxPossibleScore) * 100 : 0;
+                const bearScore = confluenceScores.maxPossibleScore > 0 ? (confluenceScores.totalBearScore / confluenceScores.maxPossibleScore) * 100 : 0;
+                // --- AKHIR BLOK PENGUATAN SKOR ---
             
             // --- 4. PENENTUAN BIAS DAN SETUP TP/SL (PULIH) ---
             const isLongBias_LTF = bullScore > bearScore && (bullScore - bearScore) > biasThreshold;
             const isShortBias_LTF = bearScore > bullScore && (bearScore - bullScore) > biasThreshold;
             
-            let entryPrice = calculateEMA(closes, parameters.pullbackEmaPeriod).pop();
+            
             let stopLoss = 0, tp1 = 0, tp2 = 0, tp3 = 0; 
             let biasStatus = 'NEUTRAL';
             const currentRegimeDisplay = activeRegimeKey; 
@@ -4175,7 +4466,12 @@ function displayLiveSignal(signalData) {
                 sl: { price: stopLoss, percentage: stopLoss && entryPrice ? ((stopLoss - entryPrice) / entryPrice) * 100 : null },
                 tp1: { price: tp1, percentage: tp1 && entryPrice ? ((tp1 - entryPrice) / entryPrice) * 100 : null },
                 tp2: { price: tp2, percentage: tp2 && entryPrice ? ((tp2 - entryPrice) / entryPrice) * 100 : null },
-                tp3: { price: tp3, percentage: tp3 && entryPrice ? ((tp3 - entryPrice) / entryPrice) * 100 : null }
+                tp3: { price: tp3, percentage: tp3 && entryPrice ? ((tp3 - entryPrice) / entryPrice) * 100 : null },
+            
+                fib_levels: {
+                    retracement: fibRetracementLevels,
+                    extension: fibExtensionLevels
+                }
             };
             
             const activePosition = paperTrade.state.position;
@@ -4221,28 +4517,32 @@ function displayLiveSignal(signalData) {
             // LOGIKA AUTO ENTRY
             // ======================================================================
             const signalPrice = currentMarketPrice;
+            
+            
+            realtimeCache.main.latestScalpingSetup = signalData; 
+
+            displayLiveSignal(signalData);
+            
             if (isSignalActive && !activePosition) {
                 const allowedStrategies = getAftAllowedStrategies();
 
-                // 🔥 MODIFIKASI FASE 2: PENERAPAN FILTER STABILITAS 🔥
+                // --- TAMBAHKAN BLOK YANG HILANG DI SINI ---
                 const regimeFilterMode = document.querySelector('input[name="regime-filter-mode"]:checked')?.value || 'KONFIRMASI';
-
                 let isRegimeStable = true;
                 if (regimeFilterMode === 'KONFIRMASI') {
                     const requiredRegime = biasStatus.includes('LONG') ? 'BULL_TREND' : 'BEAR_TREND';
                     const opposingRegime = biasStatus.includes('LONG') ? 'BEAR_TREND' : 'BULL_TREND';
-                    
                     const requiredCount = regimeMemory.filter(r => r === requiredRegime).length;
                     const opposingCount = regimeMemory.filter(r => r === opposingRegime).length;
-                    
-                    // Aturan Konfirmasi: Posisi LONG hanya dieksekusi jika mayoritas (minimal 3/4) prediksi terakhir adalah BULL_TREND (dan sebaliknya untuk SHORT).
                     if (requiredCount < (REGIME_MEMORY_SIZE / 2) + 1 || opposingCount > 0) {
                         isRegimeStable = false;
                         console.log(`❌ [AFT FILTER] Ditolak: Stabilitas Rezim tidak terpenuhi. Memori: ${requiredCount}x ${requiredRegime}.`);
                     } else {
-                        console.log(`✅ [AFT FILTER] Diterima: Stabilitas Rezim terpenuhi.`)
+                        console.log(`✅ [AFT FILTER] Diterima: Stabilitas Rezim terpenuhi.`);
                     }
                 }
+    // --- AKHIR BLOK YANG DITAMBAHKAN ---
+
                 
                 // Cek kedua filter
                 if (allowedStrategies.includes(biasStatus) && isRegimeStable) {
@@ -4306,15 +4606,33 @@ function displayLiveSignal(signalData) {
                     }
                 }
             }
-            
-            realtimeCache.main.latestScalpingSetup = signalData; 
 
-            displayLiveSignal(signalData);
             paperTrade.update();
 
             document.getElementById('active-regime-display').textContent = currentRegime.replace('_', ' ');
+            
+            // ++ START BLOK BARU
+            // Kalkulasi data untuk panel sentiment
+            const psarData = calculateParabolicSAR(klinesSnapshot);
+            const rocValue = ((closes[closes.length - 1] - closes[closes.length - 1 - 12]) / closes[closes.length - 1 - 12]) * 100;
+            const adxData = calculateADX(klinesSnapshot);
+            const oiValue = openInterestData.length > 0 ? parseFloat(openInterestData[1].sumOpenInterestValue) : 0;
+
+            // Panggil fungsi untuk update UI
+            updateSentimentDisplay({
+                psar: psarData.status,
+                roc: rocValue,
+                adx: adxData.value,
+                atr: atrData,
+                lsGlobal: parseFloat(lsRatioData.longShortRatio),
+                lsTop: parseFloat(lsTopRatioData.longShortRatio),
+                funding: parseFloat(fundingRateData.lastFundingRate),
+                oi: oiValue
+            });
+            // ++ END BLOK BARU
+
             document.getElementById('active-regime-display').className = getRegimeColorClass(currentRegime);
-            document.getElementById('ai-status').textContent = 'AI Ready (TF.js)'; // Kunci status ke SIAP (TF.js)
+            document.getElementById('ai-status').textContent = 'AI Ready (LSTM TF.js)'; // Kunci status ke SIAP (TF.js)
 
             // --- START MODIFIKASI FASE 4-C: LOGIKA SELF-OPTIMIZATION ---
             try {
@@ -4347,7 +4665,7 @@ function displayLiveSignal(signalData) {
         
         // PENTING: Pindah ke mode Bunglon di sini jika AI gagal
         document.getElementById('active-regime-display').textContent = 'FALLBACK (Gagal AI)';
-        document.getElementById('ai-status').textContent = 'SIAP (Bunglon)';
+        document.getElementById('ai-status').textContent = 'AutoSwitch (No-AI)';
         
         setButtonState(startLiveBtn, false, "▶️ START LIVE");
         resetLiveSession();
@@ -4538,47 +4856,15 @@ function displayLiveSignal(signalData) {
         // Listener baru untuk alur kerja API
         const connectApiBtn = document.getElementById('connect-api-btn');
         if (connectApiBtn) {
-            connectApiBtn.addEventListener('click', () => toggleApiKeyModal(true));
-        }
-    document.getElementById('api-key-save-btn').addEventListener('click', () => {
-            binanceApiKeys.key = document.getElementById('api-key-input').value;
-            binanceApiKeys.secret = document.getElementById('api-secret-input').value;
-            if (binanceApiKeys.key && binanceApiKeys.secret) {
-                toggleApiKeyModal(false);
-                
-                // --- LOGIKA HANYA SAVE & SIAPKAN UI ---
-                document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-green-500';
-                document.getElementById('api-status-text').textContent = 'BINANCE LIVE READY'; // Status: Siap
-                
-                const connectBtnSpan = document.getElementById('connect-api-status-text');
-                connectBtnSpan.textContent = '⚡️ LIVE TRADE'; // Tombol tetap sebagai indikator mode
-                connectBtnSpan.classList.remove('blinking-status'); // Jangan berkedip dulu
-                document.getElementById('connect-api-btn').classList.add('!bg-red-600'); 
-
-                // Set mode API di memori agar tombol START LIVE tahu mode yang digunakan
+            connectApiBtn.addEventListener('click', () => {
+                // Logika hanya untuk menandakan bahwa proxy sudah dikonfigurasi
                 lastUsedApiMode = true; 
-                
-                alert("✅ Kunci API Tersimpan. Sekarang, tekan tombol '▶️ START LIVE' untuk memulai trading!");
-                
-            } else {
-                alert("Mohon isi kedua kunci API untuk mode online.");
-            }
-        });
-        // Temukan blok ini: document.getElementById('api-key-cancel-btn').addEventListener(...)
-        document.getElementById('api-key-cancel-btn').addEventListener('click', () => {
-            toggleApiKeyModal(false);
-            
-            // --- LOGIKA SIMULASI ---
-            document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-yellow-500';
-            document.getElementById('api-status-text').textContent = 'Offline (Lokal)';
-            
-            const connectBtnSpan = document.getElementById('connect-api-status-text');
-            connectBtnSpan.textContent = '🔗 SIMULASI'; // Kembalikan teks ke SIMULASI/OFFLINE
-            connectBtnSpan.classList.remove('blinking-status'); // Nonaktifkan blinking
-            document.getElementById('connect-api-btn').classList.remove('!bg-red-600');
-            
-            startSimulation(false);
-        });
+                document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-green-500';
+                document.getElementById('api-status-text').textContent = 'PROXY LIVE READY';
+                document.getElementById('connect-api-status-text').textContent = '⚡️ PROXY CONNECTED'; 
+                alert("✅ Proxy Connected. Tekan '▶️ START LIVE' untuk sinkronisasi saldo.");
+            });
+        }
 
         startLiveBtn.addEventListener('click', () => {
             const startLiveText = startLiveBtn.querySelector('span');
@@ -4625,6 +4911,7 @@ function displayLiveSignal(signalData) {
         paperTrade.init();
         await loadRegimeSensorModel();
         updateSignalLogStatistics();
+        startFundingCountdown();
     });
 
 </script>
