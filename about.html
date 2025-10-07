@@ -47,6 +47,7 @@
 
         <div id="api-status-display" class="flex items-center gap-2 text-sm font-mono">
             <div class="flex items-center gap-2">
+                <span><span id="live-price-display" class="text-lg font-mono text-yellow-400">$0.00</span></span>
                 <div id="api-status-dot" class="w-3 h-3 rounded-full bg-gray-500"></div>
                 <span id="api-status-text" class="text-gray-400">View Only</span>
             </div>
@@ -140,7 +141,7 @@
             <div id="live-signal-panel" class="card p-3 mt-6">
                 <h2 class="text-xl font-semibold mb-4 text-orange-500 flex items-center justify-between">
                     <span></span>
-                    <span><span id="live-price-display" class="font-mono text-white">$0.00</span></span>
+                    
                 </h2>
                 <div id="htf-compass-container" class="mb-4 p-3 rounded-lg bg-gray-900/50 border border-gray-700">
                     <div class="flex justify-between items-center">
@@ -838,7 +839,6 @@
                         // 1. Ambil data Akun (Balance)
                         const accountData = await sendBinanceRequest('GET', '/v1/account', true, null);
                         const positionData = await sendBinanceRequest('GET', '/v1/positionRisk', true, null);
-
                         // Asumsi: Kita hanya tertarik pada aset USDT
                         const usdtBalance = accountData.assets.find(a => a.asset === 'USDT');
                         
@@ -2787,39 +2787,54 @@
         }
     }
 
-    async function sendBinanceRequest(method, endpoint, params = {}) {
-        if (!binanceApiKeys.key || !binanceApiKeys.secret) {
-            throw new Error("API Key atau Secret Key belum diatur.");
-        }
-
-        // URL diatur permanen ke Live Trade
-        const baseUrl = 'https://fapi.binance.com';
-        const timestamp = Date.now();
-        const queryString = new URLSearchParams({ ...params, timestamp }).toString();
-        const signature = CryptoJS.HmacSHA256(queryString, binanceApiKeys.secret).toString(CryptoJS.enc.Hex);
-        const url = `${baseUrl}${endpoint}?${queryString}&signature=${signature}`;
-        
-        const response = await fetch(url, {
-            method: method.toUpperCase(),
-            headers: { 'X-MBX-APIKEY': binanceApiKeys.key }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            
-            // 🔥 TAMBAHAN LOGIKA FAIL-SAFE BARU 🔥
-            if (errorData.code === -2015 || errorData.msg.includes('Load failed')) {
-                console.error("❌ API ERROR KRITIS! Kunci salah atau IP diblokir. Mereset sesi...");
-                alert(`🚨 KONEKSI PUTUS: Gagal otentikasi/Load failed. Cek IP Whitelist & Izin Kunci Anda. Sistem dialihkan ke Simulasi.`);
-                fallbackToSimulationMode(); // Panggil fungsi fallback yang sudah kita buat
-            }
-            // 🔥 AKHIR TAMBAHAN 🔥
-
-            throw new Error(`Binance API Error: ${errorData.msg} (code: ${errorData.code})`);
-        }
-
-        return response.json();
+    // GANTI FUNGSI INI
+async function sendBinanceRequest(method, endpoint, isSigned = true, params = {}) {
+    if (!binanceApiKeys.key || !binanceApiKeys.secret) {
+        throw new Error("API Key atau Secret Key belum diatur.");
     }
+    
+    const baseUrl = 'https://fapi.binance.com/fapi/v1';
+    let finalUrl = `${baseUrl}${endpoint}`;
+
+    // 1. Kumpulkan semua parameter, termasuk timestamp jika perlu
+    let allParams = { ...params };
+    
+    if (isSigned) {
+        // PENTING: Tambahkan timestamp ke parameter yang akan di-sign
+        allParams.timestamp = Date.now();
+        
+        // 2. Sortir Parameter secara alfabetis
+        const sortedKeys = Object.keys(allParams).sort();
+        const sortedParams = sortedKeys.map(key => `${key}=${allParams[key]}`).join('&');
+        
+        // 3. Buat Signature
+        const signature = CryptoJS.HmacSHA256(sortedParams, binanceApiKeys.secret).toString(CryptoJS.enc.Hex);
+        
+        // 4. Gabungkan Query String dengan Signature
+        finalUrl = `${finalUrl}?${sortedParams}&signature=${signature}`;
+    } else if (Object.keys(allParams).length > 0) {
+        // Untuk endpoint publik (tidak bertanda tangan)
+        finalUrl = `${finalUrl}?${new URLSearchParams(allParams).toString()}`;
+    }
+
+    // KIRIM PERMINTAAN
+    const response = await fetch(finalUrl, {
+        method: method.toUpperCase(),
+        headers: { 'X-MBX-APIKEY': binanceApiKeys.key }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.code === -2015 || errorData.msg.includes('Load failed')) {
+            console.error("❌ API ERROR KRITIS! Kunci salah atau IP diblokir. Mereset sesi...");
+            alert(`🚨 KONEKSI PUTUS: Gagal otentikasi/Load failed. Cek IP Whitelist & Izin Kunci Anda. Sistem dialihkan ke Simulasi.`);
+            fallbackToSimulationMode(); 
+        }
+        throw new Error(`Binance API Error: ${errorData.msg} (code: ${errorData.code})`);
+    }
+
+    return response.json();
+}
 
     function toggleApiKeyModal(show) {
         const modal = document.getElementById('api-key-modal');
@@ -4525,22 +4540,26 @@ function displayLiveSignal(signalData) {
         if (connectApiBtn) {
             connectApiBtn.addEventListener('click', () => toggleApiKeyModal(true));
         }
-        document.getElementById('api-key-save-btn').addEventListener('click', () => {
+    document.getElementById('api-key-save-btn').addEventListener('click', () => {
             binanceApiKeys.key = document.getElementById('api-key-input').value;
             binanceApiKeys.secret = document.getElementById('api-secret-input').value;
             if (binanceApiKeys.key && binanceApiKeys.secret) {
                 toggleApiKeyModal(false);
                 
-                // --- LOGIKA LIVE TRADE ---
+                // --- LOGIKA HANYA SAVE & SIAPKAN UI ---
                 document.getElementById('api-status-dot').className = 'w-3 h-3 rounded-full bg-green-500';
-                document.getElementById('api-status-text').textContent = 'BINANCE LIVE';
+                document.getElementById('api-status-text').textContent = 'BINANCE LIVE READY'; // Status: Siap
                 
                 const connectBtnSpan = document.getElementById('connect-api-status-text');
-                connectBtnSpan.textContent = '⚡️ LIVE TRADE'; // Ubah teks tombol ke Live Trade
-                connectBtnSpan.classList.add('blinking-status'); // Aktifkan blinking
-                document.getElementById('connect-api-btn').classList.add('!bg-red-600'); // Opsional: Beri warna merah
+                connectBtnSpan.textContent = '⚡️ LIVE TRADE'; // Tombol tetap sebagai indikator mode
+                connectBtnSpan.classList.remove('blinking-status'); // Jangan berkedip dulu
+                document.getElementById('connect-api-btn').classList.add('!bg-red-600'); 
+
+                // Set mode API di memori agar tombol START LIVE tahu mode yang digunakan
+                lastUsedApiMode = true; 
                 
-                startSimulation(true);
+                alert("✅ Kunci API Tersimpan. Sekarang, tekan tombol '▶️ START LIVE' untuk memulai trading!");
+                
             } else {
                 alert("Mohon isi kedua kunci API untuk mode online.");
             }
@@ -4564,23 +4583,26 @@ function displayLiveSignal(signalData) {
         startLiveBtn.addEventListener('click', () => {
             const startLiveText = startLiveBtn.querySelector('span');
 
-            // Cek kondisi STOP (logika ini sudah benar)
+            // Cek kondisi STOP
             if (startLiveText && startLiveText.textContent.includes("STOP")) {
                 resetLiveSession();
                 setButtonState(startLiveBtn, false, "▶️ START LIVE");
                 return;
             }
-
-            // Jika bukan tombol STOP, maka ini adalah perintah START.
-            // 🔥 HAPUS BLOK IF INI
-            // if (!activeStrategy.metadata) {
-            //     alert("Mohon impor file DNA strategi terlebih dahulu.");
-            //     return;
-            // }
             
-            // --- PERBAIKAN UTAMA: Langsung jalankan simulasi dengan mode terakhir ---
-            console.log(`Memulai ulang sesi dengan mode terakhir (Online: ${lastUsedApiMode})`);
-            startSimulation(lastUsedApiMode);
+            // 🔥 KRUSIAL: Panggil mode yang terakhir disimpan
+            const targetMode = lastUsedApiMode; // Target mode adalah mode API yang disimpan
+            
+            if (targetMode && !binanceApiKeys.key) {
+                // Mencegah start jika mode LIVE dipilih tapi kunci hilang
+                alert("Gagal memulai Live Trade. Mohon masukkan kembali kunci API Anda.");
+                lastUsedApiMode = false;
+                startSimulation(false); // Fallback ke simulasi
+                return;
+            }
+            
+            console.log(`Memulai sesi dengan mode: ${targetMode ? 'LIVE TRADE' : 'SIMULASI'}`);
+            startSimulation(targetMode); // Panggil mode yang disimpan
         });
 
         document.querySelectorAll('.chart-tf-btn').forEach(btn => { /* ... (kode event listener chart Anda) */ });
