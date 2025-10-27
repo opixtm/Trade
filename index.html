@@ -597,7 +597,7 @@
                 </div>
             </div>
             <a href="#" id="trade-link" class="text-right no-underline hidden flex items-baseline gap-2">
-                <span id="nav-timeframe" class="text-base font-semibold blinking-yellow-slow mr-2"></span>
+                <span id="nav-timeframe" class="text-base font-semibold blinking-yellow-slow mr-2">TIMEFRAME</span>
                 <span id="nav-symbol" class="text-base font-bold text-blue-500 dark:text-green-500"></span>
                 <span id="nav-price" class="text-yellow-500 text-lg">-</span>
             </a>
@@ -689,7 +689,7 @@
                                 <label for="preset-select" class="font-semibold text-gray-700 dark:text-gray-300">TradingStyle</label>
                                 <select id="preset-select" class="input-primary !w-auto text-sm">
                                     <option value="default">Default</option>
-                                    <option value="scalper">Scalper</option>
+                                    <option value="scalper" checked>Scalper</option>
                                     <option value="dayTrader">Day Trader</option>
                                     <option value="swingTrader">Swing Trader</option>
                                 </select>
@@ -946,7 +946,7 @@
                             </button>
                             <div id="current-state-content-wrapper" class="collapsible-content expanded">
                                 <div class="space-y-6">
-                                    <h2 class="text-lg font-semibold text-center">Calculated Timeframe <span id="quick-confluence-timeframe">5m</span></h2>
+                                    <h2 class="text-lg font-semibold text-center">Calculated Timeframe <span id="quick-confluence-timeframe"></span></h2>
                                     <div class="flex items-center gap-3 my-2">
                                         <div id="quick-finalBearishScore" class="text-2xl font-bold status-downtrend text-right w-1/5">🐻 0%</div>
                                         <div class="confluence-bar-container w-3/5">
@@ -3755,7 +3755,7 @@
     }
 // 
     async function updateQuickConfluenceWidget() {
-console.log('🏁 CHECKPOINT 3: Entering updateQuickConfluenceWidget. Data received:', realtimeCache.main.calculatedData);        
+//console.log('🏁 CHECKPOINT 3: Entering updateQuickConfluenceWidget. Data received:', realtimeCache.main.calculatedData);        
         const data = realtimeCache.main.calculatedData;
         // Safety check: Pastikan data kalkulasi sudah siap
         if (!data || !data.marketRegime) {
@@ -3899,7 +3899,7 @@ console.log('🏁 CHECKPOINT 3: Entering updateQuickConfluenceWidget. Data recei
             realtimeCache.main.lsRatioUmumData,
             realtimeCache.main.openInterestData
         );
-console.log('✅ CHECKPOINT 2: calculatedData received. Has marketRegime property?', realtimeCache.main.calculatedData.hasOwnProperty('marketRegime'));
+//console.log('✅ CHECKPOINT 2: calculatedData received. Has marketRegime property?', realtimeCache.main.calculatedData.hasOwnProperty('marketRegime'));
         populateCurrentStateWidget();
         populateConfluenceDetailsWidget();
         await updateQuickConfluenceWidget();
@@ -4882,6 +4882,8 @@ console.log('✅ CHECKPOINT 2: calculatedData received. Has marketRegime propert
         dashboardContent.classList.remove('hidden');
         const navHeight = document.getElementById('sticky-nav-wrapper').offsetHeight;
         
+        document.getElementById('quick-confluence-timeframe').textContent = timeframeSelect.value;
+
         populateCurrentStateWidget();
         populateConfluenceDetailsWidget();
         populateCorrelationWidget(); 
@@ -5936,7 +5938,7 @@ console.log('✅ CHECKPOINT 2: calculatedData received. Has marketRegime propert
         const obvTrend = obvValues.length > 1 && obvValues[obvValues.length - 1] > obvValues[obvValues.length - 2] ? 'Naik' : 'Turun';
         const lastObv = obvValues.length > 0 ? obvValues[obvValues.length - 1] : 0;
         const marketRegime = await predictMarketRegime(klines);
-console.log('✅ CHECKPOINT 1: AI Prediction SUCCESS. Regime:', marketRegime);
+//console.log('✅ CHECKPOINT 1: AI Prediction SUCCESS. Regime:', marketRegime);
         return {
             adx: calculateADX(klines),
             cvd: CVDanalyze(klines, cvdData),
