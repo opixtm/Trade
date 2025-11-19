@@ -4202,13 +4202,6 @@
         const correlationValue = calculateCorrelation(assetDailyKlines.map(k=>parseFloat(k[4])), btcDailyKlines.map(k=>parseFloat(k[4])));
         
         // 5. UPDATE CACHE UTAMA DENGAN SEMUA DATA MENTAH
-        //realtimeCache.main = { 
-            //symbol: binanceSymbol, tickerData, klines, klines1h, klines15m, orderBookData, 
-            //cvdData, openInterestData, fundingRateData, lsRatioUmumData, lsRatioTopData, 
-            //binanceSymbol, selectedTimeframe, correlationData: correlationValue,
-           // multiTfKlines: { [selectedTimeframe]: klines },
-            //liveScores: { pumpStrength: 0, dumpRisk: 0 } 
-       // };
         realtimeCache.main = { 
             symbol: binanceSymbol, 
             tickerData, 
@@ -4224,10 +4217,8 @@
             binanceSymbol, 
             selectedTimeframe, 
             correlationData: correlationValue,
-            // BARIS KRITIS YANG HILANG:
             globalData: results[7].status === 'fulfilled' ? results[7].value : null,  // Tambahkan Global Data
             coinGeckoData: results[8].status === 'fulfilled' ? results[8].value : null, // Tambahkan CoinGecko Data
-            // END BARIS KRITIS
             multiTfKlines: { [selectedTimeframe]: klines },
             liveScores: { pumpStrength: 0, dumpRisk: 0 } 
         };
@@ -6160,10 +6151,10 @@
                 });
                 
                 candidates.sort((a, b) => b.strengthScore - a.strengthScore);
-                finalSortedGainers = candidates.slice(0, 5);
+                finalSortedGainers = candidates.slice(0, 10);
 
             } else {
-                finalSortedGainers = candidates.slice(0, 5);
+                finalSortedGainers = candidates.slice(0, 10);
                 finalSortedGainers.forEach(d => d.dynamicPriceChange = parseFloat(d.priceChangePercent));
             }
 
@@ -6196,7 +6187,7 @@
             }));
 
             // >>> AWAL BLOK PENAMBAHAN ASET PIN <<<
-    const pinnedAssets = ['BTCUSDT', '1000PEPEUSDT'];
+    const pinnedAssets = ['BTCUSDT', 'ASTERUSDT'];
     
     // Filter aset pin yang belum ada di daftar top movers untuk menghindari duplikat
     const existingSymbols = new Set(gainersWithDetails.map(m => m.symbol));
