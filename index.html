@@ -988,19 +988,15 @@
                                 class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                                 <div id="top-movers-controls"
                                     class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                                    <div id="top-movers-timeframe-selector" class="flex flex-wrap gap-2">
-                                        <button data-timeframe="1m"
-                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1m</button>
-                                        <button data-timeframe="3m"
-                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5">3m</button>
-                                        <button data-timeframe="5m"
-                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5">5m</button>
-                                        <button data-timeframe="15m"
-                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5">15m</button>
-                                        <button data-timeframe="1h"
-                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">1H</button>
-                                        <button data-timeframe="24h"
-                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5">24H</button>
+                                    <div class="flex gap-2 items-center" id="top-movers-tf-options">
+                                        <button data-timeframe="4h"
+                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5 active">4H</button>
+                                        <button data-timeframe="1d"
+                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1D</button>
+                                        <button data-timeframe="1w"
+                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5">1W</button>
+                                        <button data-timeframe="1M"
+                                            class="top-movers-tf-btn toggle-btn text-xs !p-1.5">30D</button>
                                     </div>
                                     <div class="flex gap-2 items-center">
                                         <select id="refresh-interval-select" class="input-primary text-xs !w-auto !p-1">
@@ -7291,8 +7287,14 @@
                 btn.addEventListener("click", () => {
                     document.querySelectorAll(".top-movers-tf-btn").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
-                    const timeframe = btn.dataset.timeframe;
-                    startTopMoversAutoRefresh(timeframe, currentInterval);
+                    window.currentScanTimeframe = btn.dataset.timeframe;
+
+                    // Trigger scan for active tab
+                    if (!document.getElementById('pump-hunter-list').classList.contains('hidden')) {
+                        PumpHunter.scan();
+                    } else {
+                        DipHunter.scan();
+                    }
                 });
             });
         }
@@ -8490,7 +8492,7 @@
                         await new Promise(r => setTimeout(r, 100)); // Rate limit safety
 
                         try {
-                            const klines = await fetchBinanceAPIData('klines', { symbol: coin.symbol, interval: '4h', limit: 100 }, 'futures');
+                            const klines = await fetchBinanceAPIData('klines', { symbol: coin.symbol, interval: window.currentScanTimeframe || '4h', limit: 100 }, 'futures');
                             if (!klines || klines.length < 90) continue;
 
                             const closes = klines.map(k => parseFloat(k[4]));
@@ -8728,7 +8730,7 @@
                         await new Promise(r => setTimeout(r, 100));
 
                         try {
-                            const klines = await fetchBinanceAPIData('klines', { symbol: coin.symbol, interval: '4h', limit: 100 }, 'futures');
+                            const klines = await fetchBinanceAPIData('klines', { symbol: coin.symbol, interval: window.currentScanTimeframe || '4h', limit: 100 }, 'futures');
                             if (!klines || klines.length < 90) continue;
 
                             const closes = klines.map(k => parseFloat(k[4]));
@@ -8956,6 +8958,7 @@
 
 
             loadSettings();
+            window.currentScanTimeframe = '4h'; // Default Timeframe
             initTopMoversTimeframeSelector();
             initRefreshIntervalSelector();
             adjustContentPadding();
