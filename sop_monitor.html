@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOP Monitor: The Sleeping Giant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js" defer></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #cbd5e1;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .blink-green {
+            animation: flashGreen 1s;
+        }
+
+        .blink-red {
+            animation: flashRed 1s;
+        }
+
+        @keyframes flashGreen {
+            0% {
+                color: #4ade80;
+                text-shadow: 0 0 5px #4ade80;
+            }
+
+            100% {
+                color: inherit;
+            }
+        }
+
+        @keyframes flashRed {
+            0% {
+                color: #f87171;
+                text-shadow: 0 0 5px #f87171;
+            }
+
+            100% {
+                color: inherit;
+            }
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body x-data="tradingApp()" x-init="initApp()">
+
+    <div
+        class="fixed top-0 w-full bg-slate-900 border-b border-slate-700 z-50 px-4 py-3 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">🦖</span>
+            <div>
+                <h1 class="font-bold text-emerald-400 text-lg tracking-wider">GIANT MONITOR</h1>
+                <p class="text-xs text-slate-400">SOP Anti-Likuidasi • Websocket: <span
+                        :class="wsStatus ? 'text-green-500' : 'text-red-500'"
+                        x-text="wsStatus ? 'CONNECTED' : 'DISCONNECTED'"></span></p>
+            </div>
+        </div>
+        <div class="text-right">
+            <p class="text-xs text-slate-400">Market Sentiment (BTC)</p>
+            <p class="font-bold" :class="sentiment === 'BULLISH' ? 'text-green-400' : 'text-red-400'"
+                x-text="sentiment"></p>
+        </div>
+    </div>
+
+    <div class="flex h-screen pt-16">
+        <div class="w-1/4 bg-slate-800 border-r border-slate-700 overflow-y-auto scrollbar-hide">
+            <div class="p-2 sticky top-0 bg-slate-800 z-10 border-b border-slate-700">
+                <h2 class="text-sm font-bold text-slate-300 mb-1">POTENSI ASET (20)</h2>
+                <p class="text-xs text-slate-500">Klik untuk Analisa Lengkap</p>
+            </div>
+
+            <template x-for="coin in coins" :key="coin.symbol">
+                <div @click="selectCoin(coin)"
+                    class="p-3 border-b border-slate-700 cursor-pointer hover:bg-slate-700 transition group relative"
+                    :class="selectedCoin?.symbol === coin.symbol ? 'bg-slate-700 border-l-4 border-emerald-500' : ''">
+
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-sm" x-text="coin.symbol"></span>
+                        <span class="text-xs font-mono"
+                            :class="coin.priceChange >= 0 ? 'text-green-400' : 'text-red-400'"
+                            x-text="coin.priceChange + '%'"></span>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400" x-text="'Vol: ' + formatVolume(coin.volume)"></span>
+                        <span class="text-[10px] px-2 py-0.5 rounded border" :class="{
+                                  'border-blue-500 text-blue-400 bg-blue-900/20': coin.status.includes('TIDUR'),
+                                  'border-yellow-500 text-yellow-400 bg-yellow-900/20': coin.status === 'MENGGELIAT',
+                                  'border-green-500 text-green-400 bg-green-900/20 animate-pulse': coin.status === 'LONCAT',
+                                  'border-purple-500 text-purple-400 bg-purple-900/20 font-bold': coin.status.includes('BIKINI'),
+                                  'border-red-500 text-red-400 bg-red-900/20': coin.status.includes('DUMPING')
+                              }" x-text="coin.status">
+                        </span>
+                    </div>
+                    <div class="mt-1 text-right">
+                        <span class="text-sm font-mono tracking-wide" :class="coin.tickColor"
+                            x-text="coin.price"></span>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div class="w-3/4 flex flex-col bg-slate-900">
+
+            <div class="h-1/3 border-b border-slate-700 p-4 grid grid-cols-4 gap-4" x-show="selectedCoin">
+                <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                    <h3 class="text-xs text-slate-400 mb-2">ASSET INFO</h3>
+                    <div class="text-2xl font-bold text-emerald-400 mb-1" x-text="selectedCoin?.symbol"></div>
+                    <div class="text-3xl font-mono text-white" x-text="selectedCoin?.price"></div>
+                    <div class="mt-2 text-xs text-slate-500">Funding Rate: <span class="text-yellow-400"
+                            x-text="selectedCoin?.fundingRate + '%'"></span></div>
+                </div>
+
+                <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                    <h3 class="text-xs text-slate-400 mb-2">EMA RIBBON (Support/Resis)</h3>
+                    <div class="space-y-1 text-xs font-mono">
+                        <div class="flex justify-between"><span>EMA 8 (Fast):</span> <span class="text-cyan-300"
+                                x-text="indicators.ema8">Loading...</span></div>
+                        <div class="flex justify-between"><span>EMA 21 (Trend):</span> <span class="text-yellow-300"
+                                x-text="indicators.ema21">Loading...</span></div>
+                        <div class="flex justify-between"><span>EMA 89 (Giant):</span> <span class="text-purple-300"
+                                x-text="indicators.ema89">Loading...</span></div>
+                    </div>
+                    <div class="mt-3 text-xs border-t border-slate-600 pt-2">
+                        Posisi Harga: <span class="font-bold"
+                            :class="indicators.trend === 'BULLISH' ? 'text-green-400' : 'text-red-400'"
+                            x-text="indicators.trend"></span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                    <h3 class="text-xs text-slate-400 mb-2">MOMENTUM & FUEL</h3>
+                    <div class="mb-2">
+                        <div class="text-xs flex justify-between mb-1"><span>RSI (14):</span> <span
+                                x-text="indicators.rsi">0</span></div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full">
+                            <div class="h-2 rounded-full transition-all duration-500"
+                                :class="indicators.rsi > 70 ? 'bg-red-500' : (indicators.rsi < 30 ? 'bg-green-500' : 'bg-blue-500')"
+                                :style="'width: ' + indicators.rsi + '%'"></div>
+                        </div>
+                    </div>
+                    <div class="text-xs mt-3">
+                        <div>Vol vs Avg: <span
+                                :class="indicators.volSpike ? 'text-green-400 font-bold' : 'text-slate-400'"
+                                x-text="indicators.volRatio + 'x'"></span></div>
+                        <div x-show="indicators.volSpike" class="mt-1 text-green-400 text-[10px] animate-pulse">⚠️
+                            VOLUME MASUK!</div>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-slate-800 p-3 rounded border border-slate-600 flex flex-col justify-center items-center text-center">
+                    <h3 class="text-xs text-slate-400 mb-1">REKOMENDASI SOP</h3>
+                    <div class="text-xl font-bold mb-2" :class="{
+                             'text-blue-400': indicators.action === 'WAIT',
+                             'text-green-400': indicators.action === 'LONG',
+                             'text-red-400': indicators.action === 'SHORT/EXIT'
+                         }" x-text="indicators.action">Analyzing...</div>
+                    <p class="text-[10px] text-slate-300 px-2" x-text="indicators.reason"></p>
+                </div>
+            </div>
+
+            <div class="flex-1 relative bg-slate-900 flex items-center justify-center p-8">
+                <div class="text-center space-y-4" x-show="selectedCoin">
+                    <div class="text-6xl">🦖</div>
+                    <h2 class="text-2xl font-bold text-slate-300">MONITORING MODE</h2>
+                    <p class="text-slate-500 max-w-md mx-auto">
+                        Chart dinonaktifkan untuk performa maksimal.
+                        Fokus pada Angka, Indikator, dan Sinyal "Bikini Bottom".
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mt-8 text-left">
+                        <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                            <div class="text-xs text-slate-400">RSI (14)</div>
+                            <div class="text-2xl font-mono"
+                                :class="indicators.rsi < 35 ? 'text-green-400 font-bold' : 'text-slate-200'"
+                                x-text="indicators.rsi"></div>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                            <div class="text-xs text-slate-400">Vol Ratio</div>
+                            <div class="text-2xl font-mono"
+                                :class="indicators.volSpike ? 'text-green-400 font-bold' : 'text-slate-200'"
+                                x-text="indicators.volRatio + 'x'"></div>
+                        </div>
+                    </div>
+                </div>
+                <div x-show="!selectedCoin" class="text-slate-600">
+                    <p>Pilih Aset di Sidebar untuk Analisa Data</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function tradingApp() {
+            return {
+                coins: [],
+                selectedCoin: null,
+                ws: null,
+                wsStatus: false,
+                chart: null,
+                candleSeries: null,
+                sentiment: 'NEUTRAL',
+                indicators: { ema8: 0, ema21: 0, ema89: 0, rsi: 0, trend: 'WAIT', action: 'WAIT', reason: '...', volRatio: 0, volSpike: false },
+
+                async initApp() {
+                    console.log("Inisialisasi SOP Monitor...");
+                    // 1. Ambil daftar aset potensial (Top Volume USDT Futures)
+                    await this.fetchMarketPairs();
+                    // 2. Konek WebSocket
+                    this.connectWebSocket();
+                },
+
+                async fetchMarketPairs() {
+                    try {
+                        // Parallel Fetch: Ticker 24hr & Premium Index (Funding Rate)
+                        const [resTicker, resPremium] = await Promise.all([
+                            fetch('https://fapi.binance.com/fapi/v1/ticker/24hr'),
+                            fetch('https://fapi.binance.com/fapi/v1/premiumIndex')
+                        ]);
+
+                        const dataTicker = await resTicker.json();
+                        const dataPremium = await resPremium.json();
+
+                        // Map Premium Index for fast lookup
+                        const premiumMap = new Map(dataPremium.map(p => [p.symbol, p.lastFundingRate]));
+
+                        // Filter: USDT pair, Volume gede, Sort by volume desc
+                        let candidates = dataTicker.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 50000000)
+                            .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+                            .slice(0, 20); // Ambil 20 biji
+
+                        // Map ke format kita
+                        this.coins = candidates.map(c => {
+                            const fundingRate = premiumMap.get(c.symbol) || 0;
+                            return {
+                                symbol: c.symbol,
+                                price: parseFloat(c.lastPrice).toFixed(4),
+                                priceChange: parseFloat(c.priceChangePercent).toFixed(2),
+                                volume: parseFloat(c.quoteVolume),
+                                tickColor: '',
+                                status: 'ANALYZING...',
+                                fundingRate: (parseFloat(fundingRate) * 100).toFixed(4) // Convert to %
+                            };
+                        });
+
+                        // Tentukan sentimen global dari BTC & Funding Rate rata-rata
+                        const btc = this.coins.find(c => c.symbol === 'BTCUSDT');
+                        const avgFunding = this.coins.reduce((acc, c) => acc + parseFloat(c.fundingRate), 0) / this.coins.length;
+
+                        if (btc && parseFloat(btc.priceChange) > 0 && avgFunding > 0.01) {
+                            this.sentiment = 'BULLISH (Greed)';
+                        } else if (btc && parseFloat(btc.priceChange) < -2 && avgFunding < 0) {
+                            this.sentiment = 'BEARISH (Fear)';
+                        } else if (avgFunding < 0.005) {
+                            this.sentiment = 'SKEPTICAL (Potential Bottom)';
+                        } else {
+                            this.sentiment = 'NEUTRAL';
+                        }
+
+                    } catch (e) {
+                        console.error("Gagal fetch market:", e);
+                    }
+                },
+
+                connectWebSocket() {
+                    // Subscribe ke miniTicker semua aset
+                    this.ws = new WebSocket('wss://fstream.binance.com/ws/!miniTicker@arr');
+
+                    this.ws.onopen = () => { this.wsStatus = true; };
+                    this.ws.onclose = () => { this.wsStatus = false; setTimeout(() => this.connectWebSocket(), 5000); };
+
+                    this.ws.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        data.forEach(ticker => {
+                            // Update data di list coin
+                            const coin = this.coins.find(c => c.symbol === ticker.s);
+                            if (coin) {
+                                const newPrice = parseFloat(ticker.c).toFixed(ticker.c < 1 ? 5 : 2);
+                                const oldPrice = coin.price;
+
+                                coin.price = newPrice;
+                                coin.tickColor = newPrice > oldPrice ? 'blink-green' : (newPrice < oldPrice ? 'blink-red' : '');
+
+                                // Hapus class animasi setelah 1 detik
+                                setTimeout(() => coin.tickColor = '', 1000);
+                            }
+                        });
+                    };
+                },
+
+                async selectCoin(coin) {
+                    this.selectedCoin = coin;
+                    // Reset Indikator UI
+                    this.indicators = { ema8: '...', ema21: '...', ema89: '...', rsi: '...', trend: 'Analyzing...', action: 'WAIT', reason: 'Fetching Data...' };
+
+                    // Render Chart (Disabled)
+                    // this.initChart();
+
+                    // Fetch Historical Data (Klines) untuk hitung indikator SOP
+                    await this.analyzeCoin(coin.symbol);
+                },
+
+                // initChart dihapus karena user request "hapus saja fungsi chart"
+
+
+                async analyzeCoin(symbol) {
+                    // Fetch 100 candle terakhir timeframe 4H (SOP User)
+                    const res = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=4h&limit=100`);
+                    const data = await res.json();
+
+                    // Format data untuk chart
+                    // Format data untuk kalkulasi (Chart visual dihapus)
+                    const candles = data.map(d => ({
+                        time: d[0] / 1000 + 25200,
+                        open: parseFloat(d[1]),
+                        high: parseFloat(d[2]),
+                        low: parseFloat(d[3]),
+                        close: parseFloat(d[4]),
+                        volume: parseFloat(d[5])
+                    }));
+
+                    // this.candleSeries.setData(candles); // Hapus visual update
+
+                    // --- Kalkulasi Indikator SOP ---
+                    const closes = candles.map(c => c.close);
+                    const volumes = candles.map(c => c.volume);
+
+                    const ema8 = this.calculateEMA(closes, 8);
+                    const ema21 = this.calculateEMA(closes, 21);
+                    const ema89 = this.calculateEMA(closes, 89);
+                    const rsi = this.calculateRSI(closes, 14);
+
+                    // Avg Volume (20 period)
+                    const avgVol = volumes.slice(-21, -1).reduce((a, b) => a + b, 0) / 20;
+                    const currentVol = volumes[volumes.length - 1];
+                    const volRatio = (currentVol / avgVol).toFixed(1);
+
+                    const currentPrice = closes[closes.length - 1];
+
+                    // --- LOGIKA SOP "SLEEPING GIANT" & "BIKINI BOTTOM" ---
+                    let status = "TIDUR";
+                    let action = "WAIT";
+                    let reason = "Volume rendah, harga di bawah EMA.";
+                    let trend = "BEARISH";
+
+                    // Logic 1: Trend Check
+                    if (currentPrice > ema21 && currentPrice > ema89) trend = "BULLISH";
+                    else if (currentPrice > ema21) trend = "RECOVERY";
+
+                    // Logic 2: Categorization & Safety Filter
+                    const isNearEMA89 = Math.abs((currentPrice - ema89) / ema89) < 0.05; // 5% jarak
+                    const isCrash = this.selectedCoin.priceChange < -10; // Drop > 10% hari ini
+                    const funding = parseFloat(this.selectedCoin.fundingRate);
+
+                    // --- FILTER: SAFETY FIRST ---
+                    if (isCrash && !isNearEMA89 && rsi > 30) {
+                        status = "DUMPING ⚠️";
+                        action = "JANGAN TANGKAP PISAU";
+                        reason = "Jatuh tajam tanpa support kuat.";
+                    }
+                    // --- FILTER: BIKINI BOTTOM (The Golden Dip) ---
+                    else if (rsi < 35 && isNearEMA89 && funding < 0.01) {
+                        status = "BIKINI BOTTOM 🍍";
+                        action = "SEROK (DCA)";
+                        reason = "Oversold + Support EMA89 + Funding Rendah.";
+                    }
+                    // --- FILTER: NORMAL DIP ---
+                    else if (trend === "BULLISH" && rsi < 45 && isNearEMA89) {
+                        status = "DIP BUY";
+                        action = "ENTRY";
+                        reason = "Pullback sehat ke EMA Giant.";
+                    }
+                    // --- ORIGINAL SOP LOGIC ---
+                    else if (trend === "BEARISH" && rsi < 30) {
+                        status = "TIDUR (Oversold)";
+                        action = "PANTAU";
+                        reason = "Harga murah tapi trend belum confirm.";
+                    } else if (isNearEMA89 && rsi > 40 && rsi < 60) {
+                        status = "TIDUR (Sideways)";
+                        action = "SIAP-SIAP";
+                        reason = "Konsolidasi di dekat Support EMA Giant.";
+                    } else if (currentPrice > ema8 && currentPrice > ema21 && volRatio > 1.5) {
+                        status = "MENGGELIAT";
+                        action = "POTENSI ENTRY";
+                        reason = "Breakout EMA pendek + Volume masuk!";
+                    } else if (currentPrice > ema8 && rsi > 70) {
+                        status = "LONCAT";
+                        action = "HOLD/TP";
+                        reason = "Sudah terbang, hati-hati FOMO.";
+                    }
+
+                    // Update UI Indikator
+                    this.indicators = {
+                        ema8: ema8.toFixed(4),
+                        ema21: ema21.toFixed(4),
+                        ema89: ema89.toFixed(4),
+                        rsi: rsi.toFixed(1),
+                        trend: trend,
+                        action: action,
+                        reason: reason,
+                        volRatio: volRatio,
+                        volSpike: volRatio > 1.5
+                    };
+
+                    // Update status di list coin sidebar juga
+                    const coinIdx = this.coins.findIndex(c => c.symbol === symbol);
+                    if (coinIdx !== -1) this.coins[coinIdx].status = status;
+                },
+
+                // Helper function: EMA Calculation
+                calculateEMA(prices, period) {
+                    const k = 2 / (period + 1);
+                    let ema = prices[0];
+                    for (let i = 1; i < prices.length; i++) {
+                        ema = prices[i] * k + ema * (1 - k);
+                    }
+                    return ema;
+                },
+
+                // Helper function: RSI Calculation
+                calculateRSI(prices, period) {
+                    let gains = 0, losses = 0;
+                    for (let i = 1; i <= period; i++) {
+                        let change = prices[i] - prices[i - 1];
+                        if (change > 0) gains += change;
+                        else losses -= change;
+                    }
+                    let avgGain = gains / period;
+                    let avgLoss = losses / period;
+
+                    for (let i = period + 1; i < prices.length; i++) {
+                        let change = prices[i] - prices[i - 1];
+                        let gain = change > 0 ? change : 0;
+                        let loss = change < 0 ? -change : 0;
+                        avgGain = (avgGain * (period - 1) + gain) / period;
+                        avgLoss = (avgLoss * (period - 1) + loss) / period;
+                    }
+
+                    if (avgLoss === 0) return 100;
+                    let rs = avgGain / avgLoss;
+                    return 100 - (100 / (1 + rs));
+                },
+
+                formatVolume(val) {
+                    if (val >= 1000000000) return (val / 1000000000).toFixed(1) + 'B';
+                    if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
+                    return (val / 1000).toFixed(1) + 'K';
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

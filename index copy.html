@@ -1027,7 +1027,7 @@
                             </div>
                             <div class="grid grid-cols-1 gap-3">
                                 <div>
-                                    <div class="flex gap-4 mb-2 border-b border-gray-700 pb-1 items-center">
+                                    <div class="flex gap-4 mb-2 border-b border-gray-700 pb-1">
                                         <button id="tab-pump-hunter"
                                             class="text-sm font-semibold text-gray-400 hover:text-white border-b-2 border-transparent transition-colors"
                                             onclick="switchTab('pump-hunter')">Pump
@@ -1036,11 +1036,6 @@
                                             class="text-sm font-semibold text-gray-400 hover:text-white border-b-2 border-transparent transition-colors"
                                             onclick="switchTab('dip-hunter')">Dip
                                             Hunter 🦖</button>
-                                        <button id="scan-now-btn"
-                                            class="ml-auto px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                                            onclick="triggerCurrentScan()">
-                                            🔍 Scan Now
-                                        </button>
                                     </div>
                                     <div id="pump-hunter-list"
                                         class="space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar hidden">
@@ -2113,34 +2108,30 @@
             },
 
             handleMessage(event) {
-                try {
-                    const message = JSON.parse(event.data);
-                    if (message.result !== undefined) return;
+                const message = JSON.parse(event.data);
+                if (message.result !== undefined) return;
 
-                    if (message.stream && message.data) {
-                        const streamName = message.stream;
-                        const payload = message.data;
-                        const symbol = streamName.split('@')[0].toUpperCase();
+                if (message.stream && message.data) {
+                    const streamName = message.stream;
+                    const payload = message.data;
+                    const symbol = streamName.split('@')[0].toUpperCase();
 
 
-                        if (this.moverSubscriptions.has(symbol)) {
-                            onNewMoverData(symbol, streamName, payload);
-                        }
+                    if (this.moverSubscriptions.has(symbol)) {
+                        onNewMoverData(symbol, streamName, payload);
+                    }
 
-                        if (realtimeCache.main.symbol && realtimeCache.main.symbol === symbol) {
-                            if (streamName.includes('@kline')) {
-                                if (this.messageHandlers['kline']) this.messageHandlers['kline'](payload);
-                            } else if (streamName.includes('@aggTrade')) {
-                                if (this.messageHandlers['aggTrade']) this.messageHandlers['aggTrade'](payload);
-                            } else if (streamName.includes('@depth')) {
-                                if (this.messageHandlers['depthUpdate']) this.messageHandlers['depthUpdate'](payload);
-                            } else if (streamName.includes('@bookTicker')) {
-                                if (this.messageHandlers['bookTicker']) this.messageHandlers['bookTicker'](payload);
-                            }
+                    if (realtimeCache.main.symbol && realtimeCache.main.symbol === symbol) {
+                        if (streamName.includes('@kline')) {
+                            if (this.messageHandlers['kline']) this.messageHandlers['kline'](payload);
+                        } else if (streamName.includes('@aggTrade')) {
+                            if (this.messageHandlers['aggTrade']) this.messageHandlers['aggTrade'](payload);
+                        } else if (streamName.includes('@depth')) {
+                            if (this.messageHandlers['depthUpdate']) this.messageHandlers['depthUpdate'](payload);
+                        } else if (streamName.includes('@bookTicker')) {
+                            if (this.messageHandlers['bookTicker']) this.messageHandlers['bookTicker'](payload);
                         }
                     }
-                } catch (error) {
-                    // Silently ignore JSON parse errors (incomplete/corrupted WebSocket messages)
                 }
             },
 
@@ -2154,8 +2145,7 @@
             },
 
             handleError(error) {
-                // Silently handle WebSocket errors (expected during reconnection)
-                // console.error("Kesalahan WebSocket:", error);
+                console.error("Kesalahan WebSocket:", error);
                 this.isConnecting = false;
                 if (this.ws) this.ws.close();
             },
@@ -2164,11 +2154,7 @@
                 if (this.isConnecting || (this.ws && this.ws.readyState === WebSocket.OPEN)) return;
                 this.isConnecting = true;
 
-                // Limit movers to prevent too many streams (Binance limit: 200 streams or 1024 chars)
-                const maxMovers = 10; // 10 movers × 3 streams = 30 streams
-                const limitedMovers = Array.from(this.moverSubscriptions).slice(0, maxMovers);
-
-                const moverStreams = limitedMovers.flatMap(s => [`${s.toLowerCase()}@kline_1h`, `${s.toLowerCase()}@aggTrade`, `${s.toLowerCase()}@depth20`]);
+                const moverStreams = Array.from(this.moverSubscriptions).flatMap(s => [`${s.toLowerCase()}@kline_1h`, `${s.toLowerCase()}@aggTrade`, `${s.toLowerCase()}@depth20`]);
                 const mainStreams = Array.from(this.mainSubscriptions);
                 const allSubscriptions = new Set([...mainStreams, ...moverStreams]);
 
@@ -2178,18 +2164,8 @@
                     this.isConnecting = false;
                     return;
                 }
-
-                // Check URL length (Binance limit ~1024 chars)
                 const url = `wss://fstream.binance.com/stream?streams=${streamNames}`;
-                if (url.length > 1024) {
-                    console.warn(`⚠️ WebSocket URL too long (${url.length} chars), reducing streams...`);
-                    // Reduce to main streams only
-                    const fallbackUrl = `wss://fstream.binance.com/stream?streams=${Array.from(this.mainSubscriptions).join('/')}`;
-                    this.ws = new WebSocket(fallbackUrl);
-                } else {
-                    this.ws = new WebSocket(url);
-                }
-
+                this.ws = new WebSocket(url);
                 this.ws.onopen = this.handleOpen.bind(this);
                 this.ws.onmessage = this.handleMessage.bind(this);
                 this.ws.onclose = this.handleClose.bind(this);
@@ -4393,8 +4369,7 @@
                 }
                 return response.json();
             } catch (error) {
-                // Silently log network errors (often delisted symbols)
-                // console.warn(`Network warning for ${url}: ${error.message}`);
+                console.error(`Network Error fetching from ${url}: ${error.message}`);
                 throw new Error(`Gagal mengambil data untuk ${endpoint} dari Binance ${marketType.toUpperCase()}.`);
             }
         }
@@ -4448,19 +4423,13 @@
         // 
         async function initializeExchangeInfo(marketType) {
             if (exchangeInfoCache[marketType]) return;
-            try {
-                const url = marketType === 'spot' ? 'https://api.binance.com/api/v3/exchangeInfo' : 'https://fapi.binance.com/fapi/v1/exchangeInfo';
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Gagal unduh info bursa ${marketType}.`);
-                const data = await response.json();
-                exchangeInfoCache[marketType] = data.symbols;
-                if (document.getElementById('market-type-select').value === marketType) {
-                    populateAssetDatalist(data.symbols, marketType);
-                }
-            } catch (error) {
-                // Silently handle CORS/network errors - exchangeInfo is optional
-                console.warn(`⚠️ Could not load exchange info for ${marketType} (CORS/network issue)`);
-                exchangeInfoCache[marketType] = []; // Set empty array to prevent retry
+            const url = marketType === 'spot' ? 'https://api.binance.com/api/v3/exchangeInfo' : 'https://fapi.binance.com/fapi/v1/exchangeInfo';
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Gagal unduh info bursa ${marketType}.`);
+            const data = await response.json();
+            exchangeInfoCache[marketType] = data.symbols;
+            if (document.getElementById('market-type-select').value === marketType) {
+                populateAssetDatalist(data.symbols, marketType);
             }
         }
         // 
@@ -6599,7 +6568,7 @@
                 }));
 
                 // >>> AWAL BLOK PENAMBAHAN ASET PIN <<<
-                const pinnedAssets = ['BTCUSDT']; // Removed ASTERUSDT (delisted)
+                const pinnedAssets = ['BTCUSDT', 'ASTERUSDT'];
 
                 // Filter aset pin yang belum ada di daftar top movers untuk menghindari duplikat
                 const existingSymbols = new Set(gainersWithDetails.map(m => m.symbol));
@@ -8640,8 +8609,7 @@
                             });
 
                         } catch (err) {
-                            // Silently skip failed analysis (delisted symbols)
-                            // console.warn(`Skipping ${coin.symbol}:`, err.message);
+                            console.error(`Error analyzing ${coin.symbol}`, err);
                         }
                     }
 
@@ -8672,64 +8640,59 @@
                                 
                                 <!-- DROPDOWN DETAIL (PUMP HUNTER STYLE) -->
                                 <div id="pump-detail-${index}" class="hidden bg-slate-900 p-4 border-t border-gray-700">
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <!-- LEFT COL: TECHNICALS -->
-                                        <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            <!-- 1. ASSET INFO -->
-                                            <div class="bg-slate-800 p-3 rounded border border-slate-600">
-                                                <h3 class="text-[10px] text-slate-400 mb-2">ASSET INFO</h3>
-                                                <div class="text-xl font-bold text-red-400 mb-1">${r.symbol}</div>
-                                                <div class="text-2xl font-mono text-white">${r.price}</div>
-                                                <div class="mt-2 text-[10px] text-slate-500">Funding Rate: <span class="${r.funding > 0.05 ? 'text-red-400 font-bold' : 'text-green-400'}">${r.funding}%</span></div>
-                                            </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                        <!-- 1. ASSET INFO -->
+                                        <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                                            <h3 class="text-[10px] text-slate-400 mb-2">ASSET INFO</h3>
+                                            <div class="text-xl font-bold text-red-400 mb-1">${r.symbol}</div>
+                                            <div class="text-2xl font-mono text-white">${r.price}</div>
+                                            <div class="mt-2 text-[10px] text-slate-500">Funding Rate: <span class="${r.funding > 0.05 ? 'text-red-400 font-bold' : 'text-green-400'}">${r.funding}%</span></div>
+                                        </div>
 
-                                            <!-- 2. EMA RIBBON -->
-                                            <div class="bg-slate-800 p-3 rounded border border-slate-600">
-                                                <h3 class="text-[10px] text-slate-400 mb-2">EMA RIBBON</h3>
-                                                <div class="space-y-1 text-[10px] font-mono">
-                                                    <div class="flex justify-between"><span>EMA 8:</span> <span class="text-cyan-300">${r.ema8}</span></div>
-                                                    <div class="flex justify-between"><span>EMA 21:</span> <span class="text-blue-300">${r.ema21}</span></div>
-                                                    <div class="flex justify-between"><span>EMA 55:</span> <span class="text-green-300">${r.ema55}</span></div>
-                                                    <div class="flex justify-between"><span>EMA 89:</span> <span class="text-purple-300 font-bold">${r.ema89}</span></div>
-                                                </div>
-                                                <div class="mt-3 text-[10px] border-t border-slate-600 pt-2">
-                                                    Trend: <span class="font-bold ${r.trend.includes('PARABOLIC') ? 'text-red-400' : 'text-yellow-400'}">${r.trend}</span>
-                                                </div>
+                                        <!-- 2. EMA RIBBON -->
+                                        <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                                            <h3 class="text-[10px] text-slate-400 mb-2">EMA RIBBON (Fibonacci)</h3>
+                                            <div class="space-y-1 text-[10px] font-mono">
+                                                <div class="flex justify-between"><span>EMA 8:</span> <span class="text-cyan-300">${r.ema8}</span></div>
+                                                <div class="flex justify-between"><span>EMA 21:</span> <span class="text-blue-300">${r.ema21}</span></div>
+                                                <div class="flex justify-between"><span>EMA 55:</span> <span class="text-green-300">${r.ema55}</span></div>
+                                                <div class="flex justify-between"><span>EMA 89:</span> <span class="text-purple-300 font-bold">${r.ema89}</span></div>
+                                                <div class="flex justify-between"><span>EMA 144:</span> <span class="text-orange-300">${r.ema144}</span></div>
+                                                <div class="flex justify-between"><span>EMA 233:</span> <span class="text-red-300">${r.ema233}</span></div>
+                                                <div class="flex justify-between"><span>EMA 377:</span> <span class="text-pink-300">${r.ema377}</span></div>
                                             </div>
-
-                                            <!-- 3. MOMENTUM -->
-                                            <div class="bg-slate-800 p-3 rounded border border-slate-600 sm:col-span-2">
-                                                <h3 class="text-[10px] text-slate-400 mb-2">MOMENTUM & FUEL</h3>
-                                                <div class="flex items-center gap-4">
-                                                    <div class="flex-1">
-                                                        <div class="text-[10px] flex justify-between mb-1"><span>RSI (14):</span> <span>${r.rsi}</span></div>
-                                                        <div class="w-full bg-slate-700 h-1.5 rounded-full">
-                                                            <div class="h-1.5 rounded-full transition-all duration-500 ${r.rsi > 70 ? 'bg-red-500' : (r.rsi < 30 ? 'bg-green-500' : 'bg-blue-500')}" style="width: ${r.rsi}%"></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="text-[10px] space-y-1 min-w-[100px]">
-                                                        <div>Vol vs Avg: <span class="${r.volRatio > 2 ? 'text-red-400 font-bold' : 'text-slate-400'}">${r.volRatio}x</span></div>
-                                                        <div>Extension: <span class="${r.extension > 0.1 ? 'text-red-400 font-bold' : 'text-slate-400'}">${(r.extension * 100).toFixed(1)}%</span></div>
-                                                    </div>
-                                                </div>
+                                            <div class="mt-3 text-[10px] border-t border-slate-600 pt-2">
+                                                Trend: <span class="font-bold ${r.trend.includes('PARABOLIC') ? 'text-red-400' : 'text-yellow-400'}">${r.trend}</span>
                                             </div>
                                         </div>
 
-                                        <!-- RIGHT COL: ACTION -->
-                                        <div class="flex flex-col gap-3">
-                                            <!-- 4. REKOMENDASI -->
-                                            <div class="bg-slate-800 p-4 rounded border border-slate-600 flex-1 flex flex-col justify-center items-center text-center">
-                                                <h3 class="text-[10px] text-slate-400 mb-2">REKOMENDASI SOP</h3>
-                                                <div class="text-2xl font-bold mb-2 ${r.action.includes('SHORT') ? 'text-red-400' : (r.action === 'AVOID' ? 'text-gray-400' : 'text-blue-400')}">${r.action}</div>
-                                                <p class="text-xs text-slate-300 px-2 leading-relaxed">${r.reason}</p>
+                                        <!-- 3. MOMENTUM -->
+                                        <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                                            <h3 class="text-[10px] text-slate-400 mb-2">MOMENTUM & FUEL</h3>
+                                            <div class="mb-2">
+                                                <div class="text-[10px] flex justify-between mb-1"><span>RSI (14):</span> <span>${r.rsi}</span></div>
+                                                <div class="w-full bg-slate-700 h-1.5 rounded-full">
+                                                    <div class="h-1.5 rounded-full transition-all duration-500 ${r.rsi > 70 ? 'bg-red-500' : (r.rsi < 30 ? 'bg-green-500' : 'bg-blue-500')}" style="width: ${r.rsi}%"></div>
+                                                </div>
                                             </div>
+                                            <div class="text-[10px] mt-3">
+                                                <div>Vol vs Avg: <span class="${r.volSpike ? 'text-red-400 font-bold' : 'text-slate-400'}">${r.volRatio}x</span></div>
+                                                ${r.volSpike ? '<div class="mt-1 text-red-400 animate-pulse">⚠️ HIGH VOLUME PUMP!</div>' : ''}
+                                            </div>
+                                        </div>
 
-                                            <button class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
-                                                    onclick="document.getElementById('asset-input').value='${r.symbol}'; document.getElementById('analyze-asset-btn').click();">
-                                                <span>LOAD CHART & ANALYZE</span> 📊
-                                            </button>
+                                        <!-- 4. REKOMENDASI -->
+                                        <div class="bg-slate-800 p-3 rounded border border-slate-600 flex flex-col justify-center items-center text-center">
+                                            <h3 class="text-[10px] text-slate-400 mb-1">REKOMENDASI SHORT</h3>
+                                            <div class="text-lg font-bold mb-2 ${r.action.includes('SHORT') ? 'text-red-400' : 'text-yellow-400'}">${r.action}</div>
+                                            <p class="text-[10px] text-slate-300 px-2">${r.reason}</p>
                                         </div>
                                     </div>
+
+                                    <button class="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-xs transition shadow-lg shadow-red-900/20"
+                                            onclick="document.getElementById('asset-input').value='${r.symbol}'; document.getElementById('analyze-asset-btn').click();">
+                                        LOAD CHART & SHORT 📉
+                                    </button>
                                 </div>
                             </div>
                         `).join('');
@@ -8904,8 +8867,7 @@
                             });
 
                         } catch (err) {
-                            // Silently skip failed analysis (delisted symbols)
-                            // console.warn(`Skipping ${coin.symbol}:`, err.message);
+                            console.error(`Error analyzing ${coin.symbol}`, err);
                         }
                     }
 
@@ -8936,62 +8898,57 @@
                     
                     <!-- DROPDOWN DETAIL (SOP MONITOR STYLE) -->
                     <div id="detail-${index}" class="hidden bg-slate-900 p-4 border-t border-gray-700">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- LEFT COL: TECHNICALS -->
-                            <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <!-- 1. ASSET INFO -->
-                                <div class="bg-slate-800 p-3 rounded border border-slate-600">
-                                    <h3 class="text-[10px] text-slate-400 mb-2">ASSET INFO</h3>
-                                    <div class="text-xl font-bold text-emerald-400 mb-1">${r.symbol}</div>
-                                    <div class="text-2xl font-mono text-white">${parseFloat(r.price).toFixed(r.price < 1 ? 5 : 2)}</div>
-                                    <div class="mt-2 text-[10px] text-slate-500">Funding Rate: <span class="${r.funding < 0.01 ? 'text-green-400' : 'text-red-400'}">${r.funding}%</span></div>
-                                </div>
-
-                                <!-- 2. EMA RIBBON -->
-                                <div class="bg-slate-800 p-3 rounded border border-slate-600">
-                                    <h3 class="text-[10px] text-slate-400 mb-2">EMA RIBBON</h3>
-                                    <div class="space-y-1 text-[10px] font-mono">
-                                        <div class="flex justify-between"><span>EMA 89:</span> <span class="text-purple-300 font-bold">${r.ema89}</span></div>
-                                        <div class="flex justify-between"><span>EMA 200:</span> <span class="text-red-300">${r.ema233}</span></div>
-                                        <div class="mt-2 pt-2 border-t border-slate-600">
-                                            Trend: <span class="font-bold ${r.trend === 'ACCUMULATION' ? 'text-green-400' : 'text-yellow-400'}">${r.trend}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- 3. MOMENTUM -->
-                                <div class="bg-slate-800 p-3 rounded border border-slate-600 sm:col-span-2">
-                                    <h3 class="text-[10px] text-slate-400 mb-2">MOMENTUM & FUEL</h3>
-                                    <div class="flex items-center gap-4">
-                                        <div class="flex-1">
-                                            <div class="text-[10px] flex justify-between mb-1"><span>RSI (14):</span> <span>${r.rsi}</span></div>
-                                            <div class="w-full bg-slate-700 h-1.5 rounded-full">
-                                                <div class="h-1.5 rounded-full transition-all duration-500 ${r.rsi > 70 ? 'bg-red-500' : (r.rsi < 30 ? 'bg-green-500' : 'bg-blue-500')}" style="width: ${r.rsi}%"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            <!-- 1. ASSET INFO -->
+                            <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                                <h3 class="text-[10px] text-slate-400 mb-2">ASSET INFO</h3>
+                                <div class="text-xl font-bold text-emerald-400 mb-1">${r.symbol}</div>
+                                <div class="text-2xl font-mono text-white">${parseFloat(r.price).toFixed(r.price < 1 ? 5 : 2)}</div>
+                                <div class="mt-2 text-[10px] text-slate-500">Funding Rate: <span class="${r.funding < 0.01 ? 'text-green-400' : 'text-red-400'}">${r.funding}%</span></div>
+                                                        <!-- 2. EMA RIBBON -->
+                                        <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                                            <h3 class="text-[10px] text-slate-400 mb-2">EMA RIBBON (Fibonacci)</h3>
+                                            <div class="space-y-1 text-[10px] font-mono">
+                                                <div class="flex justify-between"><span>EMA 8:</span> <span class="text-cyan-300">${r.ema8}</span></div>
+                                                <div class="flex justify-between"><span>EMA 21:</span> <span class="text-blue-300">${r.ema21}</span></div>
+                                                <div class="flex justify-between"><span>EMA 55:</span> <span class="text-green-300">${r.ema55}</span></div>
+                                                <div class="flex justify-between"><span>EMA 89:</span> <span class="text-purple-300 font-bold">${r.ema89}</span></div>
+                                                <div class="flex justify-between"><span>EMA 144:</span> <span class="text-orange-300">${r.ema144}</span></div>
+                                                <div class="flex justify-between"><span>EMA 233:</span> <span class="text-red-300">${r.ema233}</span></div>
+                                                <div class="flex justify-between"><span>EMA 377:</span> <span class="text-pink-300">${r.ema377}</span></div>
+                                            </div>
+                                            <div class="mt-3 text-[10px] border-t border-slate-600 pt-2">
+                                                Trend: <span class="font-bold ${r.trend === 'ACCUMULATION' ? 'text-green-400' : 'text-yellow-400'}">${r.trend}</span>
                                             </div>
                                         </div>
-                                        <div class="text-[10px] space-y-1 min-w-[100px]">
-                                            <div>Vol vs Avg: <span class="${r.volSpike ? 'text-green-400 font-bold' : 'text-slate-400'}">${r.volRatio}x</span></div>
-                                            <div>Squeeze: <span class="${r.bbWidth < 15 ? 'text-blue-400 font-bold' : 'text-slate-400'}">${r.bbWidth}%</span></div>
-                                        </div>
+
+                            <!-- 3. MOMENTUM -->
+                            <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                                <h3 class="text-[10px] text-slate-400 mb-2">MOMENTUM & FUEL</h3>
+                                <div class="mb-2">
+                                    <div class="text-[10px] flex justify-between mb-1"><span>RSI (14):</span> <span>${r.rsi}</span></div>
+                                    <div class="w-full bg-slate-700 h-1.5 rounded-full">
+                                        <div class="h-1.5 rounded-full transition-all duration-500 ${r.rsi > 70 ? 'bg-red-500' : (r.rsi < 30 ? 'bg-green-500' : 'bg-blue-500')}" style="width: ${r.rsi}%"></div>
                                     </div>
                                 </div>
+                                <div class="text-[10px] mt-3">
+                                    <div>Vol vs Avg: <span class="${r.volSpike ? 'text-green-400 font-bold' : 'text-slate-400'}">${r.volRatio}x</span></div>
+                                    <div>Squeeze: <span class="${r.bbWidth < 15 ? 'text-blue-400 font-bold' : 'text-slate-400'}">${r.bbWidth}%</span></div>
+                                </div>
                             </div>
 
-                            <!-- RIGHT COL: ACTION -->
-                            <div class="flex flex-col gap-3">
-                                <!-- 4. REKOMENDASI -->
-                                <div class="bg-slate-800 p-4 rounded border border-slate-600 flex-1 flex flex-col justify-center items-center text-center">
-                                    <h3 class="text-[10px] text-slate-400 mb-2">REKOMENDASI SOP</h3>
-                                    <div class="text-2xl font-bold mb-2 ${r.action.includes('LONG') ? 'text-green-400' : (r.action === 'AVOID' ? 'text-red-400' : 'text-blue-400')}">${r.action}</div>
-                                    <p class="text-xs text-slate-300 px-2 leading-relaxed">${r.reason}</p>
-                                </div>
-
-                                <button class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
-                                        onclick="document.getElementById('asset-input').value='${r.symbol}'; document.getElementById('analyze-asset-btn').click();">
-                                    <span>LOAD CHART & ANALYZE</span> 📊
-                                </button>
+                            <!-- 4. REKOMENDASI -->
+                            <div class="bg-slate-800 p-3 rounded border border-slate-600 flex flex-col justify-center items-center text-center">
+                                <h3 class="text-[10px] text-slate-400 mb-1">REKOMENDASI SOP</h3>
+                                <div class="text-lg font-bold mb-2 ${r.action.includes('LONG') ? 'text-green-400' : (r.action === 'AVOID' ? 'text-red-400' : 'text-blue-400')}">${r.action}</div>
+                                <p class="text-[10px] text-slate-300 px-2">${r.reason}</p>
                             </div>
                         </div>
+
+                        <button class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs transition shadow-lg shadow-blue-900/20"
+                                onclick="document.getElementById('asset-input').value='${r.symbol}'; document.getElementById('analyze-asset-btn').click();">
+                            LOAD CHART & ANALYZE 📊
+                        </button>
                     </div>
                 </div>
             `).join('');
@@ -9107,15 +9064,6 @@
                     updateVwapDisplay(mode);
                 }
             });
-
-            // Auto-scan Dip Hunter on page load
-            setTimeout(() => {
-                if (typeof DipHunter !== 'undefined' && DipHunter.scan) {
-                    console.log('🔍 Auto-scanning Dip Hunter...');
-                    DipHunter.scan();
-                }
-            }, 2000); // Wait 2 seconds for page to fully load
-
 
             tradeLink.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -9325,20 +9273,6 @@
                 }
             };
 
-            // Trigger scan for currently active tab
-            window.triggerCurrentScan = function () {
-                const pumpList = document.getElementById('pump-hunter-list');
-                const dipList = document.getElementById('dip-hunter-list');
-
-                if (!pumpList.classList.contains('hidden')) {
-                    console.log('🔍 Manual scan: Pump Hunter');
-                    PumpHunter.scan();
-                } else if (!dipList.classList.contains('hidden')) {
-                    console.log('🔍 Manual scan: Dip Hunter');
-                    DipHunter.scan();
-                }
-            };
-
             // Initialize Default Tab
             switchTab('pump-hunter');
             paperTrade.init();
@@ -9491,7 +9425,7 @@
                 await initializeExchangeInfo('spot');
 
             } catch (err) {
-                console.warn("⚠️ Initialization warning:", err.message);
+                console.error("Gagal inisialisasi awal:", err);
                 const gainersList = document.getElementById('gainers-list');
                 if (gainersList) gainersList.innerHTML = `<p class="text-red-500 text-xs p-2">Error: ${err.message}</p>`;
             }
@@ -9502,9 +9436,6 @@
             //updateSignalLogStatistics();
         });
     </script>
-
-    <!-- Web Worker Integration -->
-    <script src="worker-integration.js"></script>
 </body>
 
 </html>
