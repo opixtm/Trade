@@ -8504,8 +8504,20 @@
                     const dataPremium = await resPremium.json();
                     const premiumMap = new Map(dataPremium.map(p => [p.symbol, p.lastFundingRate]));
 
-                    // Filter: Top 50 Volume, USDT pairs
-                    let candidates = dataTicker.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 50000000)
+                    // Ensure Exchange Info is loaded for validation
+                    if (!exchangeInfoCache.futures) {
+                        await initializeExchangeInfo('futures');
+                    }
+                    const activeSymbols = new Set(exchangeInfoCache.futures
+                        ? exchangeInfoCache.futures.symbols.filter(s => s.status === 'TRADING').map(s => s.symbol)
+                        : []);
+
+                    // Filter: Top 50 Volume, USDT pairs, AND Active Symbols
+                    let candidates = dataTicker.filter(t => {
+                        return t.symbol.endsWith('USDT') &&
+                            parseFloat(t.quoteVolume) > 50000000 &&
+                            activeSymbols.has(t.symbol); // Filter out delisted/inactive
+                    })
                         .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
                         .slice(0, 50);
 
@@ -8724,9 +8736,9 @@
                                                 <p class="text-xs text-slate-300 px-2 leading-relaxed">${r.reason}</p>
                                             </div>
 
-                                            <button class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
+                                            <button class="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-sm transition shadow-lg shadow-red-900/20 flex items-center justify-center gap-2"
                                                     onclick="document.getElementById('asset-input').value='${r.symbol}'; document.getElementById('analyze-asset-btn').click();">
-                                                <span>LOAD CHART & ANALYZE</span> 📊
+                                                <span>LOAD CHART & SHORT</span> 📉
                                             </button>
                                         </div>
                                     </div>
@@ -8766,7 +8778,19 @@
                     const dataPremium = await resPremium.json();
                     const premiumMap = new Map(dataPremium.map(p => [p.symbol, p.lastFundingRate]));
 
-                    let candidates = dataTicker.filter(t => t.symbol.endsWith('USDT') && parseFloat(t.quoteVolume) > 50000000)
+                    // Ensure Exchange Info is loaded for validation
+                    if (!exchangeInfoCache.futures) {
+                        await initializeExchangeInfo('futures');
+                    }
+                    const activeSymbols = new Set(exchangeInfoCache.futures
+                        ? exchangeInfoCache.futures.symbols.filter(s => s.status === 'TRADING').map(s => s.symbol)
+                        : []);
+
+                    let candidates = dataTicker.filter(t => {
+                        return t.symbol.endsWith('USDT') &&
+                            parseFloat(t.quoteVolume) > 50000000 &&
+                            activeSymbols.has(t.symbol); // Filter out delisted/inactive
+                    })
                         .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
                         .slice(0, 50);
 
@@ -8986,9 +9010,9 @@
                                     <p class="text-xs text-slate-300 px-2 leading-relaxed">${r.reason}</p>
                                 </div>
 
-                                <button class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2"
+                                <button class="w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded font-bold text-sm transition shadow-lg shadow-green-900/20 flex items-center justify-center gap-2"
                                         onclick="document.getElementById('asset-input').value='${r.symbol}'; document.getElementById('analyze-asset-btn').click();">
-                                    <span>LOAD CHART & ANALYZE</span> 📊
+                                    <span>LOAD CHART & LONG</span> 📈
                                 </button>
                             </div>
                         </div>
