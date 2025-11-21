@@ -8508,8 +8508,9 @@
                     if (!exchangeInfoCache.futures) {
                         await initializeExchangeInfo('futures');
                     }
+                    // exchangeInfoCache.futures is ALREADY the array of symbols (see initializeExchangeInfo)
                     const activeSymbols = new Set(exchangeInfoCache.futures
-                        ? exchangeInfoCache.futures.symbols.filter(s => s.status === 'TRADING').map(s => s.symbol)
+                        ? exchangeInfoCache.futures.filter(s => s.status === 'TRADING').map(s => s.symbol)
                         : []);
 
                     // Filter: Top 50 Volume, USDT pairs, AND Active Symbols
@@ -8782,8 +8783,9 @@
                     if (!exchangeInfoCache.futures) {
                         await initializeExchangeInfo('futures');
                     }
+                    // exchangeInfoCache.futures is ALREADY the array of symbols (see initializeExchangeInfo)
                     const activeSymbols = new Set(exchangeInfoCache.futures
-                        ? exchangeInfoCache.futures.symbols.filter(s => s.status === 'TRADING').map(s => s.symbol)
+                        ? exchangeInfoCache.futures.filter(s => s.status === 'TRADING').map(s => s.symbol)
                         : []);
 
                     let candidates = dataTicker.filter(t => {
