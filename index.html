@@ -1,17 +1,41 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instrumen Penelitian SDM - Digital Form</title>
+    <title>Instrumen Penelitian SDM - Dark Mode</title>
     <style>
+        /* VARIABEL WARNA (THEMING) */
         :root {
-            --primary: #2c3e50; /* Warna Akademis */
+            --primary: #2c3e50;
             --accent: #3498db;
+            
+            /* Light Mode Default */
             --bg: #f4f6f8;
             --card-bg: #ffffff;
-            --text: #333;
+            --text: #333333;
+            --text-muted: #666666;
             --border: #e0e0e0;
+            --input-bg: #ffffff;
+            --header-text: #ffffff;
+            --shadow: rgba(0,0,0,0.05);
+            --desc-bg: #f9f9f9;
+        }
+
+        /* Dark Mode Overrides */
+        [data-theme="dark"] {
+            --primary: #1a252f; /* Darker Blue */
+            --accent: #5dade2; /* Lighter Blue for contrast */
+            
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border: #333333;
+            --input-bg: #2d2d2d;
+            --header-text: #e0e0e0;
+            --shadow: rgba(0,0,0,0.5);
+            --desc-bg: #2d2d2d;
         }
 
         body {
@@ -21,27 +45,44 @@
             margin: 0;
             padding: 0;
             line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* Header */
         header {
             background: var(--primary);
-            color: white;
-            padding: 2rem 1rem;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            color: var(--header-text);
+            padding: 1.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        header h1 { margin: 0; font-size: 1.8rem; font-weight: 600; }
-        header p { margin: 10px 0 0; opacity: 0.9; font-weight: 300; }
+        .header-content h1 { margin: 0; font-size: 1.5rem; font-weight: 600; }
+        .header-content p { margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem; font-weight: 300; }
+
+        /* Dark Mode Toggle Button */
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .theme-toggle:hover { background: rgba(255,255,255,0.1); }
 
         /* Container */
         .container {
             max-width: 800px;
-            margin: -30px auto 50px;
+            margin: 20px auto 50px;
             padding: 0 15px;
-            position: relative;
-            z-index: 10;
         }
 
         /* Cards */
@@ -50,13 +91,14 @@
             border-radius: 12px;
             padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px var(--shadow);
             border-left: 5px solid var(--accent);
+            transition: background-color 0.3s;
         }
 
         .card h2 {
             margin-top: 0;
-            color: var(--primary);
+            color: var(--accent); /* Menggunakan accent agar lebih kontras di dark mode */
             font-size: 1.4rem;
             border-bottom: 1px solid var(--border);
             padding-bottom: 10px;
@@ -65,24 +107,30 @@
 
         .card-desc {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--text-muted);
             margin-bottom: 20px;
             font-style: italic;
-            background: #f9f9f9;
+            background: var(--desc-bg);
             padding: 10px;
             border-radius: 6px;
+            border: 1px solid var(--border);
         }
 
         /* Form Elements */
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text); }
+        
         .form-control {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
+            background-color: var(--input-bg);
             border: 1px solid var(--border);
+            color: var(--text);
             border-radius: 6px;
             box-sizing: border-box;
+            outline: none;
         }
+        .form-control:focus { border-color: var(--accent); }
 
         /* Likert Scale Styling */
         .question-item {
@@ -93,7 +141,7 @@
         
         .question-text {
             font-weight: 500;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             display: block;
         }
 
@@ -101,7 +149,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 10px;
+            background: var(--desc-bg); /* Background strip untuk skala */
+            padding: 10px;
+            border-radius: 8px;
         }
 
         .likert-option {
@@ -110,13 +160,36 @@
             align-items: center;
             cursor: pointer;
             flex: 1;
+            position: relative;
         }
 
-        .likert-option input { margin-bottom: 5px; cursor: pointer; transform: scale(1.2); }
-        .likert-option span { font-size: 0.8rem; color: #666; text-align: center; }
+        /* Custom Radio Button Styling for Visibility */
+        .likert-option input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-muted);
+            border-radius: 50%;
+            margin-bottom: 5px;
+            cursor: pointer;
+            background-color: var(--card-bg);
+        }
+
+        .likert-option input[type="radio"]:checked {
+            border-color: var(--accent);
+            background-color: var(--accent);
+            box-shadow: inset 0 0 0 4px var(--card-bg); /* Inner dot effect */
+        }
+
+        .likert-option span { 
+            font-size: 0.75rem; 
+            color: var(--text-muted); 
+            text-align: center; 
+            font-weight: 600;
+        }
 
         /* Buttons */
-        .btn-group { text-align: right; margin-top: 20px; }
+        .btn-group { text-align: right; margin-top: 30px; }
         
         .btn {
             padding: 12px 25px;
@@ -125,54 +198,51 @@
             font-size: 1rem;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.1s;
         }
+        .btn:active { transform: scale(0.98); }
 
-        .btn-primary {
-            background-color: var(--accent);
-            color: white;
-        }
-        .btn-primary:hover { background-color: #2980b9; }
+        .btn-primary { background-color: var(--accent); color: white; }
+        .btn-primary:hover { filter: brightness(1.1); }
 
-        .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-            margin-right: 10px;
-        }
+        .btn-secondary { background-color: #7f8c8d; color: white; margin-right: 10px; }
+        .btn-secondary:hover { background-color: #95a5a6; }
 
         /* Scale Legend */
         .scale-legend {
             display: flex;
             justify-content: space-between;
             font-size: 0.8rem;
-            color: #7f8c8d;
-            margin-bottom: 15px;
-            padding: 0 10px;
+            color: var(--text-muted);
+            font-weight: bold;
         }
 
         /* Success Message */
         #successMessage {
             display: none;
-            background: #d4edda;
-            color: #155724;
+            background: #27ae60;
+            color: white;
             padding: 15px;
             border-radius: 6px;
             margin-bottom: 20px;
             text-align: center;
-            border: 1px solid #c3e6cb;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Kuesioner Penelitian SDM</h1>
-    <p>Survei Perilaku Organisasi & Kepemimpinan</p>
+    <div class="header-content">
+        <h1>Kuesioner Penelitian SDM</h1>
+        <p>Survei Perilaku Organisasi & Kepemimpinan</p>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Mode</button>
 </header>
 
 <div class="container">
 
-    <div id="successMessage">Data berhasil disimpan! File CSV sedang diunduh.</div>
+    <div id="successMessage">✅ Data berhasil disimpan! File CSV sedang diunduh.</div>
 
     <form id="researchForm">
         <div class="card">
@@ -195,9 +265,9 @@
         </div>
 
         <div class="card" style="border-left-color: #f1c40f;">
-            <h2>Petunjuk Pengisian</h2>
-            <p>Mohon berikan penilaian Anda berdasarkan skala berikut:</p>
-            <div class="scale-legend" style="font-weight:bold; color:#333;">
+            <h2 style="color: #f1c40f; border-color: #555;">Petunjuk Pengisian</h2>
+            <p style="color:var(--text)">Mohon berikan penilaian Anda berdasarkan skala berikut:</p>
+            <div class="scale-legend">
                 <span>1: Sangat Tidak Setuju</span>
                 <span>5: Sangat Setuju</span>
             </div>
@@ -231,7 +301,24 @@
 </div>
 
 <script>
-    // DATA PERTANYAAN
+    // --- FITUR DARK MODE ---
+    function toggleTheme() {
+        const html = document.documentElement;
+        const current = html.getAttribute('data-theme');
+        const next = current === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', next);
+        
+        // Ganti Icon/Text Tombol
+        const btn = document.querySelector('.theme-toggle');
+        btn.textContent = next === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+
+    // Auto Detect System Preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        toggleTheme(); // Switch to dark if system is dark
+    }
+
+    // --- LOGIKA KUESIONER (SAMA SEPERTI SEBELUMNYA) ---
     const questions = {
         MI: [
             "Memiliki karakteristik moral tersebut memberikan kepuasan batin tersendiri bagi saya.",
@@ -270,7 +357,6 @@
         ]
     };
 
-    // FUNGSI RENDER PERTANYAAN
     function renderQuestions(sectionId, code, items) {
         const container = document.getElementById(sectionId);
         items.forEach((q, index) => {
@@ -291,43 +377,35 @@
         });
     }
 
-    // INIT RENDER
     renderQuestions('section-MI', 'MI', questions.MI);
     renderQuestions('section-UPB', 'UPB', questions.UPB);
     renderQuestions('section-OI', 'OI', questions.OI);
     renderQuestions('section-TL', 'TL', questions.TL);
 
-    // FUNGSI SUBMIT & EXPORT CSV
     document.getElementById('researchForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // 1. Ambil Data Demografi
         const id = document.getElementById('resp_id').value;
         const usia = document.getElementById('usia').value;
         const jk = document.getElementById('jk').value;
         const timestamp = new Date().toLocaleString();
 
-        // 2. Siapkan Header CSV
         let csvContent = "data:text/csv;charset=utf-8,";
         let headers = ["Timestamp", "Responden_ID", "Usia", "JK"];
         let rowData = [timestamp, id, usia, jk];
 
-        // 3. Loop setiap variabel untuk ambil jawaban
         ['MI', 'UPB', 'OI', 'TL'].forEach(code => {
             questions[code].forEach((_, i) => {
                 const key = `${code}${i+1}`;
                 headers.push(key);
-                
                 const selected = document.querySelector(`input[name="${key}"]:checked`);
                 rowData.push(selected ? selected.value : "");
             });
         });
 
-        // 4. Gabungkan menjadi String CSV
         csvContent += headers.join(",") + "\r\n";
         csvContent += rowData.join(",") + "\r\n";
 
-        // 5. Trigger Download
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -336,7 +414,6 @@
         link.click();
         document.body.removeChild(link);
 
-        // 6. Feedback
         document.getElementById('successMessage').style.display = 'block';
         window.scrollTo(0, 0);
     });
