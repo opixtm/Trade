@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrumen Penelitian SDM - Digital Form</title>
+    <style>
+        :root {
+            --primary: #2c3e50; /* Warna Akademis */
+            --accent: #3498db;
+            --bg: #f4f6f8;
+            --card-bg: #ffffff;
+            --text: #333;
+            --border: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header h1 { margin: 0; font-size: 1.8rem; font-weight: 600; }
+        header p { margin: 10px 0 0; opacity: 0.9; font-weight: 300; }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: -30px auto 50px;
+            padding: 0 15px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--accent);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 1.4rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        /* Likert Scale Styling */
+        .question-item {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border);
+        }
+        
+        .question-text {
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .likert-scale {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .likert-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .likert-option input { margin-bottom: 5px; cursor: pointer; transform: scale(1.2); }
+        .likert-option span { font-size: 0.8rem; color: #666; text-align: center; }
+
+        /* Buttons */
+        .btn-group { text-align: right; margin-top: 20px; }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover { background-color: #2980b9; }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+            margin-right: 10px;
+        }
+
+        /* Scale Legend */
+        .scale-legend {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+
+        /* Success Message */
+        #successMessage {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Kuesioner Penelitian SDM</h1>
+    <p>Survei Perilaku Organisasi & Kepemimpinan</p>
+</header>
+
+<div class="container">
+
+    <div id="successMessage">Data berhasil disimpan! File CSV sedang diunduh.</div>
+
+    <form id="researchForm">
+        <div class="card">
+            <h2>Data Demografi</h2>
+            <div class="form-group">
+                <label>Nama / ID Responden</label>
+                <input type="text" id="resp_id" class="form-control" placeholder="Contoh: Resp_001" required>
+            </div>
+            <div class="form-group">
+                <label>Usia (Tahun)</label>
+                <input type="number" id="usia" class="form-control" placeholder="Contoh: 30" required>
+            </div>
+            <div class="form-group">
+                <label>Jenis Kelamin</label>
+                <select id="jk" class="form-control">
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card" style="border-left-color: #f1c40f;">
+            <h2>Petunjuk Pengisian</h2>
+            <p>Mohon berikan penilaian Anda berdasarkan skala berikut:</p>
+            <div class="scale-legend" style="font-weight:bold; color:#333;">
+                <span>1: Sangat Tidak Setuju</span>
+                <span>5: Sangat Setuju</span>
+            </div>
+        </div>
+
+        <div class="card" id="section-MI">
+            <h2>1. Identitas Moral (Moral Identity)</h2>
+            <div class="card-desc">Bayangkan seseorang yang memiliki karakteristik: peduli, penuh kasih, adil, bersahabat, jujur, dan baik hati.</div>
+            </div>
+
+        <div class="card" id="section-UPB">
+            <h2>2. Perilaku Pro-Organisasi (UPB)</h2>
+            <div class="card-desc">Tindakan terkait upaya membantu organisasi (meskipun mungkin melanggar aturan).</div>
+            </div>
+
+        <div class="card" id="section-OI">
+            <h2>3. Identifikasi Organisasi (OI)</h2>
+            <div class="card-desc">Bagaimana perasaan Anda terhadap keanggotaan di organisasi ini.</div>
+            </div>
+
+        <div class="card" id="section-TL">
+            <h2>4. Kepemimpinan Transformasional (TL)</h2>
+            <div class="card-desc">Penilaian terhadap atasan langsung/pimpinan Anda.</div>
+            </div>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+            <button type="submit" class="btn btn-primary">Simpan & Download CSV</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // DATA PERTANYAAN
+    const questions = {
+        MI: [
+            "Memiliki karakteristik moral tersebut memberikan kepuasan batin tersendiri bagi saya.",
+            "Menjadi pribadi yang memiliki karakteristik tersebut adalah bagian esensial dari jati diri saya.",
+            "Kesejahteraan emosional saya sangat bergantung pada apakah saya memiliki karakteristik tersebut.",
+            "Memiliki karakteristik tersebut merupakan elemen penting dalam konsep diri saya.",
+            "Saya memiliki hasrat yang kuat untuk memiliki karakteristik-karakteristik tersebut."
+        ],
+        UPB: [
+            "Jika membantu organisasi, saya bersedia memanipulasi kebenaran agar organisasi terlihat baik.",
+            "Jika membantu organisasi, saya melebih-lebihkan fakta produk/layanan kepada pelanggan.",
+            "Jika menguntungkan organisasi, saya menyembunyikan info negatif dari pelanggan.",
+            "Jika diminta, saya memberi rekomendasi bagus untuk karyawan inkompeten agar ia pindah.",
+            "Jika diminta, saya menahan refund pelanggan yang tertagih lebih.",
+            "Jika perlu, saya menutupi informasi publik yang bisa merusak organisasi."
+        ],
+        OI: [
+            "Keberhasilan organisasi ini saya rasakan sebagai keberhasilan saya pribadi.",
+            "Kritik terhadap organisasi terasa seperti penghinaan pribadi bagi saya.",
+            "Pujian terhadap organisasi terasa seperti pujian untuk diri saya sendiri.",
+            "Saya tidak terlalu ambil pusing dengan apa yang dipikirkan orang lain tentang organisasi. (R)",
+            "Saya cenderung menggunakan kata 'mereka' daripada 'kita' saat bicara soal organisasi. (R)"
+        ],
+        TL: [
+            "Pimpinan memiliki pemahaman jelas mengenai arah tujuan organisasi.",
+            "Pimpinan memberikan gambaran masa depan yang menarik.",
+            "Pimpinan mencari peluang baru bagi organisasi.",
+            "Pimpinan menginspirasi melalui rencana masa depannya.",
+            "Pimpinan mampu membuat orang lain berkomitmen pada visinya.",
+            "Pimpinan memberikan teladan yang baik untuk diikuti.",
+            "Pimpinan memimpin dengan memberi contoh nyata.",
+            "Pimpinan mendorong kolaborasi antar kelompok kerja.",
+            "Pimpinan mendorong karyawan menjadi 'team players'.",
+            "Pimpinan mengarahkan kelompok bekerja sama demi tujuan yang sama.",
+            "Pimpinan membangun semangat tim di antara karyawan."
+        ]
+    };
+
+    // FUNGSI RENDER PERTANYAAN
+    function renderQuestions(sectionId, code, items) {
+        const container = document.getElementById(sectionId);
+        items.forEach((q, index) => {
+            const num = index + 1;
+            const html = `
+                <div class="question-item">
+                    <span class="question-text">${code}${num}. ${q}</span>
+                    <div class="likert-scale">
+                        <label class="likert-option"><input type="radio" name="${code}${num}" value="1" required><span>1<br>STS</span></label>
+                        <label class="likert-option"><input type="radio" name="${code}${num}" value="2" required><span>2<br>TS</span></label>
+                        <label class="likert-option"><input type="radio" name="${code}${num}" value="3" required><span>3<br>N</span></label>
+                        <label class="likert-option"><input type="radio" name="${code}${num}" value="4" required><span>4<br>S</span></label>
+                        <label class="likert-option"><input type="radio" name="${code}${num}" value="5" required><span>5<br>SS</span></label>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    // INIT RENDER
+    renderQuestions('section-MI', 'MI', questions.MI);
+    renderQuestions('section-UPB', 'UPB', questions.UPB);
+    renderQuestions('section-OI', 'OI', questions.OI);
+    renderQuestions('section-TL', 'TL', questions.TL);
+
+    // FUNGSI SUBMIT & EXPORT CSV
+    document.getElementById('researchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 1. Ambil Data Demografi
+        const id = document.getElementById('resp_id').value;
+        const usia = document.getElementById('usia').value;
+        const jk = document.getElementById('jk').value;
+        const timestamp = new Date().toLocaleString();
+
+        // 2. Siapkan Header CSV
+        let csvContent = "data:text/csv;charset=utf-8,";
+        let headers = ["Timestamp", "Responden_ID", "Usia", "JK"];
+        let rowData = [timestamp, id, usia, jk];
+
+        // 3. Loop setiap variabel untuk ambil jawaban
+        ['MI', 'UPB', 'OI', 'TL'].forEach(code => {
+            questions[code].forEach((_, i) => {
+                const key = `${code}${i+1}`;
+                headers.push(key);
+                
+                const selected = document.querySelector(`input[name="${key}"]:checked`);
+                rowData.push(selected ? selected.value : "");
+            });
+        });
+
+        // 4. Gabungkan menjadi String CSV
+        csvContent += headers.join(",") + "\r\n";
+        csvContent += rowData.join(",") + "\r\n";
+
+        // 5. Trigger Download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Data_Responden_${id}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // 6. Feedback
+        document.getElementById('successMessage').style.display = 'block';
+        window.scrollTo(0, 0);
+    });
+
+    function resetForm() {
+        if(confirm("Yakin ingin mengosongkan formulir?")) {
+            document.getElementById('researchForm').reset();
+            document.getElementById('successMessage').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
