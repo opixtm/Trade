@@ -508,21 +508,33 @@
             justify-content: space-between;
             border: 1px solid #2b3139;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
         }
 
         .live-control-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             flex: 1;
-            min-width: 280px;
+            min-width: 320px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-label {
+            font-size: 11px;
+            color: #848e9c;
+            text-transform: uppercase;
+            font-weight: 600;
         }
 
         .coin-search-wrapper {
             position: relative;
-            flex: 1;
-            max-width: 200px;
+            width: 120px;
         }
 
         .coin-search-input {
@@ -604,6 +616,13 @@
         .price-ticker.down {
             color: #f6465d;
         }
+
+        .notional-size-helper {
+            font-size: 11px;
+            color: #848e9c;
+            margin-top: 4px;
+            font-weight: 500;
+        }
     </style>
 </head>
 
@@ -617,21 +636,49 @@
         <!-- Live Control Panel -->
         <div class="live-control">
             <div class="live-control-left">
-                <div class="coin-search-wrapper">
-                    <input type="text" id="global-coin" class="coin-search-input" value="BTCUSDT"
-                        placeholder="Symbol (e.g. BTCUSDT)">
-                </div>
-                <div class="live-toggle-wrapper">
-                    <div class="toggle-group" style="width: 140px;">
-                        <button class="toggle-btn active" id="mode-offline" onclick="setLiveMode(false)"
-                            style="font-size: 12px; padding: 6px;">Offline</button>
-                        <button class="toggle-btn" id="mode-live" onclick="setLiveMode(true)"
-                            style="font-size: 12px; padding: 6px;">Live</button>
+                <!-- Coin Selector -->
+                <div class="control-group">
+                    <span class="control-label">Symbol</span>
+                    <div class="coin-search-wrapper" style="width: 130px;">
+                        <input type="text" id="global-coin" class="coin-search-input" value="BTCUSDT">
                     </div>
                 </div>
-                <div class="live-status">
+
+                <!-- Global Balance -->
+                <div class="control-group">
+                    <span class="control-label">Initial Balance</span>
+                    <div class="input-wrapper" style="width: 130px;">
+                        <input type="number" id="global-balance" value="1000" class="coin-search-input"
+                            style="color: #eaecef; width: 100%;">
+                    </div>
+                </div>
+
+                <!-- Live/Offline Toggle -->
+                <div class="control-group">
+                    <span class="control-label">Feed Mode</span>
+                    <div class="toggle-group" style="width: 140px;">
+                        <button class="toggle-btn active" id="mode-offline" onclick="setLiveMode(false)"
+                            style="font-size: 11px; padding: 6px;">Offline</button>
+                        <button class="toggle-btn" id="mode-live" onclick="setLiveMode(true)"
+                            style="font-size: 11px; padding: 6px;">Live</button>
+                    </div>
+                </div>
+
+                <!-- Sync Entry Toggle -->
+                <div class="control-group">
+                    <span class="control-label">Market Entry</span>
+                    <div class="checkbox-group" style="margin-bottom: 0; padding-top: 5px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="sync-entry" onchange="toggleSyncEntry()">
+                            <label for="sync-entry" style="font-size: 11px; color: #848e9c; cursor: pointer;">Sync
+                                Live</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="live-status" style="margin-top: 15px;">
                     <span class="dot" id="live-dot"></span>
-                    <span id="live-status-text">DISCONNECTED</span>
+                    <span id="live-status-text" style="font-size: 11px;">DISCONNECTED</span>
                 </div>
             </div>
             <div class="price-ticker" id="global-price">---</div>
@@ -639,11 +686,11 @@
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('margin')">💼 Margin Sim</button>
-            <button class="tab" onclick="switchTab('pnl')">💰 PnL</button>
-            <button class="tab" onclick="switchTab('target')">🎯 Target Price</button>
-            <button class="tab" onclick="switchTab('liquidation')">⚡ Liquidation</button>
-            <button class="tab" onclick="switchTab('guide')">📚 Margin Doc</button>
+            <button class="tab active" onclick="switchTab('margin', event)">💼 Margin Sim</button>
+            <button class="tab" onclick="switchTab('pnl', event)">💰 PnL</button>
+            <button class="tab" onclick="switchTab('target', event)">🎯 Target Price</button>
+            <button class="tab" onclick="switchTab('liquidation', event)">⚡ Liquidation</button>
+            <button class="tab" onclick="switchTab('guide', event)">📚 Margin Doc</button>
         </div>
 
         <!-- Tab 1: Margin Analysis -->
@@ -919,6 +966,7 @@
                         <input type="number" id="pnl-quantity" value="0.1" step="0.001" oninput="calculatePnl()">
                         <span class="input-suffix">Contracts</span>
                     </div>
+                    <div id="pnl-notional-info" class="notional-size-helper">≈ $0.00</div>
                 </div>
 
                 <span class="advanced-toggle" onclick="toggleAdvanced('pnl')">⚙️ Include Fees</span>
@@ -1004,6 +1052,15 @@
                         <input type="number" id="target-roi" value="10" step="0.1" oninput="calculateTarget()">
                         <span class="input-suffix">%</span>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="target-quantity" value="0.1" step="0.001" oninput="calculateTarget()">
+                        <span class="input-suffix">Contracts</span>
+                    </div>
+                    <div id="target-notional-info" class="notional-size-helper">≈ $0.00</div>
                 </div>
 
                 <div class="form-group">
@@ -1094,6 +1151,7 @@
                             oninput="calculateLiquidation()">
                         <span class="input-suffix">Contracts</span>
                     </div>
+                    <div id="liq-notional-info" class="notional-size-helper">≈ $0.00</div>
                 </div>
 
                 <div class="form-group">
@@ -1284,6 +1342,7 @@
 
         // Live Mode state
         let isLive = false;
+        let isSyncEntry = false;
         let binanceWs = null;
         let lastPrice = 0;
         let currentCoin = 'BTCUSDT';
@@ -1294,7 +1353,7 @@
 
             // Update tab buttons
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event) event.target.classList.add('active');
 
             // Update content
             document.querySelectorAll('.calculator-content').forEach(c => c.classList.remove('active'));
@@ -1310,7 +1369,8 @@
         // Display updates
         function updateLeverageDisplay(prefix) {
             const value = document.getElementById(prefix + '-leverage').value;
-            document.getElementById(prefix + '-lev-display').textContent = value;
+            const display = document.getElementById(prefix + '-lev-display');
+            if (display) display.textContent = value;
         }
 
         function updateRiskDisplay() {
@@ -1370,11 +1430,9 @@
             calculateMargin();
         }
 
-
-        // Toggle advanced settings
         function toggleAdvanced(prefix) {
             const settings = document.getElementById(prefix + '-advanced');
-            settings.classList.toggle('show');
+            if (settings) settings.classList.toggle('show');
         }
 
         // Type toggles
@@ -1408,10 +1466,10 @@
 
         // Calculations
         function calculateMargin() {
-            const wallet = parseFloat(document.getElementById('margin-wallet').value);
-            const leverage = parseFloat(document.getElementById('margin-leverage').value);
+            const wallet = parseFloat(document.getElementById('margin-wallet').value) || 0;
+            const leverage = parseFloat(document.getElementById('margin-leverage').value) || 20;
             const riskPct = parseFloat(document.getElementById('margin-risk').value) / 100;
-            const numTrades = parseInt(document.getElementById('margin-trades').value);
+            const numTrades = parseInt(document.getElementById('margin-trades').value) || 1;
             const useDecreasing = document.getElementById('margin-decreasing').checked;
             const mmRate = parseFloat(document.getElementById('margin-mm-rate').value) / 100;
 
@@ -1443,7 +1501,7 @@
                 }
             }
 
-            const marginPct = (totalUsedMargin / wallet) * 100;
+            const marginPct = wallet > 0 ? (totalUsedMargin / wallet) * 100 : 0;
             const marginRatio = wallet > 0 ? (totalMaintMargin / wallet) * 100 : 0;
             const liqDistance = 100 - marginRatio;
 
@@ -1480,29 +1538,31 @@
 
             // Update table
             const tbody = document.getElementById('margin-table-body');
-            tbody.innerHTML = '';
-            trades.forEach(t => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${t.num}</td>
-                    <td>$${t.equity.toFixed(2)}</td>
-                    <td>$${t.margin.toFixed(2)}</td>
-                    <td>$${t.position.toFixed(2)}</td>
-                    <td>$${t.maintMargin.toFixed(2)}</td>
-                `;
-            });
+            if (tbody) {
+                tbody.innerHTML = '';
+                trades.forEach(t => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${t.num}</td>
+                        <td>$${t.equity.toFixed(2)}</td>
+                        <td>$${t.margin.toFixed(2)}</td>
+                        <td>$${t.position.toFixed(2)}</td>
+                        <td>$${t.maintMargin.toFixed(2)}</td>
+                    `;
+                });
+            }
         }
 
         function calculatePnl() {
-            const entry = parseFloat(document.getElementById('pnl-entry').value);
-            const exit = parseFloat(document.getElementById('pnl-exit').value);
-            const quantity = parseFloat(document.getElementById('pnl-quantity').value);
-            const leverage = parseFloat(document.getElementById('pnl-leverage').value);
+            const entry = parseFloat(document.getElementById('pnl-entry').value) || 0;
+            const exit = parseFloat(document.getElementById('pnl-exit').value) || 0;
+            const quantity = parseFloat(document.getElementById('pnl-quantity').value) || 0;
+            const leverage = parseFloat(document.getElementById('pnl-leverage').value) || 20;
             const includeFees = document.getElementById('pnl-include-fees').checked;
             const feeRate = parseFloat(document.getElementById('pnl-fee-rate').value) / 100;
 
             const positionSize = entry * quantity;
-            const initialMargin = positionSize / leverage;
+            const initialMargin = leverage > 0 ? positionSize / leverage : 0;
 
             let pnl = 0;
             if (pnlType === 'long') {
@@ -1511,10 +1571,10 @@
                 pnl = (entry - exit) * quantity;
             }
 
-            const pnlPct = (pnl / positionSize) * 100;
+            const pnlPct = positionSize > 0 ? (pnl / positionSize) * 100 : 0;
             const roi = pnlPct * leverage;
 
-            const fees = includeFees ? (positionSize * feeRate * 2) : 0; // Entry + Exit
+            const fees = includeFees ? (positionSize * feeRate * 2) : 0;
             const netPnl = pnl - fees;
 
             // Update results
@@ -1538,14 +1598,17 @@
             const netEl = document.getElementById('pnl-net');
             netEl.textContent = (netPnl >= 0 ? '+' : '') + '$' + netPnl.toFixed(2);
             netEl.className = 'result-value ' + (netPnl >= 0 ? 'positive' : 'negative');
+
+            updateNotionalInfo('pnl', positionSize);
         }
 
         function calculateTarget() {
-            const entry = parseFloat(document.getElementById('target-entry').value);
-            const targetROI = parseFloat(document.getElementById('target-roi').value);
-            const leverage = parseFloat(document.getElementById('target-leverage').value);
+            const entry = parseFloat(document.getElementById('target-entry').value) || 0;
+            const targetROI = parseFloat(document.getElementById('target-roi').value) || 0;
+            const leverage = parseFloat(document.getElementById('target-leverage').value) || 20;
+            const quantity = parseFloat(document.getElementById('target-quantity').value) || 0;
 
-            const priceChangePct = targetROI / leverage;
+            const priceChangePct = leverage > 0 ? targetROI / leverage : 0;
             let targetPrice = 0;
 
             if (targetType === 'long') {
@@ -1564,33 +1627,30 @@
             changeEl.textContent = (targetType === 'long' ? '+' : '-') + Math.abs(priceChangePct).toFixed(2) + '%';
             changeEl.className = 'result-value ' + (targetType === 'long' ? 'positive' : 'negative');
 
-            document.getElementById('target-move-usd').textContent = '$' + priceMove.toFixed(2);
             document.getElementById('target-roi-unlevered').textContent = unleveragedROI.toFixed(2) + '%';
+            document.getElementById('target-move-usd').textContent = '$' + priceMove.toFixed(2);
+
+            updateNotionalInfo('target', entry * quantity);
         }
 
         function calculateLiquidation() {
-            const entry = parseFloat(document.getElementById('liq-entry').value);
-            const quantity = parseFloat(document.getElementById('liq-quantity').value);
-            const balance = parseFloat(document.getElementById('liq-balance').value);
-            const leverage = parseFloat(document.getElementById('liq-leverage').value);
+            const entry = parseFloat(document.getElementById('liq-entry').value) || 0;
+            const quantity = parseFloat(document.getElementById('liq-quantity').value) || 0;
+            const balance = parseFloat(document.getElementById('liq-balance').value) || 0;
+            const leverage = parseFloat(document.getElementById('liq-leverage').value) || 20;
             const mmRate = parseFloat(document.getElementById('liq-mm-rate').value) / 100;
 
             const positionSize = entry * quantity;
-            const initialMargin = positionSize / leverage;
+            const initialMargin = leverage > 0 ? positionSize / leverage : 0;
             const maintMargin = positionSize * mmRate;
 
             let liqPrice = 0;
 
             if (liqMode === 'cross') {
-                // Official Binance Cross Margin Liquidation Formula:
-                // Liq Price (Long) = (MaintMargin - Balance + (1 * Qty * Entry)) / (1 * Qty - (Qty * mmRate))
-                // Liq Price (Short) = (MaintMargin - Balance + (-1 * Qty * Entry)) / (-1 * Qty - (Qty * mmRate))
                 const side = liqType === 'long' ? 1 : -1;
-                liqPrice = (maintMargin - balance + (side * quantity * entry)) / (side * quantity - (quantity * mmRate));
+                const denominator = (side * quantity - (quantity * mmRate));
+                liqPrice = denominator !== 0 ? (maintMargin - balance + (side * quantity * entry)) / denominator : 0;
             } else {
-                // Official Binance Isolated Margin Liquidation Formula:
-                // Liq Price (Long) = Entry * (1 - 1/Lev + MMR)
-                // Liq Price (Short) = Entry * (1 + 1/Lev - MMR)
                 if (liqType === 'long') {
                     liqPrice = entry * (1 - (1 / leverage) + mmRate);
                 } else {
@@ -1599,7 +1659,7 @@
             }
 
             const distUsd = Math.abs(liqPrice - entry);
-            const distPct = (distUsd / entry) * 100;
+            const distPct = entry > 0 ? (distUsd / entry) * 100 : 0;
 
             // Update results
             const liqEl = document.getElementById('liq-price');
@@ -1614,9 +1674,11 @@
             document.getElementById('liq-position-size').textContent = '$' + positionSize.toFixed(2);
             document.getElementById('liq-initial-margin').textContent = '$' + initialMargin.toFixed(2);
             document.getElementById('liq-maint-margin').textContent = '$' + maintMargin.toFixed(2);
+
+            updateNotionalInfo('liq', positionSize);
         }
 
-        // --- LIVE PRICE ENGINE (Feb 1) ---
+        // --- LIVE PRICE ENGINE ---
 
         function setLiveMode(mode) {
             isLive = mode;
@@ -1641,7 +1703,6 @@
             document.getElementById('live-status-text').textContent = 'CONNECTING...';
             document.getElementById('live-status-text').style.color = '#f0b90b';
 
-            // Use Binance Futures Ticker Stream for Last Price
             binanceWs = new WebSocket(`wss://fstream.binance.com/ws/${symbol}@ticker`);
 
             binanceWs.onopen = () => {
@@ -1652,7 +1713,7 @@
 
             binanceWs.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                const price = parseFloat(data.c); // Closing price (Last price)
+                const price = parseFloat(data.c);
                 if (isNaN(price)) return;
 
                 const priceEl = document.getElementById('global-price');
@@ -1682,41 +1743,90 @@
         }
 
         function syncLivePrice(price) {
-            // Update all price-related inputs that should follow market
+            lastPrice = price;
 
-            // Tab 2: PnL - Exit Price (Current market price)
+            // Tab 2: PnL - Exit Price
             const pnlExit = document.getElementById('pnl-exit');
-            pnlExit.value = price;
-            calculatePnl();
-
-            // Tab 3: Target Price - Entry Price (Optional: only if user wants to enter at market)
-            // We only update if it's visible or user is on that tab to avoid jumping
-            if (currentTab === 'target') {
-                // document.getElementById('target-entry').value = price;
-                // calculateTarget();
+            if (document.activeElement !== pnlExit) {
+                pnlExit.value = price;
+                calculatePnl();
             }
 
-            // Tab 4: Liquidation - Entry Price
-            if (currentTab === 'liquidation' && document.activeElement !== document.getElementById('liq-entry')) {
-                // document.getElementById('liq-entry').value = price;
-                // calculateLiquidation();
+            // Market Entry Sync
+            if (isSyncEntry) {
+                const pnlEntry = document.getElementById('pnl-entry');
+                if (document.activeElement !== pnlEntry) {
+                    pnlEntry.value = price;
+                    calculatePnl();
+                }
+
+                const targetEntry = document.getElementById('target-entry');
+                if (document.activeElement !== targetEntry) {
+                    targetEntry.value = price;
+                    calculateTarget();
+                }
+
+                const liqEntry = document.getElementById('liq-entry');
+                if (document.activeElement !== liqEntry) {
+                    liqEntry.value = price;
+                    calculateLiquidation();
+                }
             }
         }
 
-        // Handle Coin Change
+        function toggleSyncEntry() {
+            isSyncEntry = document.getElementById('sync-entry').checked;
+            if (isSyncEntry && lastPrice > 0) {
+                syncLivePrice(lastPrice);
+            }
+        }
+
+        function syncGlobalBalance() {
+            const balance = document.getElementById('global-balance').value;
+
+            // Sync to Tab 1 (Margin Sim)
+            const marginWallet = document.getElementById('margin-wallet');
+            if (marginWallet) {
+                marginWallet.value = balance;
+                updateRiskDisplay();
+                calculateMargin();
+            }
+
+            // Sync to Tab 4 (Liquidation)
+            const liqBalance = document.getElementById('liq-balance');
+            if (liqBalance) {
+                liqBalance.value = balance;
+                calculateLiquidation();
+            }
+        }
+
+        function updateNotionalInfo(tab, size) {
+            const el = document.getElementById(tab + '-notional-info');
+            if (el) el.textContent = '≈ $' + size.toFixed(2);
+        }
+
+        // Global Event Listeners
         document.getElementById('global-coin').addEventListener('change', () => {
             const newCoin = document.getElementById('global-coin').value.trim().toUpperCase();
             if (newCoin && newCoin !== currentCoin) {
                 currentCoin = newCoin;
                 if (isLive) connectWebSocket();
-                else document.getElementById('global-price').textContent = '---';
+                else {
+                    document.getElementById('global-price').textContent = '---';
+                    document.getElementById('global-price').className = 'price-ticker';
+                }
             }
         });
 
+        document.getElementById('global-balance').addEventListener('input', syncGlobalBalance);
+
         // Initialize on load
         window.onload = function () {
-            updateRiskDisplay(); // Initialize $ display
-            updateMMDisplay(); // Initialize MM% display
+            updateRiskDisplay();
+            updateMMDisplay();
+            syncGlobalBalance();
+
+            // Initial calcs
             calculateMargin();
             calculatePnl();
             calculateTarget();
