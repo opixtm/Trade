@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0b0e11;
+            color: #eaecef;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #fcd535;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #848e9c;
+            font-size: 14px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2b3139;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: #848e9c;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: #eaecef;
+        }
+
+        .tab.active {
+            color: #fcd535;
+            border-bottom-color: #fcd535;
+        }
+
+        /* Calculator Content */
+        .calculator-content {
+            display: none;
+            gap: 20px;
+        }
+
+        .calculator-content.active {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-content.active {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panels */
+        .panel {
+            background: #1e2329;
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .panel h3 {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #eaecef;
+            font-weight: 600;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #848e9c;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            background: #2b3139;
+            border: 1px solid #2b3139;
+            border-radius: 4px;
+            padding: 10px 12px;
+            color: #eaecef;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #fcd535;
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #848e9c;
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        /* Slider */
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: #2b3139;
+            outline: none;
+            border-radius: 2px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #fcd535;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #fcd535;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #848e9c;
+        }
+
+        /* Toggle Switch */
+        .toggle-group {
+            display: flex;
+            gap: 0;
+            background: #2b3139;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            color: #848e9c;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: #0ecb81;
+            color: #0b0e11;
+            font-weight: 600;
+        }
+
+        .toggle-btn.active.short {
+            background: #f6465d;
+        }
+
+        /* Button */
+        .btn-calculate {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(180deg, #fcd535 0%, #f0b90b 100%);
+            border: none;
+            border-radius: 4px;
+            color: #0b0e11;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(252, 213, 53, 0.3);
+        }
+
+        .btn-calculate:active {
+            transform: translateY(0);
+        }
+
+        /* Results */
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #2b3139;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #848e9c;
+            font-size: 13px;
+        }
+
+        .result-value {
+            color: #eaecef;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .result-value.positive {
+            color: #0ecb81;
+        }
+
+        .result-value.negative {
+            color: #f6465d;
+        }
+
+        .result-value.warning {
+            color: #f0b90b;
+        }
+
+        /* Risk Gauge */
+        .risk-gauge {
+            margin-top: 20px;
+        }
+
+        .gauge-bar {
+            height: 8px;
+            background: #2b3139;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0ecb81 0%, #f0b90b 50%, #f6465d 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .risk-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .risk-status.safe {
+            background: rgba(14, 203, 129, 0.1);
+            color: #0ecb81;
+        }
+
+        .risk-status.caution {
+            background: rgba(240, 185, 11, 0.1);
+            color: #f0b90b;
+        }
+
+        .risk-status.blocked {
+            background: rgba(246, 70, 93, 0.1);
+            color: #f6465d;
+        }
+
+        .risk-status.danger {
+            background: rgba(246, 70, 93, 0.2);
+            color: #f6465d;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* Table */
+        .results-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .results-table th {
+            background: #2b3139;
+            color: #848e9c;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #181a20;
+        }
+
+        .results-table td {
+            padding: 10px 8px;
+            font-size: 13px;
+            border-bottom: 1px solid #2b3139;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .results-table tr:hover {
+            background: rgba(252, 213, 53, 0.05);
+        }
+
+        /* Advanced Settings Toggle */
+        .advanced-toggle {
+            color: #fcd535;
+            font-size: 13px;
+            cursor: pointer;
+            margin: 15px 0;
+            display: inline-block;
+        }
+
+        .advanced-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .advanced-settings {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #2b3139;
+        }
+
+        .advanced-settings.show {
+            display: block;
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #fcd535;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 13px;
+            color: #eaecef;
+        }
+
+        /* Big Number Display */
+        .big-result {
+            text-align: center;
+            padding: 30px 0;
+            border: 1px dashed #2b3139;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .big-result-label {
+            color: #848e9c;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .big-result-value {
+            font-size: 32px;
+            font-weight: 700;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 4px;
+            cursor: help;
+        }
+
+        .tooltip-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background: #848e9c;
+            color: #0b0e11;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 14px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .tooltip:hover .tooltip-icon {
+            background: #fcd535;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #2b3139;
+            color: #eaecef;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            line-height: 1.4;
+            border: 1px solid #fcd535;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #fcd535 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Live Control Panel */
+        .live-control {
+            background: #1e2329;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #2b3139;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .live-control-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .coin-search-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .coin-search-input {
+            width: 100%;
+            background: #2b3139;
+            border: 1px solid #474d57;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #fcd535;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .coin-search-input:focus {
+            outline: none;
+            border-color: #fcd535;
+        }
+
+        .live-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #848e9c;
+        }
+
+        .dot {
+            height: 8px;
+            width: 8px;
+            background-color: #474d57;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .dot.active {
+            background-color: #0ecb81;
+            box-shadow: 0 0 8px #0ecb81;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(14, 203, 129, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(14, 203, 129, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(14, 203, 129, 0);
+            }
+        }
+
+        .price-ticker {
+            font-family: 'Monaco', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: #eaecef;
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .price-ticker.up {
+            color: #0ecb81;
+        }
+
+        .price-ticker.down {
+            color: #f6465d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Trading Calculator</h1>
+            <p>Advanced Futures Trading Calculator - Binance Style</p>
+        </div>
+
+        <!-- Live Control Panel -->
+        <div class="live-control">
+            <div class="live-control-left">
+                <div class="coin-search-wrapper">
+                    <input type="text" id="global-coin" class="coin-search-input" value="BTCUSDT"
+                        placeholder="Symbol (e.g. BTCUSDT)">
+                </div>
+                <div class="live-toggle-wrapper">
+                    <div class="toggle-group" style="width: 140px;">
+                        <button class="toggle-btn active" id="mode-offline" onclick="setLiveMode(false)"
+                            style="font-size: 12px; padding: 6px;">Offline</button>
+                        <button class="toggle-btn" id="mode-live" onclick="setLiveMode(true)"
+                            style="font-size: 12px; padding: 6px;">Live</button>
+                    </div>
+                </div>
+                <div class="live-status">
+                    <span class="dot" id="live-dot"></span>
+                    <span id="live-status-text">DISCONNECTED</span>
+                </div>
+            </div>
+            <div class="price-ticker" id="global-price">---</div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('margin')">💼 Margin Sim</button>
+            <button class="tab" onclick="switchTab('pnl')">💰 PnL</button>
+            <button class="tab" onclick="switchTab('target')">🎯 Target Price</button>
+            <button class="tab" onclick="switchTab('liquidation')">⚡ Liquidation</button>
+            <button class="tab" onclick="switchTab('guide')">📚 Margin Doc</button>
+        </div>
+
+        <!-- Tab 1: Margin Analysis -->
+        <div id="margin-tab" class="calculator-content active">
+            <div class="panel">
+                <h3>Input Parameters</h3>
+
+                <div class="form-group">
+                    <label>Wallet Balance</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="margin-wallet" value="1000" step="10"
+                            oninput="updateRiskDisplay(); calculateMargin()">
+                        <span class="input-suffix">USDT</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Leverage: <span id="margin-lev-display">20</span>x</label>
+                    <input type="range" id="margin-leverage" min="1" max="125" value="20"
+                        oninput="updateLeverageDisplay('margin'); calculateMargin()">
+                    <div class="slider-labels">
+                        <span>1x</span>
+                        <span>30x</span>
+                        <span>60x</span>
+                        <span>90x</span>
+                        <span>125x</span>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label>
+                        Risk per Trade
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">% of wallet to risk per trade. Lower = safer, higher = more
+                                aggressive.</span>
+                        </span>
+                    </label>
+
+                    <div class="toggle-group" style="margin-bottom: 10px; max-width: 200px;">
+                        <button class="toggle-btn active" id="risk-mode-pct" onclick="switchRiskMode('pct')"
+                            style="font-size: 12px; padding: 6px 12px;">%</button>
+                        <button class="toggle-btn" id="risk-mode-usd" onclick="switchRiskMode('usd')"
+                            style="font-size: 12px; padding: 6px 12px;">$</button>
+                    </div>
+
+                    <div id="risk-pct-input">
+                        <div style="margin-bottom: 8px; color: #fcd535; font-size: 14px; font-weight: 600;">
+                            <span id="margin-risk-display">3.00</span>% = $<span
+                                id="margin-risk-usd-display">30.00</span>
+                        </div>
+                        <input type="range" id="margin-risk" min="0.5" max="10" step="0.1" value="3"
+                            oninput="updateRiskDisplay(); calculateMargin()">
+                        <div class="slider-labels">
+                            <span>0.5%</span>
+                            <span>2.5%</span>
+                            <span>5%</span>
+                            <span>7.5%</span>
+                            <span>10%</span>
+                        </div>
+                    </div>
+
+                    <div id="risk-usd-input" style="display: none;">
+                        <div class="input-wrapper">
+                            <input type="number" id="margin-risk-usd" value="30" step="1" min="1"
+                                oninput="updateRiskFromUSD(); calculateMargin()">
+                            <span class="input-suffix">USDT</span>
+                        </div>
+                        <div style="margin-top: 6px; color: #848e9c; font-size: 12px;">
+                            = <span id="margin-risk-pct-display">3.00</span>% of wallet
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Number of Trades: <span id="margin-trades-display">1</span></label>
+                    <input type="range" id="margin-trades" min="1" max="20" value="1"
+                        oninput="updateTradesDisplay(); calculateMargin()">
+                    <div class="slider-labels">
+                        <span>1</span>
+                        <span>5</span>
+                        <span>10</span>
+                        <span>15</span>
+                        <span>20</span>
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="margin-decreasing" checked onchange="calculateMargin()">
+                    <label for="margin-decreasing">
+                        Use Decreasing Equity (Cross Margin)
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">Each new trade uses margin from remaining equity. More accurate
+                                for cross margin.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <span class="advanced-toggle" onclick="toggleAdvanced('margin')">⚙️ Advanced Settings</span>
+
+                <div id="margin-advanced" class="advanced-settings">
+                    <div class="form-group">
+                        <label>
+                            Maintenance Margin Rate: <span id="margin-mm-display">0.50</span>%
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Binance MM rate: 0.5% for small positions, up to 5% for large
+                                    positions.</span>
+                            </span>
+                        </label>
+
+                        <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <button onclick="setMMRate(0.5)"
+                                style="flex: 1; min-width: 60px; padding: 8px; background: #2b3139; border: 1px solid #848e9c; border-radius: 4px; color: #eaecef; cursor: pointer; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.borderColor='#fcd535'"
+                                onmouseout="this.style.borderColor='#848e9c'">
+                                Tier 1<br><span style="color: #0ecb81; font-weight: 600;">0.5%</span>
+                            </button>
+                            <button onclick="setMMRate(1)"
+                                style="flex: 1; min-width: 60px; padding: 8px; background: #2b3139; border: 1px solid #848e9c; border-radius: 4px; color: #eaecef; cursor: pointer; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.borderColor='#fcd535'"
+                                onmouseout="this.style.borderColor='#848e9c'">
+                                Tier 2<br><span style="color: #0ecb81; font-weight: 600;">1.0%</span>
+                            </button>
+                            <button onclick="setMMRate(2.5)"
+                                style="flex: 1; min-width: 60px; padding: 8px; background: #2b3139; border: 1px solid #848e9c; border-radius: 4px; color: #eaecef; cursor: pointer; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.borderColor='#fcd535'"
+                                onmouseout="this.style.borderColor='#848e9c'">
+                                Tier 3<br><span style="color: #f0b90b; font-weight: 600;">2.5%</span>
+                            </button>
+                            <button onclick="setMMRate(5)"
+                                style="flex: 1; min-width: 60px; padding: 8px; background: #2b3139; border: 1px solid #848e9c; border-radius: 4px; color: #eaecef; cursor: pointer; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.borderColor='#fcd535'"
+                                onmouseout="this.style.borderColor='#848e9c'">
+                                Tier 4<br><span style="color: #f6465d; font-weight: 600;">5.0%</span>
+                            </button>
+                        </div>
+
+                        <input type="range" id="margin-mm-rate" min="0.1" max="10" step="0.1" value="0.5"
+                            oninput="updateMMDisplay(); calculateMargin()">
+                        <div class="slider-labels">
+                            <span>0.1%</span>
+                            <span>2.5%</span>
+                            <span>5%</span>
+                            <span>7.5%</span>
+                            <span>10%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Maker Fee</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="margin-maker-fee" value="0.02" step="0.01" min="0"
+                                oninput="calculateMargin()">
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Taker Fee</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="margin-taker-fee" value="0.04" step="0.01" min="0"
+                                oninput="calculateMargin()">
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-calculate" onclick="calculateMargin()">Calculate</button>
+            </div>
+
+            <div class="panel">
+                <h3>Results</h3>
+
+                <div id="margin-results">
+                    <div class="result-item">
+                        <span class="result-label">Total Used Margin</span>
+                        <span class="result-value" id="total-margin">$0.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">% of Wallet</span>
+                        <span class="result-value" id="margin-percent">0.00%</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Position Size</span>
+                        <span class="result-value" id="position-size">$0.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Maintenance Margin</span>
+                        <span class="result-value" id="maint-margin">$0.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Margin Ratio</span>
+                        <span class="result-value" id="margin-ratio">0.00%</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Liquidation Distance</span>
+                        <span class="result-value positive" id="liq-distance">100.00%</span>
+                    </div>
+
+                    <div class="risk-gauge">
+                        <div class="result-label">Risk Assessment</div>
+                        <div class="gauge-bar">
+                            <div class="gauge-fill" id="risk-gauge" style="width: 0%"></div>
+                        </div>
+                        <span class="risk-status safe" id="risk-status">✅ SAFE - Ready for signals</span>
+                    </div>
+                </div>
+
+                <table class="results-table" id="margin-table">
+                    <thead>
+                        <tr>
+                            <th>Trade</th>
+                            <th>Equity</th>
+                            <th>Margin</th>
+                            <th>Position</th>
+                            <th>MM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="margin-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 2: PnL Calculator -->
+        <div id="pnl-tab" class="calculator-content">
+            <div class="panel">
+                <h3>Input Parameters</h3>
+
+                <div class="form-group">
+                    <label>Position Type</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="pnl-long" onclick="setPnlType('long')">Long</button>
+                        <button class="toggle-btn short" id="pnl-short" onclick="setPnlType('short')">Short</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Leverage: <span id="pnl-lev-display">20</span>x</label>
+                    <input type="range" id="pnl-leverage" min="1" max="125" value="20"
+                        oninput="updateLeverageDisplay('pnl'); calculatePnl()">
+                    <div class="slider-labels">
+                        <span>1x</span>
+                        <span>30x</span>
+                        <span>60x</span>
+                        <span>90x</span>
+                        <span>125x</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Entry Price</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="pnl-entry" value="95000" step="0.01" oninput="calculatePnl()">
+                        <span class="input-suffix">USDT</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Exit Price</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="pnl-exit" value="96000" step="0.01" oninput="calculatePnl()">
+                        <span class="input-suffix">USDT</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="pnl-quantity" value="0.1" step="0.001" oninput="calculatePnl()">
+                        <span class="input-suffix">Contracts</span>
+                    </div>
+                </div>
+
+                <span class="advanced-toggle" onclick="toggleAdvanced('pnl')">⚙️ Include Fees</span>
+
+                <div id="pnl-advanced" class="advanced-settings">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="pnl-include-fees" onchange="calculatePnl()">
+                        <label for="pnl-include-fees">Include Trading Fees</label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fee Rate</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="pnl-fee-rate" value="0.04" step="0.01" oninput="calculatePnl()">
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-calculate" onclick="calculatePnl()">Calculate</button>
+            </div>
+
+            <div class="panel">
+                <h3>Results</h3>
+
+                <div class="big-result">
+                    <div class="big-result-label">Profit & Loss</div>
+                    <div class="big-result-value positive" id="pnl-result">+$0.00</div>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Initial Margin</span>
+                    <span class="result-value" id="pnl-initial-margin">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">PnL %</span>
+                    <span class="result-value" id="pnl-percent">0.00%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">ROI (Leveraged)</span>
+                    <span class="result-value" id="pnl-roi">0.00%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Position Size</span>
+                    <span class="result-value" id="pnl-position-size">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Trading Fees</span>
+                    <span class="result-value negative" id="pnl-fees">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Net PnL</span>
+                    <span class="result-value" id="pnl-net">$0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Target Price -->
+        <div id="target-tab" class="calculator-content">
+            <div class="panel">
+                <h3>Input Parameters</h3>
+
+                <div class="form-group">
+                    <label>Position Type</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="target-long" onclick="setTargetType('long')">Long</button>
+                        <button class="toggle-btn short" id="target-short"
+                            onclick="setTargetType('short')">Short</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Entry Price</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="target-entry" value="95000" step="0.01" oninput="calculateTarget()">
+                        <span class="input-suffix">USDT</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Target ROI</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="target-roi" value="10" step="0.1" oninput="calculateTarget()">
+                        <span class="input-suffix">%</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Leverage: <span id="target-lev-display">63</span>x</label>
+                    <input type="range" id="target-leverage" min="1" max="125" value="63"
+                        oninput="updateLeverageDisplay('target'); calculateTarget()">
+                    <div class="slider-labels">
+                        <span>1x</span>
+                        <span>30x</span>
+                        <span>60x</span>
+                        <span>90x</span>
+                        <span>125x</span>
+                    </div>
+                </div>
+
+                <button class="btn-calculate" onclick="calculateTarget()">Calculate</button>
+            </div>
+
+            <div class="panel">
+                <h3>Results</h3>
+
+                <div class="big-result">
+                    <div class="big-result-label">Target Price</div>
+                    <div class="big-result-value" id="target-price">$0.00</div>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Price Change Required</span>
+                    <span class="result-value" id="target-change-pct">0.00%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Price Move</span>
+                    <span class="result-value" id="target-move-usd">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">ROI (Unleveraged)</span>
+                    <span class="result-value" id="target-roi-unlevered">0.00%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Liquidation Price -->
+        <div id="liquidation-tab" class="calculator-content">
+            <div class="panel">
+                <h3>Input Parameters</h3>
+
+                <div class="form-group">
+                    <label>Margin Mode</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="liq-cross" onclick="setLiqMode('cross')">Cross</button>
+                        <button class="toggle-btn" id="liq-isolated" onclick="setLiqMode('isolated')">Isolated</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Position Type</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="liq-long" onclick="setLiqType('long')">Long</button>
+                        <button class="toggle-btn short" id="liq-short" onclick="setLiqType('short')">Short</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Leverage: <span id="liq-lev-display">63</span>x</label>
+                    <input type="range" id="liq-leverage" min="1" max="125" value="63"
+                        oninput="updateLeverageDisplay('liq'); calculateLiquidation()">
+                    <div class="slider-labels">
+                        <span>1x</span>
+                        <span>30x</span>
+                        <span>60x</span>
+                        <span>90x</span>
+                        <span>125x</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Entry Price</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="liq-entry" value="95000" step="0.01" oninput="calculateLiquidation()">
+                        <span class="input-suffix">USDT</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="liq-quantity" value="0.1" step="0.001"
+                            oninput="calculateLiquidation()">
+                        <span class="input-suffix">Contracts</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Wallet Balance</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="liq-balance" value="1153.59" step="0.01"
+                            oninput="calculateLiquidation()">
+                        <span class="input-suffix">USDT</span>
+                    </div>
+                </div>
+
+                <span class="advanced-toggle" onclick="toggleAdvanced('liq')">⚙️ Advanced Settings</span>
+
+                <div id="liq-advanced" class="advanced-settings">
+                    <div class="form-group">
+                        <label>Maintenance Margin Rate</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="liq-mm-rate" value="0.5" step="0.1"
+                                oninput="calculateLiquidation()">
+                            <span class="input-suffix">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-calculate" onclick="calculateLiquidation()">Calculate</button>
+            </div>
+
+            <div class="panel">
+                <h3>Results</h3>
+
+                <div class="big-result">
+                    <div class="big-result-label">Liquidation Price</div>
+                    <div class="big-result-value negative" id="liq-price">$0.00</div>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Distance to Liquidation</span>
+                    <span class="result-value warning" id="liq-dist-pct">0.00%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Price Move to Liquidation</span>
+                    <span class="result-value" id="liq-dist-usd">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Position Size</span>
+                    <span class="result-value" id="liq-position-size">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Initial Margin</span>
+                    <span class="result-value" id="liq-initial-margin">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Maintenance Margin</span>
+                    <span class="result-value" id="liq-maint-margin">$0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Margin Doc (Education) -->
+        <div id="guide-tab" class="calculator-content">
+            <div class="panel">
+                <h3 style="color: #fcd535;">📘 Margin Doc: Mekanisme Cross Margin</h3>
+                <p style="color: #848e9c; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                    Memahami bagaimana modal Anda bergerak di Binance standar.
+                </p>
+
+                <div class="form-group"
+                    style="background: rgba(43, 49, 57, 0.4); padding: 15px; border-radius: 6px; border-left: 4px solid #fcd535;">
+                    <label style="color: #eaecef; font-weight: 600;">Apakah SIZE tetap?</label>
+                    <p style="color: #848e9c; font-size: 13px;">
+                        <strong>YA.</strong> Sekali bot melakukan Entry, jumlah koin (Size) yang Anda pegang adalah
+                        <strong>TETAP</strong>.
+                        Yang berubah di tabel adalah nilainya saat harga bergerak, tapi unit koin (misal 0.04 BTC) tidak
+                        berubah sampai Anda Close.
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <h4 style="font-size: 14px; margin: 15px 0 10px; color: #fcd535;">Perilaku Margin $ (Locked)</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="background: rgba(14, 203, 129, 0.1); padding: 12px; border-radius: 6px;">
+                            <div style="color: #0ecb81; font-weight: 600; font-size: 13px; margin-bottom: 5px;">Saat
+                                PROFIT 🚀</div>
+                            <p style="color: #848e9c; font-size: 12px;">Margin $ <strong>TIDAK TURUN</strong>. Modal
+                                awal tetap dikunci sebagai jaminan.</p>
+                        </div>
+                        <div style="background: rgba(246, 70, 93, 0.1); padding: 12px; border-radius: 6px;">
+                            <div style="color: #f6465d; font-weight: 600; font-size: 13px; margin-bottom: 5px;">Saat
+                                LOSS
+                                📉</div>
+                            <p style="color: #848e9c; font-size: 12px;">Margin $ <strong>NAIK</strong>. Saldo wallet
+                                ditarik untuk menahan posisi (Cross Margin).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <h4 style="font-size: 14px; margin-bottom: 10px; color: #fcd535;">Rumus ROI Dasar</h4>
+                    <div
+                        style="background: #2b3139; padding: 15px; border-radius: 6px; text-align: center; font-family: monospace;">
+                        ROI = (Unrealized PnL / Initial Margin) × 100%
+                    </div>
+                    <p style="color: #848e9c; font-size: 12px; margin-top: 8px;">
+                        ROI dihitung dari <strong>MODAL AWAL</strong>, bukan dari margin yang membengkak saat loss.
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>Skenario Trading (Contoh)</h3>
+                <p style="color: #848e9c; font-size: 13px; margin-bottom: 15px;">Wallet: $1000 | Risk: $100 (10%) | Lev:
+                    20x</p>
+
+                <h4 style="font-size: 14px; color: #0ecb81; margin-bottom: 8px;">Skenario LONG BTC (Entry $50k)</h4>
+                <table class="results-table" style="margin-bottom: 25px;">
+                    <thead>
+                        <tr>
+                            <th>Harga</th>
+                            <th>PnL $</th>
+                            <th>Margin $</th>
+                            <th>ROI %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>$50,000</td>
+                            <td>$0</td>
+                            <td>$100.00</td>
+                            <td>0%</td>
+                        </tr>
+                        <tr>
+                            <td>$60,000</td>
+                            <td style="color: #0ecb81;">+$400</td>
+                            <td>$100.00</td>
+                            <td style="color: #0ecb81;">+400%</td>
+                        </tr>
+                        <tr>
+                            <td>$45,000</td>
+                            <td style="color: #f6465d;">-$200</td>
+                            <td style="color: #fcd535;">$300.00</td>
+                            <td style="color: #f6465d;">-200%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 style="font-size: 14px; color: #f6465d; margin-bottom: 8px;">Skenario SHORT BTC (Entry $50k)</h4>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Harga</th>
+                            <th>PnL $</th>
+                            <th>Margin $</th>
+                            <th>ROI %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>$50,000</td>
+                            <td>$0</td>
+                            <td>$100.00</td>
+                            <td>0%</td>
+                        </tr>
+                        <tr>
+                            <td>$40,000</td>
+                            <td style="color: #0ecb81;">+$400</td>
+                            <td>$100.00</td>
+                            <td style="color: #0ecb81;">+400%</td>
+                        </tr>
+                        <tr>
+                            <td>$55,000</td>
+                            <td style="color: #f6465d;">-$200</td>
+                            <td style="color: #fcd535;">$300.00</td>
+                            <td style="color: #f6465d;">-200%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentTab = 'margin';
+        let pnlType = 'long';
+        let targetType = 'long';
+        let liqType = 'long';
+        let liqMode = 'cross';
+
+        // Live Mode state
+        let isLive = false;
+        let binanceWs = null;
+        let lastPrice = 0;
+        let currentCoin = 'BTCUSDT';
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.calculator-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+
+            // Trigger calculation
+            if (tab === 'margin') calculateMargin();
+            else if (tab === 'pnl') calculatePnl();
+            else if (tab === 'target') calculateTarget();
+            else if (tab === 'liquidation') calculateLiquidation();
+        }
+
+        // Display updates
+        function updateLeverageDisplay(prefix) {
+            const value = document.getElementById(prefix + '-leverage').value;
+            document.getElementById(prefix + '-lev-display').textContent = value;
+        }
+
+        function updateRiskDisplay() {
+            const value = parseFloat(document.getElementById('margin-risk').value).toFixed(2);
+            const wallet = parseFloat(document.getElementById('margin-wallet').value) || 1000;
+            const usdValue = (wallet * value / 100).toFixed(2);
+
+            document.getElementById('margin-risk-display').textContent = value;
+            document.getElementById('margin-risk-usd-display').textContent = usdValue;
+
+            // Sync USD input
+            document.getElementById('margin-risk-usd').value = parseFloat(usdValue);
+        }
+
+        function updateRiskFromUSD() {
+            const usdValue = parseFloat(document.getElementById('margin-risk-usd').value) || 0;
+            const wallet = parseFloat(document.getElementById('margin-wallet').value) || 1000;
+            const pctValue = ((usdValue / wallet) * 100).toFixed(2);
+
+            document.getElementById('margin-risk-pct-display').textContent = pctValue;
+
+            // Sync % slider (clamp to range)
+            const clampedPct = Math.max(0.5, Math.min(10, parseFloat(pctValue)));
+            document.getElementById('margin-risk').value = clampedPct;
+        }
+
+        function switchRiskMode(mode) {
+            // Update toggle buttons
+            document.getElementById('risk-mode-pct').classList.toggle('active', mode === 'pct');
+            document.getElementById('risk-mode-usd').classList.toggle('active', mode === 'usd');
+
+            // Show/hide inputs
+            document.getElementById('risk-pct-input').style.display = mode === 'pct' ? 'block' : 'none';
+            document.getElementById('risk-usd-input').style.display = mode === 'usd' ? 'block' : 'none';
+
+            // Sync values when switching
+            if (mode === 'usd') {
+                updateRiskDisplay();
+            } else {
+                updateRiskFromUSD();
+            }
+        }
+
+        function updateTradesDisplay() {
+            const value = document.getElementById('margin-trades').value;
+            document.getElementById('margin-trades-display').textContent = value;
+        }
+
+        function updateMMDisplay() {
+            const value = parseFloat(document.getElementById('margin-mm-rate').value).toFixed(2);
+            document.getElementById('margin-mm-display').textContent = value;
+        }
+
+        function setMMRate(rate) {
+            document.getElementById('margin-mm-rate').value = rate;
+            updateMMDisplay();
+            calculateMargin();
+        }
+
+
+        // Toggle advanced settings
+        function toggleAdvanced(prefix) {
+            const settings = document.getElementById(prefix + '-advanced');
+            settings.classList.toggle('show');
+        }
+
+        // Type toggles
+        function setPnlType(type) {
+            pnlType = type;
+            document.getElementById('pnl-long').classList.toggle('active', type === 'long');
+            document.getElementById('pnl-short').classList.toggle('active', type === 'short');
+            calculatePnl();
+        }
+
+        function setTargetType(type) {
+            targetType = type;
+            document.getElementById('target-long').classList.toggle('active', type === 'long');
+            document.getElementById('target-short').classList.toggle('active', type === 'short');
+            calculateTarget();
+        }
+
+        function setLiqType(type) {
+            liqType = type;
+            document.getElementById('liq-long').classList.toggle('active', type === 'long');
+            document.getElementById('liq-short').classList.toggle('active', type === 'short');
+            calculateLiquidation();
+        }
+
+        function setLiqMode(mode) {
+            liqMode = mode;
+            document.getElementById('liq-cross').classList.toggle('active', mode === 'cross');
+            document.getElementById('liq-isolated').classList.toggle('active', mode === 'isolated');
+            calculateLiquidation();
+        }
+
+        // Calculations
+        function calculateMargin() {
+            const wallet = parseFloat(document.getElementById('margin-wallet').value);
+            const leverage = parseFloat(document.getElementById('margin-leverage').value);
+            const riskPct = parseFloat(document.getElementById('margin-risk').value) / 100;
+            const numTrades = parseInt(document.getElementById('margin-trades').value);
+            const useDecreasing = document.getElementById('margin-decreasing').checked;
+            const mmRate = parseFloat(document.getElementById('margin-mm-rate').value) / 100;
+
+            let equity = wallet;
+            let totalUsedMargin = 0;
+            let totalPositionSize = 0;
+            let totalMaintMargin = 0;
+            const trades = [];
+
+            for (let i = 0; i < numTrades; i++) {
+                const margin = useDecreasing ? equity * riskPct : wallet * riskPct;
+                const position = margin * leverage;
+                const maintMargin = position * mmRate;
+
+                trades.push({
+                    num: i + 1,
+                    equity: equity,
+                    margin: margin,
+                    position: position,
+                    maintMargin: maintMargin
+                });
+
+                totalUsedMargin += margin;
+                totalPositionSize += position;
+                totalMaintMargin += maintMargin;
+
+                if (useDecreasing) {
+                    equity -= margin;
+                }
+            }
+
+            const marginPct = (totalUsedMargin / wallet) * 100;
+            const marginRatio = wallet > 0 ? (totalMaintMargin / wallet) * 100 : 0;
+            const liqDistance = 100 - marginRatio;
+
+            // Update results
+            document.getElementById('total-margin').textContent = '$' + totalUsedMargin.toFixed(2);
+            document.getElementById('margin-percent').textContent = marginPct.toFixed(2) + '%';
+            document.getElementById('position-size').textContent = '$' + totalPositionSize.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('maint-margin').textContent = '$' + totalMaintMargin.toFixed(2);
+
+            const ratioEl = document.getElementById('margin-ratio');
+            ratioEl.textContent = marginRatio.toFixed(2) + '%';
+            ratioEl.className = 'result-value ' + (marginRatio >= 40 ? 'negative' : marginRatio >= 21 ? 'warning' : 'positive');
+
+            document.getElementById('liq-distance').textContent = liqDistance.toFixed(2) + '%';
+
+            // Risk gauge
+            const gaugeWidth = Math.min(marginRatio, 100);
+            document.getElementById('risk-gauge').style.width = gaugeWidth + '%';
+
+            const statusEl = document.getElementById('risk-status');
+            if (marginRatio >= 40) {
+                statusEl.className = 'risk-status danger';
+                statusEl.textContent = '🔴 DANGER - Critical margin level';
+            } else if (marginRatio >= 21) {
+                statusEl.className = 'risk-status blocked';
+                statusEl.textContent = '⛔ BLOCKED - Cannot open new positions';
+            } else if (marginRatio >= 15) {
+                statusEl.className = 'risk-status caution';
+                statusEl.textContent = '⚠️ CAUTION - High exposure';
+            } else {
+                statusEl.className = 'risk-status safe';
+                statusEl.textContent = '✅ SAFE - Ready for signals';
+            }
+
+            // Update table
+            const tbody = document.getElementById('margin-table-body');
+            tbody.innerHTML = '';
+            trades.forEach(t => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${t.num}</td>
+                    <td>$${t.equity.toFixed(2)}</td>
+                    <td>$${t.margin.toFixed(2)}</td>
+                    <td>$${t.position.toFixed(2)}</td>
+                    <td>$${t.maintMargin.toFixed(2)}</td>
+                `;
+            });
+        }
+
+        function calculatePnl() {
+            const entry = parseFloat(document.getElementById('pnl-entry').value);
+            const exit = parseFloat(document.getElementById('pnl-exit').value);
+            const quantity = parseFloat(document.getElementById('pnl-quantity').value);
+            const leverage = parseFloat(document.getElementById('pnl-leverage').value);
+            const includeFees = document.getElementById('pnl-include-fees').checked;
+            const feeRate = parseFloat(document.getElementById('pnl-fee-rate').value) / 100;
+
+            const positionSize = entry * quantity;
+            const initialMargin = positionSize / leverage;
+
+            let pnl = 0;
+            if (pnlType === 'long') {
+                pnl = (exit - entry) * quantity;
+            } else {
+                pnl = (entry - exit) * quantity;
+            }
+
+            const pnlPct = (pnl / positionSize) * 100;
+            const roi = pnlPct * leverage;
+
+            const fees = includeFees ? (positionSize * feeRate * 2) : 0; // Entry + Exit
+            const netPnl = pnl - fees;
+
+            // Update results
+            const pnlEl = document.getElementById('pnl-result');
+            pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+            pnlEl.className = 'big-result-value ' + (pnl >= 0 ? 'positive' : 'negative');
+
+            document.getElementById('pnl-initial-margin').textContent = '$' + initialMargin.toFixed(2);
+
+            const pctEl = document.getElementById('pnl-percent');
+            pctEl.textContent = (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%';
+            pctEl.className = 'result-value ' + (pnlPct >= 0 ? 'positive' : 'negative');
+
+            const roiEl = document.getElementById('pnl-roi');
+            roiEl.textContent = (roi >= 0 ? '+' : '') + roi.toFixed(2) + '%';
+            roiEl.className = 'result-value ' + (roi >= 0 ? 'positive' : 'negative');
+
+            document.getElementById('pnl-position-size').textContent = '$' + positionSize.toFixed(2);
+            document.getElementById('pnl-fees').textContent = '-$' + fees.toFixed(2);
+
+            const netEl = document.getElementById('pnl-net');
+            netEl.textContent = (netPnl >= 0 ? '+' : '') + '$' + netPnl.toFixed(2);
+            netEl.className = 'result-value ' + (netPnl >= 0 ? 'positive' : 'negative');
+        }
+
+        function calculateTarget() {
+            const entry = parseFloat(document.getElementById('target-entry').value);
+            const targetROI = parseFloat(document.getElementById('target-roi').value);
+            const leverage = parseFloat(document.getElementById('target-leverage').value);
+
+            const priceChangePct = targetROI / leverage;
+            let targetPrice = 0;
+
+            if (targetType === 'long') {
+                targetPrice = entry * (1 + priceChangePct / 100);
+            } else {
+                targetPrice = entry * (1 - priceChangePct / 100);
+            }
+
+            const priceMove = Math.abs(targetPrice - entry);
+            const unleveragedROI = priceChangePct;
+
+            // Update results
+            document.getElementById('target-price').textContent = '$' + targetPrice.toFixed(2);
+
+            const changeEl = document.getElementById('target-change-pct');
+            changeEl.textContent = (targetType === 'long' ? '+' : '-') + Math.abs(priceChangePct).toFixed(2) + '%';
+            changeEl.className = 'result-value ' + (targetType === 'long' ? 'positive' : 'negative');
+
+            document.getElementById('target-move-usd').textContent = '$' + priceMove.toFixed(2);
+            document.getElementById('target-roi-unlevered').textContent = unleveragedROI.toFixed(2) + '%';
+        }
+
+        function calculateLiquidation() {
+            const entry = parseFloat(document.getElementById('liq-entry').value);
+            const quantity = parseFloat(document.getElementById('liq-quantity').value);
+            const balance = parseFloat(document.getElementById('liq-balance').value);
+            const leverage = parseFloat(document.getElementById('liq-leverage').value);
+            const mmRate = parseFloat(document.getElementById('liq-mm-rate').value) / 100;
+
+            const positionSize = entry * quantity;
+            const initialMargin = positionSize / leverage;
+            const maintMargin = positionSize * mmRate;
+
+            let liqPrice = 0;
+
+            if (liqMode === 'cross') {
+                // Official Binance Cross Margin Liquidation Formula:
+                // Liq Price (Long) = (MaintMargin - Balance + (1 * Qty * Entry)) / (1 * Qty - (Qty * mmRate))
+                // Liq Price (Short) = (MaintMargin - Balance + (-1 * Qty * Entry)) / (-1 * Qty - (Qty * mmRate))
+                const side = liqType === 'long' ? 1 : -1;
+                liqPrice = (maintMargin - balance + (side * quantity * entry)) / (side * quantity - (quantity * mmRate));
+            } else {
+                // Official Binance Isolated Margin Liquidation Formula:
+                // Liq Price (Long) = Entry * (1 - 1/Lev + MMR)
+                // Liq Price (Short) = Entry * (1 + 1/Lev - MMR)
+                if (liqType === 'long') {
+                    liqPrice = entry * (1 - (1 / leverage) + mmRate);
+                } else {
+                    liqPrice = entry * (1 + (1 / leverage) - mmRate);
+                }
+            }
+
+            const distUsd = Math.abs(liqPrice - entry);
+            const distPct = (distUsd / entry) * 100;
+
+            // Update results
+            const liqEl = document.getElementById('liq-price');
+            liqEl.textContent = '$' + liqPrice.toFixed(2);
+            liqEl.className = 'big-result-value negative';
+
+            const distPctEl = document.getElementById('liq-dist-pct');
+            distPctEl.textContent = distPct.toFixed(2) + '%';
+            distPctEl.className = 'result-value ' + (distPct < 5 ? 'negative' : distPct < 15 ? 'warning' : 'positive');
+
+            document.getElementById('liq-dist-usd').textContent = '$' + distUsd.toFixed(2);
+            document.getElementById('liq-position-size').textContent = '$' + positionSize.toFixed(2);
+            document.getElementById('liq-initial-margin').textContent = '$' + initialMargin.toFixed(2);
+            document.getElementById('liq-maint-margin').textContent = '$' + maintMargin.toFixed(2);
+        }
+
+        // --- LIVE PRICE ENGINE (Feb 1) ---
+
+        function setLiveMode(mode) {
+            isLive = mode;
+            document.getElementById('mode-live').classList.toggle('active', isLive);
+            document.getElementById('mode-offline').classList.toggle('active', !isLive);
+
+            if (isLive) {
+                currentCoin = document.getElementById('global-coin').value.trim().toUpperCase() || 'BTCUSDT';
+                connectWebSocket();
+            } else {
+                if (binanceWs) binanceWs.close();
+                document.getElementById('live-dot').classList.remove('active');
+                document.getElementById('live-status-text').textContent = 'OFFLINE';
+                document.getElementById('live-status-text').style.color = '#848e9c';
+            }
+        }
+
+        function connectWebSocket() {
+            if (binanceWs) binanceWs.close();
+
+            const symbol = currentCoin.toLowerCase();
+            document.getElementById('live-status-text').textContent = 'CONNECTING...';
+            document.getElementById('live-status-text').style.color = '#f0b90b';
+
+            // Use Binance Futures Ticker Stream for Last Price
+            binanceWs = new WebSocket(`wss://fstream.binance.com/ws/${symbol}@ticker`);
+
+            binanceWs.onopen = () => {
+                document.getElementById('live-dot').classList.add('active');
+                document.getElementById('live-status-text').textContent = 'CONNECTED';
+                document.getElementById('live-status-text').style.color = '#0ecb81';
+            };
+
+            binanceWs.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                const price = parseFloat(data.c); // Closing price (Last price)
+                if (isNaN(price)) return;
+
+                const priceEl = document.getElementById('global-price');
+                const oldPrice = parseFloat(priceEl.textContent) || 0;
+
+                priceEl.textContent = price.toFixed(currentCoin.includes('USDT') ? 2 : 5);
+                priceEl.className = 'price-ticker ' + (price > oldPrice ? 'up' : price < oldPrice ? 'down' : '');
+
+                if (isLive) {
+                    syncLivePrice(price);
+                }
+            };
+
+            binanceWs.onclose = () => {
+                document.getElementById('live-dot').classList.remove('active');
+                if (isLive) {
+                    document.getElementById('live-status-text').textContent = 'RECONNECTING...';
+                    setTimeout(connectWebSocket, 3000);
+                }
+            };
+
+            binanceWs.onerror = (err) => {
+                console.error("WS Error:", err);
+                document.getElementById('live-status-text').textContent = 'ERROR';
+                document.getElementById('live-status-text').style.color = '#f6465d';
+            };
+        }
+
+        function syncLivePrice(price) {
+            // Update all price-related inputs that should follow market
+
+            // Tab 2: PnL - Exit Price (Current market price)
+            const pnlExit = document.getElementById('pnl-exit');
+            pnlExit.value = price;
+            calculatePnl();
+
+            // Tab 3: Target Price - Entry Price (Optional: only if user wants to enter at market)
+            // We only update if it's visible or user is on that tab to avoid jumping
+            if (currentTab === 'target') {
+                // document.getElementById('target-entry').value = price;
+                // calculateTarget();
+            }
+
+            // Tab 4: Liquidation - Entry Price
+            if (currentTab === 'liquidation' && document.activeElement !== document.getElementById('liq-entry')) {
+                // document.getElementById('liq-entry').value = price;
+                // calculateLiquidation();
+            }
+        }
+
+        // Handle Coin Change
+        document.getElementById('global-coin').addEventListener('change', () => {
+            const newCoin = document.getElementById('global-coin').value.trim().toUpperCase();
+            if (newCoin && newCoin !== currentCoin) {
+                currentCoin = newCoin;
+                if (isLive) connectWebSocket();
+                else document.getElementById('global-price').textContent = '---';
+            }
+        });
+
+        // Initialize on load
+        window.onload = function () {
+            updateRiskDisplay(); // Initialize $ display
+            updateMMDisplay(); // Initialize MM% display
+            calculateMargin();
+            calculatePnl();
+            calculateTarget();
+            calculateLiquidation();
+        };
+    </script>
+</body>
+
+</html>
