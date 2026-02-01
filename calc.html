@@ -961,7 +961,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Quantity</label>
+                    <label>Quantity <a href="javascript:void(0)" onclick="setPnlMaxQuantity()"
+                            style="font-size: 11px; color: #fcd535; margin-left: 10px; text-decoration: none;">[Use
+                            Max] Klik Untuk Spot</a></label>
                     <div class="input-wrapper">
                         <input type="number" id="pnl-quantity" value="0.1" step="0.001" oninput="calculatePnl()">
                         <span class="input-suffix">Contracts</span>
@@ -999,7 +1001,12 @@
 
                 <div class="result-item">
                     <span class="result-label">Initial Margin</span>
-                    <span class="result-value" id="pnl-initial-margin">$0.00</span>
+                    <div style="text-align: right;">
+                        <span class="result-value" id="pnl-initial-margin">$0.00</span>
+                        <div id="pnl-margin-warning"
+                            style="font-size: 10px; color: #f6465d; display: none; font-weight: 600;">⚠️ Insufficient
+                            Balance</div>
+                    </div>
                 </div>
                 <div class="result-item">
                     <span class="result-label">PnL %</span>
@@ -1055,7 +1062,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Quantity</label>
+                    <label>Quantity <a href="javascript:void(0)" onclick="setTargetMaxQuantity()"
+                            style="font-size: 11px; color: #fcd535; margin-left: 10px; text-decoration: none;">[Use
+                            Max]</a></label>
                     <div class="input-wrapper">
                         <input type="number" id="target-quantity" value="0.1" step="0.001" oninput="calculateTarget()">
                         <span class="input-suffix">Contracts</span>
@@ -1099,6 +1108,14 @@
                     <span class="result-label">ROI (Unleveraged)</span>
                     <span class="result-value" id="target-roi-unlevered">0.00%</span>
                 </div>
+                <!-- Hidden initial margin for warning logic -->
+                <div class="result-item" style="display: none;">
+                    <span class="result-label">Initial Margin</span>
+                    <span class="result-value" id="target-initial-margin">$0.00</span>
+                </div>
+                <div id="target-margin-warning"
+                    style="font-size: 10px; color: #f6465d; display: none; font-weight: 600; text-align: right; margin-top: -10px;">
+                    ⚠️ Insufficient Balance</div>
             </div>
         </div>
 
@@ -1145,7 +1162,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Quantity</label>
+                    <label>Quantity <a href="javascript:void(0)" onclick="setLiqMaxQuantity()"
+                            style="font-size: 11px; color: #fcd535; margin-left: 10px; text-decoration: none;">[Use
+                            Max]</a></label>
                     <div class="input-wrapper">
                         <input type="number" id="liq-quantity" value="0.1" step="0.001"
                             oninput="calculateLiquidation()">
@@ -1201,7 +1220,12 @@
                 </div>
                 <div class="result-item">
                     <span class="result-label">Initial Margin</span>
-                    <span class="result-value" id="liq-initial-margin">$0.00</span>
+                    <div style="text-align: right;">
+                        <span class="result-value" id="liq-initial-margin">$0.00</span>
+                        <div id="liq-margin-warning"
+                            style="font-size: 10px; color: #f6465d; display: none; font-weight: 600;">⚠️ Insufficient
+                            Balance</div>
+                    </div>
                 </div>
                 <div class="result-item">
                     <span class="result-label">Maintenance Margin</span>
@@ -1564,6 +1588,13 @@
             const positionSize = entry * quantity;
             const initialMargin = leverage > 0 ? positionSize / leverage : 0;
 
+            // Margin Warning Logic
+            const globalBalance = parseFloat(document.getElementById('global-balance').value) || 0;
+            const warningEl = document.getElementById('pnl-margin-warning');
+            if (warningEl) {
+                warningEl.style.display = (initialMargin > globalBalance) ? 'block' : 'none';
+            }
+
             let pnl = 0;
             if (pnlType === 'long') {
                 pnl = (exit - entry) * quantity;
@@ -1602,6 +1633,19 @@
             updateNotionalInfo('pnl', positionSize);
         }
 
+        function setPnlMaxQuantity() {
+            const entry = parseFloat(document.getElementById('pnl-entry').value) || 0;
+            const leverage = parseFloat(document.getElementById('pnl-leverage').value) || 20;
+            const balance = parseFloat(document.getElementById('global-balance').value) || 0;
+
+            if (entry > 0) {
+                // Use a slightly lower factor (0.999) to avoid precision errors triggering margin warning
+                const maxQty = (balance * leverage * 0.999) / entry;
+                document.getElementById('pnl-quantity').value = maxQty.toFixed(8);
+                calculatePnl();
+            }
+        }
+
         function calculateTarget() {
             const entry = parseFloat(document.getElementById('target-entry').value) || 0;
             const targetROI = parseFloat(document.getElementById('target-roi').value) || 0;
@@ -1620,8 +1664,19 @@
             const priceMove = Math.abs(targetPrice - entry);
             const unleveragedROI = priceChangePct;
 
+            const positionSize = entry * quantity;
+            const initialMargin = leverage > 0 ? positionSize / leverage : 0;
+
+            // Margin Warning Logic
+            const globalBalance = parseFloat(document.getElementById('global-balance').value) || 0;
+            const warningEl = document.getElementById('target-margin-warning');
+            if (warningEl) {
+                warningEl.style.display = (initialMargin > globalBalance) ? 'block' : 'none';
+            }
+
             // Update results
             document.getElementById('target-price').textContent = '$' + targetPrice.toFixed(2);
+            document.getElementById('target-initial-margin').textContent = '$' + initialMargin.toFixed(2);
 
             const changeEl = document.getElementById('target-change-pct');
             changeEl.textContent = (targetType === 'long' ? '+' : '-') + Math.abs(priceChangePct).toFixed(2) + '%';
@@ -1630,7 +1685,19 @@
             document.getElementById('target-roi-unlevered').textContent = unleveragedROI.toFixed(2) + '%';
             document.getElementById('target-move-usd').textContent = '$' + priceMove.toFixed(2);
 
-            updateNotionalInfo('target', entry * quantity);
+            updateNotionalInfo('target', positionSize);
+        }
+
+        function setTargetMaxQuantity() {
+            const entry = parseFloat(document.getElementById('target-entry').value) || 0;
+            const leverage = parseFloat(document.getElementById('target-leverage').value) || 20;
+            const balance = parseFloat(document.getElementById('global-balance').value) || 0;
+
+            if (entry > 0) {
+                const maxQty = (balance * leverage * 0.999) / entry;
+                document.getElementById('target-quantity').value = maxQty.toFixed(8);
+                calculateTarget();
+            }
         }
 
         function calculateLiquidation() {
@@ -1675,7 +1742,26 @@
             document.getElementById('liq-initial-margin').textContent = '$' + initialMargin.toFixed(2);
             document.getElementById('liq-maint-margin').textContent = '$' + maintMargin.toFixed(2);
 
+            // Margin Warning Logic
+            const globalBalance = parseFloat(document.getElementById('global-balance').value) || 0;
+            const warningEl = document.getElementById('liq-margin-warning');
+            if (warningEl) {
+                warningEl.style.display = (initialMargin > globalBalance) ? 'block' : 'none';
+            }
+
             updateNotionalInfo('liq', positionSize);
+        }
+
+        function setLiqMaxQuantity() {
+            const entry = parseFloat(document.getElementById('liq-entry').value) || 0;
+            const leverage = parseFloat(document.getElementById('liq-leverage').value) || 20;
+            const balance = parseFloat(document.getElementById('global-balance').value) || 0;
+
+            if (entry > 0) {
+                const maxQty = (balance * leverage * 0.999) / entry;
+                document.getElementById('liq-quantity').value = maxQty.toFixed(8);
+                calculateLiquidation();
+            }
         }
 
         // --- LIVE PRICE ENGINE ---
